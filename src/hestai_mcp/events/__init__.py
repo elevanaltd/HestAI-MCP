@@ -3,10 +3,11 @@
 from .jsonl_lens import (
     AssistantMessage,
     ClaudeJsonlLens,
+    JsonlParseError,
     ModelSwap,
-    SessionMessage,
     ToolResult,
     ToolUse,
+    UnknownSchemaError,
     UserMessage,
 )
 
@@ -17,5 +18,6 @@ __all__ = [
     "ToolUse",
     "ToolResult",
     "ModelSwap",
-    "SessionMessage",
+    "JsonlParseError",
+    "UnknownSchemaError",
 ]
