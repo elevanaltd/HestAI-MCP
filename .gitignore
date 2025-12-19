@@ -60,3 +60,9 @@ dmypy.json
 # Temporary files
 *.tmp
 *.bak
+
+# Experimental code (optional - uncomment to exclude from version control)
+# rfcs/experimental/
+
+# HestAI report scratch area
+.hestai/reports/scratch/
