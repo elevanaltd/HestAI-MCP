@@ -14,12 +14,22 @@
       "patternProperties": {
         "^[a-z][a-z0-9-]*$": {
           "type": "object",
-          "required": ["type"],
+          "required": ["type", "autoInject"],
           "properties": {
             "type": {
               "type": "string",
               "enum": ["guardrail", "domain"],
               "description": "Skill type: guardrail (blocking) or domain (guidance)"
+            },
+            "enforcement": {
+              "type": "string",
+              "enum": ["block", "suggest", "warn"],
+              "description": "Enforcement level"
+            },
+            "priority": {
+              "type": "string",
+              "enum": ["critical", "high", "medium", "low"],
+              "description": "Priority for skill ordering"
             },
             "autoInject": {
               "type": "boolean",
