@@ -23,12 +23,12 @@ Reference Implementation:
 
 import json
 import re
+from collections.abc import Iterable, Iterator
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Iterable, Iterator, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import BaseModel
-
 
 # ============================================================================
 # EXCEPTIONS
@@ -67,7 +67,7 @@ class HestAIEvent(BaseModel):
     """Base class for normalized session events."""
 
     event_type: str
-    timestamp: Optional[datetime] = None
+    timestamp: datetime | None = None
     line_number: int
 
 
@@ -83,7 +83,7 @@ class AssistantMessage(HestAIEvent):
 
     event_type: Literal["assistant_message"] = "assistant_message"
     content: str
-    model: Optional[str] = None
+    model: str | None = None
 
 
 class ToolUse(HestAIEvent):
@@ -140,7 +140,7 @@ class ClaudeJsonlLens:
                    If False, skip unknown records (not recommended).
         """
         self.strict = strict
-        self._current_model: Optional[str] = None
+        self._current_model: str | None = None
 
     def parse_file(self, jsonl_path: Path) -> Iterator[HestAIEvent]:
         """

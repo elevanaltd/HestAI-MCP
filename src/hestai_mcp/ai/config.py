@@ -3,7 +3,6 @@
 import json
 import os
 from pathlib import Path
-from typing import List, Optional
 
 import keyring
 from pydantic import BaseModel, Field
@@ -27,7 +26,7 @@ class AIConfig(BaseModel):
     """AI client configuration with primary and fallback providers."""
 
     primary: ProviderConfig
-    fallback: List[ProviderConfig] = Field(default_factory=list)
+    fallback: list[ProviderConfig] = Field(default_factory=list)
     timeouts: TimeoutConfig = Field(default_factory=TimeoutConfig)
 
 
@@ -83,7 +82,7 @@ def save_config(config: AIConfig) -> None:
     config_path.write_text(json.dumps(config_dict, indent=2))
 
 
-def resolve_api_key(provider: str) -> Optional[str]:
+def resolve_api_key(provider: str) -> str | None:
     """Resolve API key for a provider from keyring or environment.
 
     Resolution order:

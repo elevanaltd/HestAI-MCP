@@ -14,12 +14,12 @@ Security boundaries:
 import logging
 import re
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-def verify_context_claims(octave_content: str, working_dir: Path) -> Dict[str, Any]:
+def verify_context_claims(octave_content: str, working_dir: Path) -> dict[str, Any]:
     """
     Verify OCTAVE content claims before syncing to PROJECT-CONTEXT.
 
@@ -43,8 +43,8 @@ def verify_context_claims(octave_content: str, working_dir: Path) -> Dict[str, A
         Fail-closed: If verification fails, block context update.
         Better to skip update than corrupt PROJECT-CONTEXT with broken refs.
     """
-    issues: List[str] = []
-    warnings: List[str] = []
+    issues: list[str] = []
+    warnings: list[str] = []
 
     # Check 1: Verify FILES_MODIFIED references
     file_issues = _verify_files_modified(octave_content, working_dir)
@@ -65,7 +65,7 @@ def verify_context_claims(octave_content: str, working_dir: Path) -> Dict[str, A
     return {"passed": len(issues) == 0, "issues": issues, "warnings": warnings}
 
 
-def _verify_files_modified(octave_content: str, working_dir: Path) -> List[str]:
+def _verify_files_modified(octave_content: str, working_dir: Path) -> list[str]:
     """
     Verify that files mentioned in FILES_MODIFIED exist and are within working_dir.
 
@@ -73,7 +73,7 @@ def _verify_files_modified(octave_content: str, working_dir: Path) -> List[str]:
 
     Security: Rejects absolute paths and enforces repo-relative containment.
     """
-    issues: List[str] = []
+    issues: list[str] = []
     working_dir_resolved = working_dir.resolve()
 
     # Extract FILES_MODIFIED section
@@ -134,7 +134,7 @@ def _normalize_link_destination(dest: str) -> str:
     return dest
 
 
-def _verify_markdown_links(octave_content: str, working_dir: Path) -> List[str]:
+def _verify_markdown_links(octave_content: str, working_dir: Path) -> list[str]:
     """
     Verify markdown links [text](path) resolve to real files within working_dir.
 
@@ -178,7 +178,7 @@ def _verify_markdown_links(octave_content: str, working_dir: Path) -> List[str]:
     return issues
 
 
-def _detect_path_traversal(octave_content: str) -> List[str]:
+def _detect_path_traversal(octave_content: str) -> list[str]:
     """
     Detect path traversal attempts (../ or absolute paths outside project).
 
@@ -200,7 +200,7 @@ def _detect_path_traversal(octave_content: str) -> List[str]:
     return issues
 
 
-def _detect_sensitive_paths(octave_content: str) -> List[str]:
+def _detect_sensitive_paths(octave_content: str) -> list[str]:
     """
     Detect references to sensitive system paths (warning, not error).
 

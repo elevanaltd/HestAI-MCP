@@ -13,7 +13,7 @@ Integration with clock_out workflow:
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from hestai_mcp.ai.client import AIClient
 from hestai_mcp.ai.providers.base import CompletionRequest
@@ -84,8 +84,8 @@ CONSTRAINTS::
 
 
 async def compress_to_octave(
-    transcript_path: Path, session_data: Dict[str, Any], description: str = ""
-) -> Optional[str]:
+    transcript_path: Path, session_data: dict[str, Any], description: str = ""
+) -> str | None:
     """
     Compress session transcript to OCTAVE format using AI.
 

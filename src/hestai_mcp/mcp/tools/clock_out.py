@@ -24,9 +24,9 @@ from pathlib import Path
 from typing import Any
 
 from hestai_mcp.events.jsonl_lens import (
+    AssistantMessage,
     ClaudeJsonlLens,
     UserMessage,
-    AssistantMessage,
 )
 
 logger = logging.getLogger(__name__)
@@ -244,8 +244,8 @@ def clock_out(
 
                 # Feature 5: Append to learnings index
                 from hestai_mcp.mcp.tools.shared.learnings_index import (
-                    extract_learnings_keys,
                     append_to_learnings_index,
+                    extract_learnings_keys,
                 )
 
                 learnings_keys = extract_learnings_keys(octave_content)

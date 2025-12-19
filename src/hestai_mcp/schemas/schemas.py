@@ -1,7 +1,8 @@
-from enum import Enum
-from typing import Dict, Any, Optional, Literal, List
-from pydantic import BaseModel, Field, UUID4, field_validator
 from datetime import datetime
+from enum import Enum
+from typing import Any, Literal
+
+from pydantic import UUID4, BaseModel, Field, field_validator
 
 
 class EventType(str, Enum):
@@ -19,7 +20,7 @@ class HestAIEvent(BaseModel):
     session_id: str
     role: str
     type: EventType
-    payload: Dict[str, Any]
+    payload: dict[str, Any]
 
 
 class SessionStartPayload(BaseModel):
@@ -32,13 +33,13 @@ class SessionEndPayload(BaseModel):
     """Payload for session end events."""
 
     session_id: str
-    outcomes: List[str]  # What was accomplished
-    golden_nuggets: List[str] = Field(..., max_length=2)  # Key learnings (max 2, <50 chars each)
-    next_actions: List[str]  # Suggested continuations
+    outcomes: list[str]  # What was accomplished
+    golden_nuggets: list[str] = Field(..., max_length=2)  # Key learnings (max 2, <50 chars each)
+    next_actions: list[str]  # Suggested continuations
 
     @field_validator("golden_nuggets")
     @classmethod
-    def validate_golden_nuggets(cls, v: List[str]) -> List[str]:
+    def validate_golden_nuggets(cls, v: list[str]) -> list[str]:
         """Validate golden nuggets constraints."""
         if len(v) > 2:
             raise ValueError("Maximum 2 golden nuggets allowed")
@@ -50,7 +51,7 @@ class SessionEndPayload(BaseModel):
 
 class ContextUpdatePayload(BaseModel):
     target_file: str  # e.g. "PROJECT-CONTEXT.md"
-    section: Optional[str] = None
+    section: str | None = None
     operation: str = "append"  # append, replace, delete
     content: str
 

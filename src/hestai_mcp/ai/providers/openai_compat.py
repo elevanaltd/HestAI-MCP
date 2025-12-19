@@ -1,11 +1,8 @@
 """OpenAI-compatible provider implementation (OpenAI + OpenRouter)."""
 
-from typing import Dict, List
-
 import httpx
 
 from hestai_mcp.ai.providers.base import BaseProvider, CompletionRequest, ModelInfo
-
 
 # Curated model lists for providers that require authentication to list
 OPENAI_CURATED_MODELS = [
@@ -42,7 +39,7 @@ class OpenAICompatProvider(BaseProvider):
         self.provider_name = provider_name
         self.base_url = base_url.rstrip("/")
 
-    def list_models(self) -> List[ModelInfo]:
+    def list_models(self) -> list[ModelInfo]:
         """List available models.
 
         OpenRouter: Fetch live from /models endpoint
@@ -58,7 +55,7 @@ class OpenAICompatProvider(BaseProvider):
         else:
             return []
 
-    def _fetch_openrouter_models(self) -> List[ModelInfo]:
+    def _fetch_openrouter_models(self) -> list[ModelInfo]:
         """Fetch models from OpenRouter API.
 
         Returns:
@@ -83,7 +80,7 @@ class OpenAICompatProvider(BaseProvider):
             # Return empty list on failure (don't crash listing)
             return []
 
-    def test_connection(self, model: str, api_key: str) -> Dict[str, object]:
+    def test_connection(self, model: str, api_key: str) -> dict[str, object]:
         """Test connection to provider.
 
         Args:

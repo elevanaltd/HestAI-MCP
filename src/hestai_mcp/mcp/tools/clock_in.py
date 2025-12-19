@@ -20,7 +20,7 @@ import logging
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +85,7 @@ def validate_working_dir(working_dir: str) -> Path:
 
 def detect_focus_conflict(
     focus: str, active_sessions_dir: Path, current_session_id: str
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """
     Detect if another active session has the same focus.
 
@@ -204,7 +204,7 @@ def clock_in(
     role: str,
     working_dir: str,
     focus: str = "general",
-    model: Optional[str] = None,
+    model: str | None = None,
 ) -> dict[str, Any]:
     """
     Register session start, create session directory, return context paths.

@@ -1,13 +1,10 @@
 """AIClient orchestrator with fallback chain."""
 
-from typing import Optional
-
 import httpx
 
 from hestai_mcp.ai.config import AIConfig, load_config, resolve_api_key
 from hestai_mcp.ai.providers.base import BaseProvider, CompletionRequest
 from hestai_mcp.ai.providers.openai_compat import OpenAICompatProvider
-
 
 # Provider base URLs
 PROVIDER_URLS = {
@@ -24,7 +21,7 @@ class AIClient:
     Does NOT fallback on auth/validation errors (4xx).
     """
 
-    def __init__(self, config: Optional[AIConfig] = None) -> None:
+    def __init__(self, config: AIConfig | None = None) -> None:
         """Initialize AIClient.
 
         Args:
@@ -89,7 +86,7 @@ class AIClient:
         # Build provider chain: primary + fallbacks
         provider_configs = [self.config.primary] + self.config.fallback
 
-        last_error: Optional[Exception] = None
+        last_error: Exception | None = None
 
         for provider_config in provider_configs:
             # Resolve API key for this provider

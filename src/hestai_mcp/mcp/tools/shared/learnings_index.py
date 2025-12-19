@@ -16,12 +16,12 @@ import logging
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-def extract_learnings_keys(octave_content: str) -> Dict[str, List[str]]:
+def extract_learnings_keys(octave_content: str) -> dict[str, list[str]]:
     """
     Parse DECISION_*/BLOCKER_*/LEARNING_* keys from OCTAVE content.
 
@@ -46,7 +46,7 @@ def extract_learnings_keys(octave_content: str) -> Dict[str, List[str]]:
             "learnings": ["problem→solution→wisdom"]
         }
     """
-    keys: Dict[str, List[str]] = {"decisions": [], "blockers": [], "learnings": []}
+    keys: dict[str, list[str]] = {"decisions": [], "blockers": [], "learnings": []}
 
     # Extract DECISION_N patterns
     decision_pattern = r"DECISION_\d+::(.*?)(?=DECISION_\d+::|$)"
@@ -72,7 +72,7 @@ def extract_learnings_keys(octave_content: str) -> Dict[str, List[str]]:
 
 
 def append_to_learnings_index(
-    session_data: Dict[str, Any], keys: Dict[str, List[str]], archive_dir: Path
+    session_data: dict[str, Any], keys: dict[str, list[str]], archive_dir: Path
 ) -> None:
     """
     Append learnings to learnings-index.jsonl (atomic write).

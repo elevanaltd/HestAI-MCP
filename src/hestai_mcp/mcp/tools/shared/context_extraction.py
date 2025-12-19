@@ -13,12 +13,11 @@ Design:
 
 import logging
 import re
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 
-def extract_context_from_octave(octave_content: str) -> Optional[str]:
+def extract_context_from_octave(octave_content: str) -> str | None:
     """
     Extract DECISIONS/OUTCOMES/BLOCKERS for PROJECT-CONTEXT update.
 
@@ -68,7 +67,7 @@ def extract_context_from_octave(octave_content: str) -> Optional[str]:
     return None
 
 
-def _extract_section(octave_content: str, section_name: str) -> Optional[str]:
+def _extract_section(octave_content: str, section_name: str) -> str | None:
     """
     Extract a specific OCTAVE section by name.
 

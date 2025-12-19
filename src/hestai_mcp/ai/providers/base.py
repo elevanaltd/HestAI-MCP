@@ -1,7 +1,6 @@
 """Base provider interface for AI completions."""
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -21,7 +20,7 @@ class ModelInfo(BaseModel):
 
     id: str
     name: str
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class BaseProvider(ABC):
@@ -34,7 +33,7 @@ class BaseProvider(ABC):
     """
 
     @abstractmethod
-    def list_models(self) -> List[ModelInfo]:
+    def list_models(self) -> list[ModelInfo]:
         """List available models for this provider.
 
         Returns:
@@ -43,7 +42,7 @@ class BaseProvider(ABC):
         pass
 
     @abstractmethod
-    def test_connection(self, model: str, api_key: str) -> Dict[str, object]:
+    def test_connection(self, model: str, api_key: str) -> dict[str, object]:
         """Test connectivity and authentication with this provider.
 
         Args:

@@ -17,7 +17,6 @@ import logging
 import os
 import time
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +35,7 @@ class TranscriptPathResolver:
     """
 
     def _validate_path_containment(
-        self, input_path: Path, allowed_root: Optional[Path] = None
+        self, input_path: Path, allowed_root: Path | None = None
     ) -> Path:
         """
         Validate path is within allowed root directory.
@@ -64,7 +63,7 @@ class TranscriptPathResolver:
         return target_path
 
     def _find_by_temporal_beacon(
-        self, session_id: str, claude_projects: Optional[Path] = None
+        self, session_id: str, claude_projects: Path | None = None
     ) -> Path:
         """
         Layer 1: Find JSONL by scanning recently modified files for session_id content.
@@ -134,7 +133,7 @@ class TranscriptPathResolver:
         )
 
     def _find_by_metadata_inversion(
-        self, project_root: Path, claude_projects: Optional[Path] = None
+        self, project_root: Path, claude_projects: Path | None = None
     ) -> Path:
         """
         Layer 2: Find JSONL by scanning project_config.json files to match project root.
