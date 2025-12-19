@@ -9,9 +9,11 @@ This MCP server provides context management tools for AI agents:
 Architecture:
 - System Governance: .sys-runtime/ delivered by MCP (not committed)
 - Project Documentation: .hestai/ committed (single writer via MCP tools)
+- Hub: Bundled with MCP server package (no external HESTAI_HUB_ROOT dependency)
 """
 
 import logging
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +30,46 @@ logger = logging.getLogger(__name__)
 app = Server("hestai-mcp")
 
 
+def get_hub_path() -> Path:
+    """
+    Get the bundled hub path.
+
+    The Hub is bundled with the MCP server package itself,
+    eliminating external dependencies like HESTAI_HUB_ROOT.
+
+    Returns:
+        Path to bundled hub directory
+
+    Raises:
+        FileNotFoundError: If hub directory doesn't exist
+    """
+    # Hub is bundled at package_root/hub/
+    # This file is at: src/hestai_mcp/mcp/server.py
+    # Package root is 3 levels up: ../../../
+    hub_path = Path(__file__).parent.parent.parent.parent / "hub"
+
+    if not hub_path.exists():
+        raise FileNotFoundError(
+            f"Bundled hub not found at {hub_path}. "
+            "The hub should be included in the MCP server package."
+        )
+
+    return hub_path
+
+
+def get_hub_version() -> str:
+    """
+    Read hub version from bundled VERSION file.
+
+    Returns:
+        Version string (e.g., "1.0.0")
+    """
+    version_file = get_hub_path() / "VERSION"
+    if version_file.exists():
+        return version_file.read_text().strip()
+    return "unknown"
+
+
 def inject_system_governance(project_root: Path) -> None:
     """
     Inject system governance files into .hestai/.sys-runtime/.
@@ -35,23 +77,34 @@ def inject_system_governance(project_root: Path) -> None:
     ADR-0007: System governance is delivered by MCP server at startup,
     not committed to git. This provides agents, rules, and templates.
 
+    The Hub is now bundled with the MCP server package, eliminating
+    the need for external HESTAI_HUB_ROOT environment variable.
+
     Args:
         project_root: Project root directory
-
-    TODO: Implement in Phase 4
-    - Read HESTAI_HUB_ROOT environment variable
-    - Copy governance files to .sys-runtime/
-    - Write version marker
     """
     sys_runtime = project_root / ".hestai" / ".sys-runtime"
+    hub_path = get_hub_path()
 
-    # TODO Phase 4: Implement governance injection
-    # hub_root = os.environ.get("HESTAI_HUB_ROOT")
-    # if hub_root:
-    #     shutil.copytree(Path(hub_root) / "governance", sys_runtime)
-    #     (sys_runtime / ".version").write_text(get_hub_version())
+    # Create .sys-runtime directory if it doesn't exist
+    sys_runtime.mkdir(parents=True, exist_ok=True)
 
-    logger.info(f"System governance injection (TODO): {sys_runtime}")
+    # Copy governance files from bundled hub
+    for source_dir in ["governance", "agents", "library", "templates"]:
+        source = hub_path / source_dir
+        dest = sys_runtime / source_dir
+
+        if source.exists():
+            # Remove existing destination to ensure clean copy
+            if dest.exists():
+                shutil.rmtree(dest)
+            shutil.copytree(source, dest)
+            logger.info(f"Copied {source_dir} from bundled hub to {dest}")
+
+    # Write version marker
+    version_file = sys_runtime / ".version"
+    version_file.write_text(get_hub_version())
+    logger.info(f"Injected system governance v{get_hub_version()} to {sys_runtime}")
 
 
 @app.list_tools()
