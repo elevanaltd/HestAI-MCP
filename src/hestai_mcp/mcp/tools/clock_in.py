@@ -144,11 +144,11 @@ def resolve_context_paths(working_dir: Path) -> list[str]:
 
     # Standard OCTAVE context files (ADR-0007)
     standard_files = [
-        "PROJECT-CONTEXT.oct",
-        "PROJECT-ROADMAP.oct",
-        "PROJECT-CHECKLIST.oct",
-        "PROJECT-HISTORY.oct",
-        "context-negatives.oct",
+        "PROJECT-CONTEXT.oct.md",
+        "PROJECT-ROADMAP.oct.md",
+        "PROJECT-CHECKLIST.oct.md",
+        "PROJECT-HISTORY.oct.md",
+        "context-negatives.oct.md",
     ]
 
     for file_name in standard_files:
