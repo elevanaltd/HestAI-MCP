@@ -16,20 +16,20 @@ Test Coverage:
 """
 
 import json
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator
 
 import pytest
 
 from hestai_mcp.events import (
-    ClaudeJsonlLens,
-    UserMessage,
     AssistantMessage,
-    ToolUse,
-    ToolResult,
-    ModelSwap,
+    ClaudeJsonlLens,
     JsonlParseError,
+    ModelSwap,
+    ToolResult,
+    ToolUse,
     UnknownSchemaError,
+    UserMessage,
 )
 
 

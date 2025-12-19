@@ -10,6 +10,7 @@ Test Coverage:
 
 import json
 from pathlib import Path
+
 import pytest
 
 
@@ -19,8 +20,9 @@ class TestOctaveCompression:
 
     def test_compress_to_octave_function_exists(self):
         """Verify compress_to_octave function exists and is callable."""
-        from hestai_mcp.mcp.tools.shared.compression import compress_to_octave
         import inspect
+
+        from hestai_mcp.mcp.tools.shared.compression import compress_to_octave
 
         # Verify function exists
         assert callable(compress_to_octave)

@@ -12,8 +12,9 @@ Security Context:
 - Fail-closed: If redaction fails, archival must be BLOCKED
 """
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 
 @pytest.mark.unit
@@ -127,8 +128,9 @@ class TestCopyAndRedact:
 
     def test_cleans_up_on_redaction_failure(self, tmp_path: Path):
         """Removes partial output if redaction fails (fail-closed)."""
-        from hestai_mcp.mcp.tools.shared.security import RedactionEngine
         from unittest.mock import patch
+
+        from hestai_mcp.mcp.tools.shared.security import RedactionEngine
 
         src = tmp_path / "source.jsonl"
         src.write_text("test content\n")
@@ -137,9 +139,8 @@ class TestCopyAndRedact:
         # Simulate redaction failure mid-copy
         with patch.object(
             RedactionEngine, "redact_content", side_effect=Exception("Redaction failed")
-        ):
-            with pytest.raises(Exception, match="Redaction failed"):
-                RedactionEngine.copy_and_redact(src, dst)
+        ), pytest.raises(Exception, match="Redaction failed"):
+            RedactionEngine.copy_and_redact(src, dst)
 
         # Verify destination cleaned up
         assert not dst.exists()
