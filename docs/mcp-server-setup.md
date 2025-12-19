@@ -1,8 +1,8 @@
-# MCP Server Setup for document-submit
+# HestAI MCP Server Setup
 
 ## Overview
 
-This repository contains a LOCAL MCP server implementation with clockin/clockout tools. The server is implemented in Python at `src/hestai_mcp/mcp/server.py`.
+This repository contains the **HestAI MCP server** - a Model Context Protocol server that provides persistent memory, system governance, and context management for AI agents. The server is implemented in Python at `src/hestai_mcp/mcp/server.py`.
 
 ## Installation
 
@@ -28,7 +28,7 @@ Add the following to your Claude Desktop configuration:
 ```json
 {
   "mcpServers": {
-    "document-submit": {
+    "hestai-mcp": {
       "command": "/Volumes/HestAI-MCP/worktrees/document-submit/.venv/bin/python",
       "args": [
         "-m",
@@ -43,7 +43,9 @@ Add the following to your Claude Desktop configuration:
 
 ## Available Tools
 
-### clock_in
+### Currently Implemented
+
+#### clock_in
 Register agent session start and return context paths.
 - Creates session directory in `.hestai/sessions/active/`
 - Returns OCTAVE context file paths from `.hestai/context/`
@@ -54,7 +56,7 @@ Register agent session start and return context paths.
 - `focus` (optional): Work focus area (default: 'general')
 - `model` (optional): AI model identifier
 
-### clock_out
+#### clock_out
 Archive agent session transcript and extract learnings.
 - Compresses session transcript to OCTAVE format
 - Archives to `.hestai/sessions/archive/`
@@ -64,25 +66,36 @@ Archive agent session transcript and extract learnings.
 - `session_id` (required): Session ID from clock_in
 - `description` (optional): Session summary/description
 
+### Planned Tools (Phase 3)
+
+#### document_submit
+Submit documents to `.hestai/` directory (TODO - not yet implemented).
+This tool will provide single-writer access to project documentation.
+
 ## File Structure
 
 ```
-document-submit/
+HestAI-MCP/
 ├── src/
 │   └── hestai_mcp/
 │       ├── mcp/
 │       │   ├── server.py          # Main MCP server
 │       │   └── tools/
 │       │       ├── clock_in.py    # Clock in implementation
-│       │       └── clock_out.py   # Clock out implementation
+│       │       ├── clock_out.py   # Clock out implementation
+│       │       └── (document_submit.py - TODO Phase 3)
 │       └── ...
 ├── .venv/                          # Python virtual environment
-├── .hestai/
-│   ├── context/                   # Project context files
-│   ├── sessions/
-│   │   ├── active/                # Active sessions
+├── .hestai/                        # Project documentation (committed)
+│   ├── context/                   # Living operational state
+│   ├── sessions/                  # Session management
+│   │   ├── active/                # Active sessions (gitignored)
 │   │   └── archive/               # Archived sessions
-│   └── reports/
+│   ├── workflow/                  # Project-specific rules
+│   └── reports/                   # Analysis and assessments
+├── docs/
+│   ├── adr/                       # Architecture Decision Records
+│   └── ARCHITECTURE.md            # System architecture overview
 └── setup_mcp_server.sh            # Setup script
 ```
 
@@ -98,8 +111,9 @@ python -m hestai_mcp.mcp.server
 ### Testing Tools
 
 After configuring Claude Desktop and restarting, the tools will be available as:
-- `mcp__document_submit__clock_in`
-- `mcp__document_submit__clock_out`
+- `mcp__hestai_mcp__clock_in`
+- `mcp__hestai_mcp__clock_out`
+- `mcp__hestai_mcp__document_submit` (when implemented)
 
 ## Notes
 
