@@ -6,24 +6,29 @@ This repository contains the **HestAI MCP server** - a Model Context Protocol se
 
 ## Installation
 
-### 1. Run the Setup Script
+### Quick Setup (Automatic Configuration)
 
 ```bash
 ./setup_mcp_server.sh
 ```
 
-This script will:
+This enhanced script will:
 - Create a Python virtual environment (`.venv`)
 - Install the hestai-mcp package in development mode
 - Install all required dependencies
+- **Automatically update your Claude Desktop configuration** (with your permission)
+- Create a backup of your existing config before making changes
 
-### 2. Configure Claude Desktop
+The script features:
+- ✅ **Automatic platform detection** (macOS, Linux, WSL, Windows)
+- ✅ **Smart configuration updates** - merges with existing config
+- ✅ **Backup creation** - saves your config before modifications
+- ✅ **Colored output** - clear success/warning/error messages
+- ✅ **Cross-platform support** - works on all major platforms
 
-Add the following to your Claude Desktop configuration:
+### Manual Configuration (if automatic setup is skipped)
 
-1. Open Claude Desktop
-2. Go to Settings → Developer → Edit Config
-3. Add to the `mcpServers` section:
+If you choose to skip automatic configuration:
 
 ```json
 {
