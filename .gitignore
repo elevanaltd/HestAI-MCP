@@ -66,3 +66,7 @@ dmypy.json
 
 # HestAI report scratch area
 .hestai/reports/scratch/
+
+# Git worktrees (Crystal)
+/worktrees/
+/worktree-*/
