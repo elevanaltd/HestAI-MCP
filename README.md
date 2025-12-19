@@ -10,30 +10,27 @@
 
 HestAI-MCP is a Model Context Protocol (MCP) server that solves the **cognitive continuity crisis** in AI-assisted development. It provides persistent memory and context management for AI agents working on long-running projects that require months of accumulated knowledge.
 
-### The Problem
+### The Solution: "Installed Governance"
 
-AI agents have no persistent memory between sessions. When working on complex projects:
-- Context is lost between conversations
-- Agents can't access project history or decisions
-- Multiple agents create conflicting files
-- System governance rules drift across projects
-- Symlinks and worktrees cause visibility issues
+HestAI-MCP treats system governance (rules, agent definitions, workflows) as **installed software**.
+*   **No more copy-pasting** rules between projects.
+*   **No more drifting** standards.
+*   **Instant updates** when you upgrade the MCP server.
 
-### The Solution
+It implements a **Dual-Layer Context Architecture** (see [Architecture](docs/ARCHITECTURE.md)):
+1.  **System Governance** (`.sys-runtime/`): Injected at runtime, read-only.
+2.  **Project Documentation** (`.hestai/`): Living project context, committed to git.
 
-HestAI-MCP implements a **dual-layer context architecture** ([ADR-0007](docs/adr/adr-0007-dual-layer-context-architecture.md)):
+## Architecture
 
-1. **System Governance Layer** (`.sys-runtime/`)
-   - Delivered at runtime by MCP server
-   - Contains agents, rules, workflows
-   - Read-only, versioned from Hub
-   - Not committed to git
+For a deep dive into the system design, including diagrams and decision records, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-2. **Project Documentation Layer** (`.hestai/`)
-   - Living project context and history
-   - Written only through MCP tools (single writer pattern)
-   - Committed to git, visible to agents
-   - OCTAVE format for 5-10x compression
+### Core Concepts
+
+*   **Dual-Layer Context**: Separating immutable system rules from living project state.
+*   **Orchestra Map**: Tracking dependencies between Concepts (specs) and Code.
+*   **Odyssean Anchor**: Verified identity binding for agents.
+*   **Single Writer**: All context writes go through the System Steward to prevent conflicts.
 
 ## Features
 
@@ -90,45 +87,6 @@ Add to your MCP client configuration (e.g., Claude Desktop):
   }
 }
 ```
-
-## Architecture
-
-### Directory Structure
-
-```
-your-project/
-├── .hestai/                    # Project documentation (committed)
-│   ├── context/                # Living operational state
-│   │   ├── project-context.oct.md
-│   │   ├── project-roadmap.oct.md
-│   │   └── project-checklist.oct.md
-│   ├── sessions/
-│   │   ├── active/            # Current sessions (gitignored)
-│   │   └── archive/           # Historical sessions (committed)
-│   ├── reports/               # Audit artifacts
-│   └── .sys-runtime/          # System governance (gitignored, delivered)
-│       ├── agents/            # 50+ agent definitions
-│       ├── governance/        # Rules and standards
-│       └── .version          # Hub version marker
-```
-
-### Single Writer Pattern
-
-All writes to `.hestai/` go through MCP tools to prevent conflicts:
-
-```
-Agents → MCP Tools → System Steward → Validated Writes → .hestai/
-```
-
-### MCP Tools
-
-| Tool | Purpose | Status |
-|------|---------|--------|
-| `clock_in` | Start session, load context | ✅ Complete |
-| `clock_out` | Archive session, compress to OCTAVE | ✅ Complete |
-| `document_submit` | Route documents to correct location | 🚧 Phase 3 |
-| `context_update` | Merge context changes with conflict resolution | 🚧 Phase 3 |
-| `anchor_submit` | Validate agent identity and constraints | ✅ Complete |
 
 ## Development Roadmap
 

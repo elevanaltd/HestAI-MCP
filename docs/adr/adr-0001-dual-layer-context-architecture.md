@@ -233,7 +233,7 @@ See RFC-0002 for detailed Hub as Application design.
 
 ## References
 
-- Original ADR-0007 in hestai-core repository
+- ADR-0002: Orchestra Map Architecture (Layer 3 semantic integration)
 - OCTAVE Micro Primer: `hub/library/octave/octave-micro-primer.oct.md`
 - Project Roadmap: `.hestai/context/project-roadmap.oct.md`
 
