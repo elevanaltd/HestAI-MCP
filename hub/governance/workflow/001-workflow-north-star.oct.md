@@ -1,5 +1,10 @@
 ===WORKFLOW_NORTH_STAR===
 
+META:
+  NAME::"Workflow North Star"
+  VERSION::"1.0"
+  PURPOSE::"Defines HestAI phase-gated workflow and governance anchors"
+
 METADATA::[
   type::workflow,
   domain::governance,

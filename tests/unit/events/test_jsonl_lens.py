@@ -21,7 +21,7 @@ from typing import Iterator
 
 import pytest
 
-from hestai_mcp.events.jsonl_lens import (
+from hestai_mcp.events import (
     ClaudeJsonlLens,
     UserMessage,
     AssistantMessage,

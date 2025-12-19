@@ -1,5 +1,10 @@
 ===NAMING_STANDARD===
 
+META:
+  NAME::"Naming Standard"
+  VERSION::"1.0"
+  PURPOSE::"Conventions for file naming and discoverability in the hub"
+
 METADATA::[
   type::standard,
   domain::governance,

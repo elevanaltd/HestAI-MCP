@@ -1,5 +1,10 @@
 ===TEST_STRUCTURE_STANDARD===
 
+META:
+  NAME::"Test Structure Standard"
+  VERSION::"1.0"
+  PURPOSE::"Standardizes test file layout and naming across projects"
+
 METADATA::[
   type::standard,
   domain::governance,

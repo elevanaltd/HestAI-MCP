@@ -1,5 +1,10 @@
 ===VISIBILITY_RULES===
 
+META:
+  NAME::"Visibility Rules"
+  VERSION::"1.1"
+  PURPOSE::"Placement and lifecycle rules for artifacts to ensure discoverability"
+
 METADATA::[
   type::standard,
   domain::governance,

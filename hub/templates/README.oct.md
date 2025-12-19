@@ -1,5 +1,10 @@
 ===TEMPLATES_DIRECTORY===
 
+META:
+  NAME::"Templates Directory"
+  VERSION::"1.0"
+  PURPOSE::"Explains purpose of hub/templates and future contents"
+
 METADATA::[
   type::guide,
   domain::governance,

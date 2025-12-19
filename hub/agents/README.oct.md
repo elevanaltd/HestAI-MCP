@@ -1,5 +1,10 @@
 ===AGENTS_DIRECTORY===
 
+META:
+  NAME::"Agents Directory"
+  VERSION::"1.0"
+  PURPOSE::"Explains hub/agents contents and intent for constitutions"
+
 METADATA::[
   type::guide,
   domain::agents,
