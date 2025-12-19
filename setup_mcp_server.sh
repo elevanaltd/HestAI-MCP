@@ -24,7 +24,7 @@ echo "2. Go to Developer > Edit Config"
 echo "3. Add the following to 'mcpServers':"
 echo ""
 cat << 'EOF'
-  "document-submit": {
+  "hestai-mcp": {
     "command": "/Volumes/HestAI-MCP/worktrees/document-submit/.venv/bin/python",
     "args": [
       "-m",
@@ -34,3 +34,8 @@ cat << 'EOF'
 EOF
 echo ""
 echo "4. Restart Claude Desktop"
+echo ""
+echo "Available tools:"
+echo "  - clock_in: Register agent session start"
+echo "  - clock_out: Archive agent session"
+echo "  - document_submit: (TODO - Phase 3)"
