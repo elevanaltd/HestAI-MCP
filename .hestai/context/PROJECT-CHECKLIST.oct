@@ -1,0 +1,75 @@
+===PROJECT_CHECKLIST===
+// HestAI-MCP current tasks and progress tracking
+
+META:
+  NAME::"HestAI-MCP Task Checklist"
+  VERSION::"0.1.0"
+  LAST_UPDATE::"2025-12-19"
+
+PHASE_0_FOUNDATION:
+  STATUS::in_progress
+  TASKS:
+    directory_structure::DONE
+    git_initialization::DONE
+    main_branch_rename::DONE
+    OCTAVE_context_files::DONE
+    pyproject_toml::TODO
+    gitignore_creation::TODO
+    README_initial::TODO
+
+PHASE_1_CODE_PORTING:
+  STATUS::pending
+  TASKS:
+    ai_client_port:
+      STATUS::TODO
+      SOURCE::/Volumes/HestAI-Projects/hestai-core/src/hestai_core/ai/
+      TARGET::/Volumes/HestAI-MCP/src/hestai_mcp/ai/
+      FILES::[client.py, provider_factory.py, providers/]
+
+    clock_tools_port:
+      STATUS::TODO
+      SOURCE::/Volumes/HestAI-Projects/hestai-core/src/hestai_core/mcp/tools/
+      TARGET::/Volumes/HestAI-MCP/src/hestai_mcp/mcp/tools/
+      FILES::[clock_in.py, clock_out.py]
+
+    shared_utilities_port:
+      STATUS::TODO
+      SOURCE::/Volumes/HestAI-Projects/hestai-core/src/hestai_core/mcp/shared/
+      TARGET::/Volumes/HestAI-MCP/src/hestai_mcp/mcp/shared/
+
+    jsonl_lens_port:
+      STATUS::TODO
+      SOURCE::/Volumes/HestAI-Projects/hestai-core/src/hestai_core/events/jsonl_lens.py
+      TARGET::/Volumes/HestAI-MCP/src/hestai_mcp/events/jsonl_lens.py
+
+    schemas_port:
+      STATUS::TODO
+      SOURCE::/Volumes/HestAI-Projects/hestai-core/src/hestai_core/schemas/
+      TARGET::/Volumes/HestAI-MCP/src/hestai_mcp/schemas/
+
+    tests_port:
+      STATUS::TODO
+      SOURCE::/Volumes/HestAI-Projects/hestai-core/tests/
+      TARGET::/Volumes/HestAI-MCP/tests/
+      NOTE::"Port only tests relevant to ported code"
+
+PHASE_2_MCP_SERVER:
+  STATUS::pending
+  TASKS:
+    server_creation::TODO
+    tool_registration::TODO
+    sys_runtime_stub::TODO
+    document_submit_placeholder::TODO
+
+QUALITY_GATES:
+  pytest::TODO
+  mypy::TODO
+  ruff::TODO
+  black::TODO
+
+EXCLUSIONS::DO_NOT_PORT:
+  anchor_manager::"Worktree-specific logic"
+  worktree_logic::"Replaced by direct .hestai/ directory"
+  symlink_management::"No longer needed"
+
+===END===

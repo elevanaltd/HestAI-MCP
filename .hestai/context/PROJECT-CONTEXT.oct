@@ -1,0 +1,49 @@
+===PROJECT_CONTEXT===
+// HestAI-MCP operational dashboard
+
+META:
+  NAME::"HestAI Context Management MCP Server"
+  VERSION::"0.1.0"
+  PHASE::PHASE_0_FOUNDATION
+  STATUS::fresh_start_initialized
+
+PURPOSE::"MCP server implementing dual-layer context architecture for AI agent coordination"
+
+ARCHITECTURE::DUAL_LAYER:
+  SYSTEM_GOVERNANCE::.sys-runtime/[delivered_not_committed]
+  PROJECT_DOCUMENTATION::.hestai/[committed_single_writer]
+
+ACTIVE_WORK::[
+  Phase_0::directory_structure_creation->completed,
+  Phase_1::code_porting_from_hestai_core->in_progress,
+  Phase_2::MCP_server_foundation->pending
+]
+
+SUCCESS_CRITERIA::[
+  Directory_Structure::.hestai/[direct_no_symlinks]->complete,
+  OCTAVE_Format::all_context_files->complete,
+  Core_Ported::ai_client+clock_tools+schemas->pending,
+  Quality_Gates::pytest+mypy+ruff+black->pending,
+  Git_Repository::initialized+main_branch->complete
+]
+
+REPLACES::"hestai-core worktree architecture (symlink issues, agent visibility problems)"
+
+KEY_INSIGHTS::[
+  NO_SYMLINKS::"Direct .hestai/ directory for git visibility",
+  SINGLE_WRITER::"System Steward MCP tools only write to .hestai/",
+  OCTAVE_STANDARD::"All context in OCTAVE format for compression+structure",
+  DELIVERED_GOVERNANCE::".sys-runtime/ injected by MCP server not committed"
+]
+
+BLOCKERS::none
+
+NEXT_ACTIONS::[
+  1::Create_pyproject_toml_with_dependencies,
+  2::Create_gitignore_blocking_sys_runtime_and_active_sessions,
+  3::Port_ai_client_system_from_hestai_core,
+  4::Port_clock_tools_and_schemas,
+  5::Create_MCP_server_with_tool_registration
+]
+
+===END===
