@@ -149,11 +149,43 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
     elif name == "clock_out":
-        result = clock_out(
-            session_id=arguments["session_id"],
-            description=arguments.get("description", ""),
-        )
         import json
+
+        # Read session metadata to get project_root
+        session_id = arguments["session_id"]
+
+        # Find session file - check all possible locations
+        # Sessions are stored in {project}/.hestai/sessions/active/{session_id}/
+        # We need to search for the session to find the project root
+        possible_roots = [
+            Path.cwd(),  # Current directory
+            Path.cwd().parent,  # Parent directory
+        ]
+
+        session_file = None
+        project_root = None
+
+        for root in possible_roots:
+            potential_session = root / ".hestai" / "sessions" / "active" / session_id / "session.json"
+            if potential_session.exists():
+                session_file = potential_session
+                project_root = root
+                break
+
+        if not session_file or not project_root:
+            raise FileNotFoundError(
+                f"Session {session_id} not found. Searched in: {possible_roots}"
+            )
+
+        # Load session data to get the actual working_dir
+        session_data = json.loads(session_file.read_text())
+        actual_project_root = Path(session_data["working_dir"])
+
+        result = clock_out(
+            session_id=session_id,
+            description=arguments.get("description", ""),
+            project_root=actual_project_root,
+        )
 
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
