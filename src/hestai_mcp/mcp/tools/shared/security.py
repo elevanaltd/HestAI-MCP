@@ -108,11 +108,10 @@ class RedactionEngine:
         # This prevents loading multi-MB session files entirely into memory
         # Fail-closed: if redaction fails, clean up partial output
         try:
-            with open(src, encoding="utf-8") as src_file:
-                with open(dst, "w", encoding="utf-8") as dst_file:
-                    for line in src_file:
-                        redacted_line = cls.redact_content(line)
-                        dst_file.write(redacted_line)
+            with open(src, encoding="utf-8") as src_file, open(dst, "w", encoding="utf-8") as dst_file:
+                for line in src_file:
+                    redacted_line = cls.redact_content(line)
+                    dst_file.write(redacted_line)
         except Exception:
             # Fail-closed: remove partial output if redaction failed
             if dst.exists():

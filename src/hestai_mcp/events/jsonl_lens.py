@@ -182,7 +182,7 @@ class ClaudeJsonlLens:
             try:
                 record = json.loads(line)
             except json.JSONDecodeError as e:
-                raise JsonlParseError(line_number, f"Invalid JSON: {e}")
+                raise JsonlParseError(line_number, f"Invalid JSON: {e}") from e
 
             # Extract record type
             record_type = record.get("type")
