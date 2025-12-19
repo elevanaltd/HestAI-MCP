@@ -11,7 +11,6 @@ import json
 import logging
 import uuid
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any
 
 from .clock_in import (
@@ -148,7 +147,7 @@ def demo_registry_benefits(working_dir: str) -> None:
         print(f"Optional Available: {len(result['context_paths']['optional'])}")
 
         metadata = result["visibility_metadata"]
-        print(f"\nVisibility Stats:")
+        print("\nVisibility Stats:")
         print(f"  Total Docs: {metadata['total_available']}")
         print(f"  Loaded: {metadata['loaded']}")
         print(f"  Filtered Out: {metadata['filtered_out']}")

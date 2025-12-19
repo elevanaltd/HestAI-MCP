@@ -197,10 +197,10 @@ class ContextRegistry:
 
             # Role-specific documents
             elif visibility == Visibility.ROLE_SPECIFIC.value:
-                if not entry["roles"] or role in entry["roles"]:
-                    # Check phase compatibility if specified
-                    if not entry["phases"] or (phase and phase in entry["phases"]):
-                        required_paths.append((entry["priority"], str(full_path)))
+                if (not entry["roles"] or role in entry["roles"]) and (
+                    not entry["phases"] or (phase and phase in entry["phases"])
+                ):
+                    required_paths.append((entry["priority"], str(full_path)))
 
             # Phase-specific documents
             elif visibility == Visibility.PHASE_SPECIFIC.value:
