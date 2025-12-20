@@ -70,4 +70,3 @@ dmypy.json
 # Git worktrees (Crystal)
 /worktrees/
 /worktree-*/
-.hestai/sessions/

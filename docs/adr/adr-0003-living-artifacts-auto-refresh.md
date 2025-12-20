@@ -25,10 +25,10 @@ No automatic mechanism refreshes context when PRs merge. Context updates depend 
 
 ### Architectural Constraint
 
-`.hestai/` is a **symlink** to the Anchor worktree (per CV3: `.hestai_is_canonical`):
-- Gitignored in main repo (per-clone isolation by design)
-- Lives on separate orphan branch (`hestai-state`)
-- CI cannot directly update it (different git history)
+In the current HestAI-MCP architecture:
+- `.hestai/` is a **direct directory** in the repo (no symlinks, no orphan branches).
+- `.hestai-sys/` is injected by the MCP server at runtime and is gitignored.
+- CI can update `docs/CHANGELOG.md` on `main` without cross-branch complexity.
 
 ## Decision
 
@@ -39,9 +39,9 @@ Implement a **split-artifact hybrid** architecture:
 | Artifact | Location | Updated By | Purpose |
 |----------|----------|------------|---------|
 | `CHANGELOG.md` | `docs/` (main branch) | CI on merge | Audit trail, always visible in repo |
-| `current_state.oct` | `.hestai/snapshots/` | clock_in (generated) | Live state, query-driven |
-| `PROJECT-CONTEXT.md` | `.hestai/snapshots/` | Agents | Rich context, local |
-| `PROJECT-CHECKLIST.md` | `.hestai/snapshots/` | Agents | Task tracking, local |
+| `current_state.oct` | `.hestai/context/` | clock_in (generated) | Live state, query-driven |
+| `PROJECT-CONTEXT.oct.md` | `.hestai/context/` | System Steward tools | Rich context, committed |
+| `PROJECT-CHECKLIST.oct.md` | `.hestai/context/` | System Steward tools | Task tracking, committed |
 
 ### Layer 1: CI-Updated CHANGELOG (Enforced)
 
@@ -93,19 +93,20 @@ on:
 
 ## Why This Architecture
 
-### Problem with Original Design (CI → Orphan Branch)
+### Problem with Original Design (CI → Separate State Branch)
 
-The original ADR-003 proposed CI updating `.hestai/snapshots/` via the `hestai-state` orphan branch. Issues:
+The original ADR-003 assumed `.hestai/` lived outside the normal repo history (symlink/orphan-branch pattern). In that world:
 
-1. **CI can't see `.hestai/`** - symlink is gitignored, not in checkout
-2. **Cross-branch complexity** - CI would need to checkout orphan branch, push separately
-3. **Concurrency hazards** - merge storms cause non-fast-forward errors
+1. CI would need cross-branch writes to update state
+2. Concurrency hazards would be high (merge storms, non-fast-forward)
+
+In the current HestAI-MCP architecture, `.hestai/` is a normal directory and this specific failure mode is avoided.
 
 ### Solution: Split by Visibility
 
 - **CHANGELOG in main** - always visible, CI can update same branch
-- **Context in .hestai/** - rich, local, generated fresh by clock_in
-- **No orphan branch writes from CI** - eliminates complexity
+- **Context in `.hestai/context/`** - committed project context files; freshness maintained via `clock_in`
+- **No cross-branch writes from CI** - eliminates concurrency complexity
 
 ## Constraints & Validation
 
@@ -153,9 +154,8 @@ The original ADR-003 proposed CI updating `.hestai/snapshots/` via the `hestai-s
 ### Positive
 - CHANGELOG always visible in main branch (can't be missed)
 - No CI complexity with orphan branches
-- Context freshness guaranteed by query-driven generation
+- Context freshness improved by query-driven generation at `clock_in`
 - Audit trail maintained for all merges
-- Respects Anchor architecture (CV3)
 
 ### Negative
 - Two artifact locations (docs/ and .hestai/)
@@ -186,7 +186,7 @@ The original ADR-003 proposed CI updating `.hestai/snapshots/` via the `hestai-s
 ## Specialist Consultations
 
 ### Critical-Engineer (Codex) - CONDITIONAL GO
-> "CI workflow updates `hestai-state` on merge; concurrency lock; schema validation;
+> "CI workflow updates a dedicated state branch on merge; concurrency lock; schema validation;
 > safe-diff allowlist; staleness gate + alert/issue; audit-ready commit metadata"
 >
 > "NO-GO for AI-driven auto-merge until you have: formal schema, golden fixtures,

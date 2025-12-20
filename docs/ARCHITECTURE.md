@@ -46,7 +46,7 @@ graph TD
 | Layer | Content | Delivery | Git Status | Writer |
 |-------|---------|----------|------------|--------|
 | **System Governance** | Rules, agents, methodology | MCP server injection | `.gitignore` | HestAI system |
-| **Project Documentation** | Context, sessions, reports | Direct files | Committed | System Steward only |
+| **Project Documentation** | Context, sessions (active ignored, archive committed), reports | Direct files | Committed (except active sessions) | System Steward only |
 
 ---
 
