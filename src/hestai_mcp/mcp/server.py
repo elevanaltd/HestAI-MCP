@@ -7,7 +7,7 @@ This MCP server provides context management tools for AI agents:
 - document_submit: Submit documents to .hestai/ (TODO - Phase 3)
 
 Architecture:
-- System Governance: .sys-runtime/ delivered by MCP (not committed)
+- System Governance: .hestai-sys/ delivered by MCP (not committed)
 - Project Documentation: .hestai/ committed (single writer via MCP tools)
 - Hub: Bundled with MCP server package (no external HESTAI_HUB_ROOT dependency)
 """
@@ -72,7 +72,7 @@ def get_hub_version() -> str:
 
 def inject_system_governance(project_root: Path) -> None:
     """
-    Inject system governance files into .hestai/.sys-runtime/.
+    Inject system governance files into .hestai-sys/.
 
     ADR-0007: System governance is delivered by MCP server at startup,
     not committed to git. This provides agents, rules, and templates.
@@ -83,16 +83,16 @@ def inject_system_governance(project_root: Path) -> None:
     Args:
         project_root: Project root directory
     """
-    sys_runtime = project_root / ".hestai" / ".sys-runtime"
+    hestai_sys_dir = project_root / ".hestai-sys"
     hub_path = get_hub_path()
 
-    # Create .sys-runtime directory if it doesn't exist
-    sys_runtime.mkdir(parents=True, exist_ok=True)
+    # Create .hestai-sys directory if it doesn't exist
+    hestai_sys_dir.mkdir(parents=True, exist_ok=True)
 
     # Copy governance files from bundled hub
     for source_dir in ["governance", "agents", "library", "templates"]:
         source = hub_path / source_dir
-        dest = sys_runtime / source_dir
+        dest = hestai_sys_dir / source_dir
 
         if source.exists():
             # Remove existing destination to ensure clean copy
@@ -102,9 +102,9 @@ def inject_system_governance(project_root: Path) -> None:
             logger.info(f"Copied {source_dir} from bundled hub to {dest}")
 
     # Write version marker
-    version_file = sys_runtime / ".version"
+    version_file = hestai_sys_dir / ".version"
     version_file.write_text(get_hub_version())
-    logger.info(f"Injected system governance v{get_hub_version()} to {sys_runtime}")
+    logger.info(f"Injected system governance v{get_hub_version()} to {hestai_sys_dir}")
 
 
 @app.list_tools()
@@ -219,7 +219,9 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         project_root = None
 
         for root in possible_roots:
-            potential_session = root / ".hestai" / "sessions" / "active" / session_id / "session.json"
+            potential_session = (
+                root / ".hestai" / "sessions" / "active" / session_id / "session.json"
+            )
             if potential_session.exists():
                 session_file = potential_session
                 project_root = root

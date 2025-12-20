@@ -15,7 +15,7 @@ PHASE_0_FOUNDATION:
     main_branch_rename::DONE[feat/phase-0-foundation]
     OCTAVE_context_files::DONE[PROJECT-CONTEXT,PROJECT-CHECKLIST,PROJECT-ROADMAP]
     pyproject_toml::DONE[with_dev_dependencies]
-    gitignore_creation::DONE[.sys-runtime_excluded,sessions/active_excluded]
+    gitignore_creation::DONE[.hestai-sys_excluded,sessions/active_excluded]
     README_initial::DONE
 
 PHASE_1_CODE_PORTING:
@@ -69,7 +69,7 @@ PHASE_2_MCP_SERVER:
   TASKS:
     server_creation::DONE[server.py_181_lines]
     tool_registration::DONE[clock_in,clock_out]
-    sys_runtime_stub::DONE[inject_system_governance_function]
+    hestai_sys_stub::DONE[inject_system_governance_function]
     document_submit_placeholder::DONE[TODO_Phase_3_marker]
 
 QUALITY_GATES:
@@ -100,7 +100,7 @@ VERIFICATION_COMPLETE:
     no_symlinks::.hestai/[CONFIRMED_direct_directory]
     no_worktrees::CONFIRMED[single_repo_architecture]
     OCTAVE_format::CONFIRMED[all_context_files]
-    gitignore_sys_runtime::CONFIRMED[.hestai/.sys-runtime/]
+    gitignore_hestai_sys::CONFIRMED[.hestai-sys/]
     gitignore_active_sessions::CONFIRMED[.hestai/sessions/active/]
 
   CODE_PORTING::VERIFIED:
@@ -128,7 +128,7 @@ NEXT_ACTIONS:
   ]
 
   PHASE_4::[
-    implement_sys_runtime_governance_injection,
+    implement_hestai_sys_governance_injection,
     implement_HESTAI_HUB_ROOT_environment_handling,
     create_pre_commit_hook_blocking_direct_.hestai_writes
   ]

@@ -49,7 +49,7 @@ PHASES:
       ✅::tool_registration[clock_in+clock_out],
       ✅::clock_in_functional,
       ✅::clock_out_functional,
-      ✅::sys_runtime_injection_stub,
+      ✅::hestai_sys_injection_stub,
       ✅::document_submit_placeholder
     ]
     QUALITY::[
@@ -84,10 +84,10 @@ PHASES:
     STATUS::pending
 
   PHASE_4::GOVERNANCE_DELIVERY[days:11-14]:
-    GOAL::".sys-runtime/ injection from bundled Hub"
+    GOAL::".hestai-sys/ injection from bundled Hub"
     DELIVERABLES::[
       ✅::bundled_hub_architecture[no_external_dependency],
-      sys_runtime_population_on_startup[inject_system_governance()],
+      hestai_sys_population_on_startup[inject_system_governance()],
       ✅::version_tracking[hub/VERSION_1.0.0],
       governance_file_injection_to_projects
     ]
@@ -105,7 +105,7 @@ MILESTONES:
   PRODUCTION_READY::[
     document_submit_routing,
     single_writer_enforced,
-    sys_runtime_delivered,
+    hestai_sys_delivered,
     pre_commit_hooks_blocking_direct_writes
   ]
   STATUS::pending_phase_3_and_4

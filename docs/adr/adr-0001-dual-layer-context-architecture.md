@@ -48,24 +48,22 @@ Implement a **Dual-Layer Context Architecture**:
 System governance is treated as **installed software**, not editable files:
 
 ```
-.hestai/
-├── .sys-runtime/                    # Delivered by MCP server at activation
-│   ├── governance/
-│   │   ├── rules/
-│   │   │   ├── naming-standard.oct.md
-│   │   │   ├── visibility-rules.oct.md
-│   │   │   └── workflow-methodology.oct.md
-│   │   └── workflow/
-│   │       └── 001-workflow-north-star.oct.md
-│   ├── agents/                      # All agent prompts
-│   │   ├── implementation-lead.oct.md
-│   │   ├── critical-engineer.oct.md
-│   │   ├── system-steward.oct.md
-│   │   └── ... (50+ agents)
-│   ├── templates/                   # System templates
-│   │   └── octave-micro-primer.oct.md
-│   └── .version                     # Hub version marker
-└── .gitignore                       # Ignores .sys-runtime/
+.hestai-sys/                          # Delivered by MCP server at activation
+├── governance/
+│   ├── rules/
+│   │   ├── naming-standard.oct.md
+│   │   ├── visibility-rules.oct.md
+│   │   └── workflow-methodology.oct.md
+│   └── workflow/
+│       └── 001-workflow-north-star.oct.md
+├── agents/                            # All agent prompts
+│   ├── implementation-lead.oct.md
+│   ├── critical-engineer.oct.md
+│   ├── system-steward.oct.md
+│   └── ... (50+ agents)
+├── templates/                         # System templates
+│   └── octave-micro-primer.oct.md
+└── .version                           # Hub version marker
 ```
 
 **Properties:**
@@ -97,8 +95,9 @@ Project documentation lives **directly in the repository**, fully visible to age
 │       └── learnings-index.jsonl
 ├── reports/                         # Audit artifacts
 │   └── YYYY-MM-DD-{topic}.oct.md
-└── .sys-runtime/                    # GITIGNORED (delivered)
 ```
+
+System governance is injected to `.hestai-sys/` (top-level, gitignored) by the MCP server.
 
 **Properties:**
 - **Git committed** - visible to agents, `@taggable`, PR reviewable
@@ -148,7 +147,7 @@ Project documentation lives **directly in the repository**, fully visible to age
 
 | Component | Status | Details |
 |-----------|--------|---------|
-| Dual-layer structure | ✅ Complete | .hestai/ direct, .sys-runtime/ planned |
+|| Dual-layer structure | ✅ Complete | .hestai/ direct, .hestai-sys/ planned |
 | Bundled Hub | ✅ Complete | Governance files included in package |
 | MCP Server | ✅ Partial | clock_in/out working, document_submit pending |
 | Single Writer | 🚧 Phase 3 | System Steward tools in progress |
@@ -210,7 +209,7 @@ Project documentation lives **directly in the repository**, fully visible to age
    - No multi-agent conflicts
 
 4. **Governance Delivery**
-   - `.sys-runtime/` populated on MCP start
+   - `.hestai-sys/` populated on MCP start
    - Agents can read governance without symlinks
    - Version tracking works
 

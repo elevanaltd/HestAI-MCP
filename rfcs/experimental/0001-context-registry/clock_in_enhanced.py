@@ -157,7 +157,9 @@ def demo_registry_benefits(working_dir: str) -> None:
         avg_tokens_per_doc = 500
         total_tokens = metadata["total_available"] * avg_tokens_per_doc
         loaded_tokens = metadata["loaded"] * avg_tokens_per_doc
-        savings_pct = ((total_tokens - loaded_tokens) / total_tokens * 100) if total_tokens > 0 else 0
+        savings_pct = (
+            ((total_tokens - loaded_tokens) / total_tokens * 100) if total_tokens > 0 else 0
+        )
 
         print(f"\nEstimated Token Savings: {savings_pct:.1f}%")
         print(f"  Without Registry: ~{total_tokens} tokens")
