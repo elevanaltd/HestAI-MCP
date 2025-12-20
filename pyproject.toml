@@ -57,6 +57,13 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+markers = [
+    "smoke: fast import/sanity tests",
+    "unit: unit-scoped tests",
+    "behavior: executable behavior tests (NOW)",
+    "contract: interaction/contract tests (SOON)",
+    "integration: full integration tests (LATER)",
+]
 addopts = [
     "--cov=hestai_mcp",
     "--cov-report=term-missing",
