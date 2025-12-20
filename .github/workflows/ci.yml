@@ -175,13 +175,26 @@ jobs:
           echo "RESULT::test_integration=${{ needs.test_integration.result }}"
           echo "OUTPUT::run_integration=${{ needs.preflight.outputs.run_integration }}"
 
-          for job in preflight typecheck lint test_now artifact_validate; do
-            result="$(eval echo \"\\${{ needs.${job}.result }}\")"
-            if [ "$result" != "success" ]; then
-              echo "ERROR::required_job_failed::$job::$result"
-              exit 1
-            fi
-          done
+          if [ "${{ needs.preflight.result }}" != "success" ]; then
+            echo "ERROR::required_job_failed::preflight::${{ needs.preflight.result }}"
+            exit 1
+          fi
+          if [ "${{ needs.typecheck.result }}" != "success" ]; then
+            echo "ERROR::required_job_failed::typecheck::${{ needs.typecheck.result }}"
+            exit 1
+          fi
+          if [ "${{ needs.lint.result }}" != "success" ]; then
+            echo "ERROR::required_job_failed::lint::${{ needs.lint.result }}"
+            exit 1
+          fi
+          if [ "${{ needs.test_now.result }}" != "success" ]; then
+            echo "ERROR::required_job_failed::test_now::${{ needs.test_now.result }}"
+            exit 1
+          fi
+          if [ "${{ needs.artifact_validate.result }}" != "success" ]; then
+            echo "ERROR::required_job_failed::artifact_validate::${{ needs.artifact_validate.result }}"
+            exit 1
+          fi
 
           if [ "${{ needs.preflight.outputs.run_integration }}" = "true" ]; then
             if [ "${{ needs.test_integration.result }}" != "success" ]; then
