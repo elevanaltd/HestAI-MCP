@@ -151,3 +151,45 @@ jobs:
           python -m pip install dist/*.whl
       - name: Pytest (INTEGRATION)
         run: python -m pytest -m "integration"
+
+  final_gate:
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - preflight
+      - typecheck
+      - lint
+      - test_now
+      - artifact_validate
+      - test_integration
+    steps:
+      - name: Final gate
+        run: |
+          set -euo pipefail
+
+          echo "RESULT::preflight=${{ needs.preflight.result }}"
+          echo "RESULT::typecheck=${{ needs.typecheck.result }}"
+          echo "RESULT::lint=${{ needs.lint.result }}"
+          echo "RESULT::test_now=${{ needs.test_now.result }}"
+          echo "RESULT::artifact_validate=${{ needs.artifact_validate.result }}"
+          echo "RESULT::test_integration=${{ needs.test_integration.result }}"
+          echo "OUTPUT::run_integration=${{ needs.preflight.outputs.run_integration }}"
+
+          for job in preflight typecheck lint test_now artifact_validate; do
+            result="$(eval echo \"\\${{ needs.${job}.result }}\")"
+            if [ "$result" != "success" ]; then
+              echo "ERROR::required_job_failed::$job::$result"
+              exit 1
+            fi
+          done
+
+          if [ "${{ needs.preflight.outputs.run_integration }}" = "true" ]; then
+            if [ "${{ needs.test_integration.result }}" != "success" ]; then
+              echo "ERROR::integration_required_but_not_successful::${{ needs.test_integration.result }}"
+              exit 1
+            fi
+          else
+            echo "OK::integration_not_required"
+          fi
+
+          echo "OK::final_gate_passed"
