@@ -1,22 +1,17 @@
 ===VISIBILITY_RULES===
 
 META:
-  NAME::"Visibility Rules"
+  TYPE::STANDARD
+  ID::visibility-rules
   VERSION::"1.1"
+  STATUS::ACTIVE
   PURPOSE::"Placement and lifecycle rules for artifacts to ensure discoverability"
-
-METADATA::[
-  type::standard,
-  domain::governance,
-  status::active,
-  owners::[system-steward],
-  created::2025-12-09,
-  updated::2025-12-19,
-  id::visibility-rules,
-  canonical::hub/governance/rules/visibility-rules.oct.md,
-  format::octave,
-  tags::[placement|visibility|documentation|lifecycle]
-]
+  DOMAIN::governance
+  OWNERS::[system-steward]
+  CREATED::2025-12-09
+  UPDATED::2025-12-19
+  CANONICAL::hub/governance/rules/visibility-rules.oct.md
+  TAGS::[placement, visibility, documentation, lifecycle]
 
 ===CORE_PRINCIPLE===
 

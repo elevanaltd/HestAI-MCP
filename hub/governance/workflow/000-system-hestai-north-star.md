@@ -168,7 +168,7 @@ HestAI's compressed notation system:
 
 - A governance envelope for AI-assisted development
 - A design-and-build system with mandatory quality gates
-- A coordination methodology spanning D0→B4 phases
+- A coordination methodology spanning D0→B5 phases
 - A constitutional framework binding agent behavior
 - A bridge between "vibe coding" and reliable AI-assisted development
 
