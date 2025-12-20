@@ -11,8 +11,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      run_integration: ${{ steps.progressive.outputs.run_integration }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - id: progressive
+        name: Progressive preflight (stdlib-only)
+        run: python scripts/ci/validate_progressive_behavior.py --github-output "$GITHUB_OUTPUT"
+
   typecheck:
     runs-on: ubuntu-latest
+    needs: [preflight]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -28,7 +42,7 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
-    needs: [typecheck]
+    needs: [preflight]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -46,7 +60,7 @@ jobs:
 
   test_now:
     runs-on: ubuntu-latest
-    needs: [lint]
+    needs: [preflight]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -60,26 +74,9 @@ jobs:
       - name: Pytest (NOW)
         run: python -m pytest -m "not integration and not contract and not e2e"
 
-  build:
+  build_artifact:
     runs-on: ubuntu-latest
-    needs: [test_now]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-          cache: "pip"
-      - name: Install
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e ".[dev]"
-          python -m pip install build
-      - name: Build (sdist+wheel)
-        run: python -m build
-
-  wheel_validate:
-    runs-on: ubuntu-latest
-    needs: [build]
+    needs: [preflight]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -91,6 +88,25 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install build
           python -m build --wheel
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/*.whl
+
+  artifact_validate:
+    runs-on: ubuntu-latest
+    needs: [build_artifact]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
       - name: Install wheel in clean dir
         run: |
           TEMP_DIR="$(mktemp -d)"
@@ -113,38 +129,25 @@ jobs:
         run: |
           unzip -l dist/*.whl | grep -E "tests/" && echo "ERROR::tests_paths_found_in_wheel" && exit 1 || echo "OK::no_tests_paths_in_wheel"
 
-  progressive_contracts:
-    runs-on: ubuntu-latest
-    needs: [lint, test_now, wheel_validate]
-    outputs:
-      run_integration: ${{ steps.validate.outputs.run_integration }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-          cache: "pip"
-      - name: Install
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e ".[dev]"
-      - id: validate
-        name: Progressive contracts
-        run: python scripts/ci/validate_progressive_behavior.py --github-output "$GITHUB_OUTPUT"
-
   test_integration:
     runs-on: ubuntu-latest
-    needs: [lint, progressive_contracts]
-    if: needs.progressive_contracts.outputs.run_integration == 'true'
+    needs: [preflight, artifact_validate]
+    if: needs.preflight.outputs.run_integration == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
           cache: "pip"
-      - name: Install
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - name: Install test runner + wheel
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e ".[dev]"
+          python -m pip install pytest pytest-cov pytest-asyncio
+          python -m pip install dist/*.whl
       - name: Pytest (INTEGRATION)
         run: python -m pytest -m "integration"

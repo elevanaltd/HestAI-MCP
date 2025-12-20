@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import glob
 import importlib.util
 import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-
-from hestai_mcp.integrations.progressive import INTEGRATION_POINTS, IntegrationPointSpec
 
 
 @dataclass(frozen=True)
@@ -23,6 +22,10 @@ class IntegrationPointState:
 
 def _repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
+
+
+def _progressive_spec_path() -> Path:
+    return _repo_root() / "src" / "hestai_mcp" / "integrations" / "progressive.py"
 
 
 def _is_module_present(module: str | None) -> bool:
@@ -52,12 +55,100 @@ def _code_references_token(token: str) -> bool:
     return False
 
 
+@dataclass(frozen=True)
+class IntegrationPointSpec:
+    point_id: str
+    stage: str
+    reference_token: str
+    implementation_import: str | None
+    contract_test_glob: str
+    integration_test_glob: str
+
+
+def _extract_str(node: ast.AST) -> str:
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return node.value
+    raise TypeError("expected_str_constant")
+
+
+def _extract_opt_str(node: ast.AST) -> str | None:
+    if isinstance(node, ast.Constant) and node.value is None:
+        return None
+    return _extract_str(node)
+
+
+def _load_specs_from_file(path: Path) -> list[IntegrationPointSpec]:
+    """
+    Load IntegrationPointSpec values without importing project code.
+
+    This keeps the preflight check stdlib-only and avoids needing `pip install -e .`.
+    """
+    source = path.read_text(encoding="utf-8")
+    module = ast.parse(source, filename=str(path))
+
+    specs: list[IntegrationPointSpec] = []
+
+    for node in ast.walk(module):
+        value: ast.AST | None = None
+        if isinstance(node, ast.Assign):
+            if any(isinstance(t, ast.Name) and t.id == "INTEGRATION_POINTS" for t in node.targets):
+                value = node.value
+        elif (
+            isinstance(node, ast.AnnAssign)
+            and isinstance(node.target, ast.Name)
+            and node.target.id == "INTEGRATION_POINTS"
+        ):
+            value = node.value
+
+        if value is None:
+            continue
+
+        if not isinstance(value, ast.Tuple):
+            raise TypeError("INTEGRATION_POINTS_not_tuple")
+
+        for elt in value.elts:
+            if not isinstance(elt, ast.Call) or not isinstance(elt.func, ast.Name):
+                raise TypeError("INTEGRATION_POINTS_element_not_constructor_call")
+            if elt.func.id != "IntegrationPointSpec":
+                raise TypeError("INTEGRATION_POINTS_element_not_IntegrationPointSpec")
+
+            kwargs: dict[str, ast.AST] = {}
+            for kw in elt.keywords:
+                if kw.arg is None:
+                    raise TypeError("INTEGRATION_POINTS_kwargs_must_be_named")
+                kwargs[kw.arg] = kw.value
+
+            required = {
+                "point_id",
+                "stage",
+                "reference_token",
+                "implementation_import",
+                "contract_test_glob",
+                "integration_test_glob",
+            }
+            if set(kwargs.keys()) != required:
+                raise TypeError("INTEGRATION_POINTS_kwargs_mismatch")
+
+            specs.append(
+                IntegrationPointSpec(
+                    point_id=_extract_str(kwargs["point_id"]),
+                    stage=_extract_str(kwargs["stage"]),
+                    reference_token=_extract_str(kwargs["reference_token"]),
+                    implementation_import=_extract_opt_str(kwargs["implementation_import"]),
+                    contract_test_glob=_extract_str(kwargs["contract_test_glob"]),
+                    integration_test_glob=_extract_str(kwargs["integration_test_glob"]),
+                )
+            )
+
+    if not specs:
+        raise RuntimeError("INTEGRATION_POINTS_not_found")
+
+    return specs
+
+
 def _compute_states() -> list[IntegrationPointState]:
     states: list[IntegrationPointState] = []
-    for spec in INTEGRATION_POINTS:
-        if not isinstance(spec, IntegrationPointSpec):
-            raise TypeError("integration_specs_must_be_IntegrationPointSpec")
-
+    for spec in _load_specs_from_file(_progressive_spec_path()):
         point_id = spec.point_id
         stage = spec.stage
         token = spec.reference_token

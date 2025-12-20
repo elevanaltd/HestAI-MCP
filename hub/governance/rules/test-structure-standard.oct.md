@@ -117,8 +117,9 @@ IMPORT_SOURCE_VALIDATION::[
 
 ===STANDARD_6_CI_ARTIFACT_VALIDATION===
 
-WHEEL_VALIDATION::CRITICAL[
-  RULE::"CI MUST build+install the wheel in a clean directory and verify import surface"
+ARTIFACT_VALIDATION::CRITICAL[
+  RULE::"CI MUST validate the shipped artifact in a clean environment"
+  PYTHON_NOTE::wheel_install_validation_required_for_python_packages
   CHECKS::[
     build_wheel
     install_wheel_in_temp_dir
@@ -177,7 +178,7 @@ FIXTURE_PLACEMENT::[
 ===ENFORCEMENT_PRIORITY===
 
 PRIORITY::[
-  P1::WHEEL_VALIDATION[CRITICAL]
+  P1::ARTIFACT_VALIDATION[CRITICAL]
   P2::NO_SYS_PATH_INJECTION[CRITICAL]
   P3::TESTS_INIT_PROHIBITED[HIGH]
   P4::PACKAGE_DISCOVERY_EXPLICIT[MEDIUM]
