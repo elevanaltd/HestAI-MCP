@@ -28,10 +28,38 @@ def _progressive_spec_path() -> Path:
     return _repo_root() / "src" / "hestai_mcp" / "integrations" / "progressive.py"
 
 
+def _is_module_present_in_repo(module: str) -> bool:
+    """
+    Detect whether a Python module is implemented in this repository without importing it.
+
+    This is required for CI preflight where the package is not installed.
+    """
+    root = _repo_root()
+    src_root = root / "src"
+
+    if module == "hestai_mcp":
+        return (src_root / "hestai_mcp" / "__init__.py").exists()
+
+    if not module.startswith("hestai_mcp."):
+        return False
+
+    rel = module.replace(".", "/")
+    module_file = src_root / f"{rel}.py"
+    module_pkg = src_root / rel / "__init__.py"
+    return module_file.exists() or module_pkg.exists()
+
+
 def _is_module_present(module: str | None) -> bool:
     if not module:
         return False
-    return importlib.util.find_spec(module) is not None
+
+    if _is_module_present_in_repo(module):
+        return True
+
+    try:
+        return importlib.util.find_spec(module) is not None
+    except ModuleNotFoundError:
+        return False
 
 
 def _glob(rel_pattern: str) -> list[str]:
