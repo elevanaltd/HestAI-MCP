@@ -95,6 +95,14 @@ All tools are owned by `hestai-mcp` (formerly split across repositories).
 
 ---
 
+## 3.1 CI: Progressive Testing
+
+HestAI-MCP CI uses a NOW/SOON/LATER progressive testing model (preflight routing, contract enforcement, artifact validation, conditional integration).
+
+See: `docs/workflow/ci-progressive-testing.oct.md:1`
+
+---
+
 ## 4. Design Decisions (ADRs)
 
 | ID | Title | Status |
