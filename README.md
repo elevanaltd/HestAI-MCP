@@ -18,7 +18,7 @@ HestAI-MCP treats system governance (rules, agent definitions, workflows) as **i
 *   **Instant updates** when you upgrade the MCP server.
 
 It implements a **Dual-Layer Context Architecture** (see [Architecture](docs/ARCHITECTURE.md)):
-1.  **System Governance** (`.sys-runtime/`): Injected at runtime, read-only.
+1.  **System Governance** (`.hestai-sys/`): Injected at runtime, read-only.
 2.  **Project Documentation** (`.hestai/`): Living project context, committed to git.
 
 ## Architecture

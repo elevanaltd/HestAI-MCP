@@ -30,7 +30,9 @@ def is_octave_v4_compliant(path: str) -> tuple[bool, list[str]]:
 
     # first/last non-empty
     first = next((i for i, line in enumerate(lines) if line.strip() != ""), None)
-    last = next((len(lines) - 1 - i for i, line in enumerate(reversed(lines)) if line.strip() != ""), None)
+    last = next(
+        (len(lines) - 1 - i for i, line in enumerate(reversed(lines)) if line.strip() != ""), None
+    )
 
     if first is None or not HEADER_RE.match(lines[first]):
         issues.append("header:missing_or_invalid")

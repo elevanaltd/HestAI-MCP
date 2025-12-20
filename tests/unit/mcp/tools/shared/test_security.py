@@ -137,9 +137,12 @@ class TestCopyAndRedact:
         dst = tmp_path / "archive.jsonl"
 
         # Simulate redaction failure mid-copy
-        with patch.object(
-            RedactionEngine, "redact_content", side_effect=Exception("Redaction failed")
-        ), pytest.raises(Exception, match="Redaction failed"):
+        with (
+            patch.object(
+                RedactionEngine, "redact_content", side_effect=Exception("Redaction failed")
+            ),
+            pytest.raises(Exception, match="Redaction failed"),
+        ):
             RedactionEngine.copy_and_redact(src, dst)
 
         # Verify destination cleaned up

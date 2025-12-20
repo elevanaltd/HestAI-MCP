@@ -10,7 +10,7 @@ META:
 PURPOSE::"MCP server implementing dual-layer context architecture for AI agent coordination"
 
 ARCHITECTURE::DUAL_LAYER:
-  SYSTEM_GOVERNANCE::.sys-runtime/[delivered_not_committed]
+  SYSTEM_GOVERNANCE::.hestai-sys/[delivered_not_committed]
   PROJECT_DOCUMENTATION::.hestai/[committed_single_writer]
 
 ACTIVE_WORK::[
@@ -36,7 +36,7 @@ KEY_INSIGHTS::[
   NO_SYMLINKS::"Direct .hestai/ directory for git visibility",
   SINGLE_WRITER::"System Steward MCP tools only write to .hestai/",
   OCTAVE_STANDARD::"All context in OCTAVE format for compression+structure",
-  DELIVERED_GOVERNANCE::".sys-runtime/ injected by MCP server not committed"
+  DELIVERED_GOVERNANCE::".hestai-sys/ injected by MCP server not committed"
 ]
 
 BLOCKERS::none
@@ -53,7 +53,7 @@ NEXT_ACTIONS::[
   1::Port_additional_tests_from_hestai_core_for_ported_modules,
   2::Implement_document_submit_tool[Phase_3],
   3::Implement_context_update_tool[Phase_3],
-  4::Implement_sys_runtime_governance_injection[Phase_4],
+  4::Implement_hestai_sys_governance_injection[Phase_4],
   5::Create_pre_commit_hook_blocking_direct_.hestai_writes
 ]
 

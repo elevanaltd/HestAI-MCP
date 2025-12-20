@@ -68,7 +68,7 @@ Implementation:
 ```python
 class GovernanceManager:
     def push_governance(self, project_name: str, version: str = "latest"):
-        """Push governance files to project's .sys-runtime/"""
+        """Push governance files to project's .hestai-sys/"""
         project = self.registry.get_project(project_name)
 
         # Check version compatibility
@@ -78,7 +78,7 @@ class GovernanceManager:
 
         # Copy governance files
         source = self.hub_path / "governance"
-        target = Path(project.path) / ".hestai" / ".sys-runtime"
+        target = Path(project.path) / ".hestai-sys"
 
         # Clear and repopulate
         if target.exists():
@@ -186,7 +186,7 @@ Use symlinks to shared governance directory.
 - **Write Protection**: Only authorized users can push governance
 - **Audit Trail**: Log all governance updates with who/when/what
 - **Validation**: Verify governance files before distribution
-- **Backup**: Automatic backup before overwriting .sys-runtime/
+- **Backup**: Automatic backup before overwriting .hestai-sys/
 
 ## Success Metrics
 

@@ -17,7 +17,7 @@ Defined in [ADR-0001](adr/adr-0001-dual-layer-context-architecture.md), the syst
 ```mermaid
 graph TD
     subgraph "System Governance (Layer 1)"
-        Hub[HestAI Hub] -->|MCP Injection| Runtime[.sys-runtime/]
+        Hub[HestAI Hub] -->|MCP Injection| Runtime[.hestai-sys/]
         Runtime --> Rules[Rules & Standards]
         Runtime --> Agents[Agent Definitions]
         style Runtime fill:#f9f,stroke:#333,stroke-dasharray: 5 5
@@ -113,8 +113,8 @@ your-project/
 ├── .hestai/                    # Project documentation (committed)
 │   ├── context/                # Living operational state
 │   ├── sessions/               # Session transcripts
-│   ├── workflow/               # Project-specific rules
-│   └── .sys-runtime/           # System governance (gitignored, injected)
+│   └── workflow/               # Project-specific rules
+├── .hestai-sys/                # System governance (gitignored, injected)
 ├── docs/
 │   ├── adr/                    # Architecture Decision Records
 │   └── CHANGELOG.md            # CI-updated audit trail

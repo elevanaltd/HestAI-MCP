@@ -21,7 +21,7 @@ EXECUTIVE_SUMMARY:
 ARCHITECTURE_VERIFICATION:
   dual_layer_structure::VERIFIED:
     .hestai_directory::PRESENT[direct_not_symlink]
-    .sys_runtime_placeholder::PLANNED[Phase_4]
+    .hestai_sys_placeholder::PLANNED[Phase_4]
     context_files::PRESENT[OCTAVE_format]
     sessions_structure::PRESENT[active,archive]
     reports_directory::PRESENT
@@ -38,7 +38,7 @@ ARCHITECTURE_VERIFICATION:
     anchor_manager::EXCLUDED_from_port
 
   gitignore_compliance::VERIFIED:
-    .sys_runtime_excluded::CONFIRMED[not_committed]
+    .hestai_sys_excluded::CONFIRMED[not_committed]
     sessions_active_excluded::CONFIRMED[ephemeral]
     python_artifacts_excluded::CONFIRMED
     venv_excluded::CONFIRMED
@@ -100,7 +100,7 @@ FINDING::CODE_PORTING_EXCELLENT
 SERVER_VERIFICATION:
   server_file::src/hestai_mcp/mcp/server.py[181_lines]
   tools_registered::[clock_in,clock_out]
-  sys_runtime_stub::inject_system_governance[TODO_Phase_4]
+  hestai_sys_stub::inject_system_governance[TODO_Phase_4]
   document_submit_placeholder::TODO_Phase_3
 
 TOOL_REGISTRATION_VERIFICATION:
@@ -215,7 +215,7 @@ SHORT_TERM_ACTIONS:
   4::implement_OCTAVE_validation
 
 MEDIUM_TERM_ACTIONS:
-  1::implement_sys_runtime_governance_injection[Phase_4]
+  1::implement_hestai_sys_governance_injection[Phase_4]
   2::implement_HESTAI_HUB_ROOT_environment_handling
   3::create_pre_commit_hook_blocking_direct_.hestai_writes
 
