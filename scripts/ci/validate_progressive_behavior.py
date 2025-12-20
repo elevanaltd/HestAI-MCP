@@ -201,9 +201,10 @@ def _compute_states() -> list[IntegrationPointState]:
     return states
 
 
-def _validate(states: list[IntegrationPointState]) -> tuple[bool, list[str]]:
+def _validate(states: list[IntegrationPointState]) -> tuple[bool, bool, list[str]]:
     errors: list[str] = []
     run_integration = False
+    run_contracts = False
 
     for state in states:
         stage = state.stage.upper()
@@ -228,6 +229,8 @@ def _validate(states: list[IntegrationPointState]) -> tuple[bool, list[str]]:
                 errors.append(f"soon_forbids_integration_tests:{state.point_id}")
             if referenced and len(state.contract_tests) == 0:
                 errors.append(f"soon_referenced_requires_contract_tests:{state.point_id}")
+            if referenced:
+                run_contracts = True
 
         if stage == "LATER":
             if implemented:
@@ -239,12 +242,16 @@ def _validate(states: list[IntegrationPointState]) -> tuple[bool, list[str]]:
             if len(state.integration_tests) > 0:
                 errors.append(f"later_forbids_integration_tests:{state.point_id}")
 
-    return run_integration, errors
+    return run_integration, run_contracts, errors
 
 
-def _write_github_output(path: str, run_integration: bool) -> None:
+def _write_github_output(path: str, run_integration: bool, run_contracts: bool) -> None:
     Path(path).write_text(
-        f"run_integration={'true' if run_integration else 'false'}\n", encoding="utf-8"
+        (
+            f"run_integration={'true' if run_integration else 'false'}\n"
+            f"run_contracts={'true' if run_contracts else 'false'}\n"
+        ),
+        encoding="utf-8",
     )
 
 
@@ -254,10 +261,10 @@ def main(argv: list[str]) -> int:
     args = parser.parse_args(argv)
 
     states = _compute_states()
-    run_integration, errors = _validate(states)
+    run_integration, run_contracts, errors = _validate(states)
 
     if args.github_output:
-        _write_github_output(args.github_output, run_integration)
+        _write_github_output(args.github_output, run_integration, run_contracts)
 
     if errors:
         for err in errors:
