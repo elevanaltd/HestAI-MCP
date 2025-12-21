@@ -75,8 +75,9 @@ PHASE_2_MCP_SERVER:
 QUALITY_GATES:
   pytest::PASSING[5/5_smoke_tests]
   mypy::NOT_RUN[configured_in_pyproject]
-  ruff::2_ERRORS[B904_raise-without-from,SIM117_multiple-with]
+  ruff::2_ERRORS[B904_in_jsonl_lens.py:185,SIM117_in_security.py:111]
   black::PASSING[formatted]
+  freshness_check::PENDING[I4_immutable_validation_required]
 
 QUALITY_GATE_DETAILS:
   ruff_errors:
@@ -114,22 +115,30 @@ VERIFICATION_COMPLETE:
     package_installation::editable_mode_working
 
 NEXT_ACTIONS:
-  IMMEDIATE::[
-    fix_2_ruff_errors[B904,SIM117],
-    run_mypy_typecheck,
-    port_comprehensive_tests_for_ported_modules
+  IMMEDIATE_B1::[
+    fix_2_ruff_errors[B904_jsonl_lens.py:185,SIM117_security.py:111],
+    run_mypy_typecheck[all_modules],
+    port_comprehensive_tests_for_ported_modules[AI_client,clock_tools,shared]
   ]
 
-  PHASE_3::[
-    implement_document_submit_tool,
-    implement_context_update_tool,
-    implement_OCTAVE_validation,
-    implement_conflict_detection
+  PHASE_2.5_SEMANTIC_SPIKE::[
+    validate_Orchestra_Map_Anchor_Pattern_Inversion[Basic_Memory_PoC],
+    implement_concept_spec_coherence_patterns[ADR-0002],
+    integrate_staleness_detection_logic,
+    design_co-change_analysis_queries
   ]
 
-  PHASE_4::[
-    implement_hestai_sys_governance_injection,
-    implement_HESTAI_HUB_ROOT_environment_handling,
+  PHASE_3_SINGLE_WRITER_MCP::[
+    implement_document_submit_tool[context_routing_system],
+    implement_context_update_tool[conflict_resolution],
+    implement_OCTAVE_validation[semantic_compliance],
+    implement_conflict_detection[git_aware_merging]
+  ]
+
+  PHASE_4_GOVERNANCE_DELIVERY::[
+    implement_hestai_sys_governance_injection[read_only_delivery],
+    implement_HESTAI_HUB_ROOT_environment_handling[universal_scope],
+    integrate_Layer_3_Basic_Memory[semantic_oracle],
     create_pre_commit_hook_blocking_direct_.hestai_writes
   ]
 
