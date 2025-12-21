@@ -1,12 +1,14 @@
-===SYSTEM_HESTAI_NORTH_STAR_SUMMARY===
+---
+type: NORTH_STAR_SUMMARY
+id: system-hestai-north-star-summary
+version: 1.1-OCTAVE-SUMMARY
+status: APPROVED
+purpose: Constitutional methodology and governance for all HestAI projects
+inherits: NONE[ROOT_DOCUMENT]
+full_document: hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md
+---
 
-META:
-  TYPE::NORTH_STAR_SUMMARY
-  ID::system-hestai-north-star-summary
-  VERSION::"1.0-OCTAVE-SUMMARY"
-  STATUS::APPROVED
-  PURPOSE::"Constitutional methodology and governance for all HestAI projects"
-  INHERITS::NONE[ROOT_DOCUMENT]
+===SYSTEM_HESTAI_NORTH_STAR_SUMMARY===
 
 ## IMMUTABLES (6 Total)
 
@@ -49,8 +51,8 @@ I6::EXPLICIT_ACCOUNTABILITY::[
 ## CRITICAL ASSUMPTIONS (3 Total)
 
 A1::MULTI_AGENT_SCALING[70%]→PENDING[before_B0]
-A4::OCTAVE_COMPRESSION[65%]→PENDING[before_B0]
-A7::ARTIFACT_DISCOVERABILITY[50%]→PENDING[IMMEDIATE]
+A4::OCTAVE_COMPRESSION[95%]→RESOLVED[proven_in_B1]
+A7::ARTIFACT_DISCOVERABILITY[90%]→RESOLVED[ADR-0001_ADR-0003]
 
 ## CONSTRAINED VARIABLES (Top 3)
 

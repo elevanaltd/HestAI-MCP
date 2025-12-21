@@ -1,13 +1,24 @@
+---
+type: NORTH_STAR
+id: system-hestai-north-star
+version: 1.1
+status: APPROVED
+purpose: Constitutional methodology and governance for all HestAI projects
+inherits: NONE[ROOT_DOCUMENT]
+approved_by: Shaun Buswell (Human Primacy Authority)
+approval_date: 2025-12-05
+last_validated: 2025-12-20
+---
+
 <!-- HestAI-Doc-Steward: consulted for document-creation-and-placement -->
-<!-- Approved: HDS-2025-12-05 [constitutional-governance] [multi-model-consensus] [zero-redundancy] -->
 <!-- Relationship: COMPLEMENT to 001-WORKFLOW-NORTH-STAR.oct.md (constitutional→operational hierarchy) -->
 <!-- Note: This is the foundational System North Star. All other workflow documents must satisfy these immutables. -->
 
 # HESTAI SYSTEM NORTH STAR
 
-**Version:** 1.0
+**Version:** 1.1
 **Status:** APPROVED
-**Approval Date:** 2025-12-05
+**Approval Date:** 2025-12-05 (Refreshed 2025-12-20)
 **Approved By:** Shaun Buswell (Human Primacy Authority)
 **Validation:** Multi-model consensus (Codex GO + Gemini GO)
 
@@ -40,7 +51,7 @@ This document represents the immutable requirements for HestAI. All work must al
 
 **Rationale:** "Done right the first time IS faster." Trivial exceptions accumulate into systemic drift.
 
-**Validation Criteria:** Git evidence shows TEST commits before FEAT commits, OR explicit justification documented in DECISIONS.md with accountability owner.
+**Validation Criteria:** Version control evidence shows specification/test commits before feature/code commits, OR explicit justification documented in decision logs.
 
 ---
 
@@ -103,7 +114,7 @@ This document represents the immutable requirements for HestAI. All work must al
 
 **Rationale:** Distributed responsibility equals no responsibility. The failure mode to prevent is "no one is responsible," not "more than one is responsible."
 
-**Validation Criteria:** Every decision in DECISIONS.md has an owner field. Orphan decisions trigger escalation.
+**Validation Criteria:** Every decision record has an identifiable owner. Orphan decisions trigger escalation.
 
 ---
 
@@ -185,21 +196,23 @@ HestAI's compressed notation system:
 
 ## SECTION 5: ASSUMPTION REGISTER
 
-| ID | Assumption | Confidence | Impact | Priority |
-|----|------------|------------|--------|----------|
-| A0 | This methodology produces better North Stars | 70% | LOW | Post-cycle |
-| A1 | Multi-agent coordination scales | 70% | CRITICAL | **Before B0** |
-| A2 | Constitutional binding affects behavior | 75% | HIGH | Quarterly |
-| A3 | Single developer can maintain system | 85% | MEDIUM | Monthly |
-| A4 | OCTAVE compression preserves meaning | 65% | HIGH | **Before B0** |
-| A5 | Phase gates add more value than overhead | 80% | MEDIUM | Per-project |
-| A6 | AI model capabilities remain sufficient | 90% | CRITICAL | Quarterly |
-| A7 | Artifact discoverability works | 50% | HIGH | **IMMEDIATE** |
-| A8 | TDD discipline improves AI code quality | 85% | MEDIUM | Milestone |
-| A9 | Cognitive lenses map to real distinctions | 60% | MEDIUM | Before new agents |
-| A10 | Quality gates catch real defects | 80% | MEDIUM | Per-release |
+| ID | Assumption | Confidence | Impact | Priority | Status |
+|----|------------|------------|--------|----------|--------|
+| A0 | This methodology produces better North Stars | 70% | LOW | Post-cycle | Pending |
+| A1 | Multi-agent coordination scales | 70% | CRITICAL | **Before B0** | Pending |
+| A2 | Constitutional binding affects behavior | 85% | HIGH | Quarterly | **Validating (B1)** |
+| A3 | Single developer can maintain system | 85% | MEDIUM | Monthly | Ongoing |
+| A4 | OCTAVE compression preserves meaning | 95% | HIGH | **Before B0** | **RESOLVED** |
+| A5 | Phase gates add more value than overhead | 80% | MEDIUM | Per-project | Validating |
+| A6 | AI model capabilities remain sufficient | 90% | CRITICAL | Quarterly | Ongoing |
+| A7 | Artifact discoverability works | 90% | HIGH | **IMMEDIATE** | **RESOLVED** |
+| A8 | TDD discipline improves AI code quality | 85% | MEDIUM | Milestone | Ongoing |
+| A9 | Cognitive lenses map to real distinctions | 60% | MEDIUM | Before new agents | Pending |
+| A10 | Quality gates catch real defects | 80% | MEDIUM | Per-release | Pending |
 
-**Critical Validation Required:** A1, A4, A7 (before B0)
+**Validation Update (2025-12-20):**
+- **A4 Resolved**: OCTAVE summaries successfully driving agent behavior in B1 phase.
+- **A7 Resolved**: Dual-Layer Context (ADR-0001) and Living Artifacts (ADR-0003) solved discoverability.
 
 ---
 
@@ -211,7 +224,7 @@ HestAI's compressed notation system:
 | Pressure Tested | 7/7 passed What-If Gauntlet |
 | System-Agnostic | 6/6 passed Technology Change Test |
 | Assumptions Tracked | 11 (exceeds 6 minimum) |
-| Critical Assumptions | 3 requiring pre-B0 validation |
+| Critical Assumptions | 2 remaining (A1, A6) |
 | Multi-Model Validation | Codex GO + Gemini GO |
 | Consensus Amendments | 2 (I4 discoverability + V1 anti-drift clause) |
 
