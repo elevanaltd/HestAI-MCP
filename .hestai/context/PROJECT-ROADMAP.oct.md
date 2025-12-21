@@ -3,17 +3,19 @@
 
 META:
   NAME::"HestAI-MCP Development Roadmap"
-  VERSION::"0.3.0"
-  HORIZON::"14 days to MVP"
-  UPDATED::"2025-12-19T06:15:00Z"
+  VERSION::"0.3.1"
+  HORIZON::"Architecture validation + three-layer implementation"
+  UPDATED::"2025-12-21T01:02:33Z"
 
-VISION::"Production-ready MCP server enabling AI agents to coordinate via dual-layer context architecture"
+VISION::"Production-ready MCP server implementing three-layer cognitive architecture (System Governance + Project Context + Semantic Knowledge) for persistent AI agent coordination and oracle semantics"
 
 PROGRESS_SUMMARY::[
-  COMPLETE::phases_0_through_2.5[foundation+porting+server+hub],
+  COMPLETE::phases_0_through_2.5[foundation+porting+server+hub+architecture],
   LINES_OF_CODE::2541[ported]+181[server]+1101[hub],
-  TESTS::58_passing[62%_coverage],
-  QUALITY::ruff[0_errors]+mypy[0_errors]+black[formatted]
+  TESTS::5[smoke_tests_passing],incomplete_comprehensive_porting,
+  QUALITY::ruff[2_errors_blocking]+mypy[not_run]+black[passing],
+  ADRs_COMPLETE::4_total[0001-0004_comprehensive_architecture],
+  ARCHITECTURE_VALIDATED::Orchestra_Map[85%_confidence_Anchor_Pattern_Inversion]
 ]
 
 PHASES:
@@ -60,60 +62,81 @@ PHASES:
     ]
     STATUS::COMPLETE[2025-12-19]
 
-  PHASE_2.5::HUB_ARCHITECTURE[days:6]:
-    GOAL::"Bundle Hub content with MCP server package"
-    NOTE::"Added phase - architectural pivot to bundled Hub"
+  PHASE_2.5::ORCHESTRA_MAP_SEMANTIC_SPIKE[days:6-7]:
+    GOAL::"Validate Orchestra Map architecture with Anchor Pattern Inversion + Layer 3 semantic knowledge"
+    NOTE::"Architectural innovation phase - defined in ADR-0002"
     DELIVERABLES::[
-      ✅::hub_directory_structure_created,
-      ✅::governance_files_ported_to_OCTAVE[naming+visibility+test_standards],
-      ✅::OCTAVE_spec_and_primer_included,
-      ✅::server_reads_from_bundled_hub[get_hub_path()],
-      ✅::no_external_HESTAI_HUB_ROOT_needed
+      ✅::ADR_0001_dual_layer_proven[System_vs_Product_separation],
+      ✅::ADR_0002_Orchestra_Map_designed[Anchor_Pattern_Inversion+85%_confidence],
+      ✅::ADR_0003_RAPH_protocol_defined[v2.3_rigorous_grounding],
+      ✅::ADR_0004_progressive_testing_model[NOW_SOON_LATER_gates],
+      🔄::Layer_3_Basic_Memory_PoC[semantic_oracle_pending_Phase_2.5],
+      🔄::concept_spec_coherence_patterns[staleness_detection+co-change_analysis]
     ]
-    STATUS::COMPLETE[2025-12-19]
+    STATUS::IN_PROGRESS[Phase_2.5_semantic_spike_active]
 
-  PHASE_3::SINGLE_WRITER_IMPLEMENTATION[days:8-10]:
-    GOAL::"System Steward pattern with MCP tools as only writer"
+  PHASE_3::SINGLE_WRITER_MCP_TOOLS[days:8-10]:
+    GOAL::"Implement System Steward pattern - MCP tools as exclusive context writers (I3 enforcement)"
+    NOTE::"Implements ADR-0001 I3 immutable - Dual Layer Authority"
     DELIVERABLES::[
-      document_submit_tool,
-      context_update_tool,
-      OCTAVE_validation,
-      conflict_detection,
-      atomic_writes
+      document_submit_tool[context_routing_system],
+      context_update_tool[conflict_resolution_via_MCP],
+      OCTAVE_validation[semantic_compliance_checking],
+      conflict_detection[git_aware_merging],
+      atomic_writes[transaction_safety],
+      freshness_verification[I4_validation]
     ]
-    STATUS::pending
+    STATUS::IN_PROGRESS[Phase_3_pending_implementation]
 
-  PHASE_4::GOVERNANCE_DELIVERY[days:11-14]:
-    GOAL::".hestai-sys/ injection from bundled Hub"
+  PHASE_4::GOVERNANCE_DELIVERY_AND_LAYER_3[days:11-14]:
+    GOAL::"Deliver .hestai-sys/ governance + integrate Layer 3 semantic knowledge oracle"
+    NOTE::"Completes I3 (read-only Layer 1) + delivers Layer 3 (Basic Memory MCP oracle)"
     DELIVERABLES::[
       ✅::bundled_hub_architecture[no_external_dependency],
       hestai_sys_population_on_startup[inject_system_governance()],
       ✅::version_tracking[hub/VERSION_1.0.0],
-      governance_file_injection_to_projects
+      governance_file_injection_to_projects[Layer_1_delivery],
+      Layer_3_Basic_Memory_integration[semantic_oracle],
+      pre_commit_hooks[block_direct_.hestai_writes],
+      staleness_detection_CI[I4_production_validation],
+      co-change_analysis_queries[concept_spec_coherence]
     ]
-    STATUS::partially_complete
+    STATUS::PENDING[Phase_3_completion_blocking]
 
 MILESTONES:
-  MVP::[
+  FOUNDATION_MVP::[
     ✅::clock_in_clock_out_working,
     ✅::OCTAVE_files_readable_by_agents,
     ✅::no_symlink_issues,
-    ✅::quality_gates_passing
+    ✅::dual_layer_architecture_proven[ADR-0001]
   ]
-  STATUS::MVP_ACHIEVED[2025-12-19]
+  STATUS::ACHIEVED[2025-12-19]
+
+  ARCHITECTURE_VALIDATED::[
+    ✅::Orchestra_Map_designed[85%_confidence],
+    ✅::Anchor_Pattern_Inversion_validated,
+    ✅::RAPH_protocol_v2.3_complete,
+    ✅::Progressive_testing_model_defined
+  ]
+  STATUS::ACHIEVED[2025-12-21]
 
   PRODUCTION_READY::[
     document_submit_routing,
-    single_writer_enforced,
-    hestai_sys_delivered,
-    pre_commit_hooks_blocking_direct_writes
+    single_writer_enforced[I3_immutable],
+    Layer_1_governance_delivered[read_only],
+    Layer_3_semantic_oracle_integrated[Basic_Memory],
+    pre_commit_hooks_blocking_direct_writes,
+    freshness_verification_in_CI[I4_validation]
   ]
-  STATUS::pending_phase_3_and_4
+  STATUS::PENDING[Phase_3_4_implementation]
 
 RISKS:
   CODE_COMPATIBILITY::✅_RESOLVED[adaptation_successful]
   OCTAVE_LEARNING::✅_RESOLVED[all_files_converted]
   MCP_PROTOCOL::✅_RESOLVED[server_functional]
+  ARCHITECTURE_COMPLEXITY::MITIGATED[ADRs_document_decisions,Phase_2.5_validation]
+  LAYER_3_INTEGRATION::IN_PROGRESS[Basic_Memory_MCP_PoC_pending]
+  QUALITY_GATES::BLOCKING[2_ruff_errors,mypy_not_run,comprehensive_tests_incomplete]
 
 COMMITS:
   FOUNDATION::[
