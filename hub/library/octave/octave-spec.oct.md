@@ -1,15 +1,14 @@
 ===OCTAVE_V4_SPEC===
-// OCTAVE v4.0: The HestAI Communication Protocol
-// Philosophy: "Strict Protocol for Machines, Flexible Dialect for Minds."
-
 META:
+  NAME::"OCTAVE (Olympian Common Text And Vocabulary Engine)"
   VERSION::"4.0"
   TYPE::PROTOCOL_DEFINITION
   STATUS::ACTIVE
-  PURPOSE::"Define the rigid extraction contract for tools and the flexible dialect for agents."
+  PURPOSE::"Canonical protocol+format contract for LLM-authored artifacts"
+  TAGLINE::"Strict Protocol for Machines, Flexible Dialect for Minds"
   REFERENCES::[
-    "hub/library/octave/octave-4-spec.oct.md",
     "/Volumes/OCTAVE/octave/specs/octave-4.oct.md",
+    "hub/library/octave/octave-4-spec.oct.md",
     "/Volumes/OCTAVE/octave/tools/octave-validator.py",
     "/Volumes/OCTAVE/octave/guides/octave-micro-primer.oct.md",
     "/Volumes/OCTAVE/octave/examples/code-review-specialist-claude-subagent.oct.md"
