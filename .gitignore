@@ -4,6 +4,9 @@
 # Active Sessions (Ephemeral)
 .hestai/sessions/active/
 
+# Operational timestamps (session-specific state)
+.hestai/last_cleanup
+
 # Python
 __pycache__/
 *.py[cod]

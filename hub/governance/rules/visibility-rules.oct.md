@@ -3,15 +3,15 @@
 META:
   TYPE::STANDARD
   ID::visibility-rules
-  VERSION::"1.1"
+  VERSION::"1.3"
   STATUS::ACTIVE
   PURPOSE::"Placement and lifecycle rules for artifacts to ensure discoverability"
   DOMAIN::governance
   OWNERS::[system-steward]
   CREATED::2025-12-09
-  UPDATED::2025-12-19
+  UPDATED::2025-12-23
   CANONICAL::hub/governance/rules/visibility-rules.oct.md
-  TAGS::[placement, visibility, documentation, lifecycle]
+  TAGS::[placement, visibility, documentation, lifecycle, hub, hestai-sys]
 
 ===CORE_PRINCIPLE===
 
@@ -24,6 +24,44 @@ PLACEMENT_LOGIC::[
 ]
 
 ===PLACEMENT_RULES===
+
+RULE_0::SYSTEM_GOVERNANCE→hub/::[
+  AUDIENCE::all_HestAI_products+agents,
+  LIFECYCLE::committed+read_only_when_injected,
+  TRACKING::git_history+MCP_injection_as_.hestai-sys/,
+
+  WHAT_GOES_HERE::[
+    system_north_star[universal_immutables],
+    agent_constitution_templates[.oct.md],
+    governance_rules[naming+visibility+test_standards],
+    project_templates[north_star_templates],
+    reference_libraries[octave_pointers+guides],
+    system_tools[validators+checkers]
+  ],
+
+  STRUCTURE::[
+    hub/governance/workflow/→[000-SYSTEM-HESTAI-NORTH-STAR.md],
+    hub/governance/rules/→[naming-standard.oct.md|visibility-rules.oct.md],
+    hub/agents/→[agent_constitution_templates],
+    hub/templates/→[project_templates],
+    hub/library/→[reference_materials],
+    hub/tools/→[system_utilities]
+  ],
+
+  WHY_hub::[
+    universal_governance≠product_specific,
+    injected_as_.hestai-sys/[read_only],
+    agents_cannot_modify_their_own_rules,
+    single_source_of_truth_across_products,
+    I3_DUAL_LAYER_AUTHORITY_enforcement
+  ],
+
+  INJECTION_MECHANISM::[
+    MCP_server→copies_hub/→.hestai-sys/[runtime],
+    .hestai-sys/→gitignored[not_committed_per_product],
+    agents→read_.hestai-sys/[cannot_write]
+  ]
+]
 
 RULE_1::PERMANENT_ARCHITECTURAL→docs/::[
   AUDIENCE::developers[via_git+GitHub+IDEs],
@@ -192,19 +230,37 @@ RULE_6::REPORTS→.hestai/reports/::[
 
 ===DECISION_MATRIX===
 
+// KEY DISTINCTION: hub/ vs .hestai/
+//   hub/     = SYSTEM governance (universal, injected as read-only .hestai-sys/)
+//   .hestai/ = PRODUCT context (specific to this repo, mutable within rules)
+
 PLACEMENT_TABLE::[
+  // SYSTEM GOVERNANCE (hub/ → .hestai-sys/)
+  system_north_star→hub/governance/workflow/[committed|all_products|read_only_injection],
+  governance_rules→hub/governance/rules/[committed|all_products|read_only_injection],
+  agent_templates→hub/agents/[committed|all_products|read_only_injection],
+  project_templates→hub/templates/[committed|all_products|read_only_injection],
+  reference_libraries→hub/library/[committed|all_products|read_only_injection],
+  system_tools→hub/tools/[committed|all_products|read_only_injection],
+
+  // DEVELOPER DOCUMENTATION (docs/)
   ADRs→docs/architecture-decisions/[committed|developers|permanent],
   API_docs→docs/api/[committed|developers|permanent],
   setup_guides→docs/development/[committed|developers|permanent],
+
+  // PRODUCT CONTEXT (.hestai/)
   PROJECT-CONTEXT→.hestai/context/[committed|agents+human|living],
   APP-CONTEXT→.hestai/context/apps/{app}/[committed|agents+human|living],
   session_notes→.hestai/sessions/active/[ignored|session_only|ephemeral],
-  north_star→.hestai/workflow/[committed|governance|stable],
+  product_north_star→.hestai/workflow/[committed|governance|stable],
+  product_methodology→.hestai/workflow/[committed|governance|stable],
   DECISIONS.md→.hestai/workflow/decisions/[committed|governance|stable],
   test_standards→.hestai/workflow/test-context/[committed|governance|stable],
+  reports→.hestai/reports/[committed|humans+governance|durable_evidence],
+
+  // CLAUDE CODE INFRASTRUCTURE (.claude/)
   agent_constitutions→.claude/agents/[committed|Claude_Code|infrastructure],
-  skills→.claude/skills/[committed|Claude_Code|infrastructure],
-  reports→.hestai/reports/[committed|humans+governance|durable_evidence]
+  skills→.claude/skills/[committed|Claude_Code|infrastructure]
 ]
 
 ===ANTI_PATTERNS===
@@ -252,11 +308,43 @@ FROM_.hestai→TO_NEW_STRUCTURE::[
   reports::.hestai/reports/→.hestai/reports/
 ]
 
+===FORMAT_RULES===
+
+// When to use OCTAVE (.oct.md) vs Markdown (.md)
+
+OCTAVE_FORMAT[.oct.md]::[
+  agent_constitutions,
+  governance_rules,
+  north_stars,
+  methodology_docs,
+  context_files[PROJECT-CONTEXT_etc],
+  session_archives
+]
+
+MARKDOWN_FORMAT[.md]::[
+  developer_guides[setup_deployment],
+  ADRs[architecture_decisions],
+  READMEs[navigation_pointers],
+  human_first_documentation
+]
+
+FORMAT_DECISION_TREE::[
+  "Primary audience AI agents?"→YES→.oct.md,
+  "Governance/methodology/constitution?"→YES→.oct.md,
+  "Primary audience human developers?"→YES→.md,
+  "ADR or setup guide?"→YES→.md
+]
+
 ===COMPATIBILITY===
 
 WITH_NAMING_STANDARD::[
   VISIBILITY_RULES.md→answers["WHERE does artifact belong?"],
   NAMING_STANDARD.md→answers["HOW to name once placed?"]
+]
+
+WITH_HUB_AUTHORING_RULES::[
+  VISIBILITY_RULES.md→answers["WHERE in PRODUCT?"],
+  HUB_AUTHORING_RULES.md→answers["WHERE in SYSTEM (hub/)?""]
 ]
 
 ===AUTHORITY===
@@ -268,6 +356,8 @@ COMPANION::naming-standard.md[naming+frontmatter_logic]
 
 ===CHANGELOG===
 
+v1.3::2025-12-23→added_FORMAT_RULES_section+linked_HUB_AUTHORING_RULES
+v1.2::2025-12-23→added_RULE_0_hub/_system_governance+clarified_hub_vs_.hestai_distinction
 v1.1::2025-12-19→bundled_in_HestAI_MCP_Hub+OCTAVE_format_conversion
 v1.1::2025-12-18→added_frontmatter+linked_companion_NAMING-STANDARD
 v1.0::2025-12-09→initial_visibility_rules
