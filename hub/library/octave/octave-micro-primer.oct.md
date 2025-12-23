@@ -1,9 +1,9 @@
 ===OCTAVE_MICRO_PRIMER===
-// Essential OCTAVE v4 in 6 rules (110-140 tokens)
+// Essential OCTAVE v4.1 in 6 rules (110-140 tokens)
 
 META:
   NAME::"OCTAVE Micro Primer"
-  VERSION::"4.0"
+  VERSION::"4.1"
   PURPOSE::"Minimal viable OCTAVE for direct model emission"
 
 SEMANTIC_MODE::"Use Greek mythology for compression (domains/patterns/forces)"
@@ -15,9 +15,10 @@ RULES:
   4_HIERARCHY::"Indent exactly 2 spaces per level"
   5_LISTS::"[item1, item2, item3] no trailing comma"
   6_OPERATORS:
-    PROGRESSION::"[A->B->C] shows sequence (lists only)"
-    SYNTHESIS::"A+B combines elements"
-    TENSION::"A _VERSUS_ B shows opposition"
+    // Canonical Unicode (MCP tools normalize to these)
+    FLOW::"→ (ASCII alias: ->)"
+    SYNTHESIS::"⊕ (ASCII alias: +)"
+    TENSION::"⇌ (ASCII alias: _VERSUS_)"
 
 TYPES:
   STRING::bare_word or "with spaces"
@@ -28,10 +29,12 @@ TYPES:
 EXAMPLE:
   STATUS::DEGRADED
   PATTERN::ICARIAN_TRAJECTORY
-  FLOW::[INIT->BUILD->DEPLOY]
-  TENSION::SPEED _VERSUS_ RELIABILITY
+  FLOW::[INIT→BUILD→DEPLOY]
+  TENSION::SPEED⇌RELIABILITY
   METRICS:
     CPU::94
     MEMORY::82
+
+MCP_VALIDATION::"Use octave_ingest tool to validate and normalize"
 
 ===END===

@@ -2,17 +2,22 @@
 
 ## Overview
 
-OCTAVE (Olympian Common Text And Vocabulary Engine) v4.0 is the canonical structured format specification for all artifacts, context, and knowledge within HestAI-MCP. It serves as the persistent memory layer, enabling cognitive continuity and knowledge preservation across agent sessions.
+OCTAVE (Olympian Common Text And Vocabulary Engine) v4.1 is the canonical structured format specification for all artifacts, context, and knowledge within HestAI-MCP. It serves as the persistent memory layer, enabling cognitive continuity and knowledge preservation across agent sessions.
 
 **Key Philosophy:** "Strict Protocol for Machines, Flexible Dialect for Minds"
 
+**v4.1 Updates:**
+- MCP tools (`octave_ingest`, `octave_eject`) for validation and transformation
+- Skills integration (`octave-literacy`, `octave-mastery`, `octave-compression`)
+- Unicode operator canonicalization with ASCII alias support
+
 ---
 
-## OCTAVE v4.0 Specification
+## OCTAVE v4.1 Specification
 
 ### The Protocol Contract (Strict Enforcement)
 
-OCTAVE v4.0 is defined as a rigid protocol for system tools (validators, indexers, routers) with flexible semantic guidance for human communication.
+OCTAVE v4.1 is defined as a rigid protocol for system tools (validators, indexers, routers) with flexible semantic guidance for human communication.
 
 #### Document Structure
 
@@ -56,10 +61,16 @@ META:
 
 #### Operators
 
-- **Progression (`->`):** Only inside lists, shows sequence
-- **Synthesis (`+`):** Binary only, combines elements
-- **Tension (`_VERSUS_`):** Shows opposition/trade-off
+**Canonical Unicode (output by MCP tools):**
+- **Flow (`→`):** Sequence progression (inside lists)
+- **Synthesis (`⊕`):** Binary combination of elements
+- **Tension (`⇌`):** Opposition/trade-off expression
 - **Definition (`::`):** Key-value separator
+
+**ASCII Aliases (accepted on input, normalized by `octave_ingest`):**
+- `->` → `→`
+- `+` → `⊕`
+- `_VERSUS_` → `⇌`
 
 **Anti-Patterns (Blocked by Validator):**
 - Operator chaining: ❌ `A+B+C` (use nested structures)
@@ -91,9 +102,47 @@ LEARNING::problem→solution→wisdom→transfer_guidance
 
 ## OCTAVE Validation
 
-### Validator Tool
+### MCP Tools (Primary Method)
 
-**Location:** `hub/tools/octave-validator.py`
+**`octave_ingest`** - Parse, normalize, and validate OCTAVE content:
+```
+Pipeline: PREPARSE → PARSE → NORMALIZE → VALIDATE → REPAIR → EMIT
+```
+
+**Parameters:**
+- `content`: OCTAVE text to process
+- `schema`: Schema for validation (e.g., `META`, `SESSION_LOG`)
+- `tier`: Compression level (`LOSSLESS`, `CONSERVATIVE`, `AGGRESSIVE`, `ULTRA`)
+- `fix`: Enable auto-repair for minor issues
+- `verbose`: Show pipeline stages
+
+**`octave_eject`** - Project OCTAVE to various formats:
+
+**Modes:**
+- `canonical`: Full validated output
+- `authoring`: Lenient format for writing
+- `executive`: STATUS, RISKS, DECISIONS only
+- `developer`: TESTS, CI, DEPS only
+
+**Formats:** `octave`, `json`, `yaml`, `markdown`
+
+**Template Generation:** Pass `null` content with a schema to generate blank template.
+
+---
+
+### Skills Integration
+
+Load skills for OCTAVE competence during authoring:
+
+1. **octave-literacy** (load first): Essential syntax and operators
+2. **octave-mastery** (requires literacy): Semantic Pantheon and advanced patterns
+3. **octave-compression**: Workflow for transforming verbose content
+
+---
+
+### Legacy Validator Tool
+
+**Location:** `hub/tools/octave-validator.py` (deprecated, prefer MCP tools)
 
 **Profiles:**
 - `protocol` (default): Strict enforcement for system tools
@@ -107,22 +156,7 @@ python hub/tools/octave-validator.py path/to/file.oct.md --profile hestai-agent
 
 # Scan directory
 python hub/tools/octave-validator.py --path . --profile protocol
-
-# Validation modes
-python hub/tools/octave-validator.py file.oct.md --version 4.0.0
 ```
-
-**Validation Stages:**
-1. Envelope validation (header/footer markers)
-2. META extraction and schema validation
-3. Operator usage validation
-4. Indentation and formatting checks
-5. Type safety checks
-6. Profile-specific validation (HestAI-skill/agent rules)
-
-**Exit Codes:**
-- `0`: All valid
-- `1`: Validation failed
 
 ---
 

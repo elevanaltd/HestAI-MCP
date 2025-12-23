@@ -1,17 +1,17 @@
 ===OCTAVE_V4_SPEC===
 META:
   NAME::"OCTAVE (Olympian Common Text And Vocabulary Engine)"
-  VERSION::"4.0"
+  VERSION::"4.1"
   TYPE::PROTOCOL_DEFINITION
   STATUS::ACTIVE
   PURPOSE::"Canonical protocol+format contract for LLM-authored artifacts"
   TAGLINE::"Strict Protocol for Machines, Flexible Dialect for Minds"
+  MCP_TOOLS::[octave_ingest, octave_eject]
+  SKILLS::[octave-literacy, octave-mastery, octave-compression]
   REFERENCES::[
     "/Volumes/OCTAVE/octave/specs/octave-4.oct.md",
-    "hub/library/octave/octave-4-spec.oct.md",
-    "/Volumes/OCTAVE/octave/tools/octave-validator.py",
-    "/Volumes/OCTAVE/octave/guides/octave-micro-primer.oct.md",
-    "/Volumes/OCTAVE/octave/examples/code-review-specialist-claude-subagent.oct.md"
+    "hub/library/octave/octave-spec.oct.md",
+    ".hestai/workflow/octave-integration-guide.md"
   ]
 
 // NOTE: The body of this spec is authored in OCTAVE syntax (key constraints, indentation, lists).
@@ -116,10 +116,16 @@ DIALECT_GUIDANCE:
     BLOCKS::"KEY:"
     LISTS::"[A, B, C]"
   OPERATORS:
-    SYNTHESIS::"+"
-    TENSION::"_VERSUS_"
-    FLOW::"->"
+    // Canonical Unicode forms (used in validated output)
+    FLOW::"→"
+    SYNTHESIS::"⊕"
+    TENSION::"⇌"
     DEFINITION::"::"
+    // ASCII aliases (accepted on input, normalized by MCP tools)
+    ASCII_ALIASES:
+      FLOW::"->"
+      SYNTHESIS::"+"
+      TENSION::"_VERSUS_"
 
 ---
 
@@ -167,8 +173,36 @@ VALIDATION_STRATEGY:
 
 ---
 
+---
+
+// 5.0_MCP_TOOL_INTEGRATION
+MCP_TOOL_INTEGRATION:
+  OCTAVE_INGEST:
+    PURPOSE::"Parse lenient OCTAVE, normalize operators, validate against schema"
+    PIPELINE::[PREPARSE→PARSE→NORMALIZE→VALIDATE→REPAIR→EMIT]
+    NORMALIZATIONS::[
+      "-> → →",
+      "+ → ⊕",
+      "_VERSUS_ → ⇌"
+    ]
+    TIERS::[LOSSLESS, CONSERVATIVE, AGGRESSIVE, ULTRA]
+
+  OCTAVE_EJECT:
+    PURPOSE::"Project OCTAVE content to various formats and views"
+    MODES::[canonical, authoring, executive, developer]
+    FORMATS::[octave, json, yaml, markdown]
+    TEMPLATE_GENERATION::"Pass null content to generate schema template"
+
+  SKILLS_INTEGRATION:
+    OCTAVE_LITERACY::"Essential syntax and operators for basic competence"
+    OCTAVE_MASTERY::"Expert-level semantic vocabulary and patterns (requires literacy)"
+    OCTAVE_COMPRESSION::"Workflow for transforming verbose content to OCTAVE"
+
+---
+
 LEGACY:
   V3_STATUS::DEPRECATED
-  NOTE::"OCTAVE v3 syntax/semantics specs are archived for reference; v4 is the canonical spec going forward."
+  V4_0_STATUS::SUPERSEDED_BY_4_1
+  NOTE::"v4.1 adds MCP tool integration and Unicode operator canonicalization"
 
 ===END===
