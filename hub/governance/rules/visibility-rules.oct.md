@@ -3,7 +3,7 @@
 META:
   TYPE::STANDARD
   ID::visibility-rules
-  VERSION::"1.2"
+  VERSION::"1.3"
   STATUS::ACTIVE
   PURPOSE::"Placement and lifecycle rules for artifacts to ensure discoverability"
   DOMAIN::governance
@@ -308,11 +308,43 @@ FROM_.hestai→TO_NEW_STRUCTURE::[
   reports::.hestai/reports/→.hestai/reports/
 ]
 
+===FORMAT_RULES===
+
+// When to use OCTAVE (.oct.md) vs Markdown (.md)
+
+OCTAVE_FORMAT[.oct.md]::[
+  agent_constitutions,
+  governance_rules,
+  north_stars,
+  methodology_docs,
+  context_files[PROJECT-CONTEXT_etc],
+  session_archives
+]
+
+MARKDOWN_FORMAT[.md]::[
+  developer_guides[setup_deployment],
+  ADRs[architecture_decisions],
+  READMEs[navigation_pointers],
+  human_first_documentation
+]
+
+FORMAT_DECISION_TREE::[
+  "Primary audience AI agents?"→YES→.oct.md,
+  "Governance/methodology/constitution?"→YES→.oct.md,
+  "Primary audience human developers?"→YES→.md,
+  "ADR or setup guide?"→YES→.md
+]
+
 ===COMPATIBILITY===
 
 WITH_NAMING_STANDARD::[
   VISIBILITY_RULES.md→answers["WHERE does artifact belong?"],
   NAMING_STANDARD.md→answers["HOW to name once placed?"]
+]
+
+WITH_HUB_AUTHORING_RULES::[
+  VISIBILITY_RULES.md→answers["WHERE in PRODUCT?"],
+  HUB_AUTHORING_RULES.md→answers["WHERE in SYSTEM (hub/)?""]
 ]
 
 ===AUTHORITY===
@@ -324,6 +356,7 @@ COMPANION::naming-standard.md[naming+frontmatter_logic]
 
 ===CHANGELOG===
 
+v1.3::2025-12-23→added_FORMAT_RULES_section+linked_HUB_AUTHORING_RULES
 v1.2::2025-12-23→added_RULE_0_hub/_system_governance+clarified_hub_vs_.hestai_distinction
 v1.1::2025-12-19→bundled_in_HestAI_MCP_Hub+OCTAVE_format_conversion
 v1.1::2025-12-18→added_frontmatter+linked_companion_NAMING-STANDARD
