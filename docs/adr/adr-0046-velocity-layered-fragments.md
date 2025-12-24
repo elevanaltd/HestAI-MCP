@@ -1,4 +1,4 @@
-# ADR-0037: Velocity-Layered Fragments Architecture
+# ADR-0046: Velocity-Layered Fragments Architecture
 
 ## Status
 
