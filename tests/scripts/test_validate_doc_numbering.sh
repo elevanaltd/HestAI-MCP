@@ -65,6 +65,66 @@ test_has_usage() {
     return 0
 }
 
+# Test 4: Validation fails with proper summary for mismatched documents
+test_validates_failure_path() {
+    local temp_dir
+    temp_dir=$(mktemp -d)
+    trap "rm -rf '$temp_dir'" EXIT
+
+    # Create temporary test structure
+    mkdir -p "$temp_dir/rfcs/active"
+
+    # Create a document with mismatched number
+    cat > "$temp_dir/rfcs/active/0100-mismatch-test.md" << 'EOF'
+# RFC-0100: Mismatch Test
+
+- **Status**: Draft
+- **Author**: Test
+- **Created**: 2025-01-01
+- **Updated**: 2025-01-01
+- **GitHub Issue**: [#99](https://github.com/elevanaltd/HestAI-MCP/issues/99)
+
+## Summary
+Test document with intentional mismatch (filename=100, issue=99)
+EOF
+
+    # Run validation in temp directory (should fail)
+    local output
+    local exit_code
+    cd "$temp_dir"
+    output=$("$VALIDATE_SCRIPT" 2>&1) && exit_code=0 || exit_code=$?
+
+    # Should exit with code 1
+    if [ "$exit_code" -ne 1 ]; then
+        echo "FAIL: Expected exit code 1, got $exit_code"
+        return 1
+    fi
+
+    # Should contain summary
+    if ! echo "$output" | grep -q "VALIDATION SUMMARY"; then
+        echo "FAIL: Output should contain VALIDATION SUMMARY"
+        echo "Output was: $output"
+        return 1
+    fi
+
+    # Should report 1 invalid document
+    if ! echo "$output" | grep -q "Invalid: 1"; then
+        echo "FAIL: Output should report 'Invalid: 1'"
+        echo "Output was: $output"
+        return 1
+    fi
+
+    # Should show the mismatch error
+    if ! echo "$output" | grep -q "Filename number (100) doesn't match issue (#99)"; then
+        echo "FAIL: Output should show mismatch details"
+        echo "Output was: $output"
+        return 1
+    fi
+
+    echo "PASS: Validation correctly fails with proper summary for mismatched documents"
+    return 0
+}
+
 # Run all tests
 echo "Testing validate-doc-numbering.sh script..."
 echo "Project root: $PROJECT_ROOT"
@@ -72,6 +132,7 @@ echo "Project root: $PROJECT_ROOT"
 run_test "Script exists and is executable" test_script_exists
 run_test "Has usage or runs successfully" test_has_usage
 run_test "Validates correct documents" test_validates_correct_documents
+run_test "Validates failure path with summary" test_validates_failure_path
 
 # Test summary
 echo ""

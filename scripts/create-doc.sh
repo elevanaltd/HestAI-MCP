@@ -114,14 +114,12 @@ main() {
 
     # Create issue and capture URL
     local issue_url
-    issue_url=$(gh issue create \
+    if ! issue_url=$(gh issue create \
         --repo "$GITHUB_REPO" \
         --title "$issue_title" \
         --label "$doc_type" \
         --body "Document placeholder - content will be added via PR" \
-        2>&1)
-
-    if [ $? -ne 0 ]; then
+        2>&1); then
         error "Failed to create GitHub issue: $issue_url"
     fi
 

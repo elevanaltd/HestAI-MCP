@@ -155,7 +155,7 @@ main() {
     if [ -d "docs/adr" ]; then
         info "Checking ADR files..."
         while IFS= read -r -d '' file; do
-            validate_document "$file" "ADR"
+            validate_document "$file" "ADR" || true
         done < <(find docs/adr -name "adr-*.md" -print0 2>/dev/null || true)
     fi
 
@@ -165,7 +165,7 @@ main() {
     if [ -d "rfcs/active" ]; then
         info "Checking RFC files..."
         while IFS= read -r -d '' file; do
-            validate_document "$file" "RFC"
+            validate_document "$file" "RFC" || true
         done < <(find rfcs/active -name "*.md" -print0 2>/dev/null || true)
     fi
 
