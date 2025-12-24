@@ -4,18 +4,30 @@ This directory contains proposals and experimental designs for the HestAI MCP sy
 
 ## Active RFCs
 
-### [RFC-0001: Context Registry](active/0001-context-registry.md)
-**Status**: EXPERIMENTAL
-Proposes a centralized context registry for managing session and agent contexts across the HestAI ecosystem.
-
-### [RFC-0002: Hub as Application](active/0002-hub-as-application.md)
-**Status**: PROPOSED
-Transform the HestAI Hub from static governance files into an active application with project registry, push capability, and version management.
-
 ### [RFC-0031: GitHub Issue-Based Document Numbering](active/0031-github-issue-based-numbering.md)
 **Status**: PROPOSED
 **GitHub Issue**: [#31](https://github.com/elevanaltd/HestAI-MCP/issues/31)
 Adopt GitHub Issue numbers as canonical identifiers for ADRs and RFCs to eliminate sequence clash conflicts in multi-worktree environments. This RFC itself demonstrates the pattern.
+
+### [RFC-0037: Context Registry](active/0037-context-registry.md)
+**Status**: EXPERIMENTAL
+**GitHub Issue**: [#37](https://github.com/elevanaltd/HestAI-MCP/issues/37)
+Proposes a centralized context registry for managing session and agent contexts across the HestAI ecosystem.
+
+### [RFC-0038: Hub as Application](active/0038-hub-as-application.md)
+**Status**: PROPOSED
+**GitHub Issue**: [#38](https://github.com/elevanaltd/HestAI-MCP/issues/38)
+Transform the HestAI Hub from static governance files into an active application with project registry, push capability, and version management.
+
+### [RFC-0039: Agent Master Forge](active/0039-agent-master-forge.oct.md)
+**Status**: PROPOSED
+**GitHub Issue**: [#39](https://github.com/elevanaltd/HestAI-MCP/issues/39)
+Agent forging methodology and patterns library.
+
+### [RFC-0040: Agent Patterns Library](active/0040-agent-patterns-library.oct.md)
+**Status**: PROPOSED
+**GitHub Issue**: [#40](https://github.com/elevanaltd/HestAI-MCP/issues/40)
+Reusable agent pattern templates and archetypes.
 
 ## Purpose
 
@@ -30,13 +42,15 @@ rfcs/
 ├── README.md                 # This file
 ├── 0000-template.md          # Template for new RFCs
 ├── active/                   # RFCs under active consideration
-│   ├── 0001-context-registry.md      # Legacy numbering
-│   ├── 0002-hub-as-application.md    # Legacy numbering
-│   └── 0031-github-issue-based-numbering.md  # Issue-based (new pattern)
+│   ├── 0031-github-issue-based-numbering.md  # Issue-based numbering RFC
+│   ├── 0037-context-registry.md              # Context registry
+│   ├── 0038-hub-as-application.md            # Hub as application
+│   ├── 0039-agent-master-forge.oct.md        # Agent forging
+│   └── 0040-agent-patterns-library.oct.md    # Pattern library
 ├── implemented/              # Accepted and implemented RFCs
 │   └── (empty - none yet)
 └── experimental/             # Prototypes and proof-of-concepts
-    └── 0001-context-registry/    # Experimental registry code
+    └── 0001-context-registry/    # Experimental registry code (legacy)
 ```
 
 ## Process
@@ -101,4 +115,4 @@ For reference, the original process was:
 2. Fill out all sections completely
 3. Submit PR for discussion
 
-Existing RFCs (0001, 0002) are grandfathered under the old numbering.
+Legacy RFCs have been migrated to issue-based numbering (0037-0040).
