@@ -8,6 +8,7 @@ META:
   EVOLUTION::"From static pattern concatenation to dynamic architectural transformation"
   FORMULA::"SUCCESS = IMMUTABLE_FOUNDATIONS + ARCHETYPE_ACCUMULATION + SEMANTIC_WEAVING + EMERGENT_PROPERTIES - FAKE_MODULARITY"
   BREAKTHROUGH::"Capabilities modify entire role architecture, not just add text blocks"
+  GITHUB_ISSUE::"#40"
   V5_EVIDENCE::[
     "C038: 49% size reduction with improved performance",
     "C039: 96%+ token efficiency with RAPH processing",

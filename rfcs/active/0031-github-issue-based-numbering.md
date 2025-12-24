@@ -234,7 +234,7 @@ Continue with manual sequence allocation.
 
 ## References
 
-- [ADR-0001: Dual-Layer Context Architecture](../../docs/adr/adr-0001-dual-layer-context-architecture.md)
-- [RFC-0002: Hub as Application](./0002-hub-as-application.md)
+- [ADR-0033: Dual-Layer Context Architecture](../../docs/adr/adr-0033-dual-layer-context-architecture.md)
+- [RFC-0038: Hub as Application](./0038-hub-as-application.md)
 - [naming-standard.oct.md](../../hub/governance/rules/naming-standard.oct.md)
 - Edge Optimizer analysis (Gemini via PAL clink, 2025-12-24)

@@ -1,4 +1,4 @@
-# ADR-0002: Orchestra Map Architecture
+# ADR-0034: Orchestra Map Architecture
 
 **Status**: ✅ VALIDATED (MVP Complete)
 **Date**: 2025-12-15
@@ -6,6 +6,7 @@
 **Reviewers**: edge-optimizer (Gemini), holistic-orchestrator, User
 **Validates**: A8 (Orchestra Map Feasibility - **65% → 85%** ✅)
 **Unblocks**: B0 Gate (pending critical-engineer final review)
+**GitHub Issue**: [#34](https://github.com/elevanaltd/HestAI-MCP/issues/34)
 
 ---
 

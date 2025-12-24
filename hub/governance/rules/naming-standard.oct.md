@@ -42,7 +42,21 @@ RULE_1::lowercase_with_hyphens["auth-architecture.md"≠"Auth_Architecture.md"]
 RULE_2::no_status_versions_in_filename[use_frontmatter≠"auth-v1.md"|"auth-draft.md"]
 RULE_3::topic_focused[short+stable≠"101-DOC-PLATFORM-AUTH-ARCHITECTURE-V1.md"]
 
-EXCEPTIONS::[ADRs["adr-0001-topic.md"],dates["2025-12-18-topic.md"],reports["report-001-topic.md"],whitelisted_system_files]
+EXCEPTIONS::[ADRs["adr-0031-topic.md"],RFCs["0031-topic.md"],dates["2025-12-18-topic.md"],reports["report-001-topic.md"],whitelisted_system_files]
+
+ISSUE_BASED_ALLOCATION::[
+  PRINCIPLE::"GitHub Issue number = Document number (prevents multi-worktree clashes)",
+  WORKFLOW::[
+    1::create_GitHub_issue["ADR: Topic"|"RFC: Topic"],
+    2::GitHub_assigns_unique_number[#31],
+    3::create_document_using_issue_number["adr-0031-topic.md"|"0031-topic.md"],
+    4::link_issue_in_frontmatter["GitHub Issue: [#31](url)"],
+    5::discussion_in_issue_comments,
+    6::PR_references_issue["Implements #31"]
+  ],
+  LABELS::["adr","rfc"]->GitHub_repo_labels,
+  REFERENCE::rfcs/active/0031-github-issue-based-numbering.md
+]
 
 ENFORCEMENT::hook_blocks_violations→helpful_error_messages
 
@@ -52,12 +66,20 @@ PATTERN_MATRIX::[
   STANDARD::{topic}.md→"auth-architecture.md"[most_documents],
   OCTAVE::{topic}.oct.md→"agent-binding.oct.md"[compressed_canonical],
   TEMPORAL::YYYY-MM-DD-{topic}.md→"2025-12-18-audit.md"[session_artifacts+incidents],
-  ADR::adr-NNNN-{topic}.md→"adr-0001-use-postgresql.md"[architecture_decisions],
+  ADR::adr-{ISSUE_NUMBER:04d}-{topic}.md→"adr-0031-use-postgresql.md"[architecture_decisions],
+  RFC::{ISSUE_NUMBER:04d}-{topic}.md→"0031-github-issue-numbering.md"[rfcs_active],
   REPORT::report-NNN-{topic}.md→"report-001-assessment.md"[formal_indexed_reports]
 ]
 
+NOTE_ISSUE_BASED::[
+  ADR_RFC_numbers::come_from_GitHub_Issue_numbers[see_ISSUE_BASED_ALLOCATION],
+  legacy_documents::migrated[adrs_renamed_to_issue_numbers,rfcs_0001-0004_grandfathered],
+  new_documents::MUST_use_issue_number_allocation
+]
+
 DECISION_TREE::[
-  IF::architecture_decision_record→adr-NNNN-{topic}.md,
+  IF::architecture_decision_record→create_GitHub_issue["ADR: Topic"]→adr-{ISSUE#:04d}-{topic}.md,
+  IF::request_for_comments→create_GitHub_issue["RFC: Topic"]→{ISSUE#:04d}-{topic}.md,
   IF::formal_indexed_report→report-NNN-{topic}.md,
   IF::session_artifact_or_incident→YYYY-MM-DD-{topic}.md,
   IF::well_known_conventional→exact_name[README.md|CHANGELOG.md],
@@ -168,15 +190,16 @@ DOMAIN_VOCABULARY::[
 ===ORDERED_SEQUENCES===
 
 WHEN_NUMBERS_NEEDED::[
-  ADRs::adr-NNNN-{topic}.md→stable_identity+chronology+decision_graphs,
+  ADRs::adr-{ISSUE#:04d}-{topic}.md→GitHub_issue_allocation+stable_identity+decision_graphs,
+  RFCs::{ISSUE#:04d}-{topic}.md→GitHub_issue_allocation+stable_identity+design_proposals,
   INCIDENT_TIMELINES::YYYY-MM-DD-{topic}.md→chronological_sorting+temporal_context,
   SESSION_ARTIFACTS::YYYY-MM-DD-{topic}.md→session_scoped+audit_trail,
   GOVERNANCE_REPORTS::report-NNN-{topic}.md→cross_project_reference+formal_IDs
 ]
 
 EXAMPLES::[
-  "adr-0001-use-postgresql.md",
-  "adr-0002-agent-binding-architecture.md",
+  "adr-0031-use-postgresql.md"[issue_#31],
+  "0031-github-issue-numbering.md"[RFC_issue_#31],
   "2025-12-18-api-timeout-incident.md",
   "2025-12-17-auth-failure-postmortem.md",
   "report-001-architecture-assessment.md"
@@ -213,7 +236,8 @@ CONVENTIONAL_FILES::[
   SECURITY.md,
   CODE_OF_CONDUCT.md,
   CLAUDE.md,
-  CODEOWNERS
+  CODEOWNERS,
+  ARCHITECTURE.md
 ]
 
 HESTAI_SYSTEM_FILES::[
@@ -248,8 +272,9 @@ NORTH_STAR_PATTERN::[
 REGEX_STANDARD_TOPIC::"^[a-z0-9]+(-[a-z0-9]+)*(\.oct)?\.md$"
 REGEX_DATE_PREFIXED::"^\d{4}-\d{2}-\d{2}-[a-z0-9-]+\.md$"
 REGEX_ADR::"^adr-\d{4}-[a-z0-9-]+\.md$"
+REGEX_RFC::"^\d{4}-[a-z0-9-]+\.md$"
 REGEX_REPORT::"^report-\d{3}-[a-z0-9-]+\.md$"
-REGEX_WHITELIST::"^(README|LICENSE|CONTRIBUTING|CHANGELOG|SECURITY|CODE_OF_CONDUCT|CLAUDE|CODEOWNERS|PROJECT-CONTEXT|PROJECT-CHECKLIST|PROJECT-HISTORY|PROJECT-ROADMAP|APP-CONTEXT|APP-CHECKLIST|DECISIONS|VISIBILITY-RULES|NAMING-STANDARD)(\.md)?$"
+REGEX_WHITELIST::"^(README|LICENSE|CONTRIBUTING|CHANGELOG|SECURITY|CODE_OF_CONDUCT|CLAUDE|CODEOWNERS|ARCHITECTURE|PROJECT-CONTEXT|PROJECT-CHECKLIST|PROJECT-HISTORY|PROJECT-ROADMAP|APP-CONTEXT|APP-CHECKLIST|DECISIONS|VISIBILITY-RULES|NAMING-STANDARD)(\.md)?$"
 REGEX_NORTH_STAR::"^000-[A-Z0-9-]+-NORTH-STAR(-SUMMARY)?(\.oct)?\.md$"
 
 FILENAME_MUST::[
@@ -292,10 +317,11 @@ EXAMPLE_NEW::"naming-standard.md"[with_type:standard_in_frontmatter]
 SOURCE::system_steward_analysis+LLM_first_research[2025-12-18]
 SUPERSEDES::101-DOC-STRUCTURE-AND-NAMING-STANDARDS.oct.md[for_new_artifacts]
 COMPANION::VISIBILITY-RULES.md[placement_logic]
-VERSION::1.1[lifecycle_expansion+controlled_vocabulary+OCTAVE_canonical+exceptions_whitelist]
+VERSION::1.2[issue_based_allocation+RFC_pattern+RFC-0031_implementation]
 
 ===CHANGELOG===
 
+v1.2::2025-12-24→issue_based_document_numbering[RFC-0031]+RFC_pattern_added+grandfathering_legacy_docs
 v1.1::2025-12-19→bundled_in_HestAI_MCP_Hub+OCTAVE_format_conversion
 v1.1::2025-12-18→lifecycle_statuses+controlled_vocabulary+.oct.md_canonical+whitelist+stable_references+regex_patterns
 v1.0::2025-12-18→initial_LLM_first_naming_standard

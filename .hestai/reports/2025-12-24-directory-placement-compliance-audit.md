@@ -122,10 +122,10 @@
 
 #### docs/ (12 files) - RULE_1 MOSTLY COMPLIANT
 - ✅ ARCHITECTURE.md - Correct (system design documentation)
-- ✅ adr/adr-0001-dual-layer-context-architecture.md - Correct (ADR)
-- ✅ adr/adr-0002-orchestra-map-architecture.md - Correct (ADR)
-- ✅ adr/adr-0003-living-artifacts-auto-refresh.md - Correct (ADR)
-- ✅ adr/adr-0004-odyssean-anchor-binding.md - Correct (ADR)
+- ✅ adr/adr-0033-dual-layer-context-architecture.md - Correct (ADR)
+- ✅ adr/adr-0034-orchestra-map-architecture.md - Correct (ADR)
+- ✅ adr/adr-0035-living-artifacts-auto-refresh.md - Correct (ADR)
+- ✅ adr/adr-0036-odyssean-anchor-binding.md - Correct (ADR)
 - ✅ mcp-server-setup.md - Correct (setup guide)
 - ✅ workflow/ci-progressive-testing.oct.md - HYBRID (see findings below)
 
@@ -184,9 +184,12 @@
 **Current Structure**:
 - rfcs/README.md - Navigation
 - rfcs/0000-template.md - Template
-- rfcs/active/0001-context-registry.md - Active RFC
-- rfcs/active/0002-hub-as-application.md - Active RFC
-- rfcs/experimental/0001-context-registry/ - Experimental exploration
+- rfcs/active/0031-github-issue-based-numbering.md - Issue-based numbering RFC
+- rfcs/active/0037-context-registry.md - Context Registry RFC
+- rfcs/active/0038-hub-as-application.md - Hub as Application RFC
+- rfcs/active/0039-agent-master-forge.oct.md - Agent Forge RFC
+- rfcs/active/0040-agent-patterns-library.oct.md - Patterns Library RFC
+- rfcs/experimental/0001-context-registry/ - Experimental exploration (legacy)
 
 **Classification Options**:
 1. **Keep as is** (conventional RFC structure, separate from other docs)

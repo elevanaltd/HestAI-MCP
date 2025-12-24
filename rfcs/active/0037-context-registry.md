@@ -4,6 +4,7 @@
 - **Author**: Context Steward Team
 - **Created**: 2025-12-19
 - **Updated**: 2025-12-19
+- **GitHub Issue**: [#37](https://github.com/elevanaltd/HestAI-MCP/issues/37)
 
 ## Summary
 

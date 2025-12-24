@@ -150,7 +150,8 @@ CORRECT_PLACEMENT::[
   "OCTAVE Usage Guide"→hub/library/octave/[consumer_needs_it],
   "HestAI-MCP Product North Star"→.hestai/workflow/[internal_only],
   "HestAI-MCP Build Phase Tracking"→.hestai/context/[internal_only],
-  "HestAI-MCP ADRs"→docs/adr/[internal_architecture_decisions]
+  "HestAI-MCP ADRs"→docs/adr/[internal_architecture_decisions],
+  "HestAI-MCP RFCs"→rfcs/active/[design_proposals]
 ]
 
 INCORRECT_PLACEMENT::[
@@ -195,5 +196,29 @@ RELATED::[
   naming-standard.oct.md→file_naming_conventions,
   test-structure-standard.oct.md→test_organization
 ]
+
+---
+
+§8::ADR_RFC_PROCESS
+
+// Issue-based document numbering per RFC-0031
+
+ADR_CREATION::[
+  1::create_GitHub_issue["ADR: Topic"]→label["adr"],
+  2::note_issue_number[#N],
+  3::create_document[docs/adr/adr-{N:04d}-topic.md],
+  4::link_issue_in_frontmatter["GitHub Issue: [#N](url)"],
+  5::submit_PR["Implements #N"]
+]
+
+RFC_CREATION::[
+  1::create_GitHub_issue["RFC: Topic"]→label["rfc"],
+  2::note_issue_number[#N],
+  3::create_document[rfcs/active/{N:04d}-topic.md],
+  4::link_issue_in_frontmatter["GitHub Issue: [#N](url)"],
+  5::submit_PR["Implements #N"]
+]
+
+REFERENCE::rfcs/active/0031-github-issue-based-numbering.md
 
 ===END===

@@ -4,6 +4,7 @@
 - **Author**: [Your Name]
 - **Created**: [Date]
 - **Updated**: [Date]
+- **GitHub Issue**: [#N](https://github.com/elevanaltd/HestAI-MCP/issues/N)
 
 ## Summary
 
@@ -42,3 +43,14 @@ What parts of the design are still TBD?
 - [ ] Phase 1: ...
 - [ ] Phase 2: ...
 - [ ] Phase 3: ...
+
+---
+
+## How to Use This Template
+
+1. **Create a GitHub Issue** with title "RFC: [Your Topic]" and label `rfc`
+2. **Note the issue number** (e.g., #42)
+3. **Copy this template** to `rfcs/active/{ISSUE_NUMBER:04d}-your-topic.md` (e.g., `0042-your-topic.md`)
+4. **Update the header** to use the issue number: `# RFC-0042: Your Topic`
+5. **Link the issue** in the frontmatter above
+6. **Fill out all sections** and submit a PR referencing the issue
