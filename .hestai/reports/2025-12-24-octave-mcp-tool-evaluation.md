@@ -22,6 +22,16 @@ The octave MCP tool (`octave_ingest`) has fundamental limitations that make it u
 
 ---
 
+## GITHUB ISSUE ESCALATION
+
+**Issue Created**: [elevanaltd/octave#37](https://github.com/elevanaltd/octave/issues/37)
+**Title**: octave_ingest MCP tool: Syntax strictness and mutation limitations block bulk conversion
+**Status**: OPEN (awaiting maintainer review)
+
+Comprehensive blockers documented in octave repository with test evidence and priority fixes (P0-P4).
+
+---
+
 ## TEST RESULTS
 
 ### Test 1: Full PROJECT-CONTEXT.oct.md (FAILED)
