@@ -8,6 +8,48 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: progressive-behavior-preflight
+        name: Progressive behavior preflight (NOW/SOON/LATER)
+        entry: bash -c 'set -euo pipefail; if git diff --cached --name-only --diff-filter=ACMR | grep -E "^(src/|scripts/ci/)" >/dev/null; then python3 scripts/ci/validate_progressive_behavior.py; else echo "SKIP progressive preflight (no src/scripts/ci changes)"; fi'
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: octave-validate
+        name: Validate OCTAVE v5.1.0 for staged .oct.md
+        entry: bash -c 'set -euo pipefail; files="$(git diff --cached --name-only --diff-filter=ACMR | grep -E "\\.oct\\.md$" || true)"; if [ -z "$files" ]; then echo "SKIP octave validator (no .oct.md staged)"; exit 0; fi; for f in $files; do python3 hub/tools/octave-validator.py --profile protocol "$f"; done'
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: naming-visibility-validate
+        name: Validate naming/visibility for staged docs
+        entry: python3 scripts/ci/validate_naming_visibility.py --staged
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: ruff
+        name: ruff (staged)
+        entry: ruff check
+        language: system
+        types: [python]
+        files: ^(src|tests|scripts)/.*\.py$
+
+      - id: black
+        name: black --check (staged)
+        entry: black --check
+        language: system
+        types: [python]
+        files: ^(src|tests|scripts)/.*\.py$
+
+      - id: mypy
+        name: mypy src (only when src staged)
+        entry: bash -c 'set -euo pipefail; if git diff --cached --name-only --diff-filter=ACMR | grep -E "^src/.*\\.py$" >/dev/null; then mypy src; else echo "SKIP mypy (no src/*.py staged)"; fi'
+        language: system
+        pass_filenames: false
+        always_run: true
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
