@@ -43,15 +43,38 @@ test_script_exists() {
 
 # Test 2: Validation passes for correctly numbered documents
 test_validates_correct_documents() {
-    # The actual ADR/RFC files in the repo should pass validation
-    # since they follow RFC-0031
-    if "$VALIDATE_SCRIPT" &>/dev/null; then
-        echo "PASS: Existing documents pass validation"
-        return 0
-    else
-        echo "FAIL: Existing documents should pass validation"
-        return 1
-    fi
+    local temp_dir
+    temp_dir=$(mktemp -d)
+    trap "rm -rf '$temp_dir'" EXIT
+
+    # Create directory structure
+    mkdir -p "$temp_dir/docs/adr"
+    mkdir -p "$temp_dir/rfcs/active"
+
+    # Create valid ADR
+    cat > "$temp_dir/docs/adr/adr-0042-answer.md" << 'EOF'
+# ADR-0042: Answer
+- **GitHub Issue**: [#42](url)
+EOF
+
+    # Create valid RFC
+    cat > "$temp_dir/rfcs/active/0099-feature.md" << 'EOF'
+# RFC-0099: Feature
+- **GitHub Issue**: #99
+EOF
+
+    # Run validation in temp dir
+    (
+        cd "$temp_dir"
+        if ! "$VALIDATE_SCRIPT" >/dev/null 2>&1; then
+            echo "FAIL: Validation failed for correct documents"
+            exit 1
+        fi
+    )
+    if [ $? -ne 0 ]; then return 1; fi
+
+    echo "PASS: Correct documents validate successfully"
+    return 0
 }
 
 # Test 3: Script has usage message
@@ -89,39 +112,69 @@ Test document with intentional mismatch (filename=100, issue=99)
 EOF
 
     # Run validation in temp directory (should fail)
-    local output
-    local exit_code
-    cd "$temp_dir"
-    output=$("$VALIDATE_SCRIPT" 2>&1) && exit_code=0 || exit_code=$?
+    (
+        cd "$temp_dir"
+        local output
+        local exit_code
+        output=$("$VALIDATE_SCRIPT" 2>&1) && exit_code=0 || exit_code=$?
 
-    # Should exit with code 1
-    if [ "$exit_code" -ne 1 ]; then
-        echo "FAIL: Expected exit code 1, got $exit_code"
-        return 1
-    fi
+        # Should exit with code 1
+        if [ "$exit_code" -ne 1 ]; then
+            echo "FAIL: Expected exit code 1, got $exit_code"
+            exit 1
+        fi
 
-    # Should contain summary
-    if ! echo "$output" | grep -q "VALIDATION SUMMARY"; then
-        echo "FAIL: Output should contain VALIDATION SUMMARY"
-        echo "Output was: $output"
-        return 1
-    fi
+        # Should contain summary
+        if ! echo "$output" | grep -q "VALIDATION SUMMARY"; then
+            echo "FAIL: Output should contain VALIDATION SUMMARY"
+            echo "Output was: $output"
+            exit 1
+        fi
 
-    # Should report 1 invalid document
-    if ! echo "$output" | grep -q "Invalid: 1"; then
-        echo "FAIL: Output should report 'Invalid: 1'"
-        echo "Output was: $output"
-        return 1
-    fi
+        # Should report 1 invalid document
+        if ! echo "$output" | grep -q "Invalid: 1"; then
+            echo "FAIL: Output should report 'Invalid: 1'"
+            echo "Output was: $output"
+            exit 1
+        fi
 
-    # Should show the mismatch error
-    if ! echo "$output" | grep -q "Filename number (100) doesn't match issue (#99)"; then
-        echo "FAIL: Output should show mismatch details"
-        echo "Output was: $output"
-        return 1
-    fi
+        # Should show the mismatch error
+        if ! echo "$output" | grep -q "Filename number (100) doesn't match issue (#99)"; then
+            echo "FAIL: Output should show mismatch details"
+            echo "Output was: $output"
+            exit 1
+        fi
+    )
+    if [ $? -ne 0 ]; then return 1; fi
 
     echo "PASS: Validation correctly fails with proper summary for mismatched documents"
+    return 0
+}
+
+# Test 5: Validation handles relaxed spacing (e.g. # 123)
+test_validates_resilient_frontmatter() {
+    local temp_dir
+    temp_dir=$(mktemp -d)
+    trap "rm -rf '$temp_dir'" EXIT
+
+    mkdir -p "$temp_dir/docs/adr"
+
+    # Create ADR with space in issue number
+    cat > "$temp_dir/docs/adr/adr-0042-relaxed.md" << 'EOF'
+# ADR-0042: Relaxed
+- **GitHub Issue**: # 42
+EOF
+
+    (
+        cd "$temp_dir"
+        if ! "$VALIDATE_SCRIPT" >/dev/null 2>&1; then
+            echo "FAIL: Validation failed for relaxed frontmatter (# 42)"
+            exit 1
+        fi
+    )
+    if [ $? -ne 0 ]; then return 1; fi
+
+    echo "PASS: Relaxed frontmatter validates successfully"
     return 0
 }
 
@@ -133,6 +186,7 @@ run_test "Script exists and is executable" test_script_exists
 run_test "Has usage or runs successfully" test_has_usage
 run_test "Validates correct documents" test_validates_correct_documents
 run_test "Validates failure path with summary" test_validates_failure_path
+run_test "Validates relaxed frontmatter" test_validates_resilient_frontmatter
 
 # Test summary
 echo ""

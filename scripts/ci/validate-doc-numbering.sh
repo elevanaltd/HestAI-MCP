@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # CI validation for RFC-0031 GitHub issue-based document numbering
+# // Critical-Engineer: consulted for CI validation logic and shell script robustness
 #
 # This script validates that document filenames match their GitHub issue numbers
 # as specified in the frontmatter.
@@ -111,7 +112,11 @@ extract_frontmatter_issue() {
     # Look for GitHub Issue field in frontmatter (case-insensitive, flexible spacing)
     # Matches with or without leading dash, with or without spaces around **
     local issue_line
-    issue_line=$(grep -iE "^-?\s*\*\*\s*GitHub?\s+Issue\s*\*\*\s*:" "$file" | head -1 || true)
+    if ! issue_line=$(grep -iE "^-?[[:space:]]*\*\*[[:space:]]*GitHub[[:space:]]+Issue[[:space:]]*\*\*[[:space:]]*:" "$file" | head -1); then
+        # No match found
+        echo ""
+        return
+    fi
 
     if [ -z "$issue_line" ]; then
         echo ""
@@ -119,7 +124,7 @@ extract_frontmatter_issue() {
     fi
 
     # Extract number from [#123](...) or #123 format
-    if [[ "$issue_line" =~ \#([0-9]+) ]]; then
+    if [[ "$issue_line" =~ \#[[:space:]]*([0-9]+) ]]; then
         echo "${BASH_REMATCH[1]}"
     else
         echo ""
@@ -201,7 +206,7 @@ main() {
         info "Checking ADR files..."
         while IFS= read -r -d '' file; do
             validate_document "$file" "ADR" || true
-        done < <(find docs/adr -name "adr-*.md" -print0 2>/dev/null || true)
+        done < <(find docs/adr -name "adr-*.md" -print0)
     fi
 
     echo ""
@@ -211,7 +216,7 @@ main() {
         info "Checking RFC files..."
         while IFS= read -r -d '' file; do
             validate_document "$file" "RFC" || true
-        done < <(find rfcs/active -name "*.md" -print0 2>/dev/null || true)
+        done < <(find rfcs/active -name "*.md" -print0)
     fi
 
     echo ""

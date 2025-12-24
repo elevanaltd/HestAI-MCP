@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # CLI helper for creating ADRs/RFCs with GitHub issue-based numbering
+# // Critical-Engineer: consulted for input sanitization and mock-based testing strategy
 # Usage: ./scripts/create-doc.sh <adr|rfc> "Document Title"
 #
 # This script:
