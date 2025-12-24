@@ -122,10 +122,10 @@
 
 #### docs/ (12 files) - RULE_1 MOSTLY COMPLIANT
 - ✅ ARCHITECTURE.md - Correct (system design documentation)
-- ✅ adr/adr-0001-dual-layer-context-architecture.md - Correct (ADR)
-- ✅ adr/adr-0002-orchestra-map-architecture.md - Correct (ADR)
-- ✅ adr/adr-0003-living-artifacts-auto-refresh.md - Correct (ADR)
-- ✅ adr/adr-0004-odyssean-anchor-binding.md - Correct (ADR)
+- ✅ adr/adr-0033-dual-layer-context-architecture.md - Correct (ADR)
+- ✅ adr/adr-0034-orchestra-map-architecture.md - Correct (ADR)
+- ✅ adr/adr-0035-living-artifacts-auto-refresh.md - Correct (ADR)
+- ✅ adr/adr-0036-odyssean-anchor-binding.md - Correct (ADR)
 - ✅ mcp-server-setup.md - Correct (setup guide)
 - ✅ workflow/ci-progressive-testing.oct.md - HYBRID (see findings below)
 

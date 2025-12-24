@@ -1,4 +1,4 @@
-# ADR-003: Living Artifacts Auto-Refresh Mechanism
+# ADR-0035: Living Artifacts Auto-Refresh Mechanism
 
 **Status:** APPROVED (Revised)
 **Date:** 2025-12-17

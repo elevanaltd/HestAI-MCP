@@ -205,6 +205,6 @@ Use symlinks to shared governance directory.
 
 ## References
 
-- [ADR-0001: Dual-Layer Context Architecture](../docs/adr/adr-0001-dual-layer-context-architecture.md)
+- [ADR-0033: Dual-Layer Context Architecture](../docs/adr/adr-0033-dual-layer-context-architecture.md)
 - [HestAI Hub Repository](https://github.com/elevanaltd/HestAI)
 - [MCP Specification](https://modelcontextprotocol.io/)

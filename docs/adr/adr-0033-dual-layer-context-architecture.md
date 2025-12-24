@@ -1,4 +1,4 @@
-# ADR-0001: Dual-Layer Context Architecture
+# ADR-0033: Dual-Layer Context Architecture
 
 **Status**: ACCEPTED
 **Date**: 2025-12-19

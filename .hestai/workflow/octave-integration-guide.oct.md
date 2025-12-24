@@ -52,6 +52,6 @@ VALIDATION::through_B1_phase_execution
 OCTAVE_SPEC::/Volumes/OCTAVE/octave/specs/
 CONSUMER_GUIDE::hub/library/octave/octave-usage-guide.oct.md
 PRODUCT_NORTH_STAR::.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md
-ADR_0001::docs/adr/adr-0001-dual-layer-context-architecture.md
+ADR_0033::docs/adr/adr-0033-dual-layer-context-architecture.md
 
 ===END===

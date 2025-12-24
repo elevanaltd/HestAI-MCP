@@ -1,4 +1,4 @@
-# ADR-0004: Odyssean Anchor Binding Architecture
+# ADR-0036: Odyssean Anchor Binding Architecture
 
 **Status**: ACCEPTED
 **Date**: 2025-12-19

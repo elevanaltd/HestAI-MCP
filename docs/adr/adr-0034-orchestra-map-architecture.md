@@ -1,4 +1,4 @@
-# ADR-0002: Orchestra Map Architecture
+# ADR-0034: Orchestra Map Architecture
 
 **Status**: ✅ VALIDATED (MVP Complete)
 **Date**: 2025-12-15

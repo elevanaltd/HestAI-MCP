@@ -12,7 +12,7 @@ HestAI-MCP is a Model Context Protocol (MCP) server that provides **persistent m
 
 ### Core Architecture: Dual-Layer Context
 
-Defined in [ADR-0001](adr/adr-0001-dual-layer-context-architecture.md), the system separates concerns into two distinct layers with different delivery mechanisms:
+Defined in [ADR-0033](adr/adr-0033-dual-layer-context-architecture.md), the system separates concerns into two distinct layers with different delivery mechanisms:
 
 ```mermaid
 graph TD
@@ -54,7 +54,7 @@ graph TD
 
 ### 2.1 The Orchestra Map (Dependency Awareness)
 
-Defined in [ADR-0002](adr/adr-0002-orchestra-map-architecture.md).
+Defined in [ADR-0034](adr/adr-0034-orchestra-map-architecture.md).
 
 Agents must understand the *impact* of their changes. We use **Anchor Pattern Inversion**:
 *   Instead of Code citing Concepts (annotations that rot), **Concepts claim Code** (via imports in spec files).
@@ -64,7 +64,7 @@ Agents must understand the *impact* of their changes. We use **Anchor Pattern In
 
 ### 2.2 Living Artifacts (State Freshness)
 
-Defined in [ADR-0003](adr/adr-0003-living-artifacts-auto-refresh.md).
+Defined in [ADR-0035](adr/adr-0035-living-artifacts-auto-refresh.md).
 
 Context must never be stale. We use a **Split-Artifact Hybrid** approach:
 1.  **`docs/CHANGELOG.md`**: Updated by CI on every merge (audit trail).
@@ -73,7 +73,7 @@ Context must never be stale. We use a **Split-Artifact Hybrid** approach:
 
 ### 2.3 Odyssean Anchor (Identity Binding)
 
-Defined in [ADR-0004](adr/adr-0004-odyssean-anchor-binding.md).
+Defined in [ADR-0036](adr/adr-0036-odyssean-anchor-binding.md).
 
 Agents must bind to the project with verified identity.
 *   **Unified Path**: Main agents and subagents use the exact same `/oa-load` ceremony.
@@ -107,10 +107,10 @@ See: `docs/workflow/ci-progressive-testing.oct.md:1`
 
 | ID | Title | Status |
 |----|-------|--------|
-| [ADR-0001](adr/adr-0001-dual-layer-context-architecture.md) | Dual-Layer Context Architecture | ✅ ACCEPTED |
-| [ADR-0002](adr/adr-0002-orchestra-map-architecture.md) | Orchestra Map Architecture | ✅ VALIDATED |
-| [ADR-0003](adr/adr-0003-living-artifacts-auto-refresh.md) | Living Artifacts Auto-Refresh | ✅ APPROVED |
-| [ADR-0004](adr/adr-0004-odyssean-anchor-binding.md) | Odyssean Anchor Binding | ✅ ACCEPTED |
+| [ADR-0033](adr/adr-0033-dual-layer-context-architecture.md) | Dual-Layer Context Architecture | ✅ ACCEPTED |
+| [ADR-0034](adr/adr-0034-orchestra-map-architecture.md) | Orchestra Map Architecture | ✅ VALIDATED |
+| [ADR-0035](adr/adr-0035-living-artifacts-auto-refresh.md) | Living Artifacts Auto-Refresh | ✅ APPROVED |
+| [ADR-0036](adr/adr-0036-odyssean-anchor-binding.md) | Odyssean Anchor Binding | ✅ ACCEPTED |
 
 ---
 

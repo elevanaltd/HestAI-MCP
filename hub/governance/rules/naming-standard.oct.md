@@ -73,7 +73,7 @@ PATTERN_MATRIX::[
 
 NOTE_ISSUE_BASED::[
   ADR_RFC_numbers::come_from_GitHub_Issue_numbers[see_ISSUE_BASED_ALLOCATION],
-  legacy_documents::grandfathered[adr-0001_through_0004,rfc-0001_through_0004],
+  legacy_documents::migrated[adrs_renamed_to_issue_numbers,rfcs_0001-0004_grandfathered],
   new_documents::MUST_use_issue_number_allocation
 ]
 
