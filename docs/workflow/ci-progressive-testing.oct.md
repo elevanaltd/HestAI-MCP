@@ -17,7 +17,8 @@ FOUNDATION::[
   STANDARD_NAMING::hub/governance/rules/naming-standard.oct.md
   STANDARD_VISIBILITY::hub/governance/rules/visibility-rules.oct.md
   OCTAVE_SPEC::hub/library/octave/octave-spec.oct.md
-  OCTAVE_VALIDATOR::hub/tools/octave-validator.py
+  OCTAVE_VALIDATOR::hub/tools/octave-validator.py[vendored_from:/Volumes/OCTAVE/octave/tools/]
+  OCTAVE_CANONICAL::/Volumes/OCTAVE/octave/[specs,tools,mcp]
 ]
 
 ===MODEL_NOW_SOON_LATER===

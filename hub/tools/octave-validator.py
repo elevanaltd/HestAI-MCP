@@ -2,6 +2,10 @@
 """
 OCTAVE Validator - v4 Implementation
 
+VENDORED FROM: /Volumes/OCTAVE/octave/tools/octave-validator.py
+CANONICAL SOURCE: OCTAVE project at /Volumes/OCTAVE/octave/
+SYNC POLICY: Update this vendored copy when canonical validator changes
+
 This validator checks OCTAVE v4 formatted documents for envelope (markers + META) and formatting compliance.
 
 Usage:
