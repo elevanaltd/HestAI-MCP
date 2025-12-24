@@ -12,6 +12,11 @@ Proposes a centralized context registry for managing session and agent contexts 
 **Status**: PROPOSED
 Transform the HestAI Hub from static governance files into an active application with project registry, push capability, and version management.
 
+### [RFC-0031: GitHub Issue-Based Document Numbering](active/0031-github-issue-based-numbering.md)
+**Status**: PROPOSED
+**GitHub Issue**: [#31](https://github.com/elevanaltd/HestAI-MCP/issues/31)
+Adopt GitHub Issue numbers as canonical identifiers for ADRs and RFCs to eliminate sequence clash conflicts in multi-worktree environments. This RFC itself demonstrates the pattern.
+
 ## Purpose
 
 - **Experimental Designs**: Ideas and prototypes that aren't ready for production
@@ -25,8 +30,9 @@ rfcs/
 ├── README.md                 # This file
 ├── 0000-template.md          # Template for new RFCs
 ├── active/                   # RFCs under active consideration
-│   ├── 0001-context-registry.md
-│   └── 0002-hub-as-application.md
+│   ├── 0001-context-registry.md      # Legacy numbering
+│   ├── 0002-hub-as-application.md    # Legacy numbering
+│   └── 0031-github-issue-based-numbering.md  # Issue-based (new pattern)
 ├── implemented/              # Accepted and implemented RFCs
 │   └── (empty - none yet)
 └── experimental/             # Prototypes and proof-of-concepts
@@ -76,8 +82,23 @@ rfcs/
 
 ## Creating a New RFC
 
-1. Copy `0000-template.md` to `active/NNNN-title.md`
+### New Process (Issue-Based Numbering)
+
+As of RFC-0031, new RFCs use GitHub Issue numbers to prevent sequence clashes:
+
+1. **Create GitHub Issue** with title "RFC: [Topic]" and label `rfc`
+2. **Note the issue number** (e.g., #31)
+3. **Create document** as `active/{ISSUE_NUMBER:04d}-title.md` (e.g., `0031-title.md`)
+4. **Add GitHub Issue link** in frontmatter
+5. **Fill out all sections** using `0000-template.md` as guide
+6. **Update this README** to list your RFC
+7. **Submit PR** referencing the issue
+
+### Legacy Process (Pre-RFC-0031)
+
+For reference, the original process was:
+1. Copy `0000-template.md` to `active/NNNN-title.md` (manually pick next number)
 2. Fill out all sections completely
 3. Submit PR for discussion
-4. Optional: Add experimental code to `experimental/NNNN-title/`
-5. Update this README to list your RFC
+
+Existing RFCs (0001, 0002) are grandfathered under the old numbering.
