@@ -14,7 +14,10 @@ FOUNDATION::[
   NORTH_STAR::docs/workflow/000-MCP-PRODUCT-NORTH-STAR.md
   ARCHITECTURE::docs/ARCHITECTURE.md
   STANDARD_TEST_STRUCTURE::hub/governance/rules/test-structure-standard.oct.md
+  STANDARD_NAMING::hub/governance/rules/naming-standard.oct.md
+  STANDARD_VISIBILITY::hub/governance/rules/visibility-rules.oct.md
   OCTAVE_SPEC::hub/library/octave/octave-spec.oct.md
+  OCTAVE_VALIDATOR::hub/tools/octave-validator.py
 ]
 
 ===MODEL_NOW_SOON_LATER===
@@ -48,6 +51,13 @@ JOBS::[
     PURPOSE::"Route and enforce NOW/SOON/LATER invariants"
     OUTPUTS::[run_contracts|run_integration]
     EXECUTES::python scripts/ci/validate_progressive_behavior.py --github-output "$GITHUB_OUTPUT"
+  ]
+  docs_validate::[
+    PURPOSE::"Validate doc naming/visibility + OCTAVE protocol for changed .oct.md"
+    EXECUTES::[
+      python hub/tools/octave-validator.py --profile protocol {changed}.oct.md
+      python scripts/ci/validate_naming_visibility.py {changed_docs}
+    ]
   ]
   typecheck::[
     PURPOSE::"Type safety gate"
@@ -136,8 +146,8 @@ RULES::[
 ADD_NEW_INTEGRATION_POINT::[
   1::Add_registry_entry[src/hestai_mcp/integrations/progressive.py]
   2::Add_token_to_code["INTEGRATION_POINT::{id}"]
-  3::Create_contract_tests_if_SOON[tests/contracts/{id}/test_*.py + @pytest.mark.contract]
-  4::Promote_to_NOW_when_ready[stage NOW + add integration tests + @pytest.mark.integration]
+  3::Create_contract_tests_if_SOON[tests/contracts/{id}/test_*.py,@pytest.mark.contract]
+  4::Promote_to_NOW_when_ready[stage:NOW,integration_tests,@pytest.mark.integration]
 ]
 
 MARKERS::[
