@@ -54,8 +54,8 @@ jobs:
           echo "BASE_SHA=$BASE_SHA" >> "$GITHUB_OUTPUT"
           git diff --name-only "$BASE_SHA"...${{ github.sha }} > changed_files.txt
 
-          grep -E '(^docs/|^hub/|^\\.hestai/|^\\.claude/).*(\\.oct\\.md)$' changed_files.txt > changed_octave.txt || true
-          grep -E '(^docs/|^hub/|^\\.hestai/|^\\.claude/).*(\\.md|\\.oct\\.md)$' changed_files.txt > changed_docs.txt || true
+          grep -E '(^docs/|^hub/|^\.hestai/|^\.claude/).*(\\.oct\\.md)$' changed_files.txt > changed_octave.txt || true
+          grep -E '(^docs/|^hub/|^\.hestai/|^\.claude/).*(\\.md|\\.oct\\.md)$' changed_files.txt > changed_docs.txt || true
 
           echo "changed_octave_count=$(wc -l < changed_octave.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
           echo "changed_docs_count=$(wc -l < changed_docs.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
@@ -81,6 +81,13 @@ jobs:
             exit 0
           fi
           xargs -a changed_docs.txt python scripts/ci/validate_naming_visibility.py
+
+  validate_doc_numbering:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate RFC-0031 document numbering
+        run: bash scripts/ci/validate-doc-numbering.sh
 
   typecheck:
     runs-on: ubuntu-latest
@@ -233,6 +240,7 @@ jobs:
     needs:
       - preflight
       - docs_validate
+      - validate_doc_numbering
       - typecheck
       - lint
       - test_now
@@ -246,6 +254,7 @@ jobs:
 
           echo "RESULT::preflight=${{ needs.preflight.result }}"
           echo "RESULT::docs_validate=${{ needs.docs_validate.result }}"
+          echo "RESULT::validate_doc_numbering=${{ needs.validate_doc_numbering.result }}"
           echo "RESULT::typecheck=${{ needs.typecheck.result }}"
           echo "RESULT::lint=${{ needs.lint.result }}"
           echo "RESULT::test_now=${{ needs.test_now.result }}"
@@ -261,6 +270,10 @@ jobs:
           fi
           if [ "${{ needs.docs_validate.result }}" != "success" ]; then
             echo "ERROR::required_job_failed::docs_validate::${{ needs.docs_validate.result }}"
+            exit 1
+          fi
+          if [ "${{ needs.validate_doc_numbering.result }}" != "success" ]; then
+            echo "ERROR::required_job_failed::validate_doc_numbering::${{ needs.validate_doc_numbering.result }}"
             exit 1
           fi
           if [ "${{ needs.typecheck.result }}" != "success" ]; then
