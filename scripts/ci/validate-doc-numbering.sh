@@ -101,21 +101,24 @@ extract_filename_number() {
 
 # Extract GitHub issue number from frontmatter
 # Accepts common variations:
+# Markdown format:
 # - **GitHub Issue**: [#31](https://github.com/org/repo/issues/31)
 # - **GitHub Issue**: #31
 # **GitHub Issue**: #31 (without leading dash)
 # - **Github Issue**: #31 (lowercase 'h')
+# OCTAVE format:
+# GITHUB_ISSUE::"#31"
 # Flexible spacing around colons and asterisks
 extract_frontmatter_issue() {
     local file="$1"
+    local issue_line=""
 
-    # Look for GitHub Issue field in frontmatter (case-insensitive, flexible spacing)
-    # Matches with or without leading dash, with or without spaces around **
-    local issue_line
-    if ! issue_line=$(grep -iE "^-?[[:space:]]*\*\*[[:space:]]*GitHub[[:space:]]+Issue[[:space:]]*\*\*[[:space:]]*:" "$file" | head -1); then
-        # No match found
-        echo ""
-        return
+    # Try markdown format first (case-insensitive, flexible spacing)
+    issue_line=$(grep -iE "^-?[[:space:]]*\*\*[[:space:]]*GitHub[[:space:]]+Issue[[:space:]]*\*\*[[:space:]]*:" "$file" 2>/dev/null | head -1)
+
+    # If not found, try OCTAVE format: GITHUB_ISSUE::"#N"
+    if [ -z "$issue_line" ]; then
+        issue_line=$(grep -E "^[[:space:]]*GITHUB_ISSUE[[:space:]]*::" "$file" 2>/dev/null | head -1)
     fi
 
     if [ -z "$issue_line" ]; then
@@ -123,7 +126,7 @@ extract_frontmatter_issue() {
         return
     fi
 
-    # Extract number from [#123](...) or #123 format
+    # Extract number from [#123](...) or #123 or "#123" format
     if [[ "$issue_line" =~ \#[[:space:]]*([0-9]+) ]]; then
         echo "${BASH_REMATCH[1]}"
     else
