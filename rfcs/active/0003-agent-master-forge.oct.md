@@ -8,6 +8,7 @@ META:
   BREAKTHROUGH::"Capabilities don't inject text blocks - they transform entire role architecture"
   BASED_ON::"C035/C036/C038/C039 empirical validation + TRUE modularity realization"
   ARCHITECTURAL_PRINCIPLE::"Each capability modifies the whole role: adds required archetype to cognition, weaves patterns at semantic insertion points, creates emergent properties through intelligent combination"
+  GITHUB_ISSUE::"#39"
   V6_INNOVATIONS::[
     "archetype_accumulation: capabilities bring required archetypes",
     "semantic_weaving: intelligent pattern integration at correct points",

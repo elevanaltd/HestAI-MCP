@@ -3,6 +3,7 @@
 **Status**: PROPOSED
 **Created**: 2025-12-19
 **Author**: holistic-orchestrator
+**GitHub Issue**: [#38](https://github.com/elevanaltd/HestAI-MCP/issues/38)
 
 ## Summary
 

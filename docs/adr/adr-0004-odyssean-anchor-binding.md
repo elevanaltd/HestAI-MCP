@@ -5,6 +5,7 @@
 **Author**: holistic-orchestrator (consolidated from Odyssean Anchor Project ADRs 001-003)
 **Supersedes**: Legacy `anchor_submit` and `load2.md` patterns
 **Implements**: I1 (Verifiable Behavioral Specification), I3 (Structural Enforcement)
+**GitHub Issue**: [#36](https://github.com/elevanaltd/HestAI-MCP/issues/36)
 
 ---
 

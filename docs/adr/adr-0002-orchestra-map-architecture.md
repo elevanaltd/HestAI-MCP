@@ -6,6 +6,7 @@
 **Reviewers**: edge-optimizer (Gemini), holistic-orchestrator, User
 **Validates**: A8 (Orchestra Map Feasibility - **65% → 85%** ✅)
 **Unblocks**: B0 Gate (pending critical-engineer final review)
+**GitHub Issue**: [#34](https://github.com/elevanaltd/HestAI-MCP/issues/34)
 
 ---
 

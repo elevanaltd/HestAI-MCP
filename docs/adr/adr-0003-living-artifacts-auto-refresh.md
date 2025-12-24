@@ -5,6 +5,7 @@
 **Revised:** 2025-12-17 (architectural simplification)
 **Decision Makers:** holistic-orchestrator (HO session 943ae976)
 **Consulted:** critical-engineer (Codex), edge-optimizer (Gemini)
+**GitHub Issue**: [#35](https://github.com/elevanaltd/HestAI-MCP/issues/35)
 
 ## Context
 

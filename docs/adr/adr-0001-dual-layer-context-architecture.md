@@ -4,6 +4,7 @@
 **Date**: 2025-12-19
 **Author**: holistic-orchestrator (adapted from hestai-core ADR-0007)
 **Implements**: HestAI-MCP foundational architecture
+**GitHub Issue**: [#33](https://github.com/elevanaltd/HestAI-MCP/issues/33)
 
 ---
 
