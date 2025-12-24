@@ -1,12 +1,11 @@
 # ADR-0046: Velocity-Layered Fragments Architecture
 
-## Status
+**Status**: ACCEPTED
+**Date**: 2024-12-24
+**Author**: Debate synthesis (Wind/Wall/Door via debate-hall MCP)
+**GitHub Issue**: [#46](https://github.com/elevanaltd/HestAI-MCP/issues/46)
 
-ACCEPTED
-
-## Date
-
-2024-12-24
+---
 
 ## Context
 
