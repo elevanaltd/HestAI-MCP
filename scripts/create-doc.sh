@@ -71,6 +71,11 @@ get_date() {
     date +%Y-%m-%d
 }
 
+# Show usage if requested
+if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
+    usage
+fi
+
 # Main script
 main() {
     # Validate arguments
