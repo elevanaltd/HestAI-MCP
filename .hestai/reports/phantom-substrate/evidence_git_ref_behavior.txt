@@ -1,0 +1,43 @@
+DATE: 2025-12-25T01:52:07Z
+TMPROOT: /var/folders/0g/s3q9vmxj391ddt8rkkv75ly00000gn/T/tmp.u7OorLrwcr
+
+== EXPERIMENT 1: refs/hestai/* exist on remote but are NOT cloned/fetched by default ==
+-- remote refs after pushing heads/trunk and refs/hestai/main --
+REMOTE: 5bac67cb2f996e4c9a231fa9121ce6913c1ba304 refs/heads/trunk
+REMOTE: 5bac67cb2f996e4c9a231fa9121ce6913c1ba304 refs/hestai/main
+-- clone B refs (show-ref) --
+B: 5bac67cb2f996e4c9a231fa9121ce6913c1ba304 refs/heads/trunk
+B: 5bac67cb2f996e4c9a231fa9121ce6913c1ba304 refs/remotes/origin/HEAD
+B: 5bac67cb2f996e4c9a231fa9121ce6913c1ba304 refs/remotes/origin/trunk
+-- verify remote-tracking + local refs/hestai/main in clone B --
+B MISSING refs/hestai/main
+B MISSING origin/hestai/main
+
+== EXPERIMENT 2: explicit fetch refspec required to fetch refs/hestai/* ==
+-- B remote.origin.fetch (defaults) --
+B remote.origin.fetch: +refs/heads/*:refs/remotes/origin/*
+-- try: git fetch origin (default) then check for refs/hestai/main --
+B STILL MISSING refs/hestai/main AFTER default fetch
+-- fetch with explicit refspec: +refs/hestai/*:refs/hestai/* --
+B AFTER explicit fetch: 5bac67cb2f996e4c9a231fa9121ce6913c1ba304 refs/hestai/main
+
+== EXPERIMENT 3: default push does NOT push refs/hestai/* ==
+-- remote refs after default push from A --
+REMOTE: 7d837c73aa7b1de94fe19f425fe38f8c05446634 refs/heads/trunk
+REMOTE: 5bac67cb2f996e4c9a231fa9121ce6913c1ba304 refs/hestai/main
+-- now push refs/hestai/main explicitly and show remote --
+REMOTE: 7d837c73aa7b1de94fe19f425fe38f8c05446634 refs/heads/trunk
+REMOTE: 7d837c73aa7b1de94fe19f425fe38f8c05446634 refs/hestai/main
+
+== EXPERIMENT 4: --work-tree checkout updates shared index (status pollution) ==
+-- C status BEFORE --
+-- run: git --work-tree=.hestai checkout refs/hestai/main -- . (NO separate index) --
+-- C status AFTER (index pollution expected) --
+?? .hestai/
+
+== EXPERIMENT 5: isolate index using GIT_INDEX_FILE to prevent pollution ==
+-- C status AFTER isolated-index checkout --
+?? .hestai.index
+?? .hestai/
+
+AUTHORITY_MARKER::This proves operation is from legitimate critical-engineer subagent
