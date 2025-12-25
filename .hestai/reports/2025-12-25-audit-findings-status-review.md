@@ -11,11 +11,12 @@
 **Original Audit Results**: 156 files, 94.9% compliant, 8 issues identified
 
 **Current Status**:
-- ✅ **3 items RESOLVED** (project has evolved)
+- ✅ **5 items RESOLVED** (project has evolved + audit errors corrected)
 - ⚠️ **2 items OUTSTANDING** (still require action)
 - ℹ️ **3 items CHANGED CONTEXT** (audit assumptions updated)
+- 🔴 **2 items AUDIT ERROR** (incorrectly flagged as violations - dual-format is intentional)
 
-**Key Finding**: Repository has undergone significant evolution since Dec 24 (new RFCs, ADR renumbering). Original critical placement issue remains unresolved.
+**Key Finding**: Repository has undergone significant evolution since Dec 24 (new RFCs, ADR renumbering). Two format issues incorrectly identified - North Star dual-format (.md + .oct.md) is documented design decision. Original critical placement issue (ci-progressive-testing location) remains unresolved.
 
 ---
 
@@ -170,16 +171,36 @@ rfcs/experimental/0001-context-registry/ (legacy)
 
 ---
 
-## SUMMARY: REQUIRED ACTIONS
+## SUMMARY: REQUIRED ACTIONS (CORRECTED)
+
+### AUDIT CORRECTION
+
+Two items previously identified as violations are actually CORRECT DESIGN:
+
+**✅ REMOVED FROM VIOLATIONS**:
+- System North Star using .md format - CORRECT (dual-format design documented)
+- Template North Star using .md format - CORRECT (dual-format design documented)
+
+**Authority**:
+- naming-standard.oct.md § NORTH_STAR_PATTERN (regex allows both .md and .oct.md)
+- hub-authoring-rules.oct.md § FORMAT_RULES (governance files designed as .md + optional summary)
+- CLAUDE.md § FEDERATED_NORTH_STAR (primary North Stars are .md)
+
+**Decision Record**: .hestai/workflow/000-REPORTS-D1-NORTH-STAR.md
 
 ### MUST FIX (Blocking)
 
 | Item | Current State | Target State | Action | Priority |
 |------|---------------|--------------|--------|----------|
 | ci-progressive-testing.oct.md | docs/workflow/ | .hestai/workflow/test-context/ | MOVE + CREATE DIR | CRITICAL |
-| System North Star | .md | .oct.md | RENAME | HIGH |
-| Template North Star | .md | .oct.md | RENAME | HIGH |
 | Clock-in assessment | .md | .oct.md | RENAME | MEDIUM |
+
+### AUDIT ERRORS CORRECTED
+
+| Item | Original Finding | Corrected Finding | Reason | Status |
+|------|-----------------|-------------------|--------|--------|
+| System North Star format | ❌ VIOLATION (.md) | ✅ CORRECT DESIGN | Dual-format intentional per naming-standard + hub-authoring-rules | REMOVED |
+| Template North Star format | ❌ VIOLATION (.md) | ✅ CORRECT DESIGN | Dual-format intentional per naming-standard + hub-authoring-rules | REMOVED |
 
 ### OPTIONAL (Enhancement)
 
@@ -194,6 +215,7 @@ rfcs/experimental/0001-context-registry/ (legacy)
 | ADR numbering | 0001-0004 → 0033,0034,0035,0036,0046 | RFC-0031 | ✅ FIXED |
 | RFCs structure | Expanded + renumbered | RFC-0031 | ✅ FIXED |
 | Authoring rules | Added § ADR_RFC_PROCESS | hub-authoring-rules | ✅ FIXED |
+| North Star format decision | Documented dual-format design | naming-standard + hub-authoring-rules + CLAUDE.md | ✅ DOCUMENTED |
 
 ---
 
