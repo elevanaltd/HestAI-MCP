@@ -1,7 +1,11 @@
-# COMPONENT SUMMARY: ODYSSEAN ANCHOR
+===ODYSSEAN_ANCHOR_NORTH_STAR_SUMMARY===
+// Component Summary: Odyssean Anchor
+// REFERENCE: component-of 000-MCP-PRODUCT-NORTH-STAR.md (not a standalone North Star)
 
-COMPONENT::ODYSSEAN_ANCHOR
-PARENT::.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md
+META:
+  TYPE::COMPONENT_SUMMARY
+  COMPONENT::ODYSSEAN_ANCHOR
+  PARENT::.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md
 
 IMMUTABLES::[
   I1::UNIFIED_BINDING_PATH[One_protocol_for_all_agents],
@@ -24,3 +28,5 @@ RELATIONSHIPS::[
   ENFORCES::System_I1[Verifiable_Spec],
   SUPPORTS::Living_Artifacts[Provides_Session_Context]
 ]
+
+===END===
