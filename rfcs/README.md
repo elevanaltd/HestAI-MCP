@@ -29,6 +29,11 @@ Agent forging methodology and patterns library.
 **GitHub Issue**: [#40](https://github.com/elevanaltd/HestAI-MCP/issues/40)
 Reusable agent pattern templates and archetypes.
 
+### [RFC-0041: Universal Coordination Hub](active/0041-universal-coordination-hub.md)
+**Status**: DRAFT
+**GitHub Issue**: TBD
+A persistent, holistic coordination layer outside repository snapshots for cross-repository orchestration context.
+
 ## Purpose
 
 - **Experimental Designs**: Ideas and prototypes that aren't ready for production
@@ -46,7 +51,8 @@ rfcs/
 │   ├── 0037-context-registry.md              # Context registry
 │   ├── 0038-hub-as-application.md            # Hub as application
 │   ├── 0039-agent-master-forge.oct.md        # Agent forging
-│   └── 0040-agent-patterns-library.oct.md    # Pattern library
+│   ├── 0040-agent-patterns-library.oct.md    # Pattern library
+│   └── 0041-universal-coordination-hub.md    # Universal hub
 ├── implemented/              # Accepted and implemented RFCs
 │   └── (empty - none yet)
 └── experimental/             # Prototypes and proof-of-concepts

@@ -15,4 +15,4 @@ Yes. The `.hestai/` folder should be committed to git. It contains coordination 
 
 ## Can I delete it?
 
-If you're not using HestAI, you can safely remove this folder. It won't affect your application.
+If you're not using HestAI **and no one else on your team is using it**, you can safely remove this folder. It won't affect your application. Check with your team first.
