@@ -5,7 +5,6 @@
 META:
   TYPE::"FAST_LAYER_FRAGMENT"
   VERSION::"1.0.0"
-  LAST_UPDATE::"2025-12-25T00:00:00Z"
   VELOCITY::HOURLY_DAILY
   PURPOSE::"Current task tracking for active session work"
 
@@ -15,9 +14,10 @@ ACTIVE_TASKS:
     DESCRIPTION::"Implement FAST layer structure per ADR-0046"
     TASKS::[
       create_state_directory::DONE,
-      create_checklist_oct_md::IN_PROGRESS,
-      create_blockers_oct_md::PENDING,
-      create_current_focus_oct_md::PENDING,
+      create_checklist_oct_md::DONE,
+      create_blockers_oct_md::DONE,
+      create_current_focus_oct_md::DONE,
+      fix_crs_blocking_issues::IN_PROGRESS,
       validate_octave_format::PENDING,
       verify_git_visibility::PENDING,
       commit_changes::PENDING
@@ -25,19 +25,15 @@ ACTIVE_TASKS:
 
   quality_gates:
     STATUS::PENDING
-    DESCRIPTION::"Fix remaining quality gate issues"
-    TASKS::[
-      fix_ruff_B904::PENDING[jsonl_lens.py:185],
-      fix_ruff_SIM117::PENDING[security.py:111],
-      run_mypy_typecheck::PENDING
-    ]
+    DESCRIPTION::"See .hestai/context/PROJECT-CHECKLIST.oct.md for details"
+    REFERENCE::"/Volumes/HestAI-MCP/worktrees/adr-0046/.hestai/context/PROJECT-CHECKLIST.oct.md#QUALITY_GATES"
 
 COMPLETED_TODAY::[]
 
 NEXT_UP::[
-  complete_adr_0046_fast_layer_implementation,
-  address_quality_gate_ruff_errors,
-  run_full_quality_gates[lint+typecheck+test]
+  fix_crs_blocking_issues[remove_stale_timestamps,fix_task_statuses,remove_duplication],
+  complete_adr_0046_fast_layer_commit,
+  address_quality_gate_issues_per_medium_layer
 ]
 
 ===END===

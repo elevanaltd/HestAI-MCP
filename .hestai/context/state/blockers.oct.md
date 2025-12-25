@@ -5,20 +5,21 @@
 META:
   TYPE::"FAST_LAYER_FRAGMENT"
   VERSION::"1.0.0"
-  LAST_UPDATE::"2025-12-25T00:00:00Z"
   VELOCITY::HOURLY_DAILY
   PURPOSE::"Track active blockers requiring resolution"
 
 BLOCKERS:
-  none::CURRENT_STATUS
+  crs_review_feedback::IN_PROGRESS
+    DESCRIPTION::"Fix 3 blocking issues from code-review-specialist"
+    SEVERITY::blocking_for_commit
+    TASKS::[remove_stale_timestamps,fix_task_statuses,remove_fast_medium_duplication]
 
 RESOLVED_TODAY::[]
 
 ESCALATED::[]
 
 MONITORING::[
-  ruff_errors[minor_severity_not_blocking],
-  mypy_typecheck[not_yet_run]
+  quality_gates[see_PROJECT-CHECKLIST.oct.md_for_details]
 ]
 
 ===END===
