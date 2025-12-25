@@ -115,20 +115,21 @@ System governance is injected to `.hestai-sys/` (top-level, gitignored) by the M
 │   Agent A   │     │   Agent B   │     │   Agent C   │
 └──────┬──────┘     └──────┬──────┘     └──────┬──────┘
        │                   │                   │
-       │ document_submit   │ context_update    │ document_submit
+       │ clock_in          │ document_submit   │ context_update
        │                   │                   │
        └───────────────────┼───────────────────┘
                            │
                            ▼
               ┌────────────────────────┐
               │    System Steward      │
-              │    (MCP Server)        │
               │                        │
-              │  - Validates format    │
-              │  - Checks conflicts    │
-              │  - Routes to location  │
-              │  - Compresses (OCTAVE) │
-              │  - Commits atomically  │
+              │  1. Validates request  │
+              │  2. Checks visibility- │
+              │     rules.oct.md       │
+              │  3. Routes to location │
+              │  4. Writes via         │
+              │     octave_create or   │
+              │     octave_amend       │
               └───────────┬────────────┘
                           │
                           ▼
@@ -139,6 +140,17 @@ System governance is injected to `.hestai-sys/` (top-level, gitignored) by the M
               │  .hestai/reports/      │
               └────────────────────────┘
 ```
+
+### Tool Flow Details
+
+| Tool | Agent Calls | System Steward Does |
+|------|-------------|---------------------|
+| `clock_in` | Request session start | Validate, create session.json, return context paths to read |
+| `clock_out` | Request session end | Compress transcript to OCTAVE via `octave_create`, archive, **update `.hestai/context/` with learnings** |
+| `document_submit` | Submit a document | Check `visibility-rules.oct.md` for routing, write via `octave_create` |
+| `context_update` | Request context change | Validate, write via `octave_create` or `octave_amend` |
+
+**Key principle**: System Steward always uses `octave_create` or `octave_amend` MCP tools for all writes—never raw file operations.
 
 ---
 
@@ -249,4 +261,4 @@ See RFC-0002 for detailed Hub as Application design.
 
 ---
 
-**END OF ADR-0001**
+**END OF ADR-0033**

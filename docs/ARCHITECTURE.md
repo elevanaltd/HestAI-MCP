@@ -86,20 +86,62 @@ Agents must bind to the project with verified identity.
 
 ## 3. Tool Ecosystem
 
-All tools are owned by `hestai-mcp`. **Agents never write to `.hestai/` directly**—they call MCP tools which handle all file operations.
+All tools are owned by `hestai-mcp`. **Agents never write to `.hestai/` directly**—they call MCP tools which route through the **System Steward** for validation and writing.
 
-| Tool Category | Tools | Purpose |
-|---------------|-------|---------|
-| **Session** | `clock_in`, `clock_out` | Manage session lifecycle (see below) |
-| **Binding** | `odyssean_anchor` | Validate agent identity and constraints |
-| **Context** | `context_update`, `document_submit` | Single-writer access to `.hestai/` |
-| **Analysis** | `codebase_investigator` | Deep dive into code structure |
+### 3.1 The System Steward Pattern
 
-### 3.1 Session Lifecycle
+The System Steward is the **single writer** for all `.hestai/` content. When an agent calls any tool:
+
+1. **Validates** the request against governance rules
+2. **Routes** documents to correct locations (checking `visibility-rules.oct.md`)
+3. **Writes** using `octave_create` or `octave_amend` (never raw file writes)
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Agent A   │     │   Agent B   │     │   Agent C   │
+└──────┬──────┘     └──────┬──────┘     └──────┬──────┘
+       │                   │                   │
+       │ clock_in          │ document_submit   │ context_update
+       │                   │                   │
+       └───────────────────┼───────────────────┘
+                           │
+                           ▼
+              ┌────────────────────────┐
+              │    System Steward      │
+              │                        │
+              │  1. Validate request   │
+              │  2. Check visibility-  │
+              │     rules.oct.md       │
+              │  3. Route to location  │
+              │  4. octave_create or   │
+              │     octave_amend       │
+              └───────────┬────────────┘
+                          │
+                          ▼
+              ┌────────────────────────┐
+              │  .hestai/context/      │
+              │  .hestai/workflow/     │
+              │  .hestai/sessions/     │
+              │  .hestai/reports/      │
+              └────────────────────────┘
+```
+
+### 3.2 MCP Tools
+
+| Tool | Agent Calls | System Steward Does |
+|------|-------------|---------------------|
+| `clock_in` | Request session start | Validate, create session.json, return context paths |
+| `clock_out` | Request session end | Compress to OCTAVE, archive, **update `.hestai/context/` with learnings** |
+| `document_submit` | Submit a document | Check `visibility-rules.oct.md`, route to path, write via `octave_create` |
+| `context_update` | Request context change | Validate, write via `octave_create` or `octave_amend` |
+| `odyssean_anchor` | Submit identity binding | Validate against schema, store anchor |
+
+### 3.3 Session Lifecycle
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  clock_in                                                       │
+│  clock_in (Agent calls → System Steward processes)              │
+│  ├── Validates request                                          │
 │  ├── Creates .hestai/sessions/active/{session_id}/session.json  │
 │  ├── Returns paths to context files for agent to read           │
 │  └── Detects focus conflicts with other active sessions         │
@@ -108,23 +150,24 @@ All tools are owned by `hestai-mcp`. **Agents never write to `.hestai/` directly
                     Agent does work...
                               ↓
 ┌─────────────────────────────────────────────────────────────────┐
-│  clock_out                                                      │
-│  ├── Reads Claude's session JSONL from ~/.claude/projects/      │
+│  clock_out (Agent calls → System Steward processes)             │
+│  ├── Reads Claude's session JSONL                               │
 │  ├── Redacts sensitive data (API keys, tokens)                  │
-│  ├── Compresses to OCTAVE format (.oct.md)                      │
+│  ├── Compresses to OCTAVE format via octave_create              │
 │  ├── Archives to .hestai/sessions/archive/                      │
+│  ├── Updates .hestai/context/ with session learnings            │
 │  └── Removes active session directory                           │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 **Key points:**
-- Active sessions (`/active/`) are gitignored—ephemeral working state
-- Archived sessions (`/archive/`) are committed—preserved knowledge
-- Agents read context, tools write files
+- System Steward is the gatekeeper—validates all requests
+- All writes use `octave_create` or `octave_amend` (OCTAVE MCP tools)
+- `clock_out` doesn't just archive—it updates project context with learnings
 
 ---
 
-### 3.2 CI: Progressive Testing
+### 3.4 CI: Progressive Testing
 
 HestAI-MCP CI uses a NOW/SOON/LATER progressive testing model (preflight routing, contract enforcement, artifact validation, conditional integration), plus a docs validation gate (OCTAVE protocol validation for changed `*.oct.md` and naming/visibility checks for changed docs).
 
