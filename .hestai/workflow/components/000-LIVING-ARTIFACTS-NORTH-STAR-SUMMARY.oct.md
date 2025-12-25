@@ -1,6 +1,10 @@
-# COMPONENT SUMMARY: LIVING ARTIFACTS
+===LIVING_ARTIFACTS_NORTH_STAR_SUMMARY===
+// Component Summary: Living Artifacts
+// REFERENCE: component-of 000-MCP-PRODUCT-NORTH-STAR.md (not a standalone North Star)
 
-COMPONENT::LIVING_ARTIFACTS
+META:
+  TYPE::COMPONENT_SUMMARY
+  COMPONENT::LIVING_ARTIFACTS
 PARENT::.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md
 
 IMMUTABLES::[
@@ -22,3 +26,5 @@ RELATIONSHIPS::[
   ENFORCES::System_I4[Discoverable_Persistence],
   FEEDS::Odyssean_Anchor[Provides_Context_for_ARM]
 ]
+
+===END===

@@ -1,7 +1,11 @@
-# COMPONENT SUMMARY: ORCHESTRA MAP
+===ORCHESTRA_MAP_NORTH_STAR_SUMMARY===
+// Component Summary: Orchestra Map
+// REFERENCE: component-of 000-MCP-PRODUCT-NORTH-STAR.md (not a standalone North Star)
 
-COMPONENT::ORCHESTRA_MAP
-PARENT::.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md
+META:
+  TYPE::COMPONENT_SUMMARY
+  COMPONENT::ORCHESTRA_MAP
+  PARENT::.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md
 
 IMMUTABLES::[
   I1::ANCHOR_PATTERN_INVERSION[Specs_import_Code],
@@ -22,3 +26,5 @@ RELATIONSHIPS::[
   ENFORCES::System_I5[Quality_Verification],
   DEPENDS_ON::Living_Artifacts[For_fresh_state]
 ]
+
+===END===
