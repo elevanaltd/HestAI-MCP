@@ -1,10 +1,10 @@
-# RFC-0041: Universal Coordination Hub
+# RFC-0054: Universal Coordination Hub
 
 - **Status**: Draft
 - **Author**: User (documented by AI)
 - **Created**: 2025-12-25
 - **Updated**: 2025-12-25
-- **GitHub Issue**: TBD (create issue with title "RFC: Universal Coordination Hub" and label `rfc`)
+- **GitHub Issue**: [#54](https://github.com/elevanaltd/HestAI-MCP/issues/54)
 
 ## Summary
 
