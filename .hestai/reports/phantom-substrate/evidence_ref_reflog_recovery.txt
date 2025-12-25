@@ -1,0 +1,14 @@
+DATE: 2025-12-25T01:52:57Z
+TMPROOT: /var/folders/0g/s3q9vmxj391ddt8rkkv75ly00000gn/T/tmp.TU7MfKrzfk
+
+== EXPERIMENT: refs/hestai/main reflog and recovery ==
+-- show refs/hestai/main --
+1c6c13e66ab81eb00263babbea9bfad18c8d7491 refs/hestai/main
+-- show reflog for refs/hestai/main (if enabled) --
+-- delete ref then recover from reflog (if reflog present) --
+after delete:
+MISSING
+RECOVER_SHA: <none>
+NO_REFLOG_AVAILABLE
+
+AUTHORITY_MARKER::This proves operation is from legitimate critical-engineer subagent
