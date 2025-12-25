@@ -1,7 +1,7 @@
 # HestAI-MCP Architecture
 
 **Status**: IMPLEMENTATION PHASE
-**Last Updated**: 2025-12-19
+**Last Updated**: 2024-12-25
 **Purpose**: Authoritative architecture definition for HestAI-MCP
 
 ---
@@ -17,36 +17,38 @@ Defined in [ADR-0033](adr/adr-0033-dual-layer-context-architecture.md), the syst
 ```mermaid
 graph TD
     subgraph "System Governance (Layer 1)"
-        Hub[HestAI Hub] -->|MCP Injection| Runtime[.hestai-sys/]
-        Runtime --> Rules[Rules & Standards]
-        Runtime --> Agents[Agent Definitions]
-        style Runtime fill:#f9f,stroke:#333,stroke-dasharray: 5 5
+        Hub[HestAI Hub] -->|MCP Injection| SysDir[.hestai-sys/]
+        SysDir --> Rules[Rules & Standards]
+        SysDir --> AgentDefs[Agent Definitions]
+        style SysDir fill:#f9f,stroke:#333,stroke-dasharray: 5 5
     end
 
-    subgraph "Project Documentation (Layer 2)"
-        Context[.hestai/context/] -->|Read| Agent
-        Sessions[.hestai/sessions/] -->|Read/Write| Agent
-        Workflow[.hestai/workflow/] -->|Read| Agent
+    subgraph "Project Context (Layer 2)"
+        Context[.hestai/context/]
+        Workflow[.hestai/workflow/]
+        Sessions[.hestai/sessions/]
         style Context fill:#bbf,stroke:#333
     end
 
-    subgraph "Product (Layer 3)"
+    subgraph "Product Code (Layer 3)"
         Code[src/ & tests/]
         style Code fill:#bfb,stroke:#333
     end
 
-    Agent[AI Agent] -->|Reads| Runtime
+    Agent[AI Agent] -->|Reads| SysDir
     Agent -->|Reads| Context
-    Agent -->|Writes via MCP| SystemSteward[System Steward]
-    SystemSteward -->|Validates & Writes| Context
-
+    Agent -->|Reads| Workflow
+    Agent -->|Calls| MCPTools[MCP Tools]
+    MCPTools -->|clock_in creates| Sessions
+    MCPTools -->|clock_out archives| Sessions
     Agent -->|Implements| Code
 ```
 
-| Layer | Content | Delivery | Git Status | Writer |
-|-------|---------|----------|------------|--------|
-| **System Governance** | Rules, agents, methodology | MCP server injection | `.gitignore` | HestAI system |
-| **Project Documentation** | Context, sessions (active ignored, archive committed), reports | Direct files | Committed (except active sessions) | System Steward only |
+| Layer | Content | Git Status | Who Writes |
+|-------|---------|------------|------------|
+| **System Governance** | Rules, agents, methodology in `.hestai-sys/` | Gitignored | MCP server (injected at runtime) |
+| **Project Context** | Planning docs in `.hestai/context/`, `.hestai/workflow/` | Committed | MCP tools only (not agents directly) |
+| **Sessions** | Active in `.hestai/sessions/active/`, Archive in `.hestai/sessions/archive/` | Active: gitignored, Archive: committed | `clock_in` and `clock_out` tools |
 
 ---
 
@@ -84,18 +86,88 @@ Agents must bind to the project with verified identity.
 
 ## 3. Tool Ecosystem
 
-All tools are owned by `hestai-mcp` (formerly split across repositories).
+All tools are owned by `hestai-mcp`. **Agents never write to `.hestai/` directly**—they call MCP tools which route through the **System Steward** for validation and writing.
 
-| Tool Category | Tools | Purpose |
-|---------------|-------|---------|
-| **Session** | `clock_in`, `clock_out` | Manage lifecycle, load/save context |
-| **Binding** | `odyssean_anchor` | Validate agent identity and constraints |
-| **Context** | `context_update`, `document_submit` | Single-writer access to `.hestai/` |
-| **Analysis** | `codebase_investigator` | Deep dive into code structure |
+### 3.1 The System Steward Pattern
+
+The System Steward is the **single writer** for all `.hestai/` content. When an agent calls any tool:
+
+1. **Validates** the request against governance rules
+2. **Routes** documents to correct locations (checking `visibility-rules.oct.md`)
+3. **Writes** using `octave_create` or `octave_amend` (never raw file writes)
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Agent A   │     │   Agent B   │     │   Agent C   │
+└──────┬──────┘     └──────┬──────┘     └──────┬──────┘
+       │                   │                   │
+       │ clock_in          │ document_submit   │ context_update
+       │                   │                   │
+       └───────────────────┼───────────────────┘
+                           │
+                           ▼
+              ┌────────────────────────┐
+              │    System Steward      │
+              │                        │
+              │  1. Validate request   │
+              │  2. Check visibility-  │
+              │     rules.oct.md       │
+              │  3. Route to location  │
+              │  4. octave_create or   │
+              │     octave_amend       │
+              └───────────┬────────────┘
+                          │
+                          ▼
+              ┌────────────────────────┐
+              │  .hestai/context/      │
+              │  .hestai/workflow/     │
+              │  .hestai/sessions/     │
+              │  .hestai/reports/      │
+              └────────────────────────┘
+```
+
+### 3.2 MCP Tools
+
+| Tool | Agent Calls | System Steward Does |
+|------|-------------|---------------------|
+| `clock_in` | Request session start | Validate, create session.json, return context paths |
+| `clock_out` | Request session end | Compress to OCTAVE, archive, **update `.hestai/context/` with learnings** |
+| `document_submit` | Submit a document | Check `visibility-rules.oct.md`, route to path, write via `octave_create` |
+| `context_update` | Request context change | Validate, write via `octave_create` or `octave_amend` |
+| `odyssean_anchor` | Submit identity binding | Validate against schema, store anchor |
+
+### 3.3 Session Lifecycle
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  clock_in (Agent calls → System Steward processes)              │
+│  ├── Validates request                                          │
+│  ├── Creates .hestai/sessions/active/{session_id}/session.json  │
+│  ├── Returns paths to context files for agent to read           │
+│  └── Detects focus conflicts with other active sessions         │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+                    Agent does work...
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│  clock_out (Agent calls → System Steward processes)             │
+│  ├── Reads Claude's session JSONL                               │
+│  ├── Redacts sensitive data (API keys, tokens)                  │
+│  ├── Compresses to OCTAVE format via octave_create              │
+│  ├── Archives to .hestai/sessions/archive/                      │
+│  ├── Updates .hestai/context/ with session learnings            │
+│  └── Removes active session directory                           │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Key points:**
+- System Steward is the gatekeeper—validates all requests
+- All writes use `octave_create` or `octave_amend` (OCTAVE MCP tools)
+- `clock_out` doesn't just archive—it updates project context with learnings
 
 ---
 
-## 3.1 CI: Progressive Testing
+### 3.4 CI: Progressive Testing
 
 HestAI-MCP CI uses a NOW/SOON/LATER progressive testing model (preflight routing, contract enforcement, artifact validation, conditional integration), plus a docs validation gate (OCTAVE protocol validation for changed `*.oct.md` and naming/visibility checks for changed docs).
 
@@ -118,16 +190,31 @@ See: `docs/workflow/ci-progressive-testing.oct.md:1`
 
 ```
 your-project/
-├── .hestai/                    # Project documentation (committed)
-│   ├── context/                # Living operational state
-│   ├── sessions/               # Session transcripts
-│   └── workflow/               # Project-specific rules
-├── .hestai-sys/                # System governance (gitignored, injected)
+├── .hestai/                         # Project context (mostly committed)
+│   ├── context/                     # Planning & state docs (committed)
+│   │   ├── PROJECT-CONTEXT.oct.md   # Current project state
+│   │   ├── PROJECT-ROADMAP.oct.md   # Phase planning
+│   │   └── PROJECT-CHECKLIST.oct.md # Active tasks
+│   ├── workflow/                    # Project-specific rules (committed)
+│   │   └── 000-PROJECT-NORTH-STAR.oct.md
+│   ├── sessions/
+│   │   ├── active/                  # Current sessions (GITIGNORED)
+│   │   └── archive/                 # Completed sessions (committed)
+│   └── reports/                     # Generated reports (committed)
+│
+├── .hestai-sys/                     # System governance (GITIGNORED)
+│                                    # Injected by MCP server at runtime
+│
 ├── docs/
-│   ├── adr/                    # Architecture Decision Records
-│   └── CHANGELOG.md            # CI-updated audit trail
-└── src/                        # Application code
+│   ├── adr/                         # Architecture Decision Records
+│   └── CHANGELOG.md                 # CI-updated audit trail
+│
+└── src/                             # Application code
 ```
+
+**What's committed vs gitignored:**
+- ✅ Committed: `.hestai/context/`, `.hestai/workflow/`, `.hestai/sessions/archive/`, `.hestai/reports/`
+- ❌ Gitignored: `.hestai/sessions/active/`, `.hestai-sys/`
 
 ---
 
