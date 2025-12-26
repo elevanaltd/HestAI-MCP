@@ -217,6 +217,8 @@ Continue with separate `rfcs/` and `docs/adr/`. Rejected because the problems (s
 2. **Voting Weight**: Should upvotes on Wind vs Wall comments quantitatively influence Door synthesis?
 3. **Debate Resumption**: If a Discussion is edited after initial debate, does it trigger re-debate?
 4. **External Agent Role Injection**: How do agents without debate-hall-mcp context adopt roles?
+5. **Server Hosting**: Where does the debate-hall-mcp webhook server run? (Local machine? Cloud? GitHub Actions?)
+6. **GitHub Copilot Integration**: Can we leverage Copilot's native Discussion integration instead of/alongside custom agents?
 
 ## External Agent Participation
 
@@ -242,11 +244,30 @@ See the pinned role reference above.
 
 #### Automated Phase (Phase 1+)
 
-**Bot Intermediary**: The debate-hall-mcp GitHub App handles role injection:
-1. Human adds `debate-requested` label
-2. Bot invokes agents via clink with role parameter pre-set
-3. Bot posts turns with full cognition context
-4. External agents don't need prior role knowledge
+**Important Clarification**: Native `@mentions` in GitHub (like `@codex`, `@claude`) do NOT trigger external AI agents. These are just text mentions with no integration.
+
+**Bot Intermediary Architecture**: The debate-hall-mcp GitHub App handles the full loop:
+1. Human adds `debate-requested` label to Discussion
+2. GitHub webhook notifies the debate-hall-mcp server
+3. Server invokes agents locally via clink (Gemini CLI, Codex CLI, Claude CLI)
+4. Server posts agent responses as comments using GitHub API
+5. Agents appear to "respond" but are actually invoked server-side
+
+```
+┌─────────────────┐    webhook     ┌──────────────────────┐
+│ GitHub          │ ───────────▶  │ debate-hall-mcp      │
+│ Discussion      │               │ server               │
+│ (label added)   │               │                      │
+└─────────────────┘               │  ┌─────────────────┐ │
+                                  │  │ clink(gemini)   │ │ ← Wind
+       ◀──── GitHub API ────────  │  │ clink(codex)    │ │ ← Wall
+       (post comments)            │  │ clink(claude)   │ │ ← Door
+                                  │  └─────────────────┘ │
+                                  └──────────────────────┘
+```
+
+**This is NOT**: Tagging `@codex` and expecting GitHub to invoke it
+**This IS**: A server that listens for labels and invokes agents itself
 
 ### Role Reference Template
 
