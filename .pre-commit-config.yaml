@@ -29,6 +29,13 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: adr-rfc-numbering
+        name: Validate ADR/RFC numbering matches GitHub Issue
+        entry: bash -c 'set -euo pipefail; if git diff --cached --name-only --diff-filter=ACMR | grep -E "^(docs/adr/adr-|rfcs/active/)" >/dev/null; then bash scripts/ci/validate-doc-numbering.sh; else echo "SKIP doc numbering (no ADR/RFC staged)"; fi'
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: ruff
         name: ruff (staged)
         entry: ruff check
