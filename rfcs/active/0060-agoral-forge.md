@@ -306,8 +306,29 @@ metadata:
 
 **Limitations**:
 - Requires GitHub Copilot access
-- MCP servers only at org/enterprise level (not repo)
+- MCP servers only at org/enterprise level (not repo-level agent profiles)
 - One agent per assignment (can't run Wind+Wall+Door in parallel automatically)
+- Custom agents cannot specify model (model selection is user-level setting)
+
+#### Extended Capabilities: Model Selection + MCP Servers
+
+GitHub Copilot settings (`github.com/settings/copilot/features`) provide additional power:
+
+**Model Selection** (User-Level):
+- Claude (Opus, Sonnet, Haiku)
+- Gemini (2.5, 3 Pro)
+- OpenAI models
+- Users can switch models, affecting all Copilot interactions including custom agents
+
+**MCP Server Integration**:
+- MCP servers can be configured at organization/enterprise level
+- Repository-level agents can access MCP tools from repository settings
+- **Potential**: Connect debate-hall-mcp as an MCP server to Copilot
+
+**Future Exploration**:
+1. Can debate-hall-mcp be an MCP server that Copilot agents use?
+2. If so, agents could call `debate-hall/init_debate`, `debate-hall/add_turn`, etc.
+3. This would enable structured debate tracking even within Copilot responses
 
 #### Alternative: Webhook Server (If Custom Agents Insufficient)
 
