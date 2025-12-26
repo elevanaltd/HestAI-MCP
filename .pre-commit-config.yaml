@@ -64,3 +64,5 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-added-large-files
+        args: ['--maxkb=500']
+        exclude: '^\.hestai/sessions/archive/.*\.jsonl$'
