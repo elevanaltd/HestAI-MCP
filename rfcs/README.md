@@ -34,6 +34,11 @@ Reusable agent pattern templates and archetypes.
 **GitHub Issue**: [#54](https://github.com/elevanaltd/HestAI-MCP/issues/54)
 A persistent, holistic coordination layer outside repository snapshots for cross-repository orchestration context.
 
+### [RFC-0060: Agoral Forge - GitHub Discussions + debate-hall-mcp Integration](active/0060-agoral-forge.md)
+**Status**: DRAFT
+**GitHub Issue**: [#60](https://github.com/elevanaltd/HestAI-MCP/issues/60)
+Transform RFCs from static files into GitHub Discussions with structured AI-assisted debate via debate-hall-mcp. ADRs remain as immutable artifacts. Core concept: "The Discussion IS the Draft. The Synthesis IS the Law."
+
 ## Purpose
 
 - **Experimental Designs**: Ideas and prototypes that aren't ready for production
@@ -52,7 +57,8 @@ rfcs/
 │   ├── 0038-hub-as-application.md            # Hub as application
 │   ├── 0039-agent-master-forge.oct.md        # Agent forging
 │   ├── 0040-agent-patterns-library.oct.md    # Pattern library
-│   └── 0054-universal-coordination-hub.md    # Universal hub
+│   ├── 0054-universal-coordination-hub.md    # Universal hub
+│   └── 0060-agoral-forge.md                  # Agoral Forge (Discussions + debate-hall)
 ├── implemented/              # Accepted and implemented RFCs
 │   └── (empty - none yet)
 └── experimental/             # Prototypes and proof-of-concepts
