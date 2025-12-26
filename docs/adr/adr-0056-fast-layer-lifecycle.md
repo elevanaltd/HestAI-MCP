@@ -1,4 +1,4 @@
-# ADR-0047: FAST Layer Lifecycle Integration
+# ADR-0056: FAST Layer Lifecycle Integration
 
 **Status**: PROPOSED
 **Date**: 2025-12-25
