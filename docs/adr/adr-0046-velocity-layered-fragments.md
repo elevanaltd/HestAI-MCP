@@ -1,7 +1,7 @@
 # ADR-0046: Velocity-Layered Fragments Architecture
 
 **Status**: ACCEPTED
-**Date**: 2024-12-24
+**Date**: 2025-12-24
 **Author**: Debate synthesis (Wind/Wall/Door via debate-hall MCP)
 **GitHub Issue**: [#46](https://github.com/elevanaltd/HestAI-MCP/issues/46)
 
@@ -163,7 +163,7 @@ def validate_write(path: str, writer: str) -> bool:
 ## Debate Record
 
 Full debate transcript available in debate-hall MCP:
-- Thread ID: `hestai-context-architecture-2024-12-24`
+- Thread ID: `hestai-context-architecture-2025-12-24`
 - Participants: Wind (Gemini/Edge-Optimizer), Wall (Claude/Critical-Engineer), Door (Synthesizer)
 - Turns: 6
 - Outcome: APPROVED with synthesis
