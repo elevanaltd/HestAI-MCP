@@ -216,6 +216,57 @@ Continue with separate `rfcs/` and `docs/adr/`. Rejected because the problems (s
 1. **Organization-Level RFCs**: GitHub Discussions API is repo-scoped. How do we handle cross-repo governance?
 2. **Voting Weight**: Should upvotes on Wind vs Wall comments quantitatively influence Door synthesis?
 3. **Debate Resumption**: If a Discussion is edited after initial debate, does it trigger re-debate?
+4. **External Agent Role Injection**: How do agents without debate-hall-mcp context adopt roles?
+
+## External Agent Participation
+
+### The Problem
+
+When tagging external AI agents (`@codex`, `@copilot`, `@claude`) in GitHub Discussions, they lack:
+- Access to debate-hall-mcp's cognition definitions
+- Knowledge of Wind/Wall/Door roles
+- OCTAVE format expectations
+
+### Solutions (Phased)
+
+#### Manual Phase (Now)
+
+**Pinned Role Reference**: Add a pinned comment to each RFC Discussion with compact role definitions. Any agent can read this context and adopt a role.
+
+Example invitation:
+```
+@codex Can you review this as WALL?
+Your job: Find constraints, cite evidence, render verdict.
+See the pinned role reference above.
+```
+
+#### Automated Phase (Phase 1+)
+
+**Bot Intermediary**: The debate-hall-mcp GitHub App handles role injection:
+1. Human adds `debate-requested` label
+2. Bot invokes agents via clink with role parameter pre-set
+3. Bot posts turns with full cognition context
+4. External agents don't need prior role knowledge
+
+### Role Reference Template
+
+For manual trials, include this pinned comment in RFC Discussions:
+
+```markdown
+## 📌 DEBATE ROLES REFERENCE
+
+### 💨 WIND (PATHOS) - The Explorer
+Job: Expand possibility, push boundaries
+Format: VISION → EXPLORATION → EMERGENT CAPABILITIES
+
+### 🧱 WALL (ETHOS) - The Guardian
+Job: Validate claims, identify constraints
+Format: VERDICT → EVIDENCE → CONSTRAINTS → RISKS
+
+### 🚪 DOOR (LOGOS) - The Synthesizer
+Job: Integrate Wind + Wall into third-way solution
+Format: TENSION RESOLUTION → EMERGENT PATH → IMPLEMENTATION
+```
 
 ## Implementation Plan
 
