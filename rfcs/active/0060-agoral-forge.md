@@ -242,16 +242,76 @@ Your job: Find constraints, cite evidence, render verdict.
 See the pinned role reference above.
 ```
 
-#### Automated Phase (Phase 1+)
+#### Automated Phase: GitHub Custom Copilot Agents
 
-**Important Clarification**: Native `@mentions` in GitHub (like `@codex`, `@claude`) do NOT trigger external AI agents. These are just text mentions with no integration.
+**Major Discovery**: GitHub supports **Custom Copilot Agents** via `.github/agents/*.agent.md` files!
 
-**Bot Intermediary Architecture**: The debate-hall-mcp GitHub App handles the full loop:
-1. Human adds `debate-requested` label to Discussion
-2. GitHub webhook notifies the debate-hall-mcp server
-3. Server invokes agents locally via clink (Gemini CLI, Codex CLI, Claude CLI)
-4. Server posts agent responses as comments using GitHub API
-5. Agents appear to "respond" but are actually invoked server-side
+This eliminates the need for a separate webhook server. Instead:
+
+1. Define Wind/Wall/Door as custom Copilot agents in the repository
+2. Human clicks "Assign Copilot to issue" and selects the agent
+3. Copilot reads issue + comments with the agent's role instructions
+4. Copilot responds as that role (or creates a PR)
+
+**Implementation**:
+
+```
+.github/agents/
+├── wind.agent.md    # PATHOS - The Explorer
+├── wall.agent.md    # ETHOS - The Guardian
+└── door.agent.md    # LOGOS - The Synthesizer
+```
+
+**Agent Definition Format** (YAML frontmatter + Markdown):
+
+```yaml
+---
+name: Wind (PATHOS)
+description: "Debate role: The Explorer. Expands possibility space."
+tools: ["read", "search"]
+infer: false
+metadata:
+  cognition: PATHOS
+  role: Wind
+  debate-hall: true
+---
+
+# Wind - The Explorer
+[Role instructions in Markdown - up to 30,000 characters]
+```
+
+**Workflow**:
+
+```
+┌─────────────────┐                    ┌──────────────────────┐
+│ GitHub Issue    │  "Assign Copilot"  │ GitHub Copilot       │
+│ (RFC proposal)  │ ───────────────▶   │ + Custom Agent       │
+│                 │  Select: Wind      │ (wind.agent.md)      │
+└─────────────────┘                    └──────────────────────┘
+                                                │
+                                                ▼
+                                       ┌──────────────────────┐
+                                       │ Agent responds with  │
+                                       │ WIND format or       │
+                                       │ creates PR           │
+                                       └──────────────────────┘
+```
+
+**Benefits over Webhook Architecture**:
+- No server to host or maintain
+- Native GitHub integration
+- Copilot reads full issue context automatically
+- Can create PRs directly (for ADR generation)
+- Version controlled in repository
+
+**Limitations**:
+- Requires GitHub Copilot access
+- MCP servers only at org/enterprise level (not repo)
+- One agent per assignment (can't run Wind+Wall+Door in parallel automatically)
+
+#### Alternative: Webhook Server (If Custom Agents Insufficient)
+
+For more control or parallel agent invocation, a webhook server remains an option:
 
 ```
 ┌─────────────────┐    webhook     ┌──────────────────────┐
@@ -266,8 +326,7 @@ See the pinned role reference above.
                                   └──────────────────────┘
 ```
 
-**This is NOT**: Tagging `@codex` and expecting GitHub to invoke it
-**This IS**: A server that listens for labels and invokes agents itself
+**Note**: Native `@mentions` (like `@codex`, `@claude`) do NOT trigger external agents - these require the webhook approach or manual invocation.
 
 ### Role Reference Template
 
