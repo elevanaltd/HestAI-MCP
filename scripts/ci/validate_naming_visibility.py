@@ -87,12 +87,22 @@ def main(argv: list[str]) -> int:
     if args.staged:
         paths = _staged_files()
 
-    docs = [p for p in paths if _is_doc(p) and _is_allowed_root(p)]
+    docs = [p for p in paths if _is_doc(p)]
     if not docs:
         print("SKIP naming/visibility (no relevant docs)")
         return 0
 
     for p in docs:
+        if not _is_allowed_root(p):
+            # Root-level doc file - check if whitelisted
+            name = Path(p).name
+            if not RE_WHITELIST.match(name):
+                raise SystemExit(
+                    f"ERROR visibility-rules: Root-level doc '{p}' not allowed. "
+                    f"Move to docs/, .hestai/, .claude/, or hub/ per visibility-rules.oct.md"
+                )
+            # Whitelisted root files pass without further validation
+            continue
         _validate_one(p)
 
     print("OK naming/visibility")
