@@ -1,3 +1,4 @@
+// REFERENCE: points-to-canonical
 # COMPONENT NORTH STAR: ODYSSEAN ANCHOR
 
 **Component**: Odyssean Anchor (Identity Binding Protocol)
@@ -20,7 +21,7 @@ Any deviation requires formal amendment.
 ### I1: UNIFIED BINDING PATH
 **Requirement**: A single, universal binding protocol must be used for ALL agents (main, sub-agents, tools). "Special paths" for different agent types are prohibited.
 **Rationale**: Fragmentation in binding logic creates security holes where "dumb" agents bypass controls.
-**Validation**: `/oa-load` (or its API equivalent) is the exclusive entry point.
+**Validation**: `/bind` (or its API equivalent) is the exclusive entry point.
 
 ### I2: STRUCTURAL VALIDATION (RAPH VECTOR)
 **Requirement**: Identity is not a string; it is a cryptographic structure (RAPH Vector) containing Role, Context Proof (ARM), and Authority (FLUKE). This structure must be machine-validated.

@@ -68,7 +68,7 @@ ADR_REGISTRY:
     TITLE::"Odyssean Anchor Binding Architecture"
     STATUS::ACCEPTED
     PURPOSE::"Unified agent identity binding with structural validation"
-    SUPERSEDES::anchor_submit+load2.md_patterns
+    SUPERSEDES::anchor_submit+legacy_load_patterns[now_/bind]
     PATTERN::RAPH_Vector[BIND+ARM+FLUKE+TENSION+HAZARD+COMMIT]
     KEY_FEATURES::[
       Unified_Path::main_and_subagents_same_ceremony,

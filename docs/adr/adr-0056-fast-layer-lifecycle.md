@@ -18,7 +18,7 @@ ADR-0046 established the Velocity-Layered Fragments architecture with a FAST lay
 **Problem**: These files are currently **static**. They were created with initial content but have no mechanism to:
 1. Populate with session-specific context during `clock_in`
 2. Update with session results during `clock_out`
-3. Receive topic/focus from load commands (`/load3`, `/oa-prototype-load`)
+3. Receive topic/focus from bind command (`/bind`)
 
 ### Multi-Worktree Reality
 
@@ -97,23 +97,23 @@ def clock_out(session_id: str) -> ClockOutResponse:
         })
 ```
 
-### 3. Load Command Integration
+### 3. Bind Command Integration
 
-Update `/load3` protocol to pass topic to clock_in:
+Update `/bind` protocol to pass topic to clock_in:
 
 ```octave
 // Current
-/load3 {role}
+/bind {role}
   → clock_in(role:"ho", focus:"general", working_dir:"{cwd}")
 
 // Proposed
-/load3 {role} [topic]
+/bind {role} [topic]
   → clock_in(role:"ho", focus:"{topic|branch_inferred}", working_dir:"{cwd}")
 ```
 
 **Topic Resolution Priority**:
-1. Explicit argument: `/load3 ho "implement ADR-0047"`
-2. GitHub issue: `/load3 ho --issue 56`
+1. Explicit argument: `/bind ho "implement ADR-0047"`
+2. GitHub issue: `/bind ho --issue 56`
 3. Branch inference: `adr-0047` → "ADR-0047 work"
 4. Default: "general"
 
@@ -219,7 +219,7 @@ CONFLICT_HANDLING::[
 |-------|------|-------|
 | 1 | Update clock_in to write FAST layer | implementation-lead |
 | 2 | Update clock_out to update FAST layer | implementation-lead |
-| 3 | Update /load3 to accept topic parameter | system-steward |
+| 3 | Update /bind to accept topic parameter | system-steward |
 | 4 | Add tests for FAST layer lifecycle | universal-test-engineer |
 | 5 | Update PROJECT-CONTEXT with ADR-0047 | system-steward |
 

@@ -3,7 +3,7 @@
 **Status**: ACCEPTED
 **Date**: 2025-12-19
 **Author**: holistic-orchestrator (consolidated from Odyssean Anchor Project ADRs 001-003)
-**Supersedes**: Legacy `anchor_submit` and `load2.md` patterns
+**Supersedes**: Legacy `anchor_submit` and `/load` command patterns (now `/bind`)
 **Implements**: I1 (Verifiable Behavioral Specification), I3 (Structural Enforcement)
 **GitHub Issue**: [#36](https://github.com/elevanaltd/HestAI-MCP/issues/36)
 
@@ -15,7 +15,7 @@
 
 The legacy agent binding process was redundant, asymmetric, and unverifiable:
 1.  **Redundancy**: Agents extracted their identity (T1) and then separately submitted a structure (T4), duplicating work.
-2.  **Asymmetry**: Main agents used a 7-step `load2.md` ceremony, while subagents used a manual, unverified prompt instruction.
+2.  **Asymmetry**: Main agents used a 7-step `/load` ceremony, while subagents used a manual, unverified prompt instruction.
 3.  **Validation Theater**: "Anchors" were generated but never structurally validated. Invalid anchors were silently accepted.
 4.  **No Self-Correction**: If an agent generated a bad anchor, it had no mechanism to know or fix it.
 
@@ -32,9 +32,9 @@ We introduce **Odyssean Anchor**, a unified binding mechanism and MCP tool that:
 
 Implement the **Odyssean Anchor** pattern as the exclusive method for agent identity binding.
 
-### 1. The Unified Binding Ceremony (`/oa-load`)
+### 1. The Unified Binding Ceremony (`/bind`)
 
-All agents (main or sub) bind via a standardized sequence, orchestrated by the `/oa-load` command (or equivalent subagent protocol):
+All agents (main or sub) bind via a standardized sequence, orchestrated by the `/bind` command (or equivalent subagent protocol):
 
 ```octave
 BINDING_SEQUENCE::[
@@ -145,7 +145,7 @@ The MCP tool enforces strict rules. If any rule fails, it returns a formatted er
 ## Migration Guide
 
 1.  **Agents**: Update `system-steward`, `implementation-lead`, etc., to use `odyssean_anchor` tool instead of `anchor_submit`.
-2.  **Commands**: Create `/oa-load` alias to trigger the 5-step sequence.
+2.  **Commands**: Use `/bind` command to trigger the binding sequence.
 3.  **Subagents**: Update `Task()` prompt wrapper to instruct subagents to call `odyssean_anchor` first.
 
 ---
