@@ -2,11 +2,12 @@
 // HestAI-MCP operational dashboard - Updated 2025-12-21
 
 META:
+  TYPE::"PROJECT_CONTEXT"
   NAME::"HestAI Context Management MCP Server"
   VERSION::"0.2.0"
   PHASE::B1_FOUNDATION_INFRASTRUCTURE
   STATUS::active_development
-  LAST_UPDATED::"2025-12-21T01:02:33Z"
+  LAST_UPDATED::"2025-12-27T04:30:00Z"
 
 PURPOSE::"MCP server implementing three-layer cognitive architecture for persistent AI agent context, governance, and semantic knowledge"
 
@@ -78,6 +79,7 @@ ACHIEVEMENTS::[
 ]
 
 NEXT_ACTIONS::[
+  0::INSTALL_PACKAGE[pip_install_-e_required_for_test_imports],
   1::FIX_QUALITY_GATES[ruff_B904+SIM117_errors,run_mypy],
   2::PORT_COMPREHENSIVE_TESTS[AI_client+clock_tools+shared_utilities],
   3::IMPLEMENT_LAYER_3_SEMANTIC_SPIKE[Basic_Memory_MCP_PoC],
@@ -85,6 +87,11 @@ NEXT_ACTIONS::[
   5::IMPLEMENT_CONTEXT_UPDATE_TOOL[Phase_3_MCP_tool],
   6::IMPLEMENT_VIOLATIONS_DETECTION[Orchestra_Map_staleness+co-change_analysis],
   7::CREATE_PRE_COMMIT_HOOK[block_direct_.hestai_writes]
+]
+
+GOVERNANCE_ACTIONS_COMPLETED::[
+  FIX_CI_NAMING_VALIDATOR::DONE[eb4245b_aligned_with_enforce-doc-naming.sh],
+  HARMONIZE_PATTERN_SUPPORT::DONE[.oct.md_variants_now_recognized]
 ]
 
 SCOPE::VERIFIED_ALIGNED::[

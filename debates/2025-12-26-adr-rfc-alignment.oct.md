@@ -1,0 +1,45 @@
+===DEBATE_TRANSCRIPT===
+META:
+  TYPE::DEBATE_RECORD
+  THREAD_ID::"adr-rfc-alignment-2025-12-26"
+  DATE::"2025-12-26"
+  TOPIC::"ADR/RFC unification, organization, and GitHub Issue integration"
+  STATUS::SYNTHESIS
+  MODE::mediated
+  ROUNDS::3
+  TURNS::9
+DEBATE_CONTEXT:
+  QUESTION::"How should ADRs and RFCs be unified, organized, and tracked for HestAI-MCP?"
+  PARTICIPANTS::[Wind,Wall,Door]
+  COGNITIONS::[PATHOS,ETHOS,LOGOS]
+  TURN_1_WIND:
+    AGENT::"edge-optimizer"
+    COGNITION::PATHOS
+    APPROACH::POSSIBILITY_EXPLORATION
+    KEY_INSIGHT::"RFC vs ADR is bureaucratic artifact"
+    CORE_PROBLEMS::[state_duplication,repo_pollution,context_gap]
+    RECOMMENDATION::PATH_1_unified_continuum
+    TURN_2_WALL:
+      AGENT::"critical-engineer"
+      COGNITION::ETHOS
+      APPROACH::CONSTRAINT_ANALYSIS
+      VERDICT::BLOCKED
+      EVIDENCE_COUNT::10
+      CRITICAL_CONSTRAINTS::[governance_hardcoded,semantic_distinction,GitHub_integration]
+      TURN_3_DOOR:
+        AGENT::synthesizer
+        COGNITION::LOGOS
+        SYNTHESIS_NAME::"Lifecycle-as-Metadata"
+        KEY_INNOVATION::both_and_via_frontmatter
+        WIND_HONORED::[continuum_Status_Phase,lifecycle_progression,unified_view]
+        WALL_HONORED::[directory_stability,CI_compatibility,namespace_safety]
+        UNIFIED_SCHEMA::[Status,Type,GitHub_Issue,Phase,Supersedes]
+        RFC_TO_ADR_WORKFLOW::"keep-RFC→create-ADR→cross-reference"
+        COST::LOW
+        BENEFIT::HIGH
+        FINAL_SYNTHESIS:
+          PATTERN::"Lifecycle-as-Metadata-Resolution"
+          STATUS::RECOMMENDED
+          IMPLEMENTATION_READY::true
+          DECISION_GATE::"B1-implementation"
+===END===
