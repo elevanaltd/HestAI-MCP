@@ -1,7 +1,7 @@
 ===HUB_AUTHORING_RULES===
 
 META:
-  TYPE::STANDARD
+  TYPE::RULE
   ID::hub-authoring-rules
   VERSION::"1.0"
   STATUS::ACTIVE
@@ -151,7 +151,7 @@ CORRECT_PLACEMENT::[
   "HestAI-MCP Product North Star"→.hestai/workflow/[internal_only],
   "HestAI-MCP Build Phase Tracking"→.hestai/context/[internal_only],
   "HestAI-MCP ADRs"→docs/adr/[internal_architecture_decisions],
-  "HestAI-MCP RFCs"→rfcs/active/[design_proposals]
+  "Proposals"→GitHub_Issues[per_ADR-0060]
 ]
 
 INCORRECT_PLACEMENT::[
@@ -199,9 +199,10 @@ RELATED::[
 
 ---
 
-§8::ADR_RFC_PROCESS
+§8::ADR_PROCESS
 
-// Issue-based document numbering per RFC-0031
+// Issue-based document numbering per ADR-0031
+// RFC files deprecated per ADR-0060 - proposals use GitHub Issues
 
 ADR_CREATION::[
   1::create_GitHub_issue["ADR: Topic"]→label["adr"],
@@ -211,14 +212,14 @@ ADR_CREATION::[
   5::submit_PR["Implements #N"]
 ]
 
-RFC_CREATION::[
-  1::create_GitHub_issue["RFC: Topic"]→label["rfc"],
-  2::note_issue_number[#N],
-  3::create_document[rfcs/active/{N:04d}-topic.md],
-  4::link_issue_in_frontmatter["GitHub Issue: [#N](url)"],
-  5::submit_PR["Implements #N"]
+PROPOSAL_PROCESS::[
+  1::create_GitHub_issue_with_label["rfc"|"discussion"],
+  2::discussion_happens_in_issue_comments,
+  3::when_ratified→create_ADR_per_above,
+  POLICY::"The Discussion IS the Draft. The Synthesis IS the Law."
 ]
 
-REFERENCE::rfcs/active/0031-github-issue-based-numbering.md
+REFERENCE::docs/adr/adr-0031-github-issue-based-numbering.md
+SEE_ALSO::docs/adr/adr-0060-rfc-adr-alignment.md
 
 ===END===

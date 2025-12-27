@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# CI validation for RFC-0031 GitHub issue-based document numbering
+# CI validation for ADR-0031 GitHub issue-based document numbering
 # // Critical-Engineer: consulted for CI validation logic and shell script robustness
 #
-# This script validates that document filenames match their GitHub issue numbers
+# This script validates that ADR filenames match their GitHub issue numbers
 # as specified in the frontmatter.
 #
 # Usage: ./scripts/ci/validate-doc-numbering.sh
@@ -11,8 +11,10 @@
 #   0 - All documents valid
 #   1 - Validation failures detected
 #
-# See RFC-0031 for design rationale
-# https://github.com/elevanaltd/HestAI-MCP/blob/main/rfcs/active/0031-github-issue-based-numbering.md
+# See ADR-0031 for design rationale
+# https://github.com/elevanaltd/HestAI-MCP/blob/main/docs/adr/adr-0031-github-issue-based-numbering.md
+#
+# Note: Per ADR-0060, RFC files no longer exist. This script validates ADRs only.
 
 set -euo pipefail
 
@@ -213,15 +215,7 @@ main() {
     fi
 
     echo ""
-
-    # Find and validate RFC files
-    if [ -d "rfcs/active" ]; then
-        info "Checking RFC files..."
-        while IFS= read -r -d '' file; do
-            validate_document "$file" "RFC" || true
-        done < <(find rfcs/active -name "*.md" -print0)
-    fi
-
+    # Note: RFC validation removed per ADR-0060 (rfcs/ folder deleted)
     echo ""
     echo "=== VALIDATION SUMMARY ==="
     echo "Total documents: $TOTAL_DOCS"
@@ -233,7 +227,7 @@ main() {
         echo ""
         error "Validation failed: $INVALID_DOCS document(s) have numbering mismatches"
         error "Ensure document filename numbers match their GitHub Issue numbers"
-        error "See RFC-0031: https://github.com/$REPO_OWNER/$REPO_NAME/blob/main/rfcs/active/0031-github-issue-based-numbering.md"
+        error "See ADR-0031: https://github.com/$REPO_OWNER/$REPO_NAME/blob/main/docs/adr/adr-0031-github-issue-based-numbering.md"
         exit 1
     fi
 
@@ -247,11 +241,10 @@ if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
     cat << EOF
 Usage: $0
 
-Validates that ADR and RFC filenames match their GitHub Issue numbers.
+Validates that ADR filenames match their GitHub Issue numbers.
 
 Checks:
   - docs/adr/adr-NNNN-*.md files
-  - rfcs/active/NNNN-*.md files
 
 Each file must have:
   - Filename with issue number (e.g., adr-0031-topic.md)
@@ -261,7 +254,8 @@ Exit codes:
   0 - All documents valid
   1 - Validation failures detected
 
-See RFC-0031 for specification.
+See ADR-0031 for specification.
+Note: RFC files no longer exist per ADR-0060.
 EOF
     exit 0
 fi

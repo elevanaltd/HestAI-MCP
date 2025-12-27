@@ -41,10 +41,10 @@ The current structure treats "proposal" and "decision" as distinct when they're 
    - Immutable once merged (status changes allowed: Accepted → Implemented → Superseded)
    - Must link to source Issue for provenance
 
-3. **The `rfcs/` folder is deprecated**
+3. **The `rfcs/` folder has been deleted**
    - No new RFC files created
-   - Existing RFCs migrated to Issues
-   - Folder deleted after migration complete
+   - Existing RFCs migrated to Issues or ADRs
+   - Folder deleted 2025-12-27 (Issue #63)
 
 4. **ADR creation requirements**
    - Every ADR must have a linked GitHub Issue

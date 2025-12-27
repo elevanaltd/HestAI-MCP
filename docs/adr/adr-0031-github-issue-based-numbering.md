@@ -36,7 +36,8 @@ Multi-worktree environments create sequence clash conflicts when two branches si
 ### File Naming Convention
 
 - **ADRs**: `docs/adr/adr-{ISSUE_NUMBER:04d}-{topic}.md`
-- **RFCs**: `rfcs/active/{ISSUE_NUMBER:04d}-{topic}.md` (deprecated per ADR-0060)
+
+> **Note**: Per ADR-0060, RFC files are no longer created. Proposals use GitHub Issues.
 
 ### Labels
 

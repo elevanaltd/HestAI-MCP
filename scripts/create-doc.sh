@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# CLI helper for creating ADRs/RFCs with GitHub issue-based numbering
+# CLI helper for creating ADRs with GitHub issue-based numbering
 # // Critical-Engineer: consulted for input sanitization and mock-based testing strategy
-# Usage: ./scripts/create-doc.sh <adr|rfc> "Document Title"
+# Usage: ./scripts/create-doc.sh adr "Document Title"
 #
 # This script:
 # 1. Creates a GitHub issue with appropriate label
@@ -9,8 +9,10 @@
 # 3. Generates filename with issue number
 # 4. Creates document file with pre-populated frontmatter
 #
-# See RFC-0031 for design rationale
-# https://github.com/elevanaltd/HestAI-MCP/blob/main/rfcs/active/0031-github-issue-based-numbering.md
+# See ADR-0031 for design rationale
+# https://github.com/elevanaltd/HestAI-MCP/blob/main/docs/adr/adr-0031-github-issue-based-numbering.md
+#
+# Note: Per ADR-0060, RFC files are no longer created. Use GitHub Issues for proposals.
 
 set -euo pipefail
 
@@ -88,9 +90,12 @@ main() {
     local doc_type="$1"
     local doc_title="$2"
 
-    # Validate document type
-    if [ "$doc_type" != "adr" ] && [ "$doc_type" != "rfc" ]; then
-        error "Invalid type '$doc_type'. Must be 'adr' or 'rfc'"
+    # Validate document type (RFC deprecated per ADR-0060)
+    if [ "$doc_type" = "rfc" ]; then
+        error "RFC files are no longer created (per ADR-0060). Use GitHub Issues for proposals, then create an ADR when ratified."
+    fi
+    if [ "$doc_type" != "adr" ]; then
+        error "Invalid type '$doc_type'. Must be 'adr'"
     fi
 
     # Check gh CLI is available
@@ -138,13 +143,9 @@ main() {
     local slug
     slug=$(make_slug "$doc_title")
 
-    # Determine file path based on type
+    # Determine file path (ADRs only - RFCs deprecated per ADR-0060)
     local file_path
-    if [ "$doc_type" = "adr" ]; then
-        file_path="docs/adr/adr-$(printf "%04d" "$issue_number")-$slug.md"
-    else
-        file_path="rfcs/active/$(printf "%04d" "$issue_number")-$slug.md"
-    fi
+    file_path="docs/adr/adr-$(printf "%04d" "$issue_number")-$slug.md"
 
     # Check if file already exists
     if [ -e "$file_path" ]; then

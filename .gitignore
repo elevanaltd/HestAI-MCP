@@ -70,8 +70,7 @@ dmypy.json
 *.tmp
 *.bak
 
-# Experimental code (optional - uncomment to exclude from version control)
-# rfcs/experimental/
+# Note: rfcs/ folder deleted per ADR-0060
 
 # HestAI report scratch area
 .hestai/reports/scratch/
