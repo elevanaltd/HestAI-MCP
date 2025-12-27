@@ -3,13 +3,13 @@
 META:
   TYPE::STANDARD
   ID::visibility-rules
-  VERSION::"1.3"
+  VERSION::"1.4"
   STATUS::ACTIVE
   PURPOSE::"Placement and lifecycle rules for artifacts to ensure discoverability"
   DOMAIN::governance
   OWNERS::[system-steward]
   CREATED::2025-12-09
-  UPDATED::2025-12-23
+  UPDATED::2025-12-27
   CANONICAL::hub/governance/rules/visibility-rules.oct.md
   TAGS::[placement, visibility, documentation, lifecycle, hub, hestai-sys]
 
@@ -335,6 +335,56 @@ FORMAT_DECISION_TREE::[
   "ADR or setup guide?"→YES→.md
 ]
 
+===FILE_RETENTION_POLICY===
+
+// Ratified by ADR-0060: JSON ephemeral, OCTAVE permanent
+// See: docs/adr/adr-0060-rfc-adr-alignment.md
+
+CORE_PRINCIPLE::"Raw machine formats are ephemeral; semantic compressions are permanent"
+
+RETENTION_TABLE::[
+  FORMAT                  | GIT_STATUS  | RATIONALE
+  ------------------------|-------------|------------------------------------------
+  .json/.jsonl[raw]       | GITIGNORED  | Machine_format+large+reconstructible
+  .oct.md[compressed]     | COMMITTED   | Semantic_density+human_readable+audit_trail
+]
+
+SESSION_ARCHIVES::[
+  LOCATION::.hestai/sessions/archive/,
+  GITIGNORED::[
+    *-raw.jsonl[full_transcript_machine_format],
+    *.verification.json[validation_metadata]
+  ],
+  COMMITTED::[
+    *-octave.oct.md[compressed_semantic_transcript]
+  ],
+  WHY::raw_transcripts_are_large+reconstructible_from_octave_if_needed
+]
+
+DEBATE_TRANSCRIPTS::[
+  LOCATION::debates/,
+  GITIGNORED::[
+    *.json[full_debate_machine_format]
+  ],
+  COMMITTED::[
+    *.oct.md[compressed_debate_synthesis]
+  ],
+  WHY::debate_json_is_working_state+synthesis_captures_decision_value
+]
+
+RETENTION_DECISION_TREE::[
+  "Is it raw machine format (.json/.jsonl)?"→YES→GITIGNORE,
+  "Is it semantic compression (.oct.md)?"→YES→COMMIT,
+  "Is it human-authored documentation?"→YES→COMMIT,
+  "Is it active session state?"→YES→GITIGNORE
+]
+
+FUTURE_EVOLUTION::[
+  EXTERNAL_ARTIFACT_STORE::Issue_#65[planned],
+  RATIONALE::large_artifacts_may_move_to_cloud_storage,
+  INTERIM_PATTERN::gitignore_now+external_store_later
+]
+
 ===COMPATIBILITY===
 
 WITH_NAMING_STANDARD::[
@@ -356,6 +406,7 @@ COMPANION::naming-standard.md[naming+frontmatter_logic]
 
 ===CHANGELOG===
 
+v1.4::2025-12-27→added_FILE_RETENTION_POLICY_section[ADR-0060_ratification]
 v1.3::2025-12-23→added_FORMAT_RULES_section+linked_HUB_AUTHORING_RULES
 v1.2::2025-12-23→added_RULE_0_hub/_system_governance+clarified_hub_vs_.hestai_distinction
 v1.1::2025-12-19→bundled_in_HestAI_MCP_Hub+OCTAVE_format_conversion
