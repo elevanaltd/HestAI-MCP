@@ -1,0 +1,50 @@
+===DEBATE_TRANSCRIPT===
+META:
+  TYPE::DEBATE_RECORD
+  THREAD_ID::"adr-rfc-alignment-2025-12-26"
+  DATE::"2025_12_26"
+  TOPIC::"ADR/RFC unification, organization, and GitHub Issue integration"
+  STATUS::SYNTHESIS
+  MODE::mediated
+  ROUNDS::3
+  TURNS::9
+DEBATE_CONTEXT:
+  QUESTION::"How should ADRs and RFCs be unified, organized, and tracked for HestAI-MCP? Consider lifecycle (RFC→ADR), location consistency, template parity, and GitHub Issue integration."
+  PARTICIPANTS::[Wind,Wall,Door]
+  COGNITIONS::[PATHOS,ETHOS,LOGOS]
+  TURN_1_WIND:
+    AGENT::"edge-optimizer"
+    COGNITION::PATHOS
+    APPROACH::POSSIBILITY_EXPLORATION
+    KEY_INSIGHT::"RFC vs ADR is bureaucratic artifact, not functional distinction"
+    CORE_PROBLEMS::[state_duplication,repo_pollution,context_gap]
+    PATHS_EXPLORED::[PATH_1_unified_continuum,PATH_2_ephemeral_forge,PATH_3_fractal_authority]
+    RECOMMENDATION::PATH_1
+    TURN_2_WALL:
+      AGENT::"critical-engineer"
+      COGNITION::ETHOS
+      APPROACH::CONSTRAINT_ANALYSIS
+      VERDICT::BLOCKED
+      EVIDENCE_COUNT::10
+      CRITICAL_CONSTRAINTS::[governance_contracts_hardcoded,semantic_distinction_required,GitHub_Issue_integration_required,namespace_collision_risk,discoverability_requirement]
+      FAILURE_MODES_COUNT::5
+      REFINEMENTS_COUNT::5
+      TURN_3_DOOR:
+        AGENT::synthesizer
+        COGNITION::LOGOS
+        APPROACH::TENSION_SYNTHESIS
+        SYNTHESIS_NAME::Lifecycle_as_Metadata
+        KEY_INNOVATION::both_and_via_frontmatter
+        WIND_HONORED::[continuum_via_Status_Phase,lifecycle_progression,unified_view]
+        WALL_HONORED::[directory_stability,CI_compatibility,namespace_safety,RFC_0031_compliance]
+        UNIFIED_SCHEMA::[Status,Type,GitHub_Issue,Phase,Supersedes,Superseded_By]
+        RFC_TO_ADR_WORKFLOW::"keep_RFC→create_ADR→cross_reference→no_file_moves"
+        EMERGENT_GAINS::[queryable_status,phase_visibility,template_gap_closed,zero_link_rot]
+        COST::LOW
+        BENEFIT::HIGH
+        FINAL_SYNTHESIS:
+          PATTERN::Lifecycle_as_Metadata_Resolution
+          STATUS::RECOMMENDED
+          IMPLEMENTATION_READY::true
+          DECISION_GATE::B1_implementation
+===END===
