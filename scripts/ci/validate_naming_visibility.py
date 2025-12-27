@@ -16,7 +16,7 @@ RE_WHITELIST = re.compile(
 )
 
 
-ALLOWED_ROOTS = ("docs/", "hub/", ".hestai/", ".claude/")
+ALLOWED_ROOTS = ("docs/", "hub/", ".hestai/", ".claude/", "debates/")
 FORBIDDEN_FOLDERS = {".archive", ".sources", "_legacy", "legacy"}
 
 
