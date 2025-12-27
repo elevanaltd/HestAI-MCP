@@ -86,6 +86,37 @@ This runs **after** the `.hestai` symlink restoration and **before** dependency 
 
 - **Project-specific state is ephemeral**: `.claude/settings.json`, `.claude/commands/`, and `.claude/skills/` are gitignored and worktree-specific (by design, since each project and worktree may have different preferences)
 
+## Technical Validation
+
+The symlink approach is **fully viable** because hooks are designed to be project-aware:
+
+1. **Hooks use `$CLAUDE_PROJECT_DIR`**: The environment variable passed by Claude Code identifies the current project (main or worktree)
+2. **Hooks operate on worktree-relative paths**: When a hook runs with `CLAUDE_PROJECT_DIR=/path/to/worktree`, it correctly looks in the worktree's `.hestai/`, `docs/`, etc.
+3. **Symlinks are transparent**: When a worktree hook does `cd "${CLAUDE_PROJECT_DIR}/.claude/hooks"`, it resolves through the symlink to the main repo's hooks directory, then operates on the worktree's resources
+
+### Test Results
+
+Comprehensive testing confirmed:
+
+- ✓ Symlinked hooks execute correctly in worktree context
+- ✓ Hooks access project-specific resources (`.hestai/workflow/`, `docs/`, etc.) from the calling worktree
+- ✓ Multiple worktrees successfully share the same symlinked hooks directory
+- ✓ Each hook reads from the correct worktree's project directory (proven by loading different north stars from different worktrees using the same symlinked hook)
+
+### Why This Works
+
+```bash
+# Hook uses this pattern (e.g., load-north-star-summary.sh):
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+SUMMARY_FILE=$(find "$PROJECT_DIR/.hestai/workflow" -name "*NORTH-STAR-SUMMARY*.md")
+
+# When called from worktree with CLAUDE_PROJECT_DIR=/path/to/wt:
+# 1. PROJECT_DIR=/path/to/wt (from environment)
+# 2. Searches /path/to/wt/.hestai/workflow (worktree's resources)
+# 3. Hook location is symlink, but PROJECT_DIR is worktree-aware
+# ✓ Result: Correct project context despite symlinked location
+```
+
 ## Migration Path
 
 **For existing worktrees**: The next SessionStart after this change will automatically create the `.claude/hooks` symlink.
