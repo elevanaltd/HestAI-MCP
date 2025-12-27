@@ -7,12 +7,12 @@ import sys
 from pathlib import Path
 
 RE_STANDARD = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*(\.oct)?\.md$")
-RE_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}-[a-z0-9-]+\.md$")
-RE_ADR = re.compile(r"^adr-\d{4}-[a-z0-9-]+\.md$")
-RE_REPORT = re.compile(r"^report-\d{3}-[a-z0-9-]+\.md$")
+RE_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}-[a-z0-9-]+(\.oct)?\.md$")
+RE_ADR = re.compile(r"^adr-\d{4}-[a-z0-9-]+(\.oct)?\.md$")
+RE_REPORT = re.compile(r"^report-\d{3}-[a-z0-9-]+(\.oct)?\.md$")
 RE_NORTH_STAR = re.compile(r"^000-[A-Z0-9-]+-NORTH-STAR(-SUMMARY)?(\.oct)?\.md$")
 RE_WHITELIST = re.compile(
-    r"^(README|LICENSE|CONTRIBUTING|CHANGELOG|SECURITY|CODE_OF_CONDUCT|CLAUDE|CODEOWNERS|ARCHITECTURE|PROJECT-CONTEXT|PROJECT-CHECKLIST|PROJECT-HISTORY|PROJECT-ROADMAP|APP-CONTEXT|APP-CHECKLIST|DECISIONS|VISIBILITY-RULES|NAMING-STANDARD)(\.md)?$"
+    r"^(README|LICENSE|CONTRIBUTING|CHANGELOG|SECURITY|CODE_OF_CONDUCT|CLAUDE|CODEOWNERS|ARCHITECTURE|PROJECT-CONTEXT|PROJECT-CHECKLIST|PROJECT-HISTORY|PROJECT-ROADMAP|APP-CONTEXT|APP-CHECKLIST|DECISIONS|VISIBILITY-RULES|NAMING-STANDARD|TEST-STRUCTURE-STANDARD|current_state)(\.(oct\.)?md)?$"
 )
 
 
