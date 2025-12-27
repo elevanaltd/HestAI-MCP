@@ -153,4 +153,4 @@ Files incorrectly flagged as violations in 2025-12-25-audit-findings-status-revi
 
 **Decision Authority**: system-steward (ETHOS)
 **Decision Date**: 2025-12-25
-**Record Location**: .hestai/workflow/000-REPORTS-D1-NORTH-STAR.md (D1 phase requirements documentation)
+**Record Location**: .hestai/reports/2025-12-25-north-star-format-decision.md (decision evidence archive)
