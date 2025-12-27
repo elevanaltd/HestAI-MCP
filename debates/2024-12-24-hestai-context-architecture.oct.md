@@ -1,97 +1,44 @@
 ===DEBATE_TRANSCRIPT===
 META:
   TYPE::DEBATE_RECORD
-  THREAD_ID::hestai_context_architecture_2024_12_24
-  DATE::"2024_12_24"
-  TOPIC::"HestAI .hestai Directory Architecture - optimal balance between git visibility and conflict prevention"
+  THREAD_ID::"hestai-context-architecture-2024-12-24"
+  DATE::"2024-12-24"
+  TOPIC::"HestAI .hestai Directory Architecture - optimal balance"
   STATUS::SYNTHESIS
   MODE::mediated
-  ROUNDS::4
-  TURNS::12
 DEBATE_CONTEXT:
-  QUESTION::"Symlink_to_external vs Direct_committed_files - finding optimal balance"
+  QUESTION::"Symlink-to-external vs Direct-committed-files optimal balance?"
   PARTICIPANTS::[Wind,Wall,Door]
   COGNITIONS::[PATHOS,ETHOS,LOGOS]
   TURN_1_WIND:
-    AGENT::edge_optimizer
+    AGENT::"edge-optimizer"
     COGNITION::PATHOS
-    POSITION::"Reject false dichotomy of Storage"
-    INSIGHT::"Solution is Topographical - Timeline Separation"
-    ASSUMPTIONS_CHALLENGED::3
-  BREAKTHROUGH::Orthogonal_Worktree_Pattern
-  MECHANISM::[git_worktree_mount,temporal_decoupling,atomic_fragmentation]
-  BENEFITS::[visibility_maintained,git_native_mechanics,conflict_isolation,portability]
-  VERDICT::Neither_symlink_nor_direct_use_orthogonal_worktrees
-  TURN_2_WALL:
-    AGENT::critical_engineer
-    COGNITION::ETHOS
-    STANCE::CONDITIONAL_BLOCK
-    VERDICT::Clever_mechanism_operational_nightmare
-    VIABILITY::RISKY
-    DIAGNOSIS_CORRECT::code_velocity_neq_context_velocity
-    PROPOSED_MECHANISM::FLAWED
-    FAILURE_MODES::6
-    _identified:
-BLOCKING_ISSUES::3
-COGNITIVE_LOAD::worktree_adds_7_concepts
-ALTERNATIVES_PROPOSED::[git_submodules,context_as_tool,committed_folder]
-GREEN_FLAGS::2
-_approved:
-RECOMMENDATION::keep_fragmentation_reject_worktree
-TURN_3_WIND:
-  AGENT::edge_optimizer
-  COGNITION::PATHOS
-  POSITION::"Concede mechanism illuminate hidden edge"
-  ACKNOWLEDGEMENT::wall_critique_is_fatal
-  CONCESSION::accept_status_quo_plus_fragments
-  PIVOT_BREAKTHROUGH::The_Ledger_Pattern
-  INSIGHT::Merge_conflicts_symptom_of_mutable_state
-  MECHANISM::[immutability_read_only_projection,journaling_append_only_events,projection_compilation_layer,git_harmony_unique_files]
-  ELEGANCE::[solves_race_condition,provides_audit_trail,maintains_simplicity]
-  VERDICT::abandon_worktrees_adopt_ledger_pattern
-  TURN_4_WALL:
-    AGENT::critical_engineer
-    COGNITION::ETHOS
-    STANCE::BLOCKED
-    VERDICT::Intellectually_appealing_operationally_catastrophic
-    VIABILITY::BLOCKED
-    FAILURE_MODES::5
-    _critical:
-BLOCKING_ISSUES::4
-COMPARISON_MATRIX::[[status_quo_plus_fragments::BEST],[tool_abstraction::ACCEPTABLE],[submodules::RISKY],[ledger::REJECTED]]
-GREEN_FLAGS::2
-_valid:
-RECOMMENDATION::reject_ledger_status_quo_plus_fragments
-TURN_5_WIND:
-  AGENT::edge_optimizer
-  COGNITION::PATHOS
-  POSITION::"Concede mechanism illuminate edge"
-  ACCEPTANCE::status_quo_plus_fragments_is_80_percent_solution
-  FINAL_EDGE::Shearing_Layers
-  INSIGHT::Split_by_Velocity_not_just_Topic
-  LAYERS::[fast_layer,slow_layer,ephemeral_layer]
-  BENEFITS::[velocity_separation,natural_isolation,merge_conflict_reduction]
-  STRUCTURE_PROPOSAL::[[workflow::slow_human_curated],[context::medium_session_updated],[context_state::fast_frequently_updated],[sessions_active::ephemeral_gitignored]]
-  VERDICT::accept_status_quo_organize_by_velocity
-  TURN_6_DOOR:
-    AGENT::synthesizer
-    COGNITION::LOGOS
-    VERDICT::APPROVED
-    TITLE::Velocity_Layered_Fragments_Architecture
-    SYNTHESIS_OUTCOME::[[mechanism::direct_committed_files],[pattern::velocity_layered_fragments],[complexity::minimal],[verdict::approved]]
-    WIND_CONTRIBUTIONS::[velocity_diagnosis_valid,fragmentation_adopted,shearing_layers_key_insight]
-    WALL_CONTRIBUTIONS::[simplicity_principle_paramount,2,am_test_mandatory,cognitive_load_matters]
-    FINAL_ARCHITECTURE::5
-    _layers:
-CONFLICT_PREVENTION::[layer_isolation,single_writer_enforcement,fragmentation_benefits]
-MIGRATION_PATH::6
-IMPLEMENTATION::7
-FINAL_SYNTHESIS:
-  NAME::Velocity_Layered_Fragments_Architecture
-  DECISION::Direct_committed_hestai_with_velocity_organization
-  KEY_INSIGHTS::[wind_velocity_separation,wall_simplicity_wins,both_fragmentation_reduces_conflict]
-  STRUCTURE::[slow_monthly_human_curated,medium_session_updated,fast_hourly_agent_updates,append_dated_reports,ephemeral_gitignored]
-  WHY_IT_WORKS::[git_visibility_preserved,conflicts_prevented_by_velocity,standard_git_workflow,mcp_enforcement_single_writer]
-  REJECTED_ALTERNATIVES::[symlinks_breaks_ci,worktrees_high_cognitive_load,submodules_known_pain,event_sourcing_incomplete]
-  STATUS::READY_FOR_IMPLEMENTATION
+    POSITION::"Reject-false-dichotomy"
+    INSIGHT::"Solution-is-Topographical"
+    BREAKTHROUGH::"Orthogonal-Worktree-Pattern"
+    BENEFITS::[visibility_maintained,git_native,conflict_isolation]
+    TURN_2_WALL:
+      AGENT::"critical-engineer"
+      COGNITION::ETHOS
+      STANCE::"CONDITIONAL-BLOCK"
+      DIAGNOSIS::"Clever-mechanism-operational-nightmare"
+      FAILURE_MODES::6
+      GREEN_FLAGS::[fragmentation_approved,velocity_diagnosis]
+      TURN_3_WIND:
+        AGENT::"edge-optimizer"
+        COGNITION::PATHOS
+        POSITION::"Concede-mechanism-illuminate-edge"
+        PIVOT::"Shearing-Layers"
+        INSIGHT::"Split-by-Velocity-not-just-Topic"
+        VERDICT::"accept-status-quo-organize-by-velocity"
+        TURN_4_DOOR:
+          AGENT::synthesizer
+          COGNITION::LOGOS
+          VERDICT::APPROVED
+          TITLE::"Velocity-Layered-Fragments-Architecture"
+          STRUCTURE::[slow_workflow,medium_context,fast_state,append_reports,ephemeral_sessions]
+          WHY_IT_WORKS::[git_visibility,conflicts_prevented,standard_workflow,mcp_enforcement]
+          FINAL_SYNTHESIS:
+            DECISION::"Direct-committed-hestai-with-velocity-organization"
+            STATUS::"READY-FOR-IMPLEMENTATION"
 ===END===
