@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Test suite for validate-doc-numbering.sh
-# Tests validation logic for document filename <-> GitHub issue matching
+# Tests validation logic for ADR filename <-> GitHub issue matching
+# Note: RFC tests removed per ADR-0060 (rfcs/ folder deleted)
 
 set -euo pipefail
 
@@ -47,20 +48,13 @@ test_validates_correct_documents() {
     temp_dir=$(mktemp -d)
     trap "rm -rf '$temp_dir'" EXIT
 
-    # Create directory structure
+    # Create directory structure (ADRs only - RFCs deprecated per ADR-0060)
     mkdir -p "$temp_dir/docs/adr"
-    mkdir -p "$temp_dir/rfcs/active"
 
     # Create valid ADR
     cat > "$temp_dir/docs/adr/adr-0042-answer.md" << 'EOF'
 # ADR-0042: Answer
 - **GitHub Issue**: [#42](url)
-EOF
-
-    # Create valid RFC
-    cat > "$temp_dir/rfcs/active/0099-feature.md" << 'EOF'
-# RFC-0099: Feature
-- **GitHub Issue**: #99
 EOF
 
     # Run validation in temp dir
@@ -94,12 +88,12 @@ test_validates_failure_path() {
     temp_dir=$(mktemp -d)
     trap "rm -rf '$temp_dir'" EXIT
 
-    # Create temporary test structure
-    mkdir -p "$temp_dir/rfcs/active"
+    # Create temporary test structure (ADRs only - RFCs deprecated per ADR-0060)
+    mkdir -p "$temp_dir/docs/adr"
 
-    # Create a document with mismatched number
-    cat > "$temp_dir/rfcs/active/0100-mismatch-test.md" << 'EOF'
-# RFC-0100: Mismatch Test
+    # Create an ADR with mismatched number
+    cat > "$temp_dir/docs/adr/adr-0100-mismatch-test.md" << 'EOF'
+# ADR-0100: Mismatch Test
 
 - **Status**: Draft
 - **Author**: Test

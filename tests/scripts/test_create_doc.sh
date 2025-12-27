@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Test suite for create-doc.sh CLI helper
 # Integration tests verifying issue creation and file generation
+# Note: RFC tests removed per ADR-0060 (rfcs/ folder deleted)
 
 set -euo pipefail
 
@@ -85,7 +86,7 @@ test_requires_title_argument() {
     return 0
 }
 
-# Test 4: Script validates type (adr or rfc only)
+# Test 4: Script validates type (adr only - RFC deprecated per ADR-0060)
 test_validates_type() {
     local output
     if output=$("$CREATE_DOC_SCRIPT" invalid "Test Title" 2>&1); then
@@ -98,6 +99,22 @@ test_validates_type() {
          return 1
     fi
     echo "PASS: Script rejects invalid type"
+    return 0
+}
+
+# Test 4b: RFC type is rejected per ADR-0060
+test_rfc_type_rejected() {
+    local output
+    if output=$("$CREATE_DOC_SCRIPT" rfc "Test Title" 2>&1); then
+        echo "FAIL: Script should reject RFC type (deprecated per ADR-0060)"
+        return 1
+    fi
+    if ! echo "$output" | grep -q "RFC files are no longer created"; then
+         echo "FAIL: Expected ADR-0060 deprecation message"
+         echo "Output: $output"
+         return 1
+    fi
+    echo "PASS: RFC type correctly rejected with deprecation message"
     return 0
 }
 
@@ -182,84 +199,8 @@ EOF
     return 0
 }
 
-# Test 6: Happy path - RFC creation with mocked gh CLI
-test_rfc_creation_happy_path() {
-    local temp_dir
-    temp_dir=$(mktemp -d)
-    trap "rm -rf '$temp_dir'" EXIT
-
-    # Create mock gh script
-    local mock_gh="$temp_dir/gh"
-    cat > "$mock_gh" << 'EOF'
-#!/usr/bin/env bash
-# Mock gh CLI for testing
-if [ "$1" = "auth" ] && [ "$2" = "status" ]; then
-    exit 0  # Authenticated
-elif [ "$1" = "issue" ] && [ "$2" = "create" ]; then
-    # Simulate issue creation, return URL with issue number
-    echo "https://github.com/elevanaltd/HestAI-MCP/issues/99"
-    exit 0
-fi
-exit 1
-EOF
-    chmod +x "$mock_gh"
-
-    # Create test environment
-    local test_project="$temp_dir/test-project"
-    mkdir -p "$test_project/rfcs/active"
-
-    (
-        cd "$test_project"
-
-        # Initialize minimal git config for test
-        git init -q
-        git config user.name "RFC Author"
-        git config user.email "rfc@example.com"
-
-        # Override PATH to use mock gh
-        export PATH="$temp_dir:$PATH"
-
-        # Run script
-        local output
-        output=$("$CREATE_DOC_SCRIPT" rfc "Add New Feature" 2>&1)
-
-        # Verify file was created
-        local expected_file="rfcs/active/0099-add-new-feature.md"
-        if [ ! -f "$expected_file" ]; then
-            echo "FAIL: Expected RFC file not created: $expected_file"
-            echo "Output: $output"
-            exit 1
-        fi
-
-        # Verify frontmatter contains GitHub Issue
-        if ! grep -q "GitHub Issue.*#99" "$expected_file"; then
-            echo "FAIL: Frontmatter missing GitHub Issue #99"
-            cat "$expected_file"
-            exit 1
-        fi
-
-        # Verify frontmatter contains RFC number
-        if ! grep -q "RFC-0099: Add New Feature" "$expected_file"; then
-            echo "FAIL: Missing RFC number in title"
-            cat "$expected_file"
-            exit 1
-        fi
-
-        # Verify RFC-specific Implementation Plan section
-        if ! grep -q "## Implementation Plan" "$expected_file"; then
-            echo "FAIL: RFC missing Implementation Plan section"
-            cat "$expected_file"
-            exit 1
-        fi
-    )
-
-    if [ $? -ne 0 ]; then
-        return 1
-    fi
-
-    echo "PASS: RFC created successfully with correct frontmatter and sections"
-    return 0
-}
+# Note: Test 6 (RFC creation happy path) removed per ADR-0060
+# RFC type is now rejected - see test_rfc_type_rejected above
 
 # Test 7: Failure path - gh auth check fails
 test_gh_auth_failure() {
@@ -394,8 +335,8 @@ run_test "Script exists and is executable" test_script_exists
 run_test "Requires type argument" test_requires_type_argument
 run_test "Requires title argument" test_requires_title_argument
 run_test "Validates type" test_validates_type
+run_test "RFC type rejected (ADR-0060)" test_rfc_type_rejected
 run_test "ADR creation happy path (mocked gh)" test_adr_creation_happy_path
-run_test "RFC creation happy path (mocked gh)" test_rfc_creation_happy_path
 run_test "Failure path - gh auth failure" test_gh_auth_failure
 run_test "Failure path - gh create failure" test_gh_create_failure
 run_test "Input sanitization - special chars" test_input_sanitization
