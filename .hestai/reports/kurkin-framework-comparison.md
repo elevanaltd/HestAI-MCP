@@ -2,6 +2,8 @@
 
 **Assessment Date**: 2025-12-27
 **Purpose**: Strategic comparison to identify alignment, divergence, and improvement opportunities
+**RFC**: [#85 - Adaptive Constitutional Architecture](https://github.com/elevanaltd/HestAI-MCP/issues/85)
+**Status**: RFC - Awaiting Discussion
 
 ---
 
