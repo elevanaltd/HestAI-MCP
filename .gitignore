@@ -7,6 +7,12 @@
 # Operational timestamps (session-specific state)
 .hestai/last_cleanup
 
+# Raw session archives (OCTAVE compressed versions are committed)
+.hestai/sessions/archive/*-raw.jsonl
+
+# Raw debate transcripts (OCTAVE compressed versions are committed)
+debates/*.json
+
 # Python
 __pycache__/
 *.py[cod]
