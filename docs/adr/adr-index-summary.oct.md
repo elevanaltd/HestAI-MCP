@@ -2,10 +2,11 @@
 
 META:
   TYPE::REPORT
-  VERSION::"1.0"
-  GENERATED::"2025-12-27"
+  VERSION::"1.1"
+  GENERATED::"2025-12-27T19:30:00Z"
   PURPOSE::"Scannable index of all ADRs with status, themes, and patterns"
   SOURCE::docs/adr/
+  CHANGELOG::"Added ADR-0082 (Claude Code Gitignore + Worktree Symlinks)"
 
 ARCHITECTURE_OVERVIEW:
   DOCUMENT::docs/ARCHITECTURE.md
@@ -145,8 +146,22 @@ ADR_REGISTRY:
       ADR_number::matches_Issue_number
     ]
 
+  ADR-0082:
+    TITLE::"Claude Code .claude Gitignore + Worktree Hook Symlinks"
+    STATUS::IMPLEMENTED
+    PHASE::B0
+    PURPOSE::"Clean git history while maintaining worktree SessionStart hook functionality"
+    PROBLEM::".claude/ user state pollutes git, but worktrees need .claude/hooks for SessionStart"
+    SOLUTION::[
+      gitignore_claude::completely_ignore[.claude/,.gemini-clipboard/],
+      symlink_hooks::worktree_symlinks_to_main[.claude/hooks],
+      global_hook::setup-dependencies.sh_creates_symlinks,
+      shared_readonly::all_worktrees_share_main_hooks
+    ]
+    VALIDATION::"Tested with multiple worktrees successfully sharing symlinked hooks"
+
 STATUS_SUMMARY:
-  IMPLEMENTED::[ADR-0031,ADR-0039,ADR-0040]
+  IMPLEMENTED::[ADR-0031,ADR-0039,ADR-0040,ADR-0082]
   ACCEPTED::[ADR-0033,ADR-0036,ADR-0046,ADR-0060]
   APPROVED::[ADR-0035]
   VALIDATED::[ADR-0034]
@@ -166,6 +181,9 @@ ARCHITECTURAL_THEMES:
   DEPENDENCY_AWARENESS::[ADR-0034]
     PATTERN::"Anchor Pattern Inversion - Specs claim Code"
 
+  WORKTREE_OPERATIONS::[ADR-0082]
+    PATTERN::"Symlink shared assets, gitignore ephemeral state"
+
 CROSS_CUTTING_PATTERNS:
   SINGLE_WRITER::"All .hestai/ writes via MCP tools through System Steward"
   OCTAVE_FORMAT::"Semantic compression for all context artifacts"
@@ -179,7 +197,8 @@ IMPLEMENTATION_STATUS:
     Issue_Numbering::ADR-0031,
     Agent_Forge::ADR-0039,
     Pattern_Library::ADR-0040,
-    RFC_Folder_Deleted::ADR-0060
+    RFC_Folder_Deleted::ADR-0060,
+    Worktree_Hooks_Gitignored::ADR-0082
   ]
   PARTIAL::[
     Orchestra_Map_MVP::ADR-0034[Layer_3_pending],
