@@ -1,8 +1,8 @@
 ===DEBATE_RECORD===
 META:
   TYPE::DEBATE_RECORD
-  THREAD_ID::"hestai-context-distribution-2024-12-25"
-  DATE::"2024-12-25"
+  THREAD_ID::"hestai-context-distribution-2025-12-25"
+  DATE::"2025-12-25"
   STATUS::RESOLVED
   MODE::mediated
   TOPIC::"HestAI Context Distribution Across Worktrees"
