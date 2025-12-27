@@ -1,3 +1,9 @@
+# Claude Code configuration and state (local user settings)
+.claude/
+
+# Gemini clipboard cache (temporary clipboard artifacts)
+.gemini-clipboard/
+
 # System Governance (Delivered by MCP, NOT committed)
 .hestai-sys/
 
