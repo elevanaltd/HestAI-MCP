@@ -1,10 +1,12 @@
 # RFC-0031: GitHub Issue-Based Document Numbering
 
-- **Status**: Proposed
+- **Status**: RATIFIED (In Active Use)
 - **Author**: System Steward
 - **Created**: 2025-12-24
-- **Updated**: 2025-12-24
+- **Updated**: 2025-12-27
 - **GitHub Issue**: [#31](https://github.com/elevanaltd/HestAI-MCP/issues/31)
+
+> **Note**: This RFC has been ratified through adoption. The pattern is now the canonical workflow for ADR/RFC numbering. Per ADR-0060, future discussions should happen in GitHub Issues, with decisions ratified as ADRs.
 
 ## Summary
 

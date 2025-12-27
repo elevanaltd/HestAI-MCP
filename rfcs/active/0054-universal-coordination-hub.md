@@ -1,10 +1,12 @@
 # RFC-0054: Universal Coordination Hub
 
-- **Status**: Draft
+- **Status**: PENDING (Future Architecture)
 - **Author**: User (documented by AI)
 - **Created**: 2025-12-25
-- **Updated**: 2025-12-25
+- **Updated**: 2025-12-27
 - **GitHub Issue**: [#54](https://github.com/elevanaltd/HestAI-MCP/issues/54)
+
+> **Note**: Per ADR-0060, RFC folder is deprecated. Future discussion continues in Issue #54. This file retained for reference until decision is made. Related to RFC-0038 (Hub as Application).
 
 ## Summary
 

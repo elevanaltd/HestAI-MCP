@@ -1,9 +1,12 @@
-# RFC-0002: Hub as Application
+# RFC-0038: Hub as Application
 
-**Status**: PROPOSED
+**Status**: PENDING (Future B3+ Feature)
 **Created**: 2025-12-19
+**Updated**: 2025-12-27
 **Author**: holistic-orchestrator
 **GitHub Issue**: [#38](https://github.com/elevanaltd/HestAI-MCP/issues/38)
+
+> **Note**: Per ADR-0060, RFC folder is deprecated. Future discussion continues in Issue #38. This file retained for reference until decision is made. Related to RFC-0054 (Universal Coordination Hub).
 
 ## Summary
 

@@ -1,10 +1,12 @@
-# RFC-0001: Context Registry for Intelligent Document Filtering
+# RFC-0037: Context Registry for Intelligent Document Filtering
 
-- **Status**: Draft
+- **Status**: PENDING (Future B2+ Feature)
 - **Author**: Context Steward Team
 - **Created**: 2025-12-19
-- **Updated**: 2025-12-19
+- **Updated**: 2025-12-27
 - **GitHub Issue**: [#37](https://github.com/elevanaltd/HestAI-MCP/issues/37)
+
+> **Note**: Per ADR-0060, RFC folder is deprecated. Future discussion continues in Issue #37. This file retained for reference until decision is made. Experimental code in `experimental/0001-context-registry/` superseded by this RFC.
 
 ## Summary
 
