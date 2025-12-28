@@ -437,3 +437,162 @@ ACTIVE:
         assert "blocker_004" in result_content
         assert "Also keep" in result_content
         assert "PRIORITY::LOW" in result_content
+
+
+@pytest.mark.unit
+class TestAISynthesisIntegration:
+    """
+    Test AI-powered FAST layer synthesis per North Star Section 5 STEP_5+6.
+
+    The synthesize_fast_layer_with_ai function:
+    1. Creates a CompletionRequest with synthesis prompt
+    2. Calls AIClient.complete_text()
+    3. Parses AI response into synthesis result
+    4. Falls back to template if AI fails (SS-I6)
+    """
+
+    @pytest.mark.asyncio
+    async def test_synthesize_fast_layer_with_ai_success(self, tmp_path: Path):
+        """
+        AI synthesis returns structured FAST layer content on success.
+        """
+        from unittest.mock import AsyncMock, MagicMock, patch
+
+        from hestai_mcp.mcp.tools.shared.fast_layer import synthesize_fast_layer_with_ai
+
+        # Mock a successful AI response
+        mock_ai_response = """Based on the context, here are the key focus areas:
+
+FOCUS_SUMMARY: Implementing clock_in AI integration for Issue #56
+KEY_TASKS:
+- Wire AIClient into FAST layer synthesis
+- Add focus resolution from branch patterns
+- Ensure graceful fallback on AI failure
+BLOCKERS: None identified
+"""
+
+        # Patch at the import location inside the function
+        with (
+            patch("hestai_mcp.ai.client.AIClient") as mock_ai_client_cls,
+            patch("hestai_mcp.ai.config.load_config") as mock_load_config,
+        ):
+            # Mock config loading
+            mock_load_config.return_value = MagicMock()
+
+            # Mock the async context manager and complete_text
+            mock_client = AsyncMock()
+            mock_client.complete_text = AsyncMock(return_value=mock_ai_response)
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            mock_ai_client_cls.return_value = mock_client
+
+            result = await synthesize_fast_layer_with_ai(
+                session_id="test-session-123",
+                role="implementation-lead",
+                focus="issue-56",
+                context_summary="Working on clock_in AI integration",
+            )
+
+            # Should return synthesis result
+            assert result is not None
+            assert "synthesis" in result
+            assert "source" in result
+            assert result["source"] == "ai"
+
+    @pytest.mark.asyncio
+    async def test_synthesize_fast_layer_fallback_on_ai_failure(self, tmp_path: Path):
+        """
+        Falls back to template approach when AI fails (SS-I6 compliance).
+        """
+        from unittest.mock import AsyncMock, MagicMock, patch
+
+        from hestai_mcp.mcp.tools.shared.fast_layer import synthesize_fast_layer_with_ai
+
+        with (
+            patch("hestai_mcp.ai.client.AIClient") as mock_ai_client_cls,
+            patch("hestai_mcp.ai.config.load_config") as mock_load_config,
+        ):
+            # Mock config loading
+            mock_load_config.return_value = MagicMock()
+
+            # Simulate AI failure during complete_text
+            mock_client = AsyncMock()
+            mock_client.complete_text = AsyncMock(side_effect=Exception("AI unavailable"))
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            mock_ai_client_cls.return_value = mock_client
+
+            result = await synthesize_fast_layer_with_ai(
+                session_id="test-session-123",
+                role="implementation-lead",
+                focus="issue-56",
+                context_summary="Working on clock_in AI integration",
+            )
+
+            # Should fall back gracefully
+            assert result is not None
+            assert "synthesis" in result
+            assert "source" in result
+            assert result["source"] == "fallback"
+
+    @pytest.mark.asyncio
+    async def test_synthesize_fast_layer_with_ai_no_config(self, tmp_path: Path):
+        """
+        Returns fallback when no AI config is available.
+        """
+        from unittest.mock import patch
+
+        from hestai_mcp.mcp.tools.shared.fast_layer import synthesize_fast_layer_with_ai
+
+        # Simulate no AI config (load_config raises)
+        with patch(
+            "hestai_mcp.ai.config.load_config",
+            side_effect=FileNotFoundError("No config"),
+        ):
+            result = await synthesize_fast_layer_with_ai(
+                session_id="test-session-123",
+                role="implementation-lead",
+                focus="general",
+                context_summary="General work session",
+            )
+
+            # Should fall back gracefully
+            assert result is not None
+            assert result["source"] == "fallback"
+
+    @pytest.mark.asyncio
+    async def test_synthesize_fast_layer_respects_async(self, tmp_path: Path):
+        """
+        Synthesis function is properly async (SS-I2 compliance).
+        """
+        import inspect
+        from unittest.mock import AsyncMock, MagicMock, patch
+
+        from hestai_mcp.mcp.tools.shared.fast_layer import synthesize_fast_layer_with_ai
+
+        # Verify the function is a coroutine function
+        assert inspect.iscoroutinefunction(synthesize_fast_layer_with_ai)
+
+        # Mock successful response
+        with (
+            patch("hestai_mcp.ai.client.AIClient") as mock_ai_client_cls,
+            patch("hestai_mcp.ai.config.load_config") as mock_load_config,
+        ):
+            mock_load_config.return_value = MagicMock()
+
+            mock_client = AsyncMock()
+            mock_client.complete_text = AsyncMock(return_value="AI synthesis result")
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            mock_ai_client_cls.return_value = mock_client
+
+            # Should be awaitable
+            coro = synthesize_fast_layer_with_ai(
+                session_id="test",
+                role="test",
+                focus="test",
+                context_summary="test",
+            )
+            assert inspect.iscoroutine(coro)
+            result = await coro
+            assert result is not None
