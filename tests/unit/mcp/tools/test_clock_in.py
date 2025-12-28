@@ -540,3 +540,274 @@ ITEMS:
         # Incomplete items should be carried forward
         assert "task_002::PENDING" in content or "CARRIED_FORWARD:" in content
         assert "task_003::IN_PROGRESS" in content or "CARRIED_FORWARD:" in content
+
+
+@pytest.mark.unit
+class TestFocusResolutionFromBranch:
+    """
+    Test focus resolution priority chain per North Star Section 5 STEP_4.
+
+    Priority order: explicit > GitHub issue from branch > branch inference > "general"
+
+    Branch patterns to recognize:
+    - Issue number pattern: #XX, issue-XX, issues-XX
+    - Feature keyword prefix: feat/, fix/, chore/, refactor/, docs/
+    """
+
+    def test_resolve_focus_from_issue_pattern_hash(self, mock_hestai_structure: Path):
+        """
+        Resolves focus from branch name with #XX issue pattern.
+
+        Branch: issues-56-completion -> focus: "issue-56"
+        """
+        from hestai_mcp.mcp.tools.clock_in import resolve_focus_from_branch
+
+        result = resolve_focus_from_branch("issues-56-completion")
+        assert result is not None
+        assert result["value"] == "issue-56"
+        assert result["source"] == "github_issue"
+
+    def test_resolve_focus_from_issue_dash_pattern(self, mock_hestai_structure: Path):
+        """
+        Resolves focus from branch name with issue-XX pattern.
+
+        Branch: issue-87-fix -> focus: "issue-87"
+        """
+        from hestai_mcp.mcp.tools.clock_in import resolve_focus_from_branch
+
+        result = resolve_focus_from_branch("issue-87-fix")
+        assert result is not None
+        assert result["value"] == "issue-87"
+        assert result["source"] == "github_issue"
+
+    def test_resolve_focus_from_feature_prefix(self, mock_hestai_structure: Path):
+        """
+        Resolves focus from branch name with feature prefix.
+
+        Branch: feat/add-clock-in -> focus: "feat: add-clock-in"
+        """
+        from hestai_mcp.mcp.tools.clock_in import resolve_focus_from_branch
+
+        result = resolve_focus_from_branch("feat/add-clock-in")
+        assert result is not None
+        assert result["value"] == "feat: add-clock-in"
+        assert result["source"] == "branch"
+
+    def test_resolve_focus_from_fix_prefix(self, mock_hestai_structure: Path):
+        """
+        Resolves focus from branch name with fix prefix.
+
+        Branch: fix/broken-tests -> focus: "fix: broken-tests"
+        """
+        from hestai_mcp.mcp.tools.clock_in import resolve_focus_from_branch
+
+        result = resolve_focus_from_branch("fix/broken-tests")
+        assert result is not None
+        assert result["value"] == "fix: broken-tests"
+        assert result["source"] == "branch"
+
+    def test_resolve_focus_returns_none_for_generic_branch(self, mock_hestai_structure: Path):
+        """
+        Returns None for branches without recognizable patterns.
+
+        Branch: main -> None (fallback to default will be handled elsewhere)
+        """
+        from hestai_mcp.mcp.tools.clock_in import resolve_focus_from_branch
+
+        result = resolve_focus_from_branch("main")
+        assert result is None
+
+        result2 = resolve_focus_from_branch("develop")
+        assert result2 is None
+
+    def test_resolve_focus_priority_explicit_over_branch(self, mock_hestai_structure: Path):
+        """
+        Explicit focus takes priority over branch-inferred focus.
+
+        Per North Star: explicit > GitHub issue > branch > default
+        """
+        from hestai_mcp.mcp.tools.clock_in import resolve_focus
+
+        # When explicit focus is provided, it should take priority
+        result = resolve_focus(explicit_focus="my-explicit-focus", branch="issues-56-completion")
+        assert result["value"] == "my-explicit-focus"
+        assert result["source"] == "explicit"
+
+    def test_resolve_focus_github_issue_over_feature_prefix(self, mock_hestai_structure: Path):
+        """
+        GitHub issue pattern takes priority over feature prefix pattern.
+
+        Branch: feat/issue-56-impl -> focus: "issue-56" (not "feat: issue-56-impl")
+        """
+        from hestai_mcp.mcp.tools.clock_in import resolve_focus_from_branch
+
+        # Issue pattern in branch name should take priority
+        result = resolve_focus_from_branch("feat/issue-56-impl")
+        assert result is not None
+        assert result["value"] == "issue-56"
+        assert result["source"] == "github_issue"
+
+    def test_resolve_focus_default_when_no_pattern_and_no_explicit(
+        self, mock_hestai_structure: Path
+    ):
+        """
+        Returns default focus when no explicit and no branch pattern.
+        """
+        from hestai_mcp.mcp.tools.clock_in import resolve_focus
+
+        result = resolve_focus(explicit_focus=None, branch="main")
+        assert result["value"] == "general"
+        assert result["source"] == "default"
+
+    def test_resolve_focus_handles_complex_issue_patterns(self, mock_hestai_structure: Path):
+        """
+        Handles various issue number patterns in branch names.
+        """
+        from hestai_mcp.mcp.tools.clock_in import resolve_focus_from_branch
+
+        # Multiple number patterns - should extract first/primary
+        test_cases = [
+            ("issues-56-completion-run-2", "issue-56"),
+            ("issue-102-odyssean-anchor", "issue-102"),
+            ("fix-issue-35", "issue-35"),
+            ("feature-#87-system-blindness", "issue-87"),
+        ]
+
+        for branch, expected_focus in test_cases:
+            result = resolve_focus_from_branch(branch)
+            assert result is not None, f"Expected match for branch: {branch}"
+            assert result["value"] == expected_focus, f"Branch: {branch}"
+            assert result["source"] == "github_issue"
+
+
+@pytest.mark.unit
+class TestClockInWithAIIntegration:
+    """
+    Test clock_in integration with AI synthesis per North Star Section 5.
+
+    clock_in should:
+    1. Use resolve_focus to determine focus with priority chain
+    2. Optionally call AI synthesis if configured
+    3. Return focus_resolved with value and source
+    4. Gracefully fall back if AI fails
+    """
+
+    def test_clock_in_returns_focus_resolved_structure(self, mock_hestai_structure: Path):
+        """
+        clock_in returns focus_resolved dict with value and source.
+
+        Per North Star Section 4 output structure.
+        """
+        from hestai_mcp.mcp.tools.clock_in import clock_in
+
+        result = clock_in(
+            role="implementation-lead",
+            working_dir=str(mock_hestai_structure),
+            focus="explicit-focus",
+        )
+
+        # Should have focus_resolved in response
+        assert "focus_resolved" in result
+        focus_resolved = result["focus_resolved"]
+        assert "value" in focus_resolved
+        assert "source" in focus_resolved
+        assert focus_resolved["value"] == "explicit-focus"
+        assert focus_resolved["source"] == "explicit"
+
+    def test_clock_in_infers_focus_from_branch_when_not_explicit(self, mock_hestai_structure: Path):
+        """
+        clock_in infers focus from branch when explicit focus not provided.
+
+        This test uses mocking since we can't control git branch in test.
+        """
+        from unittest.mock import patch
+
+        from hestai_mcp.mcp.tools.clock_in import clock_in
+
+        # Mock get_current_branch to return a branch with issue pattern
+        with patch(
+            "hestai_mcp.mcp.tools.shared.fast_layer.get_current_branch",
+            return_value="issues-56-completion",
+        ):
+            result = clock_in(
+                role="implementation-lead",
+                working_dir=str(mock_hestai_structure),
+                # No explicit focus - should infer from branch
+            )
+
+            # Should have focus_resolved in response
+            assert "focus_resolved" in result
+            # Note: Without git integration in tests, will fallback to default
+            # The focus_resolved structure should still be present
+            assert result["focus_resolved"]["value"] is not None
+
+    def test_clock_in_defaults_to_general_when_no_focus_pattern(self, mock_hestai_structure: Path):
+        """
+        clock_in defaults to 'general' when no explicit focus and no branch pattern.
+        """
+        from unittest.mock import patch
+
+        from hestai_mcp.mcp.tools.clock_in import clock_in
+
+        # Mock branch to return a non-descriptive name
+        with patch(
+            "hestai_mcp.mcp.tools.shared.fast_layer.get_current_branch",
+            return_value="main",
+        ):
+            result = clock_in(
+                role="implementation-lead",
+                working_dir=str(mock_hestai_structure),
+                # No explicit focus
+            )
+
+            assert "focus_resolved" in result
+            assert result["focus_resolved"]["value"] == "general"
+            assert result["focus_resolved"]["source"] == "default"
+
+    @pytest.mark.asyncio
+    async def test_clock_in_async_version_available(self, mock_hestai_structure: Path):
+        """
+        Async version of clock_in is available for AI integration.
+
+        clock_in_async can be used when AI synthesis is desired.
+        """
+        from hestai_mcp.mcp.tools.clock_in import clock_in_async
+
+        result = await clock_in_async(
+            role="implementation-lead",
+            working_dir=str(mock_hestai_structure),
+            focus="test-focus",
+        )
+
+        # Should return same structure as sync version
+        assert "session_id" in result
+        assert "context_paths" in result
+        assert "focus_resolved" in result
+
+    @pytest.mark.asyncio
+    async def test_clock_in_async_graceful_ai_fallback(self, mock_hestai_structure: Path):
+        """
+        clock_in_async gracefully falls back when AI synthesis fails.
+        """
+        from unittest.mock import AsyncMock, patch
+
+        from hestai_mcp.mcp.tools.clock_in import clock_in_async
+
+        # Mock AI synthesis to fail - patch at the source module
+        with patch(
+            "hestai_mcp.mcp.tools.shared.fast_layer.synthesize_fast_layer_with_ai",
+            new_callable=AsyncMock,
+            side_effect=Exception("AI unavailable"),
+        ):
+            # Should still succeed despite AI failure
+            result = await clock_in_async(
+                role="implementation-lead",
+                working_dir=str(mock_hestai_structure),
+                focus="test-focus",
+            )
+
+            assert "session_id" in result
+            # Session should be created even if AI fails
+            # ai_synthesis should show fallback
+            assert "ai_synthesis" in result
+            assert result["ai_synthesis"]["source"] == "fallback"

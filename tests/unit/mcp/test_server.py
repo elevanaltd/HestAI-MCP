@@ -380,3 +380,123 @@ class TestCallTool:
                 await call_tool("clock_out", {"session_id": "nonexistent-session"})
         finally:
             os.chdir(original_cwd)
+
+
+# =============================================================================
+# PHASE 3: AI Synthesis Integration Tests (Issue #56 Rework)
+# =============================================================================
+
+
+@pytest.mark.unit
+class TestMCPClockInAISynthesisIntegration:
+    """
+    Test that MCP tool surface triggers AI synthesis path.
+
+    Per CRS gate feedback (BLOCK-1):
+    - The MCP tool invocation must be able to trigger AI synthesis
+    - CI-I3 requires AIClient.complete_text() to be reachable from runtime
+    - The exported clock_in must use async path with AI synthesis capability
+    """
+
+    @pytest.mark.asyncio
+    async def test_mcp_clock_in_calls_async_path_with_ai_synthesis(self, tmp_path: Path):
+        """
+        MCP call_tool("clock_in") invokes clock_in_async with AI synthesis.
+
+        This test proves that:
+        1. The MCP surface uses the async path (clock_in_async)
+        2. AI synthesis is attempted when configured
+        3. ai_synthesis field is present in response
+
+        Per CRS BLOCK-1: The wiring gap between sync clock_in and async
+        clock_in_async must be fixed.
+        """
+        from hestai_mcp.mcp.server import call_tool
+
+        # Create minimal hestai structure
+        project = tmp_path / "project"
+        project.mkdir()
+        (project / ".hestai" / "sessions" / "active").mkdir(parents=True)
+        (project / ".hestai" / "context").mkdir(parents=True)
+
+        # Mock the AI synthesis to verify it's called
+        with patch(
+            "hestai_mcp.mcp.tools.shared.fast_layer.synthesize_fast_layer_with_ai",
+            new_callable=AsyncMock,
+        ) as mock_ai_synthesis:
+            mock_ai_synthesis.return_value = {
+                "synthesis": "Test AI synthesis result",
+                "source": "ai",
+            }
+
+            arguments = {
+                "role": "test-role",
+                "working_dir": str(project),
+                "focus": "test-focus",
+            }
+
+            result = await call_tool("clock_in", arguments)
+
+            # Parse response
+            response_data = json.loads(result[0].text)
+
+            # CRITICAL: AI synthesis must be present in response
+            # This proves the async path with AI is being used
+            assert (
+                "ai_synthesis" in response_data
+            ), "ai_synthesis field missing - MCP surface is not using clock_in_async"
+            assert response_data["ai_synthesis"]["source"] == "ai"
+
+            # Verify AI synthesis function was called
+            mock_ai_synthesis.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_mcp_clock_in_returns_ai_synthesis_fallback_on_failure(self, tmp_path: Path):
+        """
+        MCP clock_in gracefully falls back when AI synthesis fails.
+
+        Per SS-I6: Graceful degradation is required.
+        """
+        from hestai_mcp.mcp.server import call_tool
+
+        # Create minimal hestai structure
+        project = tmp_path / "project"
+        project.mkdir()
+        (project / ".hestai" / "sessions" / "active").mkdir(parents=True)
+        (project / ".hestai" / "context").mkdir(parents=True)
+
+        # Mock AI synthesis to fail
+        with patch(
+            "hestai_mcp.mcp.tools.shared.fast_layer.synthesize_fast_layer_with_ai",
+            new_callable=AsyncMock,
+            side_effect=Exception("AI service unavailable"),
+        ):
+            arguments = {
+                "role": "test-role",
+                "working_dir": str(project),
+                "focus": "test-focus",
+            }
+
+            result = await call_tool("clock_in", arguments)
+
+            # Parse response
+            response_data = json.loads(result[0].text)
+
+            # Should still succeed with fallback
+            assert "session_id" in response_data
+            assert "ai_synthesis" in response_data
+            assert response_data["ai_synthesis"]["source"] == "fallback"
+
+    @pytest.mark.asyncio
+    async def test_mcp_clock_in_async_export_available(self):
+        """
+        clock_in_async is exported from tools module.
+
+        Ensures the async function is discoverable and usable.
+        """
+        # Just verify it's importable and is a coroutine function
+        import inspect
+
+        from hestai_mcp.mcp.tools import clock_in_async
+
+        assert inspect.iscoroutinefunction(clock_in_async)

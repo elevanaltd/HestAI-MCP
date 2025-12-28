@@ -17,12 +17,104 @@ Note: Uses direct .hestai/ directory (ADR-0007), no symlinks or worktrees.
 
 import json
 import logging
+import re
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+
+# Issue pattern regex: matches #XX, issue-XX, issues-XX
+ISSUE_PATTERN = re.compile(r"(?:issues?-|#)(\d+)", re.IGNORECASE)
+
+# Feature prefix patterns: feat/, fix/, chore/, refactor/, docs/
+FEATURE_PREFIX_PATTERN = re.compile(r"^(feat|fix|chore|refactor|docs)/(.+)$")
+
+
+def resolve_focus_from_branch(branch: str) -> dict[str, str] | None:
+    """
+    Resolve focus from branch name based on patterns.
+
+    Priority within branch patterns:
+    1. Issue number pattern: #XX, issue-XX, issues-XX -> "issue-XX"
+    2. Feature prefix: feat/, fix/, chore/, etc. -> "prefix: description"
+
+    Args:
+        branch: Git branch name
+
+    Returns:
+        Dict with "value" and "source" keys, or None if no pattern matches.
+        - value: The resolved focus string
+        - source: "github_issue" for issue patterns, "branch" for feature prefixes
+    """
+    if not branch:
+        return None
+
+    # First priority: issue number patterns
+    issue_match = ISSUE_PATTERN.search(branch)
+    if issue_match:
+        issue_number = issue_match.group(1)
+        return {
+            "value": f"issue-{issue_number}",
+            "source": "github_issue",
+        }
+
+    # Second priority: feature prefix patterns
+    prefix_match = FEATURE_PREFIX_PATTERN.match(branch)
+    if prefix_match:
+        prefix = prefix_match.group(1)
+        description = prefix_match.group(2)
+        return {
+            "value": f"{prefix}: {description}",
+            "source": "branch",
+        }
+
+    # No recognizable pattern
+    return None
+
+
+def resolve_focus(
+    explicit_focus: str | None = None,
+    branch: str | None = None,
+) -> dict[str, str]:
+    """
+    Resolve focus with priority chain per North Star Section 5 STEP_4.
+
+    Priority order:
+    1. Explicit focus (if provided)
+    2. GitHub issue from branch name (if matches issue pattern)
+    3. Branch inference (if matches feature prefix pattern)
+    4. Default: "general"
+
+    Args:
+        explicit_focus: Explicitly provided focus (highest priority)
+        branch: Git branch name to infer focus from
+
+    Returns:
+        Dict with "value" and "source" keys:
+        - value: The resolved focus string
+        - source: "explicit", "github_issue", "branch", or "default"
+    """
+    # Priority 1: Explicit focus
+    if explicit_focus is not None and explicit_focus.strip():
+        return {
+            "value": explicit_focus.strip(),
+            "source": "explicit",
+        }
+
+    # Priority 2-3: Infer from branch
+    if branch:
+        branch_result = resolve_focus_from_branch(branch)
+        if branch_result:
+            return branch_result
+
+    # Priority 4: Default
+    return {
+        "value": "general",
+        "source": "default",
+    }
 
 
 def validate_role_format(role: str) -> str:
@@ -203,7 +295,7 @@ def ensure_hestai_structure(working_dir: Path) -> str:
 def clock_in(
     role: str,
     working_dir: str,
-    focus: str = "general",
+    focus: str | None = None,
     model: str | None = None,
 ) -> dict[str, Any]:
     """
@@ -214,7 +306,7 @@ def clock_in(
     Args:
         role: Agent role name (e.g., 'implementation-lead')
         working_dir: Project working directory path
-        focus: Work focus area (e.g., 'b2-implementation')
+        focus: Work focus area (optional - will infer from branch if not provided)
         model: Optional AI model identifier
 
     Returns:
@@ -223,6 +315,7 @@ def clock_in(
             - context_paths: List of OCTAVE context file paths to load
             - focus_conflict: None or conflicting session info
             - structure_status: 'present' | 'created'
+            - focus_resolved: Dict with 'value' and 'source' keys
 
     Raises:
         ValueError: If validation fails (path traversal, invalid role)
@@ -235,6 +328,15 @@ def clock_in(
     # Ensure .hestai/ directory structure exists
     structure_status = ensure_hestai_structure(working_dir_path)
 
+    # Get current branch for focus resolution
+    from hestai_mcp.mcp.tools.shared.fast_layer import get_current_branch
+
+    branch = get_current_branch(working_dir=working_dir_path)
+
+    # Resolve focus with priority chain: explicit > github_issue > branch > default
+    focus_resolved = resolve_focus(explicit_focus=focus, branch=branch)
+    resolved_focus_value = focus_resolved["value"]
+
     # Get active sessions directory
     active_dir = working_dir_path / ".hestai" / "sessions" / "active"
 
@@ -242,7 +344,7 @@ def clock_in(
     session_id = str(uuid.uuid4())
 
     # Check for focus conflicts BEFORE creating session
-    focus_conflict = detect_focus_conflict(focus, active_dir, session_id)
+    focus_conflict = detect_focus_conflict(resolved_focus_value, active_dir, session_id)
 
     # Create session directory
     session_dir = active_dir / session_id
@@ -257,7 +359,8 @@ def clock_in(
         "session_id": session_id,
         "role": role,
         "working_dir": str(working_dir_path),
-        "focus": focus,
+        "focus": resolved_focus_value,
+        "focus_source": focus_resolved["source"],
         "model": model,
         "started_at": datetime.now(timezone.utc).isoformat(),
         "transcript_path": transcript_path,
@@ -267,12 +370,15 @@ def clock_in(
     session_file = session_dir / "session.json"
     session_file.write_text(json.dumps(session_data, indent=2))
 
-    logger.info(f"Created session {session_id} for role {role} with focus {focus}")
+    logger.info(
+        f"Created session {session_id} for role {role} with focus {resolved_focus_value} "
+        f"(source: {focus_resolved['source']})"
+    )
 
     # Update FAST layer (ADR-0046, ADR-0056)
     from hestai_mcp.mcp.tools.shared.fast_layer import update_fast_layer_on_clock_in
 
-    update_fast_layer_on_clock_in(working_dir_path, session_id, role, focus)
+    update_fast_layer_on_clock_in(working_dir_path, session_id, role, resolved_focus_value)
 
     # Resolve context paths (OCTAVE files from .hestai/context/)
     context_paths = resolve_context_paths(working_dir_path)
@@ -283,4 +389,143 @@ def clock_in(
         "context_paths": context_paths,
         "focus_conflict": focus_conflict,
         "structure_status": structure_status,
+        "focus_resolved": focus_resolved,
     }
+
+
+async def clock_in_async(
+    role: str,
+    working_dir: str,
+    focus: str | None = None,
+    model: str | None = None,
+    enable_ai_synthesis: bool = True,
+) -> dict[str, Any]:
+    """
+    Async version of clock_in with optional AI synthesis.
+
+    This version can call AI synthesis for FAST layer content.
+    SS-I2 compliant: Fully async for MCP tool integration.
+    SS-I6 compliant: Graceful fallback if AI fails.
+
+    Args:
+        role: Agent role name (e.g., 'implementation-lead')
+        working_dir: Project working directory path
+        focus: Work focus area (optional - will infer from branch if not provided)
+        model: Optional AI model identifier
+        enable_ai_synthesis: Whether to attempt AI synthesis (default True)
+
+    Returns:
+        dict with:
+            - session_id: Generated UUID
+            - context_paths: List of OCTAVE context file paths to load
+            - focus_conflict: None or conflicting session info
+            - structure_status: 'present' | 'created'
+            - focus_resolved: Dict with 'value' and 'source' keys
+            - ai_synthesis: Dict with 'synthesis' and 'source' keys (if enabled)
+
+    Raises:
+        ValueError: If validation fails (path traversal, invalid role)
+        FileNotFoundError: If working_dir doesn't exist
+    """
+    # Validate inputs
+    role = validate_role_format(role)
+    working_dir_path = validate_working_dir(working_dir)
+
+    # Ensure .hestai/ directory structure exists
+    structure_status = ensure_hestai_structure(working_dir_path)
+
+    # Get current branch for focus resolution
+    from hestai_mcp.mcp.tools.shared.fast_layer import get_current_branch
+
+    branch = get_current_branch(working_dir=working_dir_path)
+
+    # Resolve focus with priority chain: explicit > github_issue > branch > default
+    focus_resolved = resolve_focus(explicit_focus=focus, branch=branch)
+    resolved_focus_value = focus_resolved["value"]
+
+    # Get active sessions directory
+    active_dir = working_dir_path / ".hestai" / "sessions" / "active"
+
+    # Generate session ID
+    session_id = str(uuid.uuid4())
+
+    # Check for focus conflicts BEFORE creating session
+    focus_conflict = detect_focus_conflict(resolved_focus_value, active_dir, session_id)
+
+    # Create session directory
+    session_dir = active_dir / session_id
+    session_dir.mkdir(parents=True, exist_ok=True)
+
+    # Determine transcript path (will be populated by Claude Code)
+    transcript_path = f"~/.claude/projects/{working_dir_path.name}/*.jsonl"
+
+    # Create session metadata
+    session_data = {
+        "session_id": session_id,
+        "role": role,
+        "working_dir": str(working_dir_path),
+        "focus": resolved_focus_value,
+        "focus_source": focus_resolved["source"],
+        "model": model,
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "transcript_path": transcript_path,
+    }
+
+    # Write session.json
+    session_file = session_dir / "session.json"
+    session_file.write_text(json.dumps(session_data, indent=2))
+
+    logger.info(
+        f"Created session {session_id} for role {role} with focus {resolved_focus_value} "
+        f"(source: {focus_resolved['source']})"
+    )
+
+    # Update FAST layer (sync version for now)
+    from hestai_mcp.mcp.tools.shared.fast_layer import (
+        synthesize_fast_layer_with_ai,
+        update_fast_layer_on_clock_in,
+    )
+
+    update_fast_layer_on_clock_in(working_dir_path, session_id, role, resolved_focus_value)
+
+    # Attempt AI synthesis if enabled
+    ai_synthesis_result = None
+    if enable_ai_synthesis:
+        try:
+            # Build context summary from available context
+            context_paths = resolve_context_paths(working_dir_path)
+            context_summary = (
+                f"Role: {role}, Focus: {resolved_focus_value}, Context files: {len(context_paths)}"
+            )
+
+            ai_synthesis_result = await synthesize_fast_layer_with_ai(
+                session_id=session_id,
+                role=role,
+                focus=resolved_focus_value,
+                context_summary=context_summary,
+            )
+            logger.info(f"AI synthesis completed for session {session_id}")
+        except Exception as e:
+            # SS-I6 Fallback: Continue without AI synthesis
+            logger.warning(f"AI synthesis failed for session {session_id}: {e}")
+            ai_synthesis_result = {
+                "synthesis": "AI synthesis unavailable",
+                "source": "fallback",
+            }
+
+    # Resolve context paths (OCTAVE files from .hestai/context/)
+    context_paths = resolve_context_paths(working_dir_path)
+
+    # Build response
+    response: dict[str, Any] = {
+        "session_id": session_id,
+        "context_paths": context_paths,
+        "focus_conflict": focus_conflict,
+        "structure_status": structure_status,
+        "focus_resolved": focus_resolved,
+    }
+
+    if ai_synthesis_result:
+        response["ai_synthesis"] = ai_synthesis_result
+
+    return response

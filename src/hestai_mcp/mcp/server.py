@@ -21,7 +21,7 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
 
-from hestai_mcp.mcp.tools.clock_in import clock_in
+from hestai_mcp.mcp.tools.clock_in import clock_in_async
 from hestai_mcp.mcp.tools.clock_out import clock_out
 
 logger = logging.getLogger(__name__)
@@ -191,11 +191,13 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         ValueError: If tool name is unknown
     """
     if name == "clock_in":
-        result = clock_in(
+        # Use async path with AI synthesis capability (Issue #56 fix)
+        result = await clock_in_async(
             role=arguments["role"],
             working_dir=arguments["working_dir"],
             focus=arguments.get("focus", "general"),
             model=arguments.get("model"),
+            enable_ai_synthesis=True,
         )
         import json
 
