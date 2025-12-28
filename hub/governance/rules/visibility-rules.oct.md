@@ -258,6 +258,9 @@ PLACEMENT_TABLE::[
   test_standards→.hestai/workflow/test-context/[committed|governance|stable],
   reports→.hestai/reports/[committed|humans+governance|durable_evidence],
 
+  // DEBATE ARTIFACTS (debates/)
+  debate_transcripts→debates/[split_tracking:json_ignored|octave_committed|cognitive_evidence|durable],
+
   // CLAUDE CODE INFRASTRUCTURE (.claude/)
   agent_constitutions→.claude/agents/[committed|Claude_Code|infrastructure],
   skills→.claude/skills/[committed|Claude_Code|infrastructure]
