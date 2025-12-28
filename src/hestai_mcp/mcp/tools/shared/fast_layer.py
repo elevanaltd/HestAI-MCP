@@ -440,3 +440,101 @@ def update_fast_layer_on_clock_out(
     clear_current_focus(state_dir, session_id)
     update_checklist_on_close(state_dir, session_id)
     persist_blockers_on_close(state_dir, session_id)
+
+
+# AI Synthesis Constants
+SYNTHESIS_SYSTEM_PROMPT = """You are an AI assistant helping to synthesize context for an agent session.
+Based on the provided role, focus, and context summary, generate a concise synthesis that helps
+the agent understand their current work context.
+
+Format your response as structured text with these sections:
+FOCUS_SUMMARY: A one-line summary of the current focus
+KEY_TASKS: Bullet points of key tasks to accomplish
+BLOCKERS: Any blockers or concerns (or "None identified")
+CONTEXT: Any relevant contextual information
+"""
+
+SYNTHESIS_USER_PROMPT_TEMPLATE = """Role: {role}
+Focus: {focus}
+Context Summary: {context_summary}
+
+Please synthesize this information into actionable context for the session."""
+
+
+async def synthesize_fast_layer_with_ai(
+    session_id: str,
+    role: str,
+    focus: str,
+    context_summary: str,
+) -> dict[str, str]:
+    """
+    Synthesize FAST layer content using AI (SS-I2 async, SS-I6 fallback).
+
+    Per North Star Section 5 STEP_5+6:
+    1. Creates a CompletionRequest with synthesis prompt
+    2. Calls AIClient.complete_text()
+    3. Parses AI response into synthesis result
+    4. Falls back to template if AI fails (SS-I6)
+
+    Args:
+        session_id: Current session ID
+        role: Agent role (e.g., "implementation-lead")
+        focus: Resolved focus (e.g., "issue-56")
+        context_summary: Summary of available context
+
+    Returns:
+        Dict with "synthesis" and "source" keys:
+        - synthesis: The synthesized content string
+        - source: "ai" if AI succeeded, "fallback" if using template
+    """
+    try:
+        # Import here to avoid circular dependencies and make fallback possible
+        from hestai_mcp.ai.client import AIClient
+        from hestai_mcp.ai.config import load_config
+        from hestai_mcp.ai.providers.base import CompletionRequest
+
+        # Load AI config - may raise if not configured
+        load_config()
+
+        # Build the user prompt
+        user_prompt = SYNTHESIS_USER_PROMPT_TEMPLATE.format(
+            role=role,
+            focus=focus,
+            context_summary=context_summary,
+        )
+
+        # Create completion request
+        request = CompletionRequest(
+            system_prompt=SYNTHESIS_SYSTEM_PROMPT,
+            user_prompt=user_prompt,
+            max_tokens=1024,
+            temperature=0.3,  # Lower temperature for more consistent output
+            timeout_seconds=15,  # Quick timeout to not block session start
+        )
+
+        # Call AI using async context manager
+        async with AIClient() as client:
+            ai_response = await client.complete_text(request)
+
+        logger.info(f"AI synthesis completed for session {session_id}")
+
+        return {
+            "synthesis": ai_response,
+            "source": "ai",
+        }
+
+    except Exception as e:
+        # SS-I6 Fallback: Use template-based approach on any failure
+        logger.warning(f"AI synthesis failed for session {session_id}, using fallback: {e}")
+
+        fallback_synthesis = f"""FOCUS_SUMMARY: {focus}
+KEY_TASKS:
+- Review context for {role}
+- Complete {focus} objectives
+BLOCKERS: None identified (AI synthesis unavailable)
+CONTEXT: Session started without AI context synthesis."""
+
+        return {
+            "synthesis": fallback_synthesis,
+            "source": "fallback",
+        }
