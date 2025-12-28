@@ -1,18 +1,33 @@
+---
+component: system_steward
+scope: subsystem
+phase: D1
+created: 2025-12-27
+status: approved
+approved_by: requirements-steward
+approved_date: 2025-12-28
+parent_north_star: .hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md
+version: 1.2
+---
+
 # COMPONENT NORTH STAR: SYSTEM STEWARD
 
 **Component**: System Steward (AI-Powered Context Orchestrator)
 **Parent**: .hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md
 **Status**: ACTIVE
-**Version**: 1.0
-**Date**: 2025-12-27
+**Version**: 1.2
+**Date**: 2025-12-28
+**Reviewed By**: requirements-steward
+**Review Date**: 2025-12-28
 
 ---
 
 ## COMMITMENT STATEMENT
 
 This document establishes the immutable requirements for the **System Steward** component.
-It inherits all requirements from the **System North Star** and **HestAI-MCP Product North Star**.
-Any deviation requires formal amendment.
+It inherits all requirements from:
+- **System North Star** (I1 through I6) - Constitutional principles
+- **HestAI-MCP Product North Star** (I1 through I6) - Product requirements
 
 The System Steward is the AI-powered brain that orchestrates context management, document operations,
 and governance enforcement through the HestAI-MCP server.
@@ -76,14 +91,41 @@ and governance enforcement through the HestAI-MCP server.
 
 ---
 
+## SECTION 2B: SCOPE BOUNDARIES
+
+### What This Component IS
+
+| Scope | Description |
+|-------|-------------|
+| AI-Powered Context Orchestration | Intelligent selection and synthesis of relevant context for agent roles |
+| MCP Tool Execution | Handles tool invocations from agents through the MCP protocol |
+| OCTAVE Validation Routing | Routes AI-generated content through OCTAVE MCP for validation |
+| Context Selection and Synthesis | Curates context based on role, focus, and project state |
+| Provider Fallback Management | Manages AI provider chains with graceful degradation |
+
+### What This Component IS NOT
+
+| Out of Scope | Responsible Component |
+|--------------|----------------------|
+| Direct File Writes | octave_create via OCTAVE MCP |
+| Identity Validation | odyssean_anchor tool |
+| Session Management | clock_in / clock_out tools |
+| Persistent Memory Storage | Basic Memory MCP |
+| Git Operations | Git MCP or direct git CLI |
+| Codebase Packaging | Repomix MCP |
+
+---
+
 ## SECTION 3: ASSUMPTION REGISTER
 
-| ID | Assumption | Confidence | Validation Plan |
-|----|------------|------------|-----------------|
-| SS-A1 | AI can reliably select relevant context given role+focus | 80% | POC with clock_in context selection |
-| SS-A2 | OCTAVE MCP can be called from within HestAI-MCP async | 90% | Integration test with octave_ingest |
-| SS-A3 | Manifest-driven filtering covers 80%+ of use cases | 75% | Track AI fallback frequency |
-| SS-A4 | Provider fallback chain (3+ providers) prevents downtime | 85% | Load test with provider failure injection |
+| ID | Assumption | Confidence | Impact | Validation Plan | Owner | Timing |
+|----|------------|------------|--------|-----------------|-------|--------|
+| SS-A1 | AI can reliably select relevant context given role+focus | 80% | High | POC with clock_in context selection | implementation-lead | Before B1 |
+| SS-A2 | OCTAVE MCP can be called from within HestAI-MCP async | 90% | High | Integration test with octave_ingest | implementation-lead | Before B1 |
+| SS-A3 | Manifest-driven filtering covers 80%+ of use cases | 75% | Medium | Track AI fallback frequency | implementation-lead | During B2 |
+| SS-A4 | Provider fallback chain (3+ providers) prevents downtime | 85% | High | Load test with provider failure injection | technical-architect | Before B1 |
+| SS-A5 | MCP server chaining complexity manageable | 75% | High | Integration test with 3+ upstream servers | technical-architect | Before B1 |
+| SS-A6 | Context manifest schema covers role filtering needs | 70% | Medium | Test with 5+ roles | implementation-lead | During B2 |
 
 ---
 
@@ -91,7 +133,7 @@ and governance enforcement through the HestAI-MCP server.
 
 ### Living Lens Metaphor
 ```
-ORCHESTRA_MAP  = BRAIN   (graph of concepts→code→docs→people)
+ORCHESTRA_MAP  = BRAIN   (graph of concepts->code->docs->people)
 REPOMIX        = RETINA  (captures code at requested resolution)
 OCTAVE         = OPTIC_NERVE (validates and compresses for consumption)
 AI_CLIENT      = CORTEX  (interprets meaning from structured input)
@@ -109,12 +151,12 @@ STEP_5: Return context_paths to agent
 ### Orchestration Flow
 ```
 [Agent Request]
-    → [System Steward receives via MCP tool]
-    → [Query Orchestra Map for dependencies]
-    → [AIClient reasons about context/action]
-    → [OCTAVE validates output structure]
-    → [Write to .hestai/ via octave_create]
-    → [Return result to agent]
+    -> [System Steward receives via MCP tool]
+    -> [Query Orchestra Map for dependencies]
+    -> [AIClient reasons about context/action]
+    -> [OCTAVE validates output structure]
+    -> [Write to .hestai/ via octave_create]
+    -> [Return result to agent]
 ```
 
 ---
@@ -122,8 +164,8 @@ STEP_5: Return context_paths to agent
 ## SECTION 5: INTEGRATION POINTS
 
 ### Inherits From
-- **System North Star** (I1-I6): TDD, phase gates, human primacy, artifacts, quality verification, accountability
-- **Product North Star** (I1-I6): Cognitive continuity, structural integrity, dual-layer authority, freshness, Odyssean binding, universal scope
+- **System North Star** (I1 through I6): TDD, phase gates, human primacy, artifacts, quality verification, accountability
+- **Product North Star** (I1 through I6): Cognitive continuity, structural integrity, dual-layer authority, freshness, Odyssean binding, universal scope
 
 ### Sibling Components
 - **Orchestra Map**: Provides the dependency graph that System Steward queries
@@ -133,6 +175,15 @@ STEP_5: Return context_paths to agent
 ### Downstream Consumers
 - All HestAI agents use System Steward via MCP tools
 - Context files produced by System Steward are read by agents
+
+### Child Components (Tools)
+| Tool | Purpose | North Star |
+|------|---------|------------|
+| clock_in | Session registration, context synthesis | 000-CLOCK-IN-NORTH-STAR.md |
+| clock_out | Session archival, transcript compression | (TBD) |
+| odyssean_anchor | Identity validation, binding ceremony | (TBD) |
+| context_update | Mid-session context mutation | (TBD) |
+| document_submit | Document routing and placement | (TBD) |
 
 ---
 
@@ -164,7 +215,57 @@ STEP_5: Return context_paths to agent
 | 2025-12-27 | Async-first requirement | MCP server cannot block on provider calls |
 | 2025-12-27 | MCP Server Chaining pattern | Enables OCTAVE/Memory/Git tool federation |
 | 2025-12-27 | Intelligence in manifests | Auditable, testable, human-controllable |
+| 2025-12-28 | Added scope boundaries | requirements-steward review: clarity on component responsibility |
+| 2025-12-28 | Enhanced assumption register | requirements-steward review: PROPHETIC_VIGILANCE compliance |
 
 ---
 
-**Protection Clause**: Any work contradicting these immutables must STOP, CITE the specific requirement, and ESCALATE to requirements-steward.
+## COMMITMENT CEREMONY
+
+**Status**: ACTIVE
+**Reviewer**: requirements-steward
+**Review Date**: 2025-12-28
+
+**The Oath**:
+> "These 6 Immutables (SS-I1 through SS-I6) are the binding requirements for System Steward implementation. Any contradiction requires STOP, CITE, ESCALATE."
+
+**Amendments Applied**:
+1. Added YAML front-matter
+2. Added Scope Boundaries section (IS/IS NOT)
+3. Enhanced Assumption Register with SS-A5 and SS-A6
+4. Added Impact, Owner, Timing columns to assumptions
+5. Added Child Components table
+6. Added Evidence Summary section
+7. Updated to v1.2: Aligned with ns-component-create standard
+
+---
+
+## EVIDENCE SUMMARY
+
+### Constitutional Compliance
+- **Total Immutables**: 6 (within 5-9 range per Miller's Law)
+- **System-Agnostic**: 6/6 passed Technology Change Test (no technology-specific language)
+- **Assumptions Tracked**: 6 (6+ required per PROPHETIC_VIGILANCE)
+- **Critical Assumptions**: 4 requiring pre-B1 validation (SS-A1, SS-A2, SS-A4, SS-A5)
+- **Commitment Ceremony**: Completed 2025-12-28
+
+### Quality Gates
+- **YAML Front-Matter**: Present
+- **Inheritance Chain**: Documented (System NS + Product NS)
+- **Miller's Law**: 6 immutables (within 5-9 range)
+- **PROPHETIC_VIGILANCE**: 6 assumptions with validation plans
+- **Scope Boundaries**: IS/IS NOT documented
+- **Evidence Trail**: requirements-steward review documented
+
+### Readiness Status
+- **D1 Gate**: PASSED - Ready for implementation
+- **Blocking Dependencies**: None (this is the parent component)
+
+---
+
+## PROTECTION CLAUSE
+
+Any work contradicting these immutables must STOP, CITE the specific requirement, and ESCALATE to requirements-steward.
+
+**The Protection Oath**:
+> "These 6 Immutables (SS-I1 through SS-I6) are the binding requirements for System Steward implementation. Any contradiction requires STOP, CITE, ESCALATE."
