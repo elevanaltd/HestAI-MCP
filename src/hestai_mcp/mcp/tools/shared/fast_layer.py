@@ -22,19 +22,60 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
-def get_current_branch() -> str:
+def sanitize_octave_scalar(value: str) -> str:
     """
-    Get the current git branch name.
+    Sanitize a scalar value for safe interpolation into OCTAVE content.
+
+    Prevents OCTAVE injection attacks by:
+    1. Rejecting control characters (newline, carriage return, tab)
+    2. Escaping double quotes
+
+    Args:
+        value: The scalar value to sanitize (role, focus, branch, etc.)
+
+    Returns:
+        Sanitized value safe for OCTAVE interpolation.
+
+    Raises:
+        ValueError: If value contains control characters that cannot be safely escaped.
+    """
+    # Check for control characters that could break OCTAVE structure
+    control_chars = {"\n": "newline", "\r": "carriage return", "\t": "tab"}
+    for char, name in control_chars.items():
+        if char in value:
+            raise ValueError(
+                f"Invalid value: contains {name} control character. "
+                f"Control characters are not allowed in OCTAVE scalar values."
+            )
+
+    # Escape double quotes to prevent breaking quoted fields
+    sanitized = value.replace('"', '\\"')
+
+    return sanitized
+
+
+def get_current_branch(working_dir: Path | None = None) -> str:
+    """
+    Get the current git branch name for the specified working directory.
+
+    Args:
+        working_dir: The directory to get the branch for. If None, uses process cwd.
+                    IMPORTANT: For multi-worktree scenarios, always pass working_dir
+                    to get the correct branch for the target repository.
 
     Returns:
         Branch name or 'unknown' if git command fails.
     """
     try:
+        # Pass cwd to subprocess to ensure we get the branch for the target
+        # directory, not the process working directory (critical for worktrees)
+        cwd = str(working_dir) if working_dir else None
         result = subprocess.run(
             ["git", "rev-parse", "--abbrev-ref", "HEAD"],
             capture_output=True,
             text=True,
             timeout=5,
+            cwd=cwd,
         )
         if result.returncode == 0:
             return result.stdout.strip()
@@ -79,8 +120,22 @@ def populate_current_focus(
       BRANCH::{branch}
       STARTED::"{timestamp}"
     ===END===
+
+    Raises:
+        ValueError: If role or focus contain control characters (injection prevention).
     """
-    branch = get_current_branch()
+    # Sanitize inputs to prevent OCTAVE injection attacks
+    safe_role = sanitize_octave_scalar(role)
+    safe_focus = sanitize_octave_scalar(focus)
+
+    # Derive working_dir from state_dir (.hestai/context/state -> project root)
+    # state_dir is: working_dir / ".hestai" / "context" / "state"
+    working_dir = state_dir.parent.parent.parent
+    branch = get_current_branch(working_dir=working_dir)
+
+    # Sanitize branch as well (could contain special chars from git)
+    safe_branch = sanitize_octave_scalar(branch)
+
     timestamp = datetime.now(timezone.utc).isoformat()
 
     content = f"""===CURRENT_FOCUS===
@@ -90,9 +145,9 @@ META:
 
 SESSION:
   ID::"{session_id}"
-  ROLE::{role}
-  FOCUS::"{focus}"
-  BRANCH::{branch}
+  ROLE::{safe_role}
+  FOCUS::"{safe_focus}"
+  BRANCH::{safe_branch}
   STARTED::"{timestamp}"
 
 ===END===
@@ -278,50 +333,73 @@ def persist_blockers_on_close(
     Persist unresolved blockers, clear resolved ones on session close.
 
     ADR-0056: Resolved blockers should be cleared, unresolved should persist.
+
+    This function uses indent-based block detection to properly handle blockers
+    with extra fields (OWNER::, LINKS::, PRIORITY::, etc.) beyond the basic
+    DESCRIPTION::, SINCE::, STATUS:: fields.
     """
     blockers_path = state_dir / "blockers.oct.md"
     if not blockers_path.exists():
         return
 
     content = blockers_path.read_text()
-
-    # Remove resolved blocker blocks
-    # Pattern matches blocker entries with STATUS::RESOLVED
-    # We need to remove the entire blocker block
     lines = content.split("\n")
     filtered_lines: list[str] = []
     current_blocker_lines: list[str] = []
+    blocker_indent: int | None = None
+
+    def _get_indent(line: str) -> int:
+        """Get the indentation level of a line."""
+        return len(line) - len(line.lstrip())
+
+    def _finalize_blocker(blocker_lines: list[str], output: list[str]) -> None:
+        """Check if blocker should be kept and add to output if unresolved."""
+        if not blocker_lines:
+            return
+        blocker_text = "\n".join(blocker_lines)
+        if "STATUS::RESOLVED" not in blocker_text:
+            output.extend(blocker_lines)
 
     for line in lines:
-        # Detect start of a blocker entry
-        if re.match(r"^\s+blocker_\d+:", line):
-            # If we were accumulating a previous blocker, check if it should be kept
-            if current_blocker_lines:
-                blocker_text = "\n".join(current_blocker_lines)
-                if "STATUS::RESOLVED" not in blocker_text:
-                    filtered_lines.extend(current_blocker_lines)
+        # Detect start of a blocker entry (e.g., "  blocker_001:")
+        blocker_match = re.match(r"^(\s+)(blocker_\d+):", line)
+
+        if blocker_match:
+            # Finalize any previous blocker before starting a new one
+            _finalize_blocker(current_blocker_lines, filtered_lines)
+
+            # Start accumulating new blocker
             current_blocker_lines = [line]
-        elif current_blocker_lines and line.strip().startswith(
-            ("DESCRIPTION::", "SINCE::", "STATUS::")
-        ):
-            current_blocker_lines.append(line)
-        elif current_blocker_lines and line.strip() == "":
-            # Empty line might be end of blocker or just formatting
-            current_blocker_lines.append(line)
-        else:
-            # If we were accumulating a blocker, finalize it
-            if current_blocker_lines:
-                blocker_text = "\n".join(current_blocker_lines)
-                if "STATUS::RESOLVED" not in blocker_text:
-                    filtered_lines.extend(current_blocker_lines)
+            blocker_indent = _get_indent(line)
+
+        elif current_blocker_lines and blocker_indent is not None:
+            # We're inside a blocker block
+            current_line_indent = _get_indent(line)
+
+            # Check if this line is still part of the blocker block:
+            # - Indented more than the blocker header (child content)
+            # - Empty line (could be formatting within block)
+            # - Or a line at exactly blocker_indent + some indentation for fields
+            if line.strip() == "":
+                # Empty line - could be end of block or just spacing
+                # Look ahead would be complex, so we include it in current blocker
+                # and let the next non-empty line determine if we're still in block
+                current_blocker_lines.append(line)
+            elif current_line_indent > blocker_indent:
+                # More indented than blocker header = still in blocker
+                current_blocker_lines.append(line)
+            else:
+                # Same or less indent = blocker block ended
+                _finalize_blocker(current_blocker_lines, filtered_lines)
                 current_blocker_lines = []
+                blocker_indent = None
+                filtered_lines.append(line)
+        else:
+            # Not in a blocker block
             filtered_lines.append(line)
 
     # Handle last blocker if any
-    if current_blocker_lines:
-        blocker_text = "\n".join(current_blocker_lines)
-        if "STATUS::RESOLVED" not in blocker_text:
-            filtered_lines.extend(current_blocker_lines)
+    _finalize_blocker(current_blocker_lines, filtered_lines)
 
     new_content = "\n".join(filtered_lines)
     blockers_path.write_text(new_content)
