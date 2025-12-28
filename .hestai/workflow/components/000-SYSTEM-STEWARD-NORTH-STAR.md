@@ -1,21 +1,21 @@
 ---
 component: system_steward
 scope: subsystem
-phase: D1
+phase: B1
 created: 2025-12-27
-status: approved
+status: in_progress
 approved_by: requirements-steward
 approved_date: 2025-12-28
 parent_north_star: .hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md
-version: 1.2
+version: 1.3
 ---
 
 # COMPONENT NORTH STAR: SYSTEM STEWARD
 
 **Component**: System Steward (AI-Powered Context Orchestrator)
 **Parent**: .hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md
-**Status**: ACTIVE
-**Version**: 1.2
+**Status**: IN_PROGRESS (SS-I2, SS-I3, SS-I6 complete)
+**Version**: 1.3
 **Date**: 2025-12-28
 **Reviewed By**: requirements-steward
 **Review Date**: 2025-12-28
@@ -260,6 +260,24 @@ STEP_5: Return context_paths to agent
 ### Readiness Status
 - **D1 Gate**: PASSED - Ready for implementation
 - **Blocking Dependencies**: None (this is the parent component)
+
+### Implementation Status (Updated 2025-12-28)
+
+| Immutable | Status | Evidence |
+|-----------|--------|----------|
+| SS-I1 | PENDING | Control plane separation designed, not yet wired |
+| SS-I2 | ✅ COMPLETE | AIClient async-first (PR #106) |
+| SS-I3 | ✅ COMPLETE | MCPClientManager with MCP SDK (PR #106) |
+| SS-I4 | PENDING | Pre-commit hook not yet implemented |
+| SS-I5 | PENDING | context-manifest.oct.md not yet implemented |
+| SS-I6 | ✅ COMPLETE | Graceful degradation in MCPClientManager (PR #106) |
+
+**PR #106 Commits**:
+- `d41a6ea`: feat(ai): convert AIClient to async-first architecture
+- `5bd8a63`: feat(mcp): implement real MCP client connections for SS-I3 federation
+- `f159ef5`: feat(mcp): externalize server config to environment variables
+- `2ca7829`: fix(ai): handle NoKeyringError in CI environments
+- `02f7192`: fix(ai): use correct keyring service name 'hestai-mcp'
 
 ---
 
