@@ -2,17 +2,20 @@
 
 **Component**: clock_in MCP Tool (Session Registration & Context Synthesis)
 **Parent**: .hestai/workflow/components/000-SYSTEM-STEWARD-NORTH-STAR.md
-**Status**: DRAFT
-**Version**: 1.0
+**Status**: ACTIVE
+**Version**: 1.1
 **Date**: 2025-12-28
+**Reviewed By**: requirements-steward
 
 ---
 
 ## COMMITMENT STATEMENT
 
 This document establishes the immutable requirements for the **clock_in** MCP tool.
-It inherits all requirements from the **System Steward North Star** (SS-I1 through SS-I6)
-and the **HestAI-MCP Product North Star** (I1 through I6).
+It inherits all requirements from:
+- **System North Star** (I1 through I6) - Constitutional principles
+- **HestAI-MCP Product North Star** (I1 through I6) - Product requirements
+- **System Steward North Star** (SS-I1 through SS-I6) - Component requirements
 
 The clock_in tool is the **front door** to the HestAI-MCP system. Every agent must call it
 before doing any work. It registers the session, gathers relevant context, and provides
@@ -20,17 +23,17 @@ the agent with the information needed to begin working effectively.
 
 ---
 
-## SECTION 1: THE UNCHANGEABLES (5 Immutables)
+## SECTION 1: THE UNCHANGEABLES (6 Immutables)
 
 ### CI-I1: SESSION REGISTRATION IS MANDATORY
-**Requirement**: Every agent session must begin with clock_in. No work occurs before session registration.
+**Requirement**: Every agent session must begin with clock_in. No MCP tool invocations or file modifications occur before clock_in returns session_id.
 **Rationale**: Session tracking enables audit trails, conflict detection, and cognitive continuity (Product I1).
 **Validation**: clock_in returns session_id. All subsequent tool calls reference this session_id.
 
 ### CI-I2: CONTEXT MUST BE FRESH
 **Requirement**: clock_in generates fresh state data on every invocation. No stale cached context.
 **Rationale**: Prevents hallucinations from outdated data (Product I4: Freshness Verification).
-**Validation**: State vector includes generation timestamp. Pre-commit warns if context >24h old.
+**Validation**: State vector includes generation timestamp. Pre-commit **blocks** if context >24h old without explicit acknowledgment. Agents cannot proceed with stale context.
 
 | Context Type | Generation Method | Staleness Threshold |
 |--------------|-------------------|---------------------|
@@ -43,6 +46,12 @@ the agent with the information needed to begin working effectively.
 **Requirement**: clock_in uses AI to select and synthesize relevant context based on role and focus.
 **Rationale**: Agents need role-appropriate context, not everything (Issue #87: System Architecture Blindness).
 **Validation**: AIClient.complete_text() called with role+focus+codebase summary. Deterministic fallback if AI fails (SS-I6).
+
+**Context Selection Criteria**:
+- Role affinity (what context does this role typically need?)
+- Focus relevance (what relates to the stated focus/topic?)
+- Recency (what changed recently that might affect this work?)
+- ADR constraints (what decisions constrain this work?)
 
 **Context Selection Sources** (flexible, not fixed to specific tools):
 - Codebase structure analysis (currently Repomix, may change)
@@ -67,6 +76,16 @@ the agent with the information needed to begin working effectively.
 **Rationale**: Prevents concurrent agents from overwriting each other's context.
 **Validation**: Returns conflict info with existing session details. Agent decides to continue, abort, or take over.
 
+**Conflict Resolution Options**:
+- **Continue**: Proceed despite conflict (agent accepts risk)
+- **Abort**: Reject clock_in, do not create session
+- **Take Over**: Mark existing session as STALE, create new session with ownership transfer logged in both session records
+
+### CI-I6: TDD DISCIPLINE ENFORCEMENT
+**Requirement**: All clock_in implementation must follow RED→GREEN→REFACTOR discipline. Test commits must precede feature commits.
+**Rationale**: Inherited from System North Star I1 (Verifiable Behavioral Specification First).
+**Validation**: Git history shows test-first evidence for all implementation phases. Pattern: `test: X` commit precedes `feat: X` commit.
+
 ---
 
 ## SECTION 2: CONSTRAINED VARIABLES
@@ -76,8 +95,14 @@ the agent with the information needed to begin working effectively.
 | **Context Sources** | Must gather comprehensive context (CI-I3) | Which tools used (Repomix, Dependency Cruiser, etc.) |
 | **Focus Resolution** | Must resolve from somewhere | Priority order: explicit arg > GitHub issue > branch name > "general" |
 | **AI Model** | Must use async (SS-I2) | Configurable via ~/.hestai/config/ai.json |
+| **AI Prompts** | Must be versioned and auditable (SS-I5) | Prompt text content |
 | **Session Storage** | Must create session record | Format (JSON in active/, OCTAVE in archive/) |
 | **FAST Layer Format** | Must be OCTAVE (ADR-0046) | Schema evolution within OCTAVE constraints |
+
+**Focus Resolution - "Descriptive Branch" Definition**:
+A branch is considered "descriptive" if it contains:
+- Issue number pattern: `#XX` or `issue-XX`
+- Feature keyword prefix: `feat/`, `fix/`, `chore/`, `refactor/`, `docs/`
 
 ---
 
@@ -161,8 +186,8 @@ CLOCK_IN_SEQUENCE:
 
   STEP_4: RESOLVE_FOCUS
     - IF explicit focus provided: use it
-    - ELSE IF GitHub issue in branch name: extract issue context
-    - ELSE IF branch name is descriptive: infer from branch
+    - ELSE IF GitHub issue in branch name (#XX or issue-XX): extract issue context
+    - ELSE IF branch has feature prefix (feat/, fix/, etc.): infer from branch
     - ELSE: default to "general"
     - OUTPUT: resolved_focus
 
@@ -176,6 +201,7 @@ CLOCK_IN_SEQUENCE:
     - OUTPUT: gathered_context
 
   STEP_6: SYNTHESIZE_FAST_LAYER [AI-ASSISTED]
+    - Load versioned synthesis prompt from ~/.hestai/prompts/clock_in_synthesis.txt
     - Call AIClient.complete_text() with:
       - Role
       - Focus
@@ -211,8 +237,9 @@ CLOCK_IN_SEQUENCE:
 ## SECTION 6: INTEGRATION POINTS
 
 ### Inherits From
-- **System Steward North Star** (SS-I1 through SS-I6)
+- **System North Star** (I1 through I6)
 - **Product North Star** (I1 through I6)
+- **System Steward North Star** (SS-I1 through SS-I6)
 
 ### Dependencies
 | Dependency | Purpose | Fallback |
@@ -255,9 +282,11 @@ ARCHIVED    - In .hestai/sessions/archive/, retained 30 days
 ### Cleanup Policy
 | Condition | Action |
 |-----------|--------|
-| Session inactive >72 hours | Mark as STALE, warn on next clock_in |
-| Stale session on clock_in | Offer to clean up or continue |
+| Session inactive >72 hours | Mark as STALE, block on next clock_in until resolved |
+| Stale session on clock_in | Offer to clean up or continue (agent decides) |
 | Archive older than 30 days | Delete from archive |
+
+**Human Authority**: Cleanup thresholds (72h stale, 30-day archive) are configurable by the human user via `.hestai_workspace.yaml`. Agents may recommend but not autonomously change these thresholds.
 
 ### Workspace Configuration
 Support optional `.hestai_workspace.yaml` for customization:
@@ -297,6 +326,7 @@ cleanup:
 | OCTAVE validation fails | Retry with simpler content | Log for debugging |
 | GitHub API rate limit | Skip GitHub enrichment | Proceed without issues |
 | Disk full | Reject with storage error | User clears space |
+| Stale context (>24h) | Block with staleness error | Run clock_in to refresh |
 
 ---
 
@@ -356,6 +386,30 @@ cleanup:
 | 2025-12-28 | 30-day archive + 72-hour stale | Balance between history and disk usage |
 | 2025-12-28 | Workspace config support | Enables project-specific customization |
 | 2025-12-28 | GitHub issue search for focus | Direct user request for issue context |
+| 2025-12-28 | Add CI-I6 TDD Discipline | requirements-steward review: align with System I1 |
+| 2025-12-28 | Staleness blocks not warns | requirements-steward review: align with System I5 |
+| 2025-12-28 | Complete inheritance chain | requirements-steward review: explicit System NS reference |
+
+---
+
+## COMMITMENT CEREMONY
+
+**Status**: ACTIVE
+**Reviewer**: requirements-steward
+**Review Date**: 2025-12-28
+
+**The Oath**:
+> "These 6 Immutables (CI-I1 through CI-I6) are the binding requirements for clock_in implementation. Any contradiction requires STOP, CITE, ESCALATE."
+
+**Amendments Applied**:
+1. Added CI-I6 (TDD Discipline Enforcement)
+2. Changed CI-I2 validation from "warns" to "blocks"
+3. Completed inheritance chain (System + Product + System Steward)
+4. Added versioned prompt reference (STEP_6)
+5. Clarified "take over" semantics (CI-I5)
+6. Added Human Authority clause (Section 7)
+7. Defined "descriptive branch" criteria (Section 2)
+8. Added context selection criteria (CI-I3)
 
 ---
 
