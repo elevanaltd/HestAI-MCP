@@ -269,6 +269,11 @@ def clock_in(
 
     logger.info(f"Created session {session_id} for role {role} with focus {focus}")
 
+    # Update FAST layer (ADR-0046, ADR-0056)
+    from hestai_mcp.mcp.tools.shared.fast_layer import update_fast_layer_on_clock_in
+
+    update_fast_layer_on_clock_in(working_dir_path, session_id, role, focus)
+
     # Resolve context paths (OCTAVE files from .hestai/context/)
     context_paths = resolve_context_paths(working_dir_path)
 
