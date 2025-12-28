@@ -236,7 +236,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         session_data = json.loads(session_file.read_text())
         actual_project_root = Path(session_data["working_dir"])
 
-        result = clock_out(
+        result = await clock_out(
             session_id=session_id,
             description=arguments.get("description", ""),
             project_root=actual_project_root,

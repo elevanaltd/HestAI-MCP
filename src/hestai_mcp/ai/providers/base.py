@@ -1,4 +1,7 @@
-"""Base provider interface for AI completions."""
+"""Base provider interface for AI completions.
+
+SS-I2 Compliance: All provider calls must be async.
+"""
 
 from abc import ABC, abstractmethod
 
@@ -26,14 +29,16 @@ class ModelInfo(BaseModel):
 class BaseProvider(ABC):
     """Abstract base class for AI provider implementations.
 
+    SS-I2 Compliance: All methods that make network calls are async.
+
     Concrete providers (OpenAI, Anthropic, OpenRouter) must implement:
-    - list_models: Return available models for this provider
-    - test_connection: Verify API key and connectivity
-    - complete_text: Execute a text completion request
+    - list_models: Return available models for this provider (async)
+    - test_connection: Verify API key and connectivity (async)
+    - complete_text: Execute a text completion request (async)
     """
 
     @abstractmethod
-    def list_models(self) -> list[ModelInfo]:
+    async def list_models(self) -> list[ModelInfo]:
         """List available models for this provider.
 
         Returns:
@@ -42,7 +47,7 @@ class BaseProvider(ABC):
         pass
 
     @abstractmethod
-    def test_connection(self, model: str, api_key: str) -> dict[str, object]:
+    async def test_connection(self, model: str, api_key: str) -> dict[str, object]:
         """Test connectivity and authentication with this provider.
 
         Args:
@@ -55,12 +60,17 @@ class BaseProvider(ABC):
         pass
 
     @abstractmethod
-    def complete_text(self, request: CompletionRequest, api_key: str) -> str:
+    async def complete_text(
+        self, request: CompletionRequest, api_key: str, client: "httpx.AsyncClient"
+    ) -> str:
         """Execute a text completion request.
+
+        SS-I2: Async-first - accepts shared AsyncClient for connection pooling.
 
         Args:
             request: CompletionRequest with prompt and parameters
             api_key: API key for authentication
+            client: Shared httpx.AsyncClient for connection pooling
 
         Returns:
             Completion text from the model
@@ -69,3 +79,7 @@ class BaseProvider(ABC):
             Various exceptions for connection errors, auth failures, etc.
         """
         pass
+
+
+# Import at end to avoid circular imports
+import httpx  # noqa: E402

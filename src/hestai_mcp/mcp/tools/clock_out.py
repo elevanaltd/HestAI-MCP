@@ -6,6 +6,9 @@ extracting the Claude session JSONL transcript and archiving it.
 
 Part of the Context Steward session lifecycle management system.
 
+SS-I2 Compliance: All I/O operations are async. No blocking calls
+in the MCP server event loop.
+
 Key Integration Points:
 - Uses ClaudeJsonlLens for schema-on-read JSONL parsing
 - Replaces hardcoded _parse_session_transcript from hestai-mcp-server
@@ -15,7 +18,6 @@ Key Integration Points:
 - Learnings index for searchable session wisdom
 """
 
-import asyncio
 import json
 import logging
 import shutil
@@ -108,13 +110,15 @@ def redact_sensitive_params(params: dict[str, Any]) -> dict[str, Any]:
     return redacted
 
 
-def clock_out(
+async def clock_out(
     session_id: str,
     description: str,
     project_root: Path,
 ) -> dict[str, Any]:
     """
     Extract and archive session transcript with OCTAVE compression.
+
+    SS-I2 Compliance: Async function for non-blocking I/O operations.
 
     Finds Claude session JSONL, parses messages using ClaudeJsonlLens,
     creates readable archive, applies OCTAVE compression, and updates
@@ -203,19 +207,18 @@ def clock_out(
         raise RuntimeError(f"Archive blocked: redaction failed - {str(e)}") from e
 
     # Feature 2: OCTAVE Compression (graceful degradation)
+    # SS-I2: Properly await async function - no asyncio.run() anti-pattern
     octave_path = None
     compression_status = "skipped"
 
     try:
         from hestai_mcp.mcp.tools.shared.compression import compress_to_octave
 
-        # Call async compression function
-        octave_content = asyncio.run(
-            compress_to_octave(
-                transcript_path=redacted_jsonl_path,
-                session_data=session_data,
-                description=description,
-            )
+        # Await async compression function (SS-I2 compliance)
+        octave_content = await compress_to_octave(
+            transcript_path=redacted_jsonl_path,
+            session_data=session_data,
+            description=description,
         )
 
         if octave_content:
