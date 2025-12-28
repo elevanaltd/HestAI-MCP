@@ -1,4 +1,7 @@
-"""OpenAI-compatible provider implementation (OpenAI + OpenRouter)."""
+"""OpenAI-compatible provider implementation (OpenAI + OpenRouter).
+
+SS-I2 Compliance: All provider calls are async.
+"""
 
 import httpx
 
@@ -15,6 +18,8 @@ OPENAI_CURATED_MODELS = [
 
 class OpenAICompatProvider(BaseProvider):
     """Provider for OpenAI-compatible APIs (OpenAI, OpenRouter).
+
+    SS-I2 Compliance: All methods are async for non-blocking operation.
 
     Uses OpenAI's chat completions format:
     POST /chat/completions
@@ -39,7 +44,7 @@ class OpenAICompatProvider(BaseProvider):
         self.provider_name = provider_name
         self.base_url = base_url.rstrip("/")
 
-    def list_models(self) -> list[ModelInfo]:
+    async def list_models(self) -> list[ModelInfo]:
         """List available models.
 
         OpenRouter: Fetch live from /models endpoint
@@ -49,22 +54,23 @@ class OpenAICompatProvider(BaseProvider):
             List of ModelInfo objects
         """
         if self.provider_name == "openrouter":
-            return self._fetch_openrouter_models()
+            return await self._fetch_openrouter_models()
         elif self.provider_name == "openai":
             return OPENAI_CURATED_MODELS
         else:
             return []
 
-    def _fetch_openrouter_models(self) -> list[ModelInfo]:
+    async def _fetch_openrouter_models(self) -> list[ModelInfo]:
         """Fetch models from OpenRouter API.
 
         Returns:
             List of ModelInfo from OpenRouter's /models endpoint
         """
         try:
-            response = httpx.get(f"{self.base_url}/models", timeout=10.0)
-            response.raise_for_status()
-            data = response.json()
+            async with httpx.AsyncClient() as client:
+                response = await client.get(f"{self.base_url}/models", timeout=10.0)
+                response.raise_for_status()
+                data = response.json()
 
             models = []
             for model_data in data.get("data", []):
@@ -80,7 +86,7 @@ class OpenAICompatProvider(BaseProvider):
             # Return empty list on failure (don't crash listing)
             return []
 
-    def test_connection(self, model: str, api_key: str) -> dict[str, object]:
+    async def test_connection(self, model: str, api_key: str) -> dict[str, object]:
         """Test connection to provider.
 
         Args:
@@ -98,22 +104,23 @@ class OpenAICompatProvider(BaseProvider):
                 max_tokens=10,
             )
 
-            response = httpx.post(
-                f"{self.base_url}/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "model": model,
-                    "messages": [
-                        {"role": "system", "content": test_request.system_prompt},
-                        {"role": "user", "content": test_request.user_prompt},
-                    ],
-                    "max_tokens": test_request.max_tokens,
-                },
-                timeout=test_request.timeout_seconds,
-            )
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    f"{self.base_url}/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "model": model,
+                        "messages": [
+                            {"role": "system", "content": test_request.system_prompt},
+                            {"role": "user", "content": test_request.user_prompt},
+                        ],
+                        "max_tokens": test_request.max_tokens,
+                    },
+                    timeout=test_request.timeout_seconds,
+                )
 
             if response.status_code == 200:
                 return {"success": True}
@@ -127,12 +134,17 @@ class OpenAICompatProvider(BaseProvider):
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-    def complete_text(self, request: CompletionRequest, api_key: str) -> str:
+    async def complete_text(
+        self, request: CompletionRequest, api_key: str, client: httpx.AsyncClient
+    ) -> str:
         """Execute text completion.
+
+        SS-I2: Async-first - uses shared AsyncClient for connection pooling.
 
         Args:
             request: CompletionRequest with prompts and parameters
             api_key: API key for authentication
+            client: Shared httpx.AsyncClient for connection pooling
 
         Returns:
             Completion text from model
@@ -141,7 +153,7 @@ class OpenAICompatProvider(BaseProvider):
             httpx.HTTPError: On network or HTTP errors
             KeyError: If response format is unexpected
         """
-        response = httpx.post(
+        response = await client.post(
             f"{self.base_url}/chat/completions",
             headers={
                 "Authorization": f"Bearer {api_key}",

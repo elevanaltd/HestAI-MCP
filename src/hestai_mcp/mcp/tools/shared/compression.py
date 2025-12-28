@@ -139,13 +139,12 @@ Extract DECISIONS, BLOCKERS, LEARNINGS, OUTCOMES, and NEXT_ACTIONS.
 Use OCTAVE operators throughout.
 """
 
-        # Create AI client and make request
-        client = AIClient()
+        # Create AI client and make request (SS-I2: async-first)
+        async with AIClient() as client:
+            request = CompletionRequest(system_prompt=system_prompt, user_prompt=user_prompt)
 
-        request = CompletionRequest(system_prompt=system_prompt, user_prompt=user_prompt)
-
-        # Get compression result
-        octave_content = client.complete_text(request)
+            # Get compression result (await async method)
+            octave_content = await client.complete_text(request)
 
         logger.info(f"Successfully compressed session {session_id} to OCTAVE")
         return octave_content

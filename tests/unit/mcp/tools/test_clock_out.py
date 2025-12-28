@@ -13,6 +13,9 @@ Test Coverage:
 - Session cleanup (remove active session)
 - Error handling (missing session, invalid paths)
 - Secret redaction (security validation)
+
+NOTE: clock_out is async (SS-I2 compliance). All tests calling clock_out
+must use @pytest.mark.asyncio and await.
 """
 
 import json
@@ -59,7 +62,8 @@ class TestSessionValidation:
         with pytest.raises(ValueError, match="cannot be empty"):
             validate_session_id("")
 
-    def test_validates_session_exists(self, tmp_path: Path):
+    @pytest.mark.asyncio
+    async def test_validates_session_exists(self, tmp_path: Path):
         """Raises FileNotFoundError if session directory doesn't exist."""
         from hestai_mcp.mcp.tools.clock_out import clock_out
 
@@ -71,13 +75,14 @@ class TestSessionValidation:
 
         # Try to clock out non-existent session
         with pytest.raises(FileNotFoundError, match="Session .* not found"):
-            clock_out(
+            await clock_out(
                 session_id="nonexistent",
                 description="",
                 project_root=tmp_path,
             )
 
-    def test_blocks_path_traversal_via_session_json(self, tmp_path: Path, monkeypatch):
+    @pytest.mark.asyncio
+    async def test_blocks_path_traversal_via_session_json(self, tmp_path: Path, monkeypatch):
         """
         SECURITY TEST: Blocks path traversal attempts via transcript_path in session.json.
 
@@ -109,7 +114,7 @@ class TestSessionValidation:
 
         # Execute clock_out - should BLOCK via TranscriptPathResolver
         with pytest.raises(ValueError, match="Path traversal"):
-            clock_out(
+            await clock_out(
                 session_id=session_id,
                 description="",
                 project_root=tmp_path,
@@ -120,7 +125,8 @@ class TestSessionValidation:
 class TestClaudeJsonlLensIntegration:
     """Test ClaudeJsonlLens replaces hardcoded _parse_session_transcript."""
 
-    def test_uses_jsonl_lens_for_parsing(self, tmp_path: Path):
+    @pytest.mark.asyncio
+    async def test_uses_jsonl_lens_for_parsing(self, tmp_path: Path):
         """Verifies ClaudeJsonlLens is used instead of custom parser."""
         from hestai_mcp.mcp.tools.clock_out import clock_out
 
@@ -175,7 +181,7 @@ class TestClaudeJsonlLensIntegration:
         session_file.write_text(json.dumps(session_data))
 
         # Execute clock_out
-        result = clock_out(
+        result = await clock_out(
             session_id=session_id,
             description="Test session",
             project_root=tmp_path,
@@ -195,7 +201,8 @@ class TestClaudeJsonlLensIntegration:
 class TestArchiveCreation:
     """Test archive file creation and naming."""
 
-    def test_creates_archive_with_correct_naming(self, tmp_path: Path):
+    @pytest.mark.asyncio
+    async def test_creates_archive_with_correct_naming(self, tmp_path: Path):
         """Archive filename follows {timestamp}-{focus}-{session_id}-raw.jsonl pattern."""
         from hestai_mcp.mcp.tools.clock_out import clock_out
 
@@ -234,7 +241,7 @@ class TestArchiveCreation:
         (session_dir / "session.json").write_text(json.dumps(session_data))
 
         # Execute
-        result = clock_out(
+        result = await clock_out(
             session_id=session_id,
             description="",
             project_root=tmp_path,
@@ -254,7 +261,8 @@ class TestArchiveCreation:
 class TestSessionCleanup:
     """Test active session removal after archival."""
 
-    def test_removes_active_session_directory(self, tmp_path: Path):
+    @pytest.mark.asyncio
+    async def test_removes_active_session_directory(self, tmp_path: Path):
         """Active session directory deleted after successful archive."""
         from hestai_mcp.mcp.tools.clock_out import clock_out
 
@@ -292,7 +300,7 @@ class TestSessionCleanup:
         assert session_dir.exists()
 
         # Execute
-        clock_out(session_id=session_id, description="", project_root=tmp_path)
+        await clock_out(session_id=session_id, description="", project_root=tmp_path)
 
         # Verify session removed after
         assert not session_dir.exists()
@@ -302,7 +310,8 @@ class TestSessionCleanup:
 class TestErrorHandling:
     """Test error handling for missing sessions and invalid paths."""
 
-    def test_handles_missing_session_metadata(self, tmp_path: Path):
+    @pytest.mark.asyncio
+    async def test_handles_missing_session_metadata(self, tmp_path: Path):
         """Raises FileNotFoundError if session.json missing."""
         from hestai_mcp.mcp.tools.clock_out import clock_out
 
@@ -314,7 +323,7 @@ class TestErrorHandling:
         session_dir.mkdir(parents=True)
 
         with pytest.raises(FileNotFoundError, match="Session metadata not found"):
-            clock_out(
+            await clock_out(
                 session_id="missing-metadata",
                 description="",
                 project_root=tmp_path,
@@ -325,7 +334,8 @@ class TestErrorHandling:
 class TestSecretRedaction:
     """Test sensitive parameter redaction in archived transcripts."""
 
-    def test_applies_redaction_to_archived_jsonl(self, tmp_path: Path):
+    @pytest.mark.asyncio
+    async def test_applies_redaction_to_archived_jsonl(self, tmp_path: Path):
         """Verifies RedactionEngine applied to archived JSONL files."""
         from hestai_mcp.mcp.tools.clock_out import clock_out
 
@@ -362,7 +372,7 @@ class TestSecretRedaction:
         (session_dir / "session.json").write_text(json.dumps(session_data))
 
         # Execute clock_out
-        result = clock_out(session_id=session_id, description="", project_root=tmp_path)
+        result = await clock_out(session_id=session_id, description="", project_root=tmp_path)
 
         # Verify archive created
         assert result["status"] == "success"
