@@ -423,3 +423,500 @@ class TestAIClientFullCallChain:
 
         assert system_prompt in body_content, "Request body should contain system prompt"
         assert user_prompt in body_content, "Request body should contain user prompt"
+
+
+# =============================================================================
+# TMG Test Plan: Priority 0 - Critical Reliability Paths
+# =============================================================================
+
+
+class ConfigurableMockTransport(httpx.AsyncBaseTransport):
+    """Mock transport with per-request configurable responses.
+
+    Unlike MockTransportWithTracking which uses class-level state,
+    this transport allows configuring responses per-URL for testing
+    fallback chains where different providers return different responses.
+    """
+
+    def __init__(self, responses: dict[str, tuple[int, str | Exception]] | None = None):
+        """Initialize with response mapping.
+
+        Args:
+            responses: Dict mapping URL patterns to (status_code, content) or Exception.
+                       If content is an Exception, it will be raised.
+        """
+        self.responses = responses or {}
+        self.requests_made: list[httpx.Request] = []
+        self.default_response: tuple[int, str] = (200, "Default response")
+
+    def set_response(self, url_pattern: str, status: int, content: str) -> None:
+        """Set response for URLs matching pattern."""
+        self.responses[url_pattern] = (status, content)
+
+    def set_exception(self, url_pattern: str, exception: Exception) -> None:
+        """Set exception to raise for URLs matching pattern."""
+        self.responses[url_pattern] = (0, exception)
+
+    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+        """Handle async request with URL-based response selection."""
+        self.requests_made.append(request)
+        url_str = str(request.url)
+
+        # Check for matching URL pattern
+        for pattern, response_config in self.responses.items():
+            if pattern in url_str:
+                status_or_exc, content = response_config
+                if isinstance(content, Exception):
+                    raise content
+                return httpx.Response(
+                    status_or_exc,
+                    json={"choices": [{"message": {"content": content}}]},
+                    request=request,
+                )
+
+        # Default response
+        status, content = self.default_response
+        return httpx.Response(
+            status,
+            json={"choices": [{"message": {"content": content}}]},
+            request=request,
+        )
+
+
+@pytest.fixture
+def configurable_transport():
+    """Create a configurable mock transport."""
+    return ConfigurableMockTransport()
+
+
+@pytest.fixture
+def mock_httpx_with_transport(monkeypatch, configurable_transport):
+    """Mock httpx.AsyncClient with configurable transport."""
+
+    def create_client(**kwargs):
+        filtered_kwargs = {k: v for k, v in kwargs.items() if k != "transport"}
+        return _RealAsyncClient(transport=configurable_transport, **filtered_kwargs)
+
+    monkeypatch.setattr("httpx.AsyncClient", create_client)
+    monkeypatch.setattr("hestai_mcp.ai.client.httpx.AsyncClient", create_client)
+
+    return configurable_transport
+
+
+@pytest.mark.unit
+class TestNonRetryableErrorHaltsChain:
+    """Test client.py:163-164 - Non-retryable errors halt fallback chain immediately."""
+
+    @pytest.mark.asyncio
+    async def test_http_401_halts_chain_no_fallback(self, mock_httpx_with_transport, monkeypatch):
+        """HTTP 401 (Unauthorized) should raise immediately, NO fallback attempt.
+
+        Target: client.py:162-164 (_is_retryable_error returns False for 4xx)
+        """
+        monkeypatch.setenv("OPENAI_API_KEY", "invalid-key")
+        monkeypatch.setenv("OPENROUTER_API_KEY", "backup-key")
+
+        # Configure OpenAI to return 401
+        mock_httpx_with_transport.set_response("api.openai.com", 401, "Unauthorized")
+        # Configure OpenRouter to succeed (should NOT be called)
+        mock_httpx_with_transport.set_response("openrouter.ai", 200, "Fallback success")
+
+        config = AIConfig(
+            primary=ProviderConfig(provider="openai", model="gpt-4o"),
+            fallback=[ProviderConfig(provider="openrouter", model="claude-3.5-sonnet")],
+        )
+        client = AIClient(config=config)
+        request = CompletionRequest(
+            system_prompt="Test",
+            user_prompt="Test",
+        )
+
+        # Act & Assert - should raise HTTPStatusError, not fall back
+        async with client:
+            with pytest.raises(httpx.HTTPStatusError) as exc_info:
+                await client.complete_text(request)
+
+        # Verify 401 error
+        assert exc_info.value.response.status_code == 401
+
+        # CRITICAL: Verify only ONE request was made (no fallback attempted)
+        assert len(mock_httpx_with_transport.requests_made) == 1
+        assert "api.openai.com" in str(mock_httpx_with_transport.requests_made[0].url)
+
+    @pytest.mark.asyncio
+    async def test_http_403_halts_chain(self, mock_httpx_with_transport, monkeypatch):
+        """HTTP 403 (Forbidden) should also halt chain immediately."""
+        monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+        monkeypatch.setenv("OPENROUTER_API_KEY", "backup-key")
+
+        mock_httpx_with_transport.set_response("api.openai.com", 403, "Forbidden")
+        mock_httpx_with_transport.set_response("openrouter.ai", 200, "Success")
+
+        config = AIConfig(
+            primary=ProviderConfig(provider="openai", model="gpt-4o"),
+            fallback=[ProviderConfig(provider="openrouter", model="model")],
+        )
+        client = AIClient(config=config)
+        request = CompletionRequest(system_prompt="Test", user_prompt="Test")
+
+        async with client:
+            with pytest.raises(httpx.HTTPStatusError) as exc_info:
+                await client.complete_text(request)
+
+        assert exc_info.value.response.status_code == 403
+        assert len(mock_httpx_with_transport.requests_made) == 1
+
+    @pytest.mark.asyncio
+    async def test_http_400_halts_chain(self, mock_httpx_with_transport, monkeypatch):
+        """HTTP 400 (Bad Request) should halt chain immediately."""
+        monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+
+        mock_httpx_with_transport.set_response("api.openai.com", 400, "Bad Request")
+
+        config = AIConfig(
+            primary=ProviderConfig(provider="openai", model="gpt-4o"),
+            fallback=[],
+        )
+        client = AIClient(config=config)
+        request = CompletionRequest(system_prompt="Test", user_prompt="Test")
+
+        async with client:
+            with pytest.raises(httpx.HTTPStatusError) as exc_info:
+                await client.complete_text(request)
+
+        assert exc_info.value.response.status_code == 400
+
+
+@pytest.mark.unit
+class TestRetryableErrorTriggersFallback:
+    """Test client.py:94-102 - Retryable errors trigger fallback chain."""
+
+    @pytest.mark.asyncio
+    async def test_http_503_triggers_fallback_to_secondary(
+        self, mock_httpx_with_transport, monkeypatch
+    ):
+        """HTTP 503 (Service Unavailable) should trigger fallback to secondary provider.
+
+        Target: client.py:94-102 (_is_retryable_error returns True for 5xx)
+        """
+        monkeypatch.setenv("OPENAI_API_KEY", "primary-key")
+        monkeypatch.setenv("OPENROUTER_API_KEY", "secondary-key")
+
+        # Primary returns 503, Secondary succeeds
+        mock_httpx_with_transport.set_response("api.openai.com", 503, "Service Unavailable")
+        mock_httpx_with_transport.set_response("openrouter.ai", 200, "Fallback succeeded!")
+
+        config = AIConfig(
+            primary=ProviderConfig(provider="openai", model="gpt-4o"),
+            fallback=[ProviderConfig(provider="openrouter", model="claude-3.5-sonnet")],
+        )
+        client = AIClient(config=config)
+        request = CompletionRequest(system_prompt="Test", user_prompt="Test")
+
+        # Act
+        async with client:
+            result = await client.complete_text(request)
+
+        # Assert - should succeed via fallback
+        assert result == "Fallback succeeded!"
+
+        # Verify both providers were attempted
+        assert len(mock_httpx_with_transport.requests_made) == 2
+        assert "api.openai.com" in str(mock_httpx_with_transport.requests_made[0].url)
+        assert "openrouter.ai" in str(mock_httpx_with_transport.requests_made[1].url)
+
+    @pytest.mark.asyncio
+    async def test_http_500_triggers_fallback(self, mock_httpx_with_transport, monkeypatch):
+        """HTTP 500 (Internal Server Error) should trigger fallback."""
+        monkeypatch.setenv("OPENAI_API_KEY", "primary-key")
+        monkeypatch.setenv("OPENROUTER_API_KEY", "secondary-key")
+
+        mock_httpx_with_transport.set_response("api.openai.com", 500, "Internal Error")
+        mock_httpx_with_transport.set_response("openrouter.ai", 200, "Recovery success")
+
+        config = AIConfig(
+            primary=ProviderConfig(provider="openai", model="gpt-4o"),
+            fallback=[ProviderConfig(provider="openrouter", model="model")],
+        )
+        client = AIClient(config=config)
+        request = CompletionRequest(system_prompt="Test", user_prompt="Test")
+
+        async with client:
+            result = await client.complete_text(request)
+
+        assert result == "Recovery success"
+        assert len(mock_httpx_with_transport.requests_made) == 2
+
+    @pytest.mark.asyncio
+    async def test_timeout_triggers_fallback(self, monkeypatch):
+        """Timeout exceptions should trigger fallback.
+
+        Target: client.py:94-95 (TimeoutException is retryable)
+        """
+        monkeypatch.setenv("OPENAI_API_KEY", "primary-key")
+        monkeypatch.setenv("OPENROUTER_API_KEY", "secondary-key")
+
+        # Create transport that times out for OpenAI but works for OpenRouter
+        transport = ConfigurableMockTransport()
+        timeout_exc = httpx.TimeoutException("Connection timed out")
+        transport.set_exception("api.openai.com", timeout_exc)
+        transport.set_response("openrouter.ai", 200, "Fallback after timeout")
+
+        def create_client(**kwargs):
+            filtered_kwargs = {k: v for k, v in kwargs.items() if k != "transport"}
+            return _RealAsyncClient(transport=transport, **filtered_kwargs)
+
+        monkeypatch.setattr("httpx.AsyncClient", create_client)
+        monkeypatch.setattr("hestai_mcp.ai.client.httpx.AsyncClient", create_client)
+
+        config = AIConfig(
+            primary=ProviderConfig(provider="openai", model="gpt-4o"),
+            fallback=[ProviderConfig(provider="openrouter", model="model")],
+        )
+        client = AIClient(config=config)
+        request = CompletionRequest(system_prompt="Test", user_prompt="Test")
+
+        async with client:
+            result = await client.complete_text(request)
+
+        assert result == "Fallback after timeout"
+
+    @pytest.mark.asyncio
+    async def test_connect_error_triggers_fallback(self, monkeypatch):
+        """Connection errors should trigger fallback.
+
+        Target: client.py:94 (ConnectError is retryable)
+        """
+        monkeypatch.setenv("OPENAI_API_KEY", "primary-key")
+        monkeypatch.setenv("OPENROUTER_API_KEY", "secondary-key")
+
+        transport = ConfigurableMockTransport()
+        connect_exc = httpx.ConnectError("Connection refused")
+        transport.set_exception("api.openai.com", connect_exc)
+        transport.set_response("openrouter.ai", 200, "Fallback after connect error")
+
+        def create_client(**kwargs):
+            filtered_kwargs = {k: v for k, v in kwargs.items() if k != "transport"}
+            return _RealAsyncClient(transport=transport, **filtered_kwargs)
+
+        monkeypatch.setattr("httpx.AsyncClient", create_client)
+        monkeypatch.setattr("hestai_mcp.ai.client.httpx.AsyncClient", create_client)
+
+        config = AIConfig(
+            primary=ProviderConfig(provider="openai", model="gpt-4o"),
+            fallback=[ProviderConfig(provider="openrouter", model="model")],
+        )
+        client = AIClient(config=config)
+        request = CompletionRequest(system_prompt="Test", user_prompt="Test")
+
+        async with client:
+            result = await client.complete_text(request)
+
+        assert result == "Fallback after connect error"
+
+
+@pytest.mark.unit
+class TestAllProvidersFail:
+    """Test client.py:170-171 - When all providers fail, raise LAST exception."""
+
+    @pytest.mark.asyncio
+    async def test_all_providers_fail_raises_last_exception(
+        self, mock_httpx_with_transport, monkeypatch
+    ):
+        """When all providers return 5xx, raise the LAST exception (from final provider).
+
+        Target: client.py:170-171
+        """
+        monkeypatch.setenv("OPENAI_API_KEY", "primary-key")
+        monkeypatch.setenv("OPENROUTER_API_KEY", "secondary-key")
+
+        # Both providers return 5xx errors
+        mock_httpx_with_transport.set_response("api.openai.com", 500, "Primary failed")
+        mock_httpx_with_transport.set_response("openrouter.ai", 502, "Secondary failed")
+
+        config = AIConfig(
+            primary=ProviderConfig(provider="openai", model="gpt-4o"),
+            fallback=[ProviderConfig(provider="openrouter", model="model")],
+        )
+        client = AIClient(config=config)
+        request = CompletionRequest(system_prompt="Test", user_prompt="Test")
+
+        async with client:
+            with pytest.raises(httpx.HTTPStatusError) as exc_info:
+                await client.complete_text(request)
+
+        # CRITICAL: Should be the LAST error (502 from secondary), not the first (500)
+        assert exc_info.value.response.status_code == 502
+
+        # Verify both providers were tried
+        assert len(mock_httpx_with_transport.requests_made) == 2
+
+    @pytest.mark.asyncio
+    async def test_multiple_fallbacks_all_fail(self, mock_httpx_with_transport, monkeypatch):
+        """With multiple fallbacks, all failing, raise last exception."""
+        monkeypatch.setenv("OPENAI_API_KEY", "key1")
+        monkeypatch.setenv("OPENROUTER_API_KEY", "key2")
+
+        mock_httpx_with_transport.set_response("api.openai.com", 503, "First failed")
+        mock_httpx_with_transport.set_response("openrouter.ai", 504, "Last failed")
+
+        config = AIConfig(
+            primary=ProviderConfig(provider="openai", model="gpt-4o"),
+            fallback=[ProviderConfig(provider="openrouter", model="model")],
+        )
+        client = AIClient(config=config)
+        request = CompletionRequest(system_prompt="Test", user_prompt="Test")
+
+        async with client:
+            with pytest.raises(httpx.HTTPStatusError) as exc_info:
+                await client.complete_text(request)
+
+        # Should be 504 (last error)
+        assert exc_info.value.response.status_code == 504
+
+
+@pytest.mark.unit
+class TestUnsupportedProvider:
+    """Test client.py:78-79 - Unsupported provider raises ValueError."""
+
+    def test_get_provider_unknown_raises_valueerror(self):
+        """_get_provider with unknown provider name should raise ValueError.
+
+        Target: client.py:78-79
+        """
+        client = AIClient()
+
+        with pytest.raises(ValueError) as exc_info:
+            client._get_provider("unknown-provider")
+
+        assert "Unsupported provider" in str(exc_info.value)
+        assert "unknown-provider" in str(exc_info.value)
+
+    def test_get_provider_empty_string_raises_valueerror(self):
+        """_get_provider with empty string should raise ValueError."""
+        client = AIClient()
+
+        with pytest.raises(ValueError) as exc_info:
+            client._get_provider("")
+
+        assert "Unsupported provider" in str(exc_info.value)
+
+    def test_get_provider_typo_raises_valueerror(self):
+        """_get_provider with typo (openaii vs openai) should raise ValueError."""
+        client = AIClient()
+
+        with pytest.raises(ValueError) as exc_info:
+            client._get_provider("openaii")  # Typo
+
+        assert "Unsupported provider" in str(exc_info.value)
+
+    def test_get_provider_valid_providers_succeed(self):
+        """_get_provider should succeed for valid providers."""
+        from hestai_mcp.ai.providers.base import BaseProvider
+
+        client = AIClient()
+
+        # These should not raise
+        openai_provider = client._get_provider("openai")
+        openrouter_provider = client._get_provider("openrouter")
+
+        assert isinstance(openai_provider, BaseProvider)
+        assert isinstance(openrouter_provider, BaseProvider)
+
+
+@pytest.mark.unit
+class TestIsRetryableError:
+    """Test client.py:84-102 - _is_retryable_error logic."""
+
+    def test_timeout_exception_is_retryable(self):
+        """TimeoutException should be retryable."""
+        client = AIClient()
+        error = httpx.TimeoutException("Timed out")
+
+        assert client._is_retryable_error(error) is True
+
+    def test_connect_error_is_retryable(self):
+        """ConnectError should be retryable."""
+        client = AIClient()
+        error = httpx.ConnectError("Connection refused")
+
+        assert client._is_retryable_error(error) is True
+
+    def test_http_500_is_retryable(self):
+        """HTTP 500 should be retryable."""
+        client = AIClient()
+        request = httpx.Request("POST", "https://example.com")
+        response = httpx.Response(500, request=request)
+        error = httpx.HTTPStatusError("Server Error", request=request, response=response)
+
+        assert client._is_retryable_error(error) is True
+
+    def test_http_502_is_retryable(self):
+        """HTTP 502 should be retryable."""
+        client = AIClient()
+        request = httpx.Request("POST", "https://example.com")
+        response = httpx.Response(502, request=request)
+        error = httpx.HTTPStatusError("Bad Gateway", request=request, response=response)
+
+        assert client._is_retryable_error(error) is True
+
+    def test_http_503_is_retryable(self):
+        """HTTP 503 should be retryable."""
+        client = AIClient()
+        request = httpx.Request("POST", "https://example.com")
+        response = httpx.Response(503, request=request)
+        error = httpx.HTTPStatusError("Service Unavailable", request=request, response=response)
+
+        assert client._is_retryable_error(error) is True
+
+    def test_http_401_not_retryable(self):
+        """HTTP 401 should NOT be retryable."""
+        client = AIClient()
+        request = httpx.Request("POST", "https://example.com")
+        response = httpx.Response(401, request=request)
+        error = httpx.HTTPStatusError("Unauthorized", request=request, response=response)
+
+        assert client._is_retryable_error(error) is False
+
+    def test_http_403_not_retryable(self):
+        """HTTP 403 should NOT be retryable."""
+        client = AIClient()
+        request = httpx.Request("POST", "https://example.com")
+        response = httpx.Response(403, request=request)
+        error = httpx.HTTPStatusError("Forbidden", request=request, response=response)
+
+        assert client._is_retryable_error(error) is False
+
+    def test_http_400_not_retryable(self):
+        """HTTP 400 should NOT be retryable."""
+        client = AIClient()
+        request = httpx.Request("POST", "https://example.com")
+        response = httpx.Response(400, request=request)
+        error = httpx.HTTPStatusError("Bad Request", request=request, response=response)
+
+        assert client._is_retryable_error(error) is False
+
+    def test_http_429_not_retryable(self):
+        """HTTP 429 (Rate Limited) should NOT be retryable (4xx)."""
+        client = AIClient()
+        request = httpx.Request("POST", "https://example.com")
+        response = httpx.Response(429, request=request)
+        error = httpx.HTTPStatusError("Rate Limited", request=request, response=response)
+
+        assert client._is_retryable_error(error) is False
+
+    def test_generic_exception_not_retryable(self):
+        """Generic exceptions should NOT be retryable."""
+        client = AIClient()
+        error = ValueError("Some other error")
+
+        assert client._is_retryable_error(error) is False
+
+    def test_http_499_not_retryable(self):
+        """HTTP 499 (edge of 4xx) should NOT be retryable."""
+        client = AIClient()
+        request = httpx.Request("POST", "https://example.com")
+        response = httpx.Response(499, request=request)
+        error = httpx.HTTPStatusError("Client Error", request=request, response=response)
+
+        assert client._is_retryable_error(error) is False
