@@ -1,9 +1,21 @@
+---
+component: clock_in
+scope: tool
+phase: D1
+created: 2025-12-28
+status: approved
+approved_by: requirements-steward
+approved_date: 2025-12-28
+parent_north_star: .hestai/workflow/components/000-SYSTEM-STEWARD-NORTH-STAR.md
+version: 1.2
+---
+
 # COMPONENT NORTH STAR: CLOCK_IN TOOL
 
 **Component**: clock_in MCP Tool (Session Registration & Context Synthesis)
 **Parent**: .hestai/workflow/components/000-SYSTEM-STEWARD-NORTH-STAR.md
 **Status**: ACTIVE
-**Version**: 1.1
+**Version**: 1.2
 **Date**: 2025-12-28
 **Reviewed By**: requirements-steward
 
@@ -106,15 +118,41 @@ A branch is considered "descriptive" if it contains:
 
 ---
 
+## SECTION 2B: SCOPE BOUNDARIES
+
+### What This Tool IS
+
+| Scope | Description |
+|-------|-------------|
+| ✅ Session Registration | Create and track agent sessions with unique IDs |
+| ✅ FAST Layer Lifecycle | Update current-focus, checklist, blockers on session start |
+| ✅ AI-Assisted Context Selection | Use AI to curate relevant context for role+focus |
+| ✅ Focus Conflict Detection | Detect and report when multiple sessions in same worktree |
+| ✅ GitHub Issue Enrichment | Search and include relevant issues based on focus |
+
+### What This Tool IS NOT
+
+| Out of Scope | Responsible Component |
+|--------------|----------------------|
+| ❌ Session Archival | clock_out tool |
+| ❌ Identity Validation | odyssean_anchor tool |
+| ❌ Context File Writing | octave_create via OCTAVE MCP |
+| ❌ Governance Enforcement | System Steward persona |
+| ❌ Context Updates Mid-Session | context_update tool |
+| ❌ Document Routing | document_submit tool |
+
+---
+
 ## SECTION 3: ASSUMPTION REGISTER
 
-| ID | Assumption | Confidence | Validation Plan |
-|----|------------|------------|-----------------|
-| CI-A1 | AI can synthesize useful FAST context from codebase + focus | 80% | POC with real sessions |
-| CI-A2 | GitHub issue search provides relevant context for focus | 85% | Test with Issue #56 as focus |
-| CI-A3 | 30-day archive + 72-hour stale session cleanup is sufficient | 90% | Monitor disk usage over time |
-| CI-A4 | Workspace config (.hestai_workspace.yaml) covers customization needs | 75% | Gather user feedback |
-| CI-A5 | Focus conflict detection prevents session collisions | 95% | Unit test with concurrent sessions |
+| ID | Assumption | Confidence | Impact | Validation Plan | Owner | Timing |
+|----|------------|------------|--------|-----------------|-------|--------|
+| CI-A1 | AI can synthesize useful FAST context from codebase + focus | 80% | High | POC with real sessions | implementation-lead | Before B1 |
+| CI-A2 | GitHub issue search provides relevant context for focus | 85% | Medium | Test with Issue #56 as focus | implementation-lead | During B1 |
+| CI-A3 | 30-day archive + 72-hour stale session cleanup is sufficient | 90% | Low | Monitor disk usage over time | implementation-lead | During B2 |
+| CI-A4 | Workspace config (.hestai_workspace.yaml) covers customization needs | 75% | Medium | Gather user feedback | implementation-lead | During B2 |
+| CI-A5 | Focus conflict detection prevents session collisions | 95% | High | Unit test with concurrent sessions | implementation-lead | Before B1 |
+| CI-A6 | System Steward async infrastructure (SS-I2, SS-I3) will be ready | 70% | Critical | Track parallel session progress | technical-architect | Before B1 |
 
 ---
 
@@ -410,6 +448,29 @@ cleanup:
 6. Added Human Authority clause (Section 7)
 7. Defined "descriptive branch" criteria (Section 2)
 8. Added context selection criteria (CI-I3)
+
+---
+
+## EVIDENCE SUMMARY
+
+### Constitutional Compliance
+- **Total Immutables**: 6 (✓ within 5-9 range)
+- **System-Agnostic**: 6/6 passed Technology Change Test (no technology-specific language)
+- **Assumptions Tracked**: 6 (✓ 6+ required per PROPHETIC_VIGILANCE)
+- **Critical Assumptions**: 3 requiring pre-B1 validation (CI-A1, CI-A5, CI-A6)
+- **Commitment Ceremony**: ✓ Completed 2025-12-28
+
+### Quality Gates
+- **YAML Front-Matter**: ✓ Present
+- **Inheritance Chain**: ✓ Documented (System NS + Product NS + System Steward NS)
+- **Miller's Law**: ✓ 6 immutables (within 5-9 range)
+- **PROPHETIC_VIGILANCE**: ✓ 6 assumptions with validation plans
+- **Scope Boundaries**: ✓ IS/IS NOT documented
+- **Evidence Trail**: ✓ requirements-steward review documented
+
+### Readiness Status
+- **D1 Gate**: ✓ Ready for implementation
+- **Blocking Dependencies**: SS-I2 (async AIClient), SS-I3 (MCP client manager)
 
 ---
 

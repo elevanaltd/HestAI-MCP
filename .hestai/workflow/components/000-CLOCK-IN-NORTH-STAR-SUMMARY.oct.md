@@ -2,13 +2,14 @@
 
 META:
   TYPE::NORTH_STAR_SUMMARY
-  VERSION::"1.2-OCTAVE-SUMMARY"
+  VERSION::"1.3-OCTAVE-SUMMARY"
   STATUS::ACTIVE
   PURPOSE::"Operational decision-logic for clock_in MCP tool"
   FULL_DOC::".hestai/workflow/components/000-CLOCK-IN-NORTH-STAR.md"
   INHERITS::[System_NS,Product_NS,System_Steward_NS]
   REVIEWED_BY::requirements-steward
   REVIEW_DATE::"2025-12-28"
+  ASSUMPTIONS::6[meets_PROPHETIC_VIGILANCE]
 
 §1::IMMUTABLES[6_Total]
 
@@ -48,13 +49,14 @@ CI-I6::TDD_DISCIPLINE_ENFORCEMENT::[
   STATUS::PENDING[implementation-lead@B1]
 ]
 
-§2::CRITICAL_ASSUMPTIONS[5_Total]
+§2::CRITICAL_ASSUMPTIONS[6_Total]
 
-CI-A1::AI_CONTEXT_SYNTHESIS[80%]→PENDING[POC_real_sessions]
-CI-A2::GITHUB_ISSUE_SEARCH[85%]→PENDING[test_Issue_#56]
-CI-A3::CLEANUP_POLICY[90%]→PENDING[disk_monitoring]
-CI-A4::WORKSPACE_CONFIG[75%]→PENDING[user_feedback]
-CI-A5::CONFLICT_DETECTION[95%]→PENDING[unit_tests]
+CI-A1::AI_CONTEXT_SYNTHESIS[80%|High]→PENDING[implementation-lead@B1]
+CI-A2::GITHUB_ISSUE_SEARCH[85%|Medium]→PENDING[implementation-lead@B1]
+CI-A3::CLEANUP_POLICY[90%|Low]→PENDING[implementation-lead@B2]
+CI-A4::WORKSPACE_CONFIG[75%|Medium]→PENDING[implementation-lead@B2]
+CI-A5::CONFLICT_DETECTION[95%|High]→PENDING[implementation-lead@B1]
+CI-A6::SS_INFRA_READY[70%|Critical]→PENDING[technical-architect@B1]
 
 §3::CONSTRAINED_VARIABLES[Top_4]
 
