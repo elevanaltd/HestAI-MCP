@@ -8,6 +8,9 @@ import keyring
 import keyring.errors
 from pydantic import BaseModel, Field
 
+# Keyring service name for storing API keys
+KEYRING_SERVICE = "hestai-mcp"
+
 
 class ProviderConfig(BaseModel):
     """Provider and model configuration."""
@@ -87,7 +90,7 @@ def resolve_api_key(provider: str) -> str | None:
     """Resolve API key for a provider from keyring or environment.
 
     Resolution order:
-    1. Keyring entry (service='hestai-core', account='{provider}-key')
+    1. Keyring entry (service='hestai-mcp', account='{provider}-key')
     2. Environment variable ({PROVIDER}_API_KEY)
 
     Args:
@@ -98,7 +101,7 @@ def resolve_api_key(provider: str) -> str | None:
     """
     # Try keyring first (gracefully handle missing keyring backend in CI)
     try:
-        keyring_key = keyring.get_password("hestai-core", f"{provider}-key")
+        keyring_key = keyring.get_password(KEYRING_SERVICE, f"{provider}-key")
         if keyring_key:
             return str(keyring_key)
     except keyring.errors.NoKeyringError:
