@@ -124,6 +124,42 @@ class TestOctaveScalarSanitization:
             )
 
 
+def _init_git_repo(repo_path: Path, branch_name: str) -> None:
+    """
+    Initialize a git repo with proper config for CI environments.
+
+    CI environments (e.g., GitHub Actions) often lack global git user config,
+    causing git commit to fail. This helper sets up local repo config.
+    """
+    subprocess.run(["git", "init"], cwd=str(repo_path), capture_output=True, check=True)
+    # Set local user config (required for commits in CI where no global config exists)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        cwd=str(repo_path),
+        capture_output=True,
+        check=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"],
+        cwd=str(repo_path),
+        capture_output=True,
+        check=True,
+    )
+    subprocess.run(
+        ["git", "checkout", "-b", branch_name],
+        cwd=str(repo_path),
+        capture_output=True,
+        check=True,
+    )
+    # Create an empty commit so HEAD exists
+    subprocess.run(
+        ["git", "commit", "--allow-empty", "-m", "initial"],
+        cwd=str(repo_path),
+        capture_output=True,
+        check=True,
+    )
+
+
 @pytest.mark.unit
 class TestMultiWorktreeBranchResolution:
     """
@@ -145,33 +181,12 @@ class TestMultiWorktreeBranchResolution:
         # Create first repo (will be the target)
         target_repo = tmp_path / "target_repo"
         target_repo.mkdir()
-        subprocess.run(["git", "init"], cwd=str(target_repo), capture_output=True)
-        subprocess.run(
-            ["git", "checkout", "-b", "target-branch"],
-            cwd=str(target_repo),
-            capture_output=True,
-        )
-        # Create an empty commit so HEAD exists
-        subprocess.run(
-            ["git", "commit", "--allow-empty", "-m", "initial"],
-            cwd=str(target_repo),
-            capture_output=True,
-        )
+        _init_git_repo(target_repo, "target-branch")
 
         # Create second repo (different branch)
         other_repo = tmp_path / "other_repo"
         other_repo.mkdir()
-        subprocess.run(["git", "init"], cwd=str(other_repo), capture_output=True)
-        subprocess.run(
-            ["git", "checkout", "-b", "other-branch"],
-            cwd=str(other_repo),
-            capture_output=True,
-        )
-        subprocess.run(
-            ["git", "commit", "--allow-empty", "-m", "initial"],
-            cwd=str(other_repo),
-            capture_output=True,
-        )
+        _init_git_repo(other_repo, "other-branch")
 
         # Call get_current_branch with target_repo as working_dir
         # Should return "target-branch" regardless of process cwd
@@ -199,17 +214,7 @@ class TestMultiWorktreeBranchResolution:
         # Create a git repo with a specific branch
         git_repo = tmp_path / "git_project"
         git_repo.mkdir()
-        subprocess.run(["git", "init"], cwd=str(git_repo), capture_output=True)
-        subprocess.run(
-            ["git", "checkout", "-b", "my-feature-branch"],
-            cwd=str(git_repo),
-            capture_output=True,
-        )
-        subprocess.run(
-            ["git", "commit", "--allow-empty", "-m", "init"],
-            cwd=str(git_repo),
-            capture_output=True,
-        )
+        _init_git_repo(git_repo, "my-feature-branch")
 
         # Import and call functions
         from hestai_mcp.mcp.tools.shared.fast_layer import (
