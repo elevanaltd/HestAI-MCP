@@ -266,6 +266,11 @@ async def clock_out(
         compression_status = "failed"
         logger.warning(f"OCTAVE compression failed (non-blocking): {e}")
 
+    # Update FAST layer (ADR-0046, ADR-0056)
+    from hestai_mcp.mcp.tools.shared.fast_layer import update_fast_layer_on_clock_out
+
+    update_fast_layer_on_clock_out(project_root, session_id)
+
     # Remove active session directory
     shutil.rmtree(session_dir)
     logger.info(f"Removed active session directory: {session_dir}")
