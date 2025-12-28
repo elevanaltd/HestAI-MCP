@@ -18,7 +18,7 @@ HASH_CHAIN::[
 
 PARTICIPANTS::[
   WIND::[MODEL::gemini-3-pro-preview, COGNITION::PATHOS, ROLE::possibility_exploration],
-  WALL::[MODEL::o3, COGNITION::ETHOS, ROLE::constraint_validation],
+  WALL::[MODEL::gpt-5.2, COGNITION::ETHOS, ROLE::constraint_validation],
   DOOR::[MODEL::claude-opus-4-5-20251101, COGNITION::LOGOS, ROLE::synthesis_resolution]
 ]
 
