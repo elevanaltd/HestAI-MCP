@@ -4,8 +4,12 @@ SS-I2 Compliance: All provider calls must be async.
 """
 
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
+
+if TYPE_CHECKING:
+    import httpx
 
 
 class CompletionRequest(BaseModel):
@@ -79,7 +83,3 @@ class BaseProvider(ABC):
             Various exceptions for connection errors, auth failures, etc.
         """
         pass
-
-
-# Import at end to avoid circular imports
-import httpx  # noqa: E402
