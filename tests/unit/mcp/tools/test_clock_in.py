@@ -327,3 +327,216 @@ class TestRoleControlCharacterValidation:
                 role="lead\tINJECTED",
                 working_dir=str(mock_hestai_structure),
             )
+
+
+@pytest.mark.unit
+class TestFASTLayerPopulation:
+    """
+    Test FAST layer population per ADR-0046 and ADR-0056.
+
+    The FAST layer at .hestai/context/state/ should be dynamically
+    populated during clock_in with session-specific context.
+    """
+
+    def test_clock_in_creates_state_directory(self, mock_hestai_structure: Path):
+        """
+        clock_in creates .hestai/context/state/ directory if not exists.
+
+        ADR-0046: FAST layer is at .hestai/context/state/
+        ADR-0056: clock_in must ensure this directory exists
+        """
+        from hestai_mcp.mcp.tools.clock_in import clock_in
+
+        # Ensure state directory doesn't exist initially
+        state_dir = mock_hestai_structure / ".hestai" / "context" / "state"
+        assert not state_dir.exists()
+
+        clock_in(
+            role="implementation-lead",
+            working_dir=str(mock_hestai_structure),
+            focus="test-fast-layer",
+        )
+
+        # State directory should be created
+        assert state_dir.exists()
+        assert state_dir.is_dir()
+
+    def test_clock_in_populates_current_focus(self, mock_hestai_structure: Path):
+        """
+        clock_in populates current-focus.oct.md with session info.
+
+        ADR-0056 format:
+        ===CURRENT_FOCUS===
+        META:
+          TYPE::SESSION_FOCUS
+          VELOCITY::HOURLY_DAILY
+        SESSION:
+          ID::"{session_id}"
+          ROLE::{role}
+          FOCUS::"{focus}"
+          BRANCH::{branch}
+          STARTED::"{timestamp}"
+        ===END===
+        """
+        from hestai_mcp.mcp.tools.clock_in import clock_in
+
+        result = clock_in(
+            role="implementation-lead",
+            working_dir=str(mock_hestai_structure),
+            focus="b2-implementation",
+        )
+
+        current_focus_path = (
+            mock_hestai_structure / ".hestai" / "context" / "state" / "current-focus.oct.md"
+        )
+        assert current_focus_path.exists()
+
+        content = current_focus_path.read_text()
+
+        # Verify OCTAVE structure
+        assert "===CURRENT_FOCUS===" in content
+        assert "META:" in content
+        assert "TYPE::SESSION_FOCUS" in content
+        assert "VELOCITY::HOURLY_DAILY" in content
+        assert "SESSION:" in content
+        assert f'ID::"{result["session_id"]}"' in content
+        assert "ROLE::implementation-lead" in content
+        assert 'FOCUS::"b2-implementation"' in content
+        assert "STARTED::" in content
+        assert "===END===" in content
+
+    def test_clock_in_populates_checklist(self, mock_hestai_structure: Path):
+        """
+        clock_in populates checklist.oct.md with session task.
+
+        ADR-0056 format includes current task and carried forward items.
+        """
+        from hestai_mcp.mcp.tools.clock_in import clock_in
+
+        result = clock_in(
+            role="implementation-lead",
+            working_dir=str(mock_hestai_structure),
+            focus="implement-fast-layer",
+        )
+
+        checklist_path = (
+            mock_hestai_structure / ".hestai" / "context" / "state" / "checklist.oct.md"
+        )
+        assert checklist_path.exists()
+
+        content = checklist_path.read_text()
+
+        # Verify OCTAVE structure
+        assert "===SESSION_CHECKLIST===" in content
+        assert "META:" in content
+        assert "TYPE::FAST_CHECKLIST" in content
+        assert f'SESSION::"{result["session_id"]}"' in content
+        assert 'CURRENT_TASK::"implement-fast-layer"' in content
+        assert "===END===" in content
+
+    def test_clock_in_preserves_blockers(self, mock_hestai_structure: Path):
+        """
+        clock_in preserves existing blockers from previous sessions.
+
+        ADR-0056: Unresolved blockers should survive session transitions.
+        """
+        from hestai_mcp.mcp.tools.clock_in import clock_in
+
+        # Create state directory with existing blocker
+        state_dir = mock_hestai_structure / ".hestai" / "context" / "state"
+        state_dir.mkdir(parents=True, exist_ok=True)
+
+        existing_blockers = """===BLOCKERS===
+META:
+  TYPE::FAST_BLOCKERS
+  VELOCITY::HOURLY_DAILY
+
+ACTIVE:
+  blocker_001:
+    DESCRIPTION::"CI pipeline failing"
+    SINCE::"2025-12-27T10:00:00Z"
+    STATUS::UNRESOLVED
+
+===END===
+"""
+        blockers_path = state_dir / "blockers.oct.md"
+        blockers_path.write_text(existing_blockers)
+
+        clock_in(
+            role="implementation-lead",
+            working_dir=str(mock_hestai_structure),
+            focus="test-blockers",
+        )
+
+        # Blockers file should still exist with preserved content
+        assert blockers_path.exists()
+        content = blockers_path.read_text()
+
+        # Original blocker should be preserved
+        assert 'DESCRIPTION::"CI pipeline failing"' in content
+        assert "STATUS::UNRESOLVED" in content
+
+    def test_clock_in_creates_blockers_file_if_missing(self, mock_hestai_structure: Path):
+        """
+        clock_in creates blockers.oct.md if it doesn't exist.
+        """
+        from hestai_mcp.mcp.tools.clock_in import clock_in
+
+        result = clock_in(
+            role="implementation-lead",
+            working_dir=str(mock_hestai_structure),
+            focus="test-new-blockers",
+        )
+
+        blockers_path = mock_hestai_structure / ".hestai" / "context" / "state" / "blockers.oct.md"
+        assert blockers_path.exists()
+
+        content = blockers_path.read_text()
+        assert "===BLOCKERS===" in content
+        assert "TYPE::FAST_BLOCKERS" in content
+        assert f'SESSION::"{result["session_id"]}"' in content
+
+    def test_clock_in_carries_forward_incomplete_checklist_items(self, mock_hestai_structure: Path):
+        """
+        clock_in carries forward incomplete items from previous checklist.
+
+        ADR-0056: Incomplete tasks should be preserved across sessions.
+        """
+        from hestai_mcp.mcp.tools.clock_in import clock_in
+
+        # Create state directory with existing checklist containing incomplete items
+        state_dir = mock_hestai_structure / ".hestai" / "context" / "state"
+        state_dir.mkdir(parents=True, exist_ok=True)
+
+        existing_checklist = """===SESSION_CHECKLIST===
+META:
+  TYPE::FAST_CHECKLIST
+  VELOCITY::HOURLY_DAILY
+  SESSION::"previous-session"
+
+CURRENT_TASK::"previous-focus"
+
+ITEMS:
+  task_001::COMPLETED
+  task_002::PENDING
+  task_003::IN_PROGRESS
+
+===END===
+"""
+        checklist_path = state_dir / "checklist.oct.md"
+        checklist_path.write_text(existing_checklist)
+
+        clock_in(
+            role="implementation-lead",
+            working_dir=str(mock_hestai_structure),
+            focus="new-session-focus",
+        )
+
+        content = checklist_path.read_text()
+
+        # New session should have new current task
+        assert 'CURRENT_TASK::"new-session-focus"' in content
+
+        # Incomplete items should be carried forward
+        assert "task_002::PENDING" in content or "CARRIED_FORWARD:" in content
+        assert "task_003::IN_PROGRESS" in content or "CARRIED_FORWARD:" in content

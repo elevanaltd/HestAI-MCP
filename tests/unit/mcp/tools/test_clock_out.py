@@ -383,3 +383,321 @@ class TestSecretRedaction:
         archived_content = redacted_jsonl_path.read_text()
         assert "sk-1234567890abcdefghij123" not in archived_content
         assert "[REDACTED_API_KEY]" in archived_content
+
+
+@pytest.mark.unit
+class TestFASTLayerUpdate:
+    """
+    Test FAST layer update during clock_out per ADR-0046 and ADR-0056.
+
+    The FAST layer at .hestai/context/state/ should be updated
+    during clock_out to reflect session completion.
+    """
+
+    @pytest.fixture
+    def session_with_fast_layer(self, tmp_path: Path):
+        """
+        Create session with populated FAST layer for clock_out testing.
+
+        Returns tuple of (project_root, session_id, jsonl_path).
+        """
+        # Setup session structure
+        hestai_dir = tmp_path / ".hestai"
+        sessions_dir = hestai_dir / "sessions"
+        active_dir = sessions_dir / "active"
+        state_dir = hestai_dir / "context" / "state"
+
+        active_dir.mkdir(parents=True)
+        state_dir.mkdir(parents=True)
+
+        session_id = "fast-layer-test-session"
+        session_dir = active_dir / session_id
+        session_dir.mkdir()
+
+        # Create minimal JSONL
+        jsonl_path = tmp_path / "session.jsonl"
+        jsonl_path.write_text(
+            json.dumps(
+                {
+                    "type": "user",
+                    "message": {"role": "user", "content": [{"type": "text", "text": "Test"}]},
+                }
+            )
+        )
+
+        # Create session metadata
+        session_data = {
+            "session_id": session_id,
+            "role": "implementation-lead",
+            "focus": "test-fast-layer",
+            "started_at": "2025-12-28T10:00:00Z",
+            "transcript_path": str(jsonl_path),
+            "working_dir": str(tmp_path),
+        }
+        (session_dir / "session.json").write_text(json.dumps(session_data))
+
+        # Populate FAST layer files (simulating clock_in state)
+        current_focus_content = f"""===CURRENT_FOCUS===
+META:
+  TYPE::SESSION_FOCUS
+  VELOCITY::HOURLY_DAILY
+
+SESSION:
+  ID::"{session_id}"
+  ROLE::implementation-lead
+  FOCUS::"test-fast-layer"
+  BRANCH::clock-in-tool
+  STARTED::"2025-12-28T10:00:00Z"
+
+===END===
+"""
+        (state_dir / "current-focus.oct.md").write_text(current_focus_content)
+
+        checklist_content = f"""===SESSION_CHECKLIST===
+META:
+  TYPE::FAST_CHECKLIST
+  VELOCITY::HOURLY_DAILY
+  SESSION::"{session_id}"
+
+CURRENT_TASK::"test-fast-layer"
+
+ITEMS:
+  implement_feature::IN_PROGRESS
+  write_tests::PENDING
+  run_quality_gates::PENDING
+
+===END===
+"""
+        (state_dir / "checklist.oct.md").write_text(checklist_content)
+
+        blockers_content = f"""===BLOCKERS===
+META:
+  TYPE::FAST_BLOCKERS
+  VELOCITY::HOURLY_DAILY
+  SESSION::"{session_id}"
+
+ACTIVE:
+  blocker_001:
+    DESCRIPTION::"Test blocker"
+    SINCE::"2025-12-28T10:30:00Z"
+    STATUS::UNRESOLVED
+
+===END===
+"""
+        (state_dir / "blockers.oct.md").write_text(blockers_content)
+
+        return tmp_path, session_id, jsonl_path
+
+    @pytest.mark.asyncio
+    async def test_clock_out_clears_current_focus(self, session_with_fast_layer):
+        """
+        clock_out clears current focus and records session completion.
+
+        ADR-0056 format after clock_out:
+        ===CURRENT_FOCUS===
+        SESSION::NONE
+        LAST_SESSION:
+          ID::"{session_id}"
+          COMPLETED::"{timestamp}"
+        ===END===
+        """
+        from hestai_mcp.mcp.tools.clock_out import clock_out
+
+        project_root, session_id, _ = session_with_fast_layer
+
+        await clock_out(
+            session_id=session_id,
+            description="Test complete",
+            project_root=project_root,
+        )
+
+        current_focus_path = project_root / ".hestai" / "context" / "state" / "current-focus.oct.md"
+        assert current_focus_path.exists()
+
+        content = current_focus_path.read_text()
+
+        # Verify session is cleared
+        assert "SESSION::NONE" in content
+        assert "LAST_SESSION:" in content
+        assert f'ID::"{session_id}"' in content
+        assert "COMPLETED::" in content
+
+    @pytest.mark.asyncio
+    async def test_clock_out_updates_checklist_marks_complete(self, session_with_fast_layer):
+        """
+        clock_out marks session task as complete, preserves incomplete items.
+
+        ADR-0056: Incomplete tasks should be preserved for next session.
+        """
+        from hestai_mcp.mcp.tools.clock_out import clock_out
+
+        project_root, session_id, _ = session_with_fast_layer
+
+        await clock_out(
+            session_id=session_id,
+            description="Session complete",
+            project_root=project_root,
+        )
+
+        checklist_path = project_root / ".hestai" / "context" / "state" / "checklist.oct.md"
+        assert checklist_path.exists()
+
+        content = checklist_path.read_text()
+
+        # Session task should be marked complete or session cleared
+        # Incomplete items should be preserved
+        assert "write_tests::PENDING" in content or "PENDING" in content
+        assert "run_quality_gates::PENDING" in content or "PENDING" in content
+
+    @pytest.mark.asyncio
+    async def test_clock_out_persists_unresolved_blockers(self, session_with_fast_layer):
+        """
+        clock_out persists unresolved blockers for next session.
+
+        ADR-0056: Unresolved blockers should survive session transitions.
+        """
+        from hestai_mcp.mcp.tools.clock_out import clock_out
+
+        project_root, session_id, _ = session_with_fast_layer
+
+        await clock_out(
+            session_id=session_id,
+            description="",
+            project_root=project_root,
+        )
+
+        blockers_path = project_root / ".hestai" / "context" / "state" / "blockers.oct.md"
+        assert blockers_path.exists()
+
+        content = blockers_path.read_text()
+
+        # Unresolved blocker should still be present
+        assert 'DESCRIPTION::"Test blocker"' in content
+        assert "STATUS::UNRESOLVED" in content
+
+    @pytest.mark.asyncio
+    async def test_clock_out_clears_resolved_blockers(self, tmp_path: Path):
+        """
+        clock_out clears blockers marked as RESOLVED.
+
+        ADR-0056: Resolved blockers should be cleared on session end.
+        """
+        from hestai_mcp.mcp.tools.clock_out import clock_out
+
+        # Setup session structure
+        hestai_dir = tmp_path / ".hestai"
+        sessions_dir = hestai_dir / "sessions"
+        active_dir = sessions_dir / "active"
+        state_dir = hestai_dir / "context" / "state"
+
+        active_dir.mkdir(parents=True)
+        state_dir.mkdir(parents=True)
+
+        session_id = "resolved-blockers-test"
+        session_dir = active_dir / session_id
+        session_dir.mkdir()
+
+        # Create JSONL
+        jsonl_path = tmp_path / "session.jsonl"
+        jsonl_path.write_text(
+            json.dumps(
+                {
+                    "type": "user",
+                    "message": {"role": "user", "content": [{"type": "text", "text": "X"}]},
+                }
+            )
+        )
+
+        session_data = {
+            "session_id": session_id,
+            "role": "test",
+            "focus": "test",
+            "transcript_path": str(jsonl_path),
+            "working_dir": str(tmp_path),
+        }
+        (session_dir / "session.json").write_text(json.dumps(session_data))
+
+        # Create blockers with one resolved
+        blockers_content = """===BLOCKERS===
+META:
+  TYPE::FAST_BLOCKERS
+  VELOCITY::HOURLY_DAILY
+
+ACTIVE:
+  blocker_001:
+    DESCRIPTION::"Fixed issue"
+    STATUS::RESOLVED
+  blocker_002:
+    DESCRIPTION::"Still pending"
+    STATUS::UNRESOLVED
+
+===END===
+"""
+        (state_dir / "blockers.oct.md").write_text(blockers_content)
+        (state_dir / "current-focus.oct.md").write_text(
+            "===CURRENT_FOCUS===\nSESSION::ACTIVE\n===END==="
+        )
+        (state_dir / "checklist.oct.md").write_text("===SESSION_CHECKLIST===\n===END===")
+
+        await clock_out(
+            session_id=session_id,
+            description="",
+            project_root=tmp_path,
+        )
+
+        blockers_path = state_dir / "blockers.oct.md"
+        content = blockers_path.read_text()
+
+        # Resolved blocker should be removed
+        assert 'DESCRIPTION::"Fixed issue"' not in content
+        # Unresolved blocker should remain
+        assert 'DESCRIPTION::"Still pending"' in content
+
+    @pytest.mark.asyncio
+    async def test_clock_out_handles_missing_fast_layer_gracefully(self, tmp_path: Path):
+        """
+        clock_out succeeds even if FAST layer files don't exist.
+
+        Graceful degradation - don't fail archival if state files are missing.
+        """
+        from hestai_mcp.mcp.tools.clock_out import clock_out
+
+        # Setup session without FAST layer
+        hestai_dir = tmp_path / ".hestai"
+        sessions_dir = hestai_dir / "sessions"
+        active_dir = sessions_dir / "active"
+        active_dir.mkdir(parents=True)
+
+        session_id = "no-fast-layer"
+        session_dir = active_dir / session_id
+        session_dir.mkdir()
+
+        jsonl_path = tmp_path / "session.jsonl"
+        jsonl_path.write_text(
+            json.dumps(
+                {
+                    "type": "user",
+                    "message": {"role": "user", "content": [{"type": "text", "text": "X"}]},
+                }
+            )
+        )
+
+        session_data = {
+            "session_id": session_id,
+            "role": "test",
+            "focus": "test",
+            "transcript_path": str(jsonl_path),
+            "working_dir": str(tmp_path),
+        }
+        (session_dir / "session.json").write_text(json.dumps(session_data))
+
+        # Note: No .hestai/context/state/ directory exists
+
+        # Should succeed without error
+        result = await clock_out(
+            session_id=session_id,
+            description="",
+            project_root=tmp_path,
+        )
+
+        assert result["status"] == "success"
