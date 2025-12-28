@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 
 import keyring
+import keyring.errors
 from pydantic import BaseModel, Field
 
 
@@ -95,10 +96,14 @@ def resolve_api_key(provider: str) -> str | None:
     Returns:
         API key string if found, None otherwise
     """
-    # Try keyring first
-    keyring_key = keyring.get_password("hestai-core", f"{provider}-key")
-    if keyring_key:
-        return str(keyring_key)
+    # Try keyring first (gracefully handle missing keyring backend in CI)
+    try:
+        keyring_key = keyring.get_password("hestai-core", f"{provider}-key")
+        if keyring_key:
+            return str(keyring_key)
+    except keyring.errors.NoKeyringError:
+        # No keyring backend available (common in CI environments)
+        pass
 
     # Fall back to environment variable
     env_var_name = f"{provider.upper()}_API_KEY"
