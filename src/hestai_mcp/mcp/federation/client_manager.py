@@ -8,10 +8,15 @@ Namespacing per SS-I3:
 - memory.query, memory.write
 - git.status, git.diff
 - repomix.pack, repomix.grep
+
+Configuration: Server commands and args can be overridden via environment variables:
+- HESTAI_MCP_<SERVER>_COMMAND: Override the command (default: npx)
+- HESTAI_MCP_<SERVER>_ARGS: Override args as comma-separated string (e.g., "-y,repomix")
 """
 
 import asyncio
 import logging
+import os
 from contextlib import AsyncExitStack
 from types import TracebackType
 from typing import Any
@@ -21,6 +26,56 @@ from mcp.client.stdio import stdio_client
 from typing_extensions import Self
 
 logger = logging.getLogger(__name__)
+
+
+def _get_server_config(
+    server_name: str, default_command: str, default_args: list[str]
+) -> dict[str, Any]:
+    """Build server config from environment variables with fallback to defaults.
+
+    Environment variables checked:
+    - HESTAI_MCP_<SERVER>_COMMAND: Command to run (e.g., "/usr/local/bin/octave-mcp")
+    - HESTAI_MCP_<SERVER>_ARGS: Comma-separated args (e.g., "-y,@hestai/octave-mcp")
+
+    Args:
+        server_name: Server name used in env var prefix (e.g., "octave" -> HESTAI_MCP_OCTAVE_*)
+        default_command: Default command if env var not set
+        default_args: Default args list if env var not set
+
+    Returns:
+        Server configuration dict with transport, command, and args
+    """
+    env_prefix = f"HESTAI_MCP_{server_name.upper()}"
+
+    command = os.environ.get(f"{env_prefix}_COMMAND", default_command)
+    args_str = os.environ.get(f"{env_prefix}_ARGS")
+
+    if args_str:
+        # Parse comma-separated args, strip whitespace
+        args = [arg.strip() for arg in args_str.split(",") if arg.strip()]
+        # Fall back to defaults if parsing results in empty list
+        if not args:
+            args = default_args
+    else:
+        args = default_args
+
+    return {
+        "transport": "stdio",
+        "command": command,
+        "args": args,
+    }
+
+
+def _build_server_configs() -> dict[str, dict[str, Any]]:
+    """Build SERVER_CONFIGS dict from environment variables with defaults.
+
+    Returns:
+        Dict mapping server name to configuration
+    """
+    return {
+        "octave": _get_server_config("octave", "npx", ["-y", "@hestai/octave-mcp"]),
+        "repomix": _get_server_config("repomix", "npx", ["-y", "repomix"]),
+    }
 
 
 class MCPConnectionError(Exception):
@@ -90,18 +145,8 @@ class MCPClientManager:
 
     # Server connection configurations
     # Maps server name to connection config
-    SERVER_CONFIGS: dict[str, dict[str, Any]] = {
-        "octave": {
-            "transport": "stdio",
-            "command": "npx",
-            "args": ["-y", "@hestai/octave-mcp"],
-        },
-        "repomix": {
-            "transport": "stdio",
-            "command": "npx",
-            "args": ["-y", "repomix"],
-        },
-    }
+    # NOTE: Built from env vars at module load time via _build_server_configs()
+    SERVER_CONFIGS: dict[str, dict[str, Any]] = _build_server_configs()
 
     # Default timeout values (seconds)
     DEFAULT_CONNECT_TIMEOUT = 30.0

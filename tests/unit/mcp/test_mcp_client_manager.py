@@ -866,3 +866,141 @@ class TestMCPClientManagerTimeouts:
             error_msg = str(exc_info.value).lower()
             assert "timed out" in error_msg or "timeout" in error_msg
             assert "0.1" in str(exc_info.value)
+
+
+@pytest.mark.unit
+class TestMCPClientManagerEnvConfiguration:
+    """Test environment variable configuration for SERVER_CONFIGS.
+
+    SS-I6: Configurable server commands via env vars for flexibility
+    without code changes. Maintains backward compatibility with defaults.
+    """
+
+    def test_get_server_config_helper_exists(self):
+        """Helper function to build server config from env must exist."""
+        from hestai_mcp.mcp.federation.client_manager import _get_server_config
+
+        assert callable(_get_server_config)
+
+    def test_default_values_when_no_env_vars(self, monkeypatch):
+        """SERVER_CONFIGS must use defaults when env vars not set."""
+        # Clear any existing env vars
+        monkeypatch.delenv("HESTAI_MCP_OCTAVE_COMMAND", raising=False)
+        monkeypatch.delenv("HESTAI_MCP_OCTAVE_ARGS", raising=False)
+        monkeypatch.delenv("HESTAI_MCP_REPOMIX_COMMAND", raising=False)
+        monkeypatch.delenv("HESTAI_MCP_REPOMIX_ARGS", raising=False)
+
+        from hestai_mcp.mcp.federation.client_manager import _get_server_config
+
+        # Octave defaults
+        octave_config = _get_server_config("octave", "npx", ["-y", "@hestai/octave-mcp"])
+        assert octave_config["command"] == "npx"
+        assert octave_config["args"] == ["-y", "@hestai/octave-mcp"]
+        assert octave_config["transport"] == "stdio"
+
+        # Repomix defaults
+        repomix_config = _get_server_config("repomix", "npx", ["-y", "repomix"])
+        assert repomix_config["command"] == "npx"
+        assert repomix_config["args"] == ["-y", "repomix"]
+
+    def test_custom_command_override_via_env(self, monkeypatch):
+        """HESTAI_MCP_<SERVER>_COMMAND env var must override default command."""
+        monkeypatch.setenv("HESTAI_MCP_OCTAVE_COMMAND", "/usr/local/bin/octave-mcp")
+        monkeypatch.delenv("HESTAI_MCP_OCTAVE_ARGS", raising=False)
+
+        from hestai_mcp.mcp.federation.client_manager import _get_server_config
+
+        config = _get_server_config("octave", "npx", ["-y", "@hestai/octave-mcp"])
+        assert config["command"] == "/usr/local/bin/octave-mcp"
+        # Args should still use default when not overridden
+        assert config["args"] == ["-y", "@hestai/octave-mcp"]
+
+    def test_custom_args_override_via_env(self, monkeypatch):
+        """HESTAI_MCP_<SERVER>_ARGS env var must override default args."""
+        monkeypatch.delenv("HESTAI_MCP_OCTAVE_COMMAND", raising=False)
+        monkeypatch.setenv("HESTAI_MCP_OCTAVE_ARGS", "--verbose,--config=/etc/octave.json")
+
+        from hestai_mcp.mcp.federation.client_manager import _get_server_config
+
+        config = _get_server_config("octave", "npx", ["-y", "@hestai/octave-mcp"])
+        # Command should still use default
+        assert config["command"] == "npx"
+        # Args should be parsed from comma-separated string
+        assert config["args"] == ["--verbose", "--config=/etc/octave.json"]
+
+    def test_args_parsing_handles_spaces(self, monkeypatch):
+        """Args parsing must strip whitespace around commas."""
+        monkeypatch.setenv("HESTAI_MCP_REPOMIX_ARGS", " -y , repomix , --extra ")
+
+        from hestai_mcp.mcp.federation.client_manager import _get_server_config
+
+        config = _get_server_config("repomix", "npx", ["-y", "repomix"])
+        assert config["args"] == ["-y", "repomix", "--extra"]
+
+    def test_mixed_overrides(self, monkeypatch):
+        """Some servers can have overrides while others use defaults."""
+        # Override octave command only
+        monkeypatch.setenv("HESTAI_MCP_OCTAVE_COMMAND", "/custom/octave")
+        monkeypatch.delenv("HESTAI_MCP_OCTAVE_ARGS", raising=False)
+        # Override repomix args only
+        monkeypatch.delenv("HESTAI_MCP_REPOMIX_COMMAND", raising=False)
+        monkeypatch.setenv("HESTAI_MCP_REPOMIX_ARGS", "--custom-arg")
+
+        from hestai_mcp.mcp.federation.client_manager import _get_server_config
+
+        octave = _get_server_config("octave", "npx", ["-y", "@hestai/octave-mcp"])
+        assert octave["command"] == "/custom/octave"
+        assert octave["args"] == ["-y", "@hestai/octave-mcp"]  # Default args
+
+        repomix = _get_server_config("repomix", "npx", ["-y", "repomix"])
+        assert repomix["command"] == "npx"  # Default command
+        assert repomix["args"] == ["--custom-arg"]  # Custom args
+
+    def test_build_server_configs_helper_exists(self):
+        """Helper to build full SERVER_CONFIGS dict must exist."""
+        from hestai_mcp.mcp.federation.client_manager import _build_server_configs
+
+        assert callable(_build_server_configs)
+
+    def test_build_server_configs_returns_expected_structure(self, monkeypatch):
+        """_build_server_configs must return dict with octave and repomix configs."""
+        # Clear env vars to use defaults
+        for var in [
+            "HESTAI_MCP_OCTAVE_COMMAND",
+            "HESTAI_MCP_OCTAVE_ARGS",
+            "HESTAI_MCP_REPOMIX_COMMAND",
+            "HESTAI_MCP_REPOMIX_ARGS",
+        ]:
+            monkeypatch.delenv(var, raising=False)
+
+        from hestai_mcp.mcp.federation.client_manager import _build_server_configs
+
+        configs = _build_server_configs()
+
+        assert "octave" in configs
+        assert "repomix" in configs
+        assert configs["octave"]["transport"] == "stdio"
+        assert configs["repomix"]["transport"] == "stdio"
+
+    def test_server_configs_class_attr_uses_builder(self, monkeypatch):
+        """MCPClientManager.SERVER_CONFIGS must use _build_server_configs."""
+        monkeypatch.setenv("HESTAI_MCP_OCTAVE_COMMAND", "/test/octave")
+
+        # Need to reimport to pick up new env var value
+        import importlib
+
+        import hestai_mcp.mcp.federation.client_manager as cm
+
+        importlib.reload(cm)
+
+        assert cm.MCPClientManager.SERVER_CONFIGS["octave"]["command"] == "/test/octave"
+
+    def test_empty_args_env_var_uses_default(self, monkeypatch):
+        """Empty ARGS env var should use default args, not empty list."""
+        monkeypatch.setenv("HESTAI_MCP_OCTAVE_ARGS", "")
+
+        from hestai_mcp.mcp.federation.client_manager import _get_server_config
+
+        config = _get_server_config("octave", "npx", ["-y", "@hestai/octave-mcp"])
+        # Empty string should fall back to defaults
+        assert config["args"] == ["-y", "@hestai/octave-mcp"]
