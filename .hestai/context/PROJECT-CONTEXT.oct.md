@@ -7,7 +7,7 @@ META:
   VERSION::"0.3.0"
   PHASE::B1_FOUNDATION_INFRASTRUCTURE
   STATUS::active_development
-  LAST_UPDATED::"2025-12-30T12:00:00Z"
+  LAST_UPDATED::"2025-12-31T14:00:00Z"
 
 PURPOSE::"MCP server implementing three-layer cognitive architecture for persistent AI agent context, governance, and semantic knowledge"
 
@@ -46,7 +46,7 @@ IMMUTABLES_ACTIVE::[
   I2::STRUCTURAL_INTEGRITY_PRIORITY->PROVEN[architectural_mandate],
   I3::DUAL_LAYER_AUTHORITY->PROVEN[ADR-0001],
   I4::FRESHNESS_VERIFICATION->PENDING[B1_freshness_check],
-  I5::ODYSSEAN_IDENTITY_BINDING->PENDING[oa-load_tool],
+  I5::ODYSSEAN_IDENTITY_BINDING->PLANNED[debate_2025-12-31_decided_implementation_path],
   I6::UNIVERSAL_SCOPE->PENDING[multi-repo_testing]
 ]
 
@@ -66,6 +66,23 @@ KEY_INSIGHTS::[
 
 BLOCKERS::[
   Layer_3_validation::blocked_on_Basic_Memory_MCP_PoC
+]
+
+RESOLVED_2025-12-31::[
+  ODYSSEAN_ANCHOR_STRATEGY::DEBATE_SYNTHESIS[RESOLVED]::[
+    DECISION::"Build OA tool in HestAI-MCP using 4-section v4.0 schema + systematic knowledge extraction from old project",
+    DEBATE_ID::"2025-12-31-odyssean-anchor-strategy",
+    PARTICIPANTS::[Wind(Gemini/PATHOS),Wall(Codex/ETHOS),Door(Claude/LOGOS)],
+    KEY_INSIGHT::"Old project value is RESEARCH CORPUS not schema - extract error taxonomy+retry patterns before archive",
+    ACTIONS::[
+      build_in_HestAI-MCP::src/hestai_mcp/mcp/tools/odyssean_anchor.py,
+      schema::4-section_v4.0[BIND,ARM,TENSION,COMMIT],
+      extract::error_templates+assumptions+rationale_from_old_project,
+      archive::old_project_as_superseded_after_extraction
+    ],
+    REJECTED::[Janus_bifurcation,think_7_bind_4,vector_upgrade],
+    NORTH_STAR_ALIGNMENT::[I2_structural_integrity,I3_dual_layer_authority,I5_odyssean_binding]
+  ]
 ]
 
 RESOLVED_2025-12-30::[
@@ -129,21 +146,30 @@ CLOCK_IN_STATUS::[
 
 NEXT_ACTIONS::[
   // Issue #56 COMPLETE - clock_in ready. Updated priorities:
-  0::ADD_CI_PYTHON_MATRIX[high_value_medium_effort]::[
-    0a::add_python_3.10_3.11_3.12_to_CI_matrix,
-    0b::add_python_3.13_canary_with_continue_on_error,
+  0::ODYSSEAN_ANCHOR_IMPLEMENTATION[I5_critical_path]::[
+    0a::extract_research_from_old_project[error_taxonomy+retry_patterns+assumptions],
+    0b::create_.hestai/research/odyssean-anchor-corpus.oct.md,
+    0c::implement_odyssean_anchor_tool[src/hestai_mcp/mcp/tools/],
+    0d::use_4-section_v4.0_schema[BIND,ARM,TENSION,COMMIT],
+    0e::archive_old_project_as_superseded,
+    RATIONALE::"I5 PENDING - agents need structural identity binding",
+    DECISION_SOURCE::"debates/2025-12-31-odyssean-anchor-strategy.lock"
+  ],
+  1::ADD_CI_PYTHON_MATRIX[high_value_medium_effort]::[
+    1a::add_python_3.10_3.11_3.12_to_CI_matrix,
+    1b::add_python_3.13_canary_with_continue_on_error,
     RATIONALE::"Python 3.14 has rpds dependency issues - catch early"
   ],
-  1::PHASE_6_DOCUMENTATION[now_unblocked]::[
-    1a::document_setup_guides_for_octave-mcp,
-    1b::document_setup_guides_for_debate-hall-mcp,
-    1c::complete_README_and_user_documentation
+  2::PHASE_6_DOCUMENTATION[now_unblocked]::[
+    2a::document_setup_guides_for_octave-mcp,
+    2b::document_setup_guides_for_debate-hall-mcp,
+    2c::complete_README_and_user_documentation
   ],
-  2::IMPLEMENT_SS-I4[single_writer_pre-commit_hook_blocking_direct_.hestai_writes],
-  3::IMPLEMENT_LAYER_3_SEMANTIC_SPIKE[Basic_Memory_MCP_PoC],
-  4::IMPLEMENT_DOCUMENT_SUBMIT_TOOL[Phase_3_MCP_tool],
-  5::IMPLEMENT_CONTEXT_UPDATE_TOOL[Phase_3_MCP_tool],
-  6::ADDRESS_COVERAGE_GAPS[clock_out.py_60%_base.py_87%_schemas.py_87%]
+  3::IMPLEMENT_SS-I4[single_writer_pre-commit_hook_blocking_direct_.hestai_writes],
+  4::IMPLEMENT_LAYER_3_SEMANTIC_SPIKE[Basic_Memory_MCP_PoC],
+  5::IMPLEMENT_DOCUMENT_SUBMIT_TOOL[Phase_3_MCP_tool],
+  6::IMPLEMENT_CONTEXT_UPDATE_TOOL[Phase_3_MCP_tool],
+  7::ADDRESS_COVERAGE_GAPS[clock_out.py_60%_base.py_87%_schemas.py_87%]
 ]
 
 GOVERNANCE_ACTIONS_COMPLETED::[
