@@ -153,7 +153,7 @@ NEXT_ACTIONS::[
     0d::use_4-section_v4.0_schema[BIND,ARM,TENSION,COMMIT],
     0e::archive_old_project_as_superseded,
     RATIONALE::"I5 PENDING - agents need structural identity binding",
-    DECISION_SOURCE::"debates/2025-12-31-odyssean-anchor-strategy.lock"
+    DECISION_SOURCE::"debates/2025-12-31-odyssean-anchor-strategy.oct.md"
   ],
   1::ADD_CI_PYTHON_MATRIX[high_value_medium_effort]::[
     1a::add_python_3.10_3.11_3.12_to_CI_matrix,
