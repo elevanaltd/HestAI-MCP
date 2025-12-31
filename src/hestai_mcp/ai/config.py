@@ -1,22 +1,50 @@
-"""AI configuration loading, saving, and secret resolution."""
+"""AI configuration loading, saving, and secret resolution.
 
+Supports tiered AI configuration for different use cases:
+- synthesis: Fast, cheap models for context synthesis (clock_in)
+- analysis: Balanced models for deeper analysis
+- critical: High-capability models for important decisions
+
+Configuration is loaded from:
+1. ~/.hestai/config/ai.yaml (preferred, supports tiers)
+2. ~/.hestai/config/ai.json (legacy format, auto-converted to tiered)
+3. Environment variables (fallback defaults)
+
+API keys are resolved from:
+1. Keyring (secure, production)
+2. Environment variables (development, CI)
+"""
+
+import asyncio
 import json
+import logging
 import os
 from pathlib import Path
+from typing import Literal
 
 import keyring
 import keyring.errors
+import yaml
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger(__name__)
 
 # Keyring service name for storing API keys
 KEYRING_SERVICE = "hestai-mcp"
 
+# Available AI tiers
+AITier = Literal["synthesis", "analysis", "critical"]
 
-class ProviderConfig(BaseModel):
-    """Provider and model configuration."""
+# Default tier for operations that don't specify
+DEFAULT_TIER: AITier = "synthesis"
+
+
+class TierConfig(BaseModel):
+    """Configuration for a specific AI tier."""
 
     provider: str
     model: str
+    description: str = ""
 
 
 class TimeoutConfig(BaseModel):
@@ -26,64 +54,169 @@ class TimeoutConfig(BaseModel):
     request_seconds: int = 30
 
 
-class AIConfig(BaseModel):
-    """AI client configuration with primary and fallback providers."""
+class TieredAIConfig(BaseModel):
+    """AI configuration with tiered model support.
 
-    primary: ProviderConfig
-    fallback: list[ProviderConfig] = Field(default_factory=list)
+    Tiers allow different models for different use cases:
+    - synthesis: Fast/cheap for routine context generation
+    - analysis: Balanced for deeper analysis tasks
+    - critical: Best available for high-stakes decisions
+    """
+
+    tiers: dict[str, TierConfig] = Field(default_factory=dict)
+    default_tier: AITier = DEFAULT_TIER
     timeouts: TimeoutConfig = Field(default_factory=TimeoutConfig)
 
+    def get_tier_config(self, tier: AITier | None = None) -> TierConfig:
+        """Get configuration for a specific tier.
 
-def get_config_path() -> Path:
-    """Get the path to the AI config file.
+        Args:
+            tier: The tier to get config for. Uses default_tier if None.
+
+        Returns:
+            TierConfig for the requested tier.
+
+        Raises:
+            KeyError: If the tier is not configured.
+        """
+        tier = tier or self.default_tier
+        if tier not in self.tiers:
+            raise KeyError(f"AI tier '{tier}' not configured. Available: {list(self.tiers.keys())}")
+        return self.tiers[tier]
+
+
+def get_config_dir() -> Path:
+    """Get the HestAI config directory.
+
+    Returns:
+        Path to ~/.hestai/config/
+    """
+    return Path.home() / ".hestai" / "config"
+
+
+def get_yaml_config_path() -> Path:
+    """Get the path to the YAML AI config file.
+
+    Returns:
+        Path to ~/.hestai/config/ai.yaml
+    """
+    return get_config_dir() / "ai.yaml"
+
+
+def get_json_config_path() -> Path:
+    """Get the path to the legacy JSON AI config file.
 
     Returns:
         Path to ~/.hestai/config/ai.json
     """
-    return Path.home() / ".hestai" / "config" / "ai.json"
+    return get_config_dir() / "ai.json"
 
 
-def load_config() -> AIConfig:
-    """Load AI configuration from disk.
+def _get_default_tiered_config() -> TieredAIConfig:
+    """Get default tiered configuration.
+
+    Uses environment variables if set, otherwise sensible defaults.
+    """
+    # Check for environment variable overrides
+    default_provider = os.environ.get("HESTAI_AI_PROVIDER", "openrouter")
+    default_model = os.environ.get("HESTAI_AI_MODEL", "google/gemini-2.0-flash-lite")
+
+    return TieredAIConfig(
+        tiers={
+            "synthesis": TierConfig(
+                provider=default_provider,
+                model=default_model,
+                description="Fast, cost-effective model for context synthesis",
+            ),
+            "analysis": TierConfig(
+                provider=default_provider,
+                model=os.environ.get("HESTAI_AI_MODEL_ANALYSIS", "anthropic/claude-3.5-sonnet"),
+                description="Balanced model for deeper analysis",
+            ),
+            "critical": TierConfig(
+                provider=default_provider,
+                model=os.environ.get("HESTAI_AI_MODEL_CRITICAL", "anthropic/claude-3.5-sonnet"),
+                description="High-capability model for critical decisions",
+            ),
+        },
+        default_tier="synthesis",
+        timeouts=TimeoutConfig(),
+    )
+
+
+def load_config() -> TieredAIConfig:
+    """Load tiered AI configuration from disk.
+
+    Tries YAML first, then falls back to JSON (auto-converts legacy format),
+    then returns defaults.
 
     Returns:
-        AIConfig instance, either from file or with default values
-
-    Raises:
-        ValueError: If config file exists but contains invalid JSON
+        TieredAIConfig instance
     """
-    config_path = get_config_path()
+    yaml_path = get_yaml_config_path()
+    json_path = get_json_config_path()
 
-    if not config_path.exists():
-        # Return default config
-        return AIConfig(
-            primary=ProviderConfig(
-                provider="openrouter", model="anthropic/claude-3.5-sonnet"
-            ),  # ggignore
-            fallback=[],
-            timeouts=TimeoutConfig(),
-        )
+    # Try YAML config first (preferred)
+    if yaml_path.exists():
+        try:
+            config_data = yaml.safe_load(yaml_path.read_text())
+            if config_data:
+                logger.info(f"Loaded AI config from {yaml_path}")
+                return TieredAIConfig(**config_data)
+        except (yaml.YAMLError, TypeError) as e:
+            logger.warning(f"Invalid YAML in {yaml_path}: {e}, trying JSON fallback")
 
-    try:
-        config_data = json.loads(config_path.read_text())
-        return AIConfig(**config_data)
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON in config file {config_path}: {e}") from e
+    # Try legacy JSON config
+    if json_path.exists():
+        try:
+            config_data = json.loads(json_path.read_text())
+            # Convert legacy format to tiered format
+            if "primary" in config_data:
+                primary = config_data["primary"]
+                logger.info(f"Loaded legacy AI config from {json_path}, converting to tiered")
+                return TieredAIConfig(
+                    tiers={
+                        "synthesis": TierConfig(
+                            provider=primary["provider"],
+                            model=primary["model"],
+                            description="Converted from legacy primary config",
+                        ),
+                        "analysis": TierConfig(
+                            provider=primary["provider"],
+                            model=primary["model"],
+                            description="Converted from legacy primary config",
+                        ),
+                        "critical": TierConfig(
+                            provider=primary["provider"],
+                            model=primary["model"],
+                            description="Converted from legacy primary config",
+                        ),
+                    },
+                    timeouts=TimeoutConfig(**config_data.get("timeouts", {})),
+                )
+            # Already tiered format in JSON
+            return TieredAIConfig(**config_data)
+        except (json.JSONDecodeError, TypeError) as e:
+            logger.warning(f"Invalid JSON in {json_path}: {e}, using defaults")
+
+    # Return defaults
+    logger.info("No AI config found, using defaults (configure at ~/.hestai/config/ai.yaml)")
+    return _get_default_tiered_config()
 
 
-def save_config(config: AIConfig) -> None:
-    """Save AI configuration to disk.
+def save_config(config: TieredAIConfig) -> None:
+    """Save tiered AI configuration to YAML.
 
     Args:
-        config: AIConfig instance to save
-
-    Creates parent directories if they don't exist.
+        config: TieredAIConfig instance to save
     """
-    config_path = get_config_path()
-    config_path.parent.mkdir(parents=True, exist_ok=True)
+    yaml_path = get_yaml_config_path()
+    yaml_path.parent.mkdir(parents=True, exist_ok=True)
 
     config_dict = config.model_dump()
-    config_path.write_text(json.dumps(config_dict, indent=2))
+    yaml_content = yaml.dump(config_dict, default_flow_style=False, sort_keys=False)
+    yaml_path.write_text(yaml_content)
+    logger.info(f"Saved AI config to {yaml_path}")
 
 
 def resolve_api_key(provider: str) -> str | None:
@@ -94,7 +227,9 @@ def resolve_api_key(provider: str) -> str | None:
     2. Environment variable ({PROVIDER}_API_KEY)
 
     Args:
-        provider: Provider name ('openrouter', 'openai', 'anthropic')
+        provider: Provider name ('openrouter', 'openai').
+            Note: Anthropic models are available via OpenRouter
+            (e.g., model='anthropic/claude-3.5-sonnet' with provider='openrouter').
 
     Returns:
         API key string if found, None otherwise
@@ -109,5 +244,31 @@ def resolve_api_key(provider: str) -> str | None:
         pass
 
     # Fall back to environment variable
+    env_var_name = f"{provider.upper()}_API_KEY"
+    return os.environ.get(env_var_name)
+
+
+async def async_resolve_api_key(provider: str) -> str | None:
+    """Resolve API key asynchronously to avoid blocking event loop.
+
+    Wraps keyring access in a separate thread.
+
+    Args:
+        provider: Provider name.
+
+    Returns:
+        API key string if found, None otherwise
+    """
+    # Try keyring in a separate thread (blocking I/O)
+    try:
+        keyring_key = await asyncio.to_thread(
+            keyring.get_password, KEYRING_SERVICE, f"{provider}-key"
+        )
+        if keyring_key:
+            return str(keyring_key)
+    except keyring.errors.NoKeyringError:
+        pass
+
+    # Fall back to environment variable (non-blocking)
     env_var_name = f"{provider.upper()}_API_KEY"
     return os.environ.get(env_var_name)

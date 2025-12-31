@@ -160,7 +160,7 @@ class OpenAICompatProvider(BaseProvider):
                 "Content-Type": "application/json",
             },
             json={
-                "model": "gpt-4o",  # Model should come from config, hardcoded for now
+                "model": request.model,
                 "messages": [
                     {"role": "system", "content": request.system_prompt},
                     {"role": "user", "content": request.user_prompt},
