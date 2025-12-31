@@ -62,7 +62,7 @@ CI-A6::SS_INFRA_READY[70%|Critical]→PENDING[technical-architect@B1]
 
 CONTEXT_SOURCES::[IMMUTABLE::must_gather_comprehensive,FLEXIBLE::Repomix|other_tools]
 FOCUS_RESOLUTION::[IMMUTABLE::must_resolve,PRIORITY::explicit→GitHub→branch→default]
-AI_MODEL::[IMMUTABLE::must_use_async[SS-I2],FLEXIBLE::~/.hestai/config/ai.json]
+AI_MODEL::[IMMUTABLE::must_use_async[SS-I2],FLEXIBLE::~/.hestai/config/ai.yaml|.env]
 AI_PROMPTS::[IMMUTABLE::versioned⊕auditable[SS-I5],FLEXIBLE::prompt_content]
 
 §4::SCOPE_BOUNDARIES

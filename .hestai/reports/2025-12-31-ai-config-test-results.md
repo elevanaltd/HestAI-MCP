@@ -105,17 +105,16 @@ After removing the legacy config, the system correctly uses defaults from `.env`
 
 ## Recommendations
 
-1. **Config Priority Documentation**: Document that `~/.hestai/config/ai.yaml` > `ai.json` > `.env` defaults
-2. **Config Validation**: Add startup warning if model names don't match known OpenRouter patterns
-3. **Clean Up Legacy**: Remove or migrate any remaining `ai.json` files to `ai.yaml` format
-4. **Example Config**: Ensure `ai.yaml.example` contains valid model identifiers
+1. **Config Validation**: Add startup warning if model names don't match known OpenRouter patterns
+2. **Example Config**: Ensure `ai.yaml.example` contains valid model identifiers
 
-## Configuration Hierarchy (Verified)
+## Configuration Hierarchy (Post-Refactor)
 
 1. `~/.hestai/config/ai.yaml` (preferred, tiered format)
-2. `~/.hestai/config/ai.json` (legacy, auto-converted)
-3. `.env` file (defaults via environment variables)
-4. Built-in defaults in code
+2. `.env` file (defaults via environment variables)
+3. Built-in defaults in code
+
+**Note**: Legacy JSON support was removed in commit 93e617f. Only YAML and .env are supported.
 
 ## Evidence Trail
 
