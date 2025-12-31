@@ -5,12 +5,11 @@ Target coverage: 90%+ for ai/config.py
 
 Test Plan Coverage:
 - TieredAIConfig model behavior and tier resolution
-- load_config: YAML loading (preferred), JSON fallback, defaults
+- load_config: YAML loading (preferred), defaults from .env/environment
 - save_config: YAML saving with directory creation
 - resolve_api_key: keyring priority, env fallback, NoKeyringError handling
 """
 
-import json
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -24,7 +23,6 @@ from hestai_mcp.ai.config import (
     TierConfig,
     TieredAIConfig,
     TimeoutConfig,
-    get_json_config_path,
     get_yaml_config_path,
     load_config,
     resolve_api_key,
@@ -159,9 +157,6 @@ class TestLoadConfigYaml:
         yaml_file.write_text(yaml.dump(config_data))
 
         monkeypatch.setattr("hestai_mcp.ai.config.get_yaml_config_path", lambda: yaml_file)
-        monkeypatch.setattr(
-            "hestai_mcp.ai.config.get_json_config_path", lambda: tmp_path / "ai.json"
-        )
 
         config = load_config()
 
@@ -173,70 +168,14 @@ class TestLoadConfigYaml:
 
 
 @pytest.mark.unit
-class TestLoadConfigJsonFallback:
-    """Test load_config JSON fallback when YAML doesn't exist."""
-
-    def test_load_config_json_legacy_format_converted(self, monkeypatch, tmp_path):
-        """Legacy JSON with 'primary' key should be converted to tiered format."""
-        json_file = tmp_path / "ai.json"
-        legacy_config = {
-            "primary": {"provider": "openai", "model": "gpt-4o"},
-            "fallback": [{"provider": "openrouter", "model": "anthropic/claude-3.5-sonnet"}],
-            "timeouts": {"connect_seconds": 10, "request_seconds": 60},
-        }
-        json_file.write_text(json.dumps(legacy_config))
-
-        monkeypatch.setattr(
-            "hestai_mcp.ai.config.get_yaml_config_path", lambda: tmp_path / "ai.yaml"
-        )
-        monkeypatch.setattr("hestai_mcp.ai.config.get_json_config_path", lambda: json_file)
-
-        config = load_config()
-
-        assert isinstance(config, TieredAIConfig)
-        # All tiers should use the primary provider/model
-        assert config.tiers["synthesis"].provider == "openai"
-        assert config.tiers["synthesis"].model == "gpt-4o"
-        assert config.tiers["analysis"].model == "gpt-4o"
-        assert config.tiers["critical"].model == "gpt-4o"
-        assert config.timeouts.connect_seconds == 10
-
-    def test_load_config_json_tiered_format(self, monkeypatch, tmp_path):
-        """JSON already in tiered format should be loaded directly."""
-        json_file = tmp_path / "ai.json"
-        tiered_config = {
-            "tiers": {
-                "synthesis": {"provider": "openrouter", "model": "fast"},
-                "critical": {"provider": "openai", "model": "smart"},
-            },
-            "default_tier": "critical",
-        }
-        json_file.write_text(json.dumps(tiered_config))
-
-        monkeypatch.setattr(
-            "hestai_mcp.ai.config.get_yaml_config_path", lambda: tmp_path / "ai.yaml"
-        )
-        monkeypatch.setattr("hestai_mcp.ai.config.get_json_config_path", lambda: json_file)
-
-        config = load_config()
-
-        assert config.default_tier == "critical"
-        assert config.tiers["synthesis"].model == "fast"
-
-
-@pytest.mark.unit
 class TestLoadConfigDefaults:
     """Test load_config default behavior when no config files exist."""
 
-    def test_load_config_missing_files_returns_defaults(self, monkeypatch, tmp_path):
-        """When no config files exist, return default TieredAIConfig."""
+    def test_load_config_missing_file_returns_defaults(self, monkeypatch, tmp_path):
+        """When no config file exists, return default TieredAIConfig."""
         monkeypatch.setattr(
             "hestai_mcp.ai.config.get_yaml_config_path",
             lambda: tmp_path / "nonexistent.yaml",
-        )
-        monkeypatch.setattr(
-            "hestai_mcp.ai.config.get_json_config_path",
-            lambda: tmp_path / "nonexistent.json",
         )
 
         config = load_config()
@@ -254,10 +193,6 @@ class TestLoadConfigDefaults:
             "hestai_mcp.ai.config.get_yaml_config_path",
             lambda: tmp_path / "nonexistent.yaml",
         )
-        monkeypatch.setattr(
-            "hestai_mcp.ai.config.get_json_config_path",
-            lambda: tmp_path / "nonexistent.json",
-        )
         monkeypatch.setenv("HESTAI_AI_PROVIDER", "openai")
         monkeypatch.setenv("HESTAI_AI_MODEL", "gpt-4o-mini")
 
@@ -266,37 +201,16 @@ class TestLoadConfigDefaults:
         assert config.tiers["synthesis"].provider == "openai"
         assert config.tiers["synthesis"].model == "gpt-4o-mini"
 
-    def test_load_config_invalid_yaml_falls_back_to_json(self, monkeypatch, tmp_path):
-        """Invalid YAML should fall back to JSON."""
+    def test_load_config_invalid_yaml_uses_defaults(self, monkeypatch, tmp_path):
+        """Invalid YAML should fall back to defaults."""
         yaml_file = tmp_path / "ai.yaml"
         yaml_file.write_text("{ invalid: yaml: here }")
 
-        json_file = tmp_path / "ai.json"
-        json_file.write_text(
-            json.dumps({"tiers": {"synthesis": {"provider": "openrouter", "model": "from-json"}}})
-        )
-
         monkeypatch.setattr("hestai_mcp.ai.config.get_yaml_config_path", lambda: yaml_file)
-        monkeypatch.setattr("hestai_mcp.ai.config.get_json_config_path", lambda: json_file)
 
         config = load_config()
 
-        assert config.tiers["synthesis"].model == "from-json"
-
-    def test_load_config_invalid_json_uses_defaults(self, monkeypatch, tmp_path):
-        """Invalid JSON should fall back to defaults (no ValueError)."""
-        json_file = tmp_path / "ai.json"
-        json_file.write_text("{ invalid json }")
-
-        monkeypatch.setattr(
-            "hestai_mcp.ai.config.get_yaml_config_path",
-            lambda: tmp_path / "nonexistent.yaml",
-        )
-        monkeypatch.setattr("hestai_mcp.ai.config.get_json_config_path", lambda: json_file)
-
-        # Should NOT raise - falls back to defaults
-        config = load_config()
-
+        # Should fall back to defaults
         assert isinstance(config, TieredAIConfig)
         assert "synthesis" in config.tiers
 
@@ -436,15 +350,6 @@ class TestConfigPathHelpers:
 
         assert isinstance(path, Path)
         assert path.name == "ai.yaml"
-        assert ".hestai" in str(path)
-        assert "config" in str(path)
-
-    def test_get_json_config_path_returns_home_based_path(self):
-        """JSON config path should be under ~/.hestai/config/."""
-        path = get_json_config_path()
-
-        assert isinstance(path, Path)
-        assert path.name == "ai.json"
         assert ".hestai" in str(path)
         assert "config" in str(path)
 
@@ -596,10 +501,10 @@ class TestTierReferenceValidation:
 
 @pytest.mark.unit
 class TestValidationErrorFallback:
-    """Test that ValidationError in config files falls back gracefully."""
+    """Test that ValidationError in YAML falls back to defaults."""
 
-    def test_yaml_with_invalid_tier_reference_falls_back_to_json(self, monkeypatch, tmp_path):
-        """YAML with invalid tier reference should fall back to JSON."""
+    def test_yaml_with_invalid_tier_reference_uses_defaults(self, monkeypatch, tmp_path):
+        """YAML with invalid tier reference should fall back to defaults."""
         yaml_file = tmp_path / "ai.yaml"
         # This YAML has valid syntax but invalid tier reference
         invalid_yaml_config = {
@@ -610,25 +515,18 @@ class TestValidationErrorFallback:
         }
         yaml_file.write_text(yaml.dump(invalid_yaml_config))
 
-        json_file = tmp_path / "ai.json"
-        valid_json_config = {
-            "tiers": {
-                "synthesis": {"provider": "openrouter", "model": "from-json"},
-            },
-            "default_tier": "synthesis",  # Valid
-        }
-        json_file.write_text(json.dumps(valid_json_config))
-
         monkeypatch.setattr("hestai_mcp.ai.config.get_yaml_config_path", lambda: yaml_file)
-        monkeypatch.setattr("hestai_mcp.ai.config.get_json_config_path", lambda: json_file)
 
         config = load_config()
 
-        # Should have loaded from JSON fallback
-        assert config.tiers["synthesis"].model == "from-json"
+        # Should have loaded defaults
+        assert isinstance(config, TieredAIConfig)
+        assert "synthesis" in config.tiers
+        assert "analysis" in config.tiers
+        assert "critical" in config.tiers
 
-    def test_yaml_with_invalid_operation_mapping_falls_back_to_json(self, monkeypatch, tmp_path):
-        """YAML with invalid operation tier mapping should fall back to JSON."""
+    def test_yaml_with_invalid_operation_mapping_uses_defaults(self, monkeypatch, tmp_path):
+        """YAML with invalid operation tier mapping should fall back to defaults."""
         yaml_file = tmp_path / "ai.yaml"
         invalid_yaml_config = {
             "tiers": {
@@ -641,78 +539,12 @@ class TestValidationErrorFallback:
         }
         yaml_file.write_text(yaml.dump(invalid_yaml_config))
 
-        json_file = tmp_path / "ai.json"
-        valid_json_config = {
-            "tiers": {
-                "synthesis": {"provider": "openrouter", "model": "from-json"},
-            },
-            "default_tier": "synthesis",
-        }
-        json_file.write_text(json.dumps(valid_json_config))
-
         monkeypatch.setattr("hestai_mcp.ai.config.get_yaml_config_path", lambda: yaml_file)
-        monkeypatch.setattr("hestai_mcp.ai.config.get_json_config_path", lambda: json_file)
-
-        config = load_config()
-
-        # Should have loaded from JSON fallback
-        assert config.tiers["synthesis"].model == "from-json"
-
-    def test_json_with_validation_error_falls_back_to_defaults(self, monkeypatch, tmp_path):
-        """JSON with ValidationError should fall back to defaults."""
-        json_file = tmp_path / "ai.json"
-        invalid_json_config = {
-            "tiers": {
-                "synthesis": {"provider": "openrouter", "model": "fast"},
-            },
-            "default_tier": "nonexistent",  # Invalid tier reference
-        }
-        json_file.write_text(json.dumps(invalid_json_config))
-
-        monkeypatch.setattr(
-            "hestai_mcp.ai.config.get_yaml_config_path",
-            lambda: tmp_path / "nonexistent.yaml",
-        )
-        monkeypatch.setattr("hestai_mcp.ai.config.get_json_config_path", lambda: json_file)
 
         config = load_config()
 
         # Should have loaded defaults
         assert isinstance(config, TieredAIConfig)
-        assert "synthesis" in config.tiers
-        assert "analysis" in config.tiers
-        assert "critical" in config.tiers
-        assert config.default_tier == "synthesis"
-
-    def test_both_files_invalid_falls_back_to_defaults(self, monkeypatch, tmp_path):
-        """When both YAML and JSON have ValidationError, use defaults."""
-        yaml_file = tmp_path / "ai.yaml"
-        yaml_file.write_text(
-            yaml.dump(
-                {
-                    "tiers": {"synthesis": {"provider": "x", "model": "y"}},
-                    "default_tier": "missing",
-                }
-            )
-        )
-
-        json_file = tmp_path / "ai.json"
-        json_file.write_text(
-            json.dumps(
-                {
-                    "tiers": {"synthesis": {"provider": "x", "model": "y"}},
-                    "operations": {"op": "missing_tier"},
-                    "default_tier": "synthesis",
-                }
-            )
-        )
-
-        monkeypatch.setattr("hestai_mcp.ai.config.get_yaml_config_path", lambda: yaml_file)
-        monkeypatch.setattr("hestai_mcp.ai.config.get_json_config_path", lambda: json_file)
-
-        config = load_config()
-
-        # Should have loaded defaults
         assert "synthesis" in config.tiers
         assert "analysis" in config.tiers
         assert "critical" in config.tiers
