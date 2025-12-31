@@ -1,5 +1,5 @@
 """
-Tests for async-first AIClient implementation.
+Tests for async-first AIClient implementation with tiered configuration.
 
 SS-I2 Compliance: All provider calls, MCP tool invocations, and I/O operations
 must be async. No blocking calls in the MCP server event loop.
@@ -14,7 +14,7 @@ import httpx
 import pytest
 
 from hestai_mcp.ai.client import AIClient
-from hestai_mcp.ai.config import AIConfig, ProviderConfig
+from hestai_mcp.ai.config import TierConfig, TieredAIConfig
 from hestai_mcp.ai.providers.base import CompletionRequest
 
 
@@ -59,8 +59,14 @@ class TestAIClientAsyncBehavior:
             assert hasattr(c._async_client, "aclose")
 
     @pytest.mark.asyncio
-    async def test_complete_text_without_api_key_raises(self):
+    async def test_complete_text_without_api_key_raises(self, monkeypatch):
         """complete_text raises ValueError when no API key is configured."""
+        # Ensure the test is hermetic even if the developer machine has keys in env/keyring.
+        monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        monkeypatch.setattr("keyring.get_password", lambda *_args, **_kwargs: None)
+
         client = AIClient()
         request = CompletionRequest(
             system_prompt="Test system prompt",
@@ -73,10 +79,10 @@ class TestAIClientAsyncBehavior:
                 await client.complete_text(request)
 
     @pytest.mark.asyncio
-    async def test_fallback_chain_async(self, mock_httpx_async_timeout, monkeypatch):
-        """Fallback chain must work asynchronously (SS-I2)."""
+    async def test_tier_request_timeout(self, mock_httpx_async_timeout, monkeypatch):
+        """Tier request with timeout raises TimeoutException."""
         # Set a fake API key so the provider is tried
-        monkeypatch.setenv("OPENAI_API_KEY", "fake-key-for-testing")
+        monkeypatch.setenv("OPENROUTER_API_KEY", "fake-key-for-testing")
 
         client = AIClient()
         request = CompletionRequest(
@@ -84,9 +90,9 @@ class TestAIClientAsyncBehavior:
             user_prompt="Test",
         )
 
-        # When all providers timeout, should raise TimeoutException or ValueError
+        # When provider times out, should raise TimeoutException
         async with client:
-            with pytest.raises((httpx.TimeoutException, ValueError)):
+            with pytest.raises(httpx.TimeoutException):
                 await client.complete_text(request)
 
 
@@ -206,15 +212,31 @@ def mock_httpx_async_timeout(monkeypatch):
 
 
 @pytest.fixture
-def openai_config():
-    """Create AIConfig with OpenAI as primary provider.
+def openai_tiered_config():
+    """Create TieredAIConfig with OpenAI as provider for all tiers.
 
     The default config uses openrouter, but our tests mock OpenAI responses.
     This ensures AIClient uses the openai provider so OPENAI_API_KEY is resolved.
     """
-    return AIConfig(
-        primary=ProviderConfig(provider="openai", model="gpt-4o"),
-        fallback=[],
+    return TieredAIConfig(
+        tiers={
+            "synthesis": TierConfig(
+                provider="openai",
+                model="gpt-4o-mini",
+                description="Fast model",
+            ),
+            "analysis": TierConfig(
+                provider="openai",
+                model="gpt-4o",
+                description="Analysis model",
+            ),
+            "critical": TierConfig(
+                provider="openai",
+                model="gpt-4o",
+                description="Critical model",
+            ),
+        },
+        default_tier="synthesis",
     )
 
 
@@ -278,12 +300,80 @@ class TestMockIntegrity:
 
 
 @pytest.mark.unit
+class TestAIClientWithTiers:
+    """Test AIClient with tiered configuration."""
+
+    @pytest.mark.asyncio
+    async def test_complete_text_uses_default_tier(
+        self, mock_httpx_async_response, monkeypatch, openai_tiered_config
+    ):
+        """complete_text without tier argument uses default_tier."""
+        expected_content = "Response from default tier"
+        mock_httpx_async_response.configure_response(expected_content, 200)
+        monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+
+        client = AIClient(config=openai_tiered_config)
+        request = CompletionRequest(
+            system_prompt="System",
+            user_prompt="User",
+        )
+
+        async with client:
+            result = await client.complete_text(request)
+
+        assert result == expected_content
+
+    @pytest.mark.asyncio
+    async def test_complete_text_uses_specified_tier(
+        self, mock_httpx_async_response, monkeypatch, openai_tiered_config
+    ):
+        """complete_text with tier argument uses that tier's config."""
+        expected_content = "Response from critical tier"
+        mock_httpx_async_response.configure_response(expected_content, 200)
+        monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+
+        client = AIClient(config=openai_tiered_config)
+        request = CompletionRequest(
+            system_prompt="System",
+            user_prompt="User",
+        )
+
+        async with client:
+            result = await client.complete_text(request, tier="critical")
+
+        assert result == expected_content
+
+    @pytest.mark.asyncio
+    async def test_complete_text_missing_tier_raises_keyerror(
+        self, mock_httpx_async_response, monkeypatch
+    ):
+        """complete_text with unconfigured tier raises KeyError."""
+        monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+
+        # Config with only synthesis tier
+        config = TieredAIConfig(
+            tiers={
+                "synthesis": TierConfig(provider="openai", model="gpt-4o-mini"),
+            },
+        )
+        client = AIClient(config=config)
+        request = CompletionRequest(
+            system_prompt="System",
+            user_prompt="User",
+        )
+
+        async with client:
+            with pytest.raises(KeyError, match="critical"):
+                await client.complete_text(request, tier="critical")
+
+
+@pytest.mark.unit
 class TestAIClientFullCallChain:
     """Test full call chain: AIClient -> Provider -> httpx (intercepted by mock)."""
 
     @pytest.mark.asyncio
     async def test_complete_text_full_chain_success(
-        self, mock_httpx_async_response, monkeypatch, openai_config
+        self, mock_httpx_async_response, monkeypatch, openai_tiered_config
     ):
         """Verify AIClient.complete_text calls through to provider and returns response.
 
@@ -302,8 +392,8 @@ class TestAIClientFullCallChain:
         # Set API key so provider is enabled
         monkeypatch.setenv("OPENAI_API_KEY", "test-api-key-for-testing")
 
-        # Use openai_config to ensure OpenAI provider is primary
-        client = AIClient(config=openai_config)
+        # Use openai_tiered_config to ensure OpenAI provider is used
+        client = AIClient(config=openai_tiered_config)
         request = CompletionRequest(
             system_prompt="You are a helpful assistant",
             user_prompt="Hello, how are you?",
@@ -332,35 +422,31 @@ class TestAIClientFullCallChain:
         ), "Request should be to chat completions endpoint"
 
     @pytest.mark.asyncio
-    async def test_complete_text_without_context_manager(
-        self, mock_httpx_async_response, monkeypatch, openai_config
+    async def test_complete_text_without_context_manager_raises(
+        self, mock_httpx_async_response, monkeypatch, openai_tiered_config
     ):
-        """Verify complete_text works without async context manager (temporary client)."""
-        expected_content = "Response via temporary client"
-        mock_httpx_async_response.configure_response(expected_content, 200)
+        """Verify complete_text raises RuntimeError without async context manager."""
         monkeypatch.setenv("OPENAI_API_KEY", "test-api-key")
 
         # Create client but don't use async context manager
-        client = AIClient(config=openai_config)
+        client = AIClient(config=openai_tiered_config)
         request = CompletionRequest(
             system_prompt="Test",
             user_prompt="Test prompt",
         )
 
-        # complete_text should create temporary client internally
-        result = await client.complete_text(request)
-
-        assert result == expected_content
-        assert len(mock_httpx_async_response.requests_made) >= 1
+        # complete_text should raise RuntimeError
+        with pytest.raises(RuntimeError, match="within an 'async with' block"):
+            await client.complete_text(request)
 
     @pytest.mark.asyncio
     async def test_internal_async_client_isinstance_check(
-        self, mock_httpx_async_response, monkeypatch, openai_config
+        self, mock_httpx_async_response, monkeypatch, openai_tiered_config
     ):
         """Verify _async_client passes isinstance checks inside AIClient."""
         monkeypatch.setenv("OPENAI_API_KEY", "test-key")
 
-        client = AIClient(config=openai_config)
+        client = AIClient(config=openai_tiered_config)
 
         async with client as c:
             # CRITICAL: The internal client must be a real httpx.AsyncClient
@@ -373,14 +459,14 @@ class TestAIClientFullCallChain:
 
     @pytest.mark.asyncio
     async def test_request_headers_contain_authorization(
-        self, mock_httpx_async_response, monkeypatch, openai_config
+        self, mock_httpx_async_response, monkeypatch, openai_tiered_config
     ):
         """Verify provider sends correct Authorization header."""
         mock_httpx_async_response.configure_response("test", 200)
         test_api_key = "sk-test-key-12345"
         monkeypatch.setenv("OPENAI_API_KEY", test_api_key)
 
-        client = AIClient(config=openai_config)
+        client = AIClient(config=openai_tiered_config)
         request = CompletionRequest(
             system_prompt="System",
             user_prompt="User",
@@ -398,7 +484,7 @@ class TestAIClientFullCallChain:
 
     @pytest.mark.asyncio
     async def test_request_body_contains_prompts(
-        self, mock_httpx_async_response, monkeypatch, openai_config
+        self, mock_httpx_async_response, monkeypatch, openai_tiered_config
     ):
         """Verify provider sends correct request body with prompts."""
         mock_httpx_async_response.configure_response("test", 200)
@@ -407,7 +493,7 @@ class TestAIClientFullCallChain:
         system_prompt = "You are a code reviewer"
         user_prompt = "Review this function: def foo(): pass"
 
-        client = AIClient(config=openai_config)
+        client = AIClient(config=openai_tiered_config)
         request = CompletionRequest(
             system_prompt=system_prompt,
             user_prompt=user_prompt,
@@ -424,366 +510,44 @@ class TestAIClientFullCallChain:
         assert system_prompt in body_content, "Request body should contain system prompt"
         assert user_prompt in body_content, "Request body should contain user prompt"
 
-
-# =============================================================================
-# TMG Test Plan: Priority 0 - Critical Reliability Paths
-# =============================================================================
-
-
-class ConfigurableMockTransport(httpx.AsyncBaseTransport):
-    """Mock transport with per-request configurable responses.
-
-    Unlike MockTransportWithTracking which uses class-level state,
-    this transport allows configuring responses per-URL for testing
-    fallback chains where different providers return different responses.
-    """
-
-    def __init__(self, responses: dict[str, tuple[int, str | Exception]] | None = None):
-        """Initialize with response mapping.
-
-        Args:
-            responses: Dict mapping URL patterns to (status_code, content) or Exception.
-                       If content is an Exception, it will be raised.
-        """
-        self.responses = responses or {}
-        self.requests_made: list[httpx.Request] = []
-        self.default_response: tuple[int, str] = (200, "Default response")
-
-    def set_response(self, url_pattern: str, status: int, content: str) -> None:
-        """Set response for URLs matching pattern."""
-        self.responses[url_pattern] = (status, content)
-
-    def set_exception(self, url_pattern: str, exception: Exception) -> None:
-        """Set exception to raise for URLs matching pattern."""
-        self.responses[url_pattern] = (0, exception)
-
-    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
-        """Handle async request with URL-based response selection."""
-        self.requests_made.append(request)
-        url_str = str(request.url)
-
-        # Check for matching URL pattern
-        for pattern, response_config in self.responses.items():
-            if pattern in url_str:
-                status_or_exc, content = response_config
-                if isinstance(content, Exception):
-                    raise content
-                return httpx.Response(
-                    status_or_exc,
-                    json={"choices": [{"message": {"content": content}}]},
-                    request=request,
-                )
-
-        # Default response
-        status, content = self.default_response
-        return httpx.Response(
-            status,
-            json={"choices": [{"message": {"content": content}}]},
-            request=request,
-        )
-
-
-@pytest.fixture
-def configurable_transport():
-    """Create a configurable mock transport."""
-    return ConfigurableMockTransport()
-
-
-@pytest.fixture
-def mock_httpx_with_transport(monkeypatch, configurable_transport):
-    """Mock httpx.AsyncClient with configurable transport."""
-
-    def create_client(**kwargs):
-        filtered_kwargs = {k: v for k, v in kwargs.items() if k != "transport"}
-        return _RealAsyncClient(transport=configurable_transport, **filtered_kwargs)
-
-    monkeypatch.setattr("httpx.AsyncClient", create_client)
-    monkeypatch.setattr("hestai_mcp.ai.client.httpx.AsyncClient", create_client)
-
-    return configurable_transport
-
-
-@pytest.mark.unit
-class TestNonRetryableErrorHaltsChain:
-    """Test client.py:163-164 - Non-retryable errors halt fallback chain immediately."""
-
     @pytest.mark.asyncio
-    async def test_http_401_halts_chain_no_fallback(self, mock_httpx_with_transport, monkeypatch):
-        """HTTP 401 (Unauthorized) should raise immediately, NO fallback attempt.
+    async def test_tier_model_overrides_request_model(self, mock_httpx_async_response, monkeypatch):
+        """Verify tier's model is used, not the request's model field."""
+        mock_httpx_async_response.configure_response("test", 200)
+        monkeypatch.setenv("OPENAI_API_KEY", "test-key")
 
-        Target: client.py:162-164 (_is_retryable_error returns False for 4xx)
-        """
-        monkeypatch.setenv("OPENAI_API_KEY", "invalid-key")
-        monkeypatch.setenv("OPENROUTER_API_KEY", "backup-key")
-
-        # Configure OpenAI to return 401
-        mock_httpx_with_transport.set_response("api.openai.com", 401, "Unauthorized")
-        # Configure OpenRouter to succeed (should NOT be called)
-        mock_httpx_with_transport.set_response("openrouter.ai", 200, "Fallback success")
-
-        config = AIConfig(
-            primary=ProviderConfig(provider="openai", model="gpt-4o"),
-            fallback=[ProviderConfig(provider="openrouter", model="claude-3.5-sonnet")],
+        # Create config with specific model for synthesis tier
+        config = TieredAIConfig(
+            tiers={
+                "synthesis": TierConfig(
+                    provider="openai",
+                    model="gpt-4o-mini",  # This model should be used
+                ),
+            },
         )
+
         client = AIClient(config=config)
         request = CompletionRequest(
-            system_prompt="Test",
-            user_prompt="Test",
+            system_prompt="System",
+            user_prompt="User",
+            model="gpt-3.5-turbo",  # This should be overridden
         )
 
-        # Act & Assert - should raise HTTPStatusError, not fall back
         async with client:
-            with pytest.raises(httpx.HTTPStatusError) as exc_info:
-                await client.complete_text(request)
+            await client.complete_text(request)
 
-        # Verify 401 error
-        assert exc_info.value.response.status_code == 401
-
-        # CRITICAL: Verify only ONE request was made (no fallback attempted)
-        assert len(mock_httpx_with_transport.requests_made) == 1
-        assert "api.openai.com" in str(mock_httpx_with_transport.requests_made[0].url)
-
-    @pytest.mark.asyncio
-    async def test_http_403_halts_chain(self, mock_httpx_with_transport, monkeypatch):
-        """HTTP 403 (Forbidden) should also halt chain immediately."""
-        monkeypatch.setenv("OPENAI_API_KEY", "test-key")
-        monkeypatch.setenv("OPENROUTER_API_KEY", "backup-key")
-
-        mock_httpx_with_transport.set_response("api.openai.com", 403, "Forbidden")
-        mock_httpx_with_transport.set_response("openrouter.ai", 200, "Success")
-
-        config = AIConfig(
-            primary=ProviderConfig(provider="openai", model="gpt-4o"),
-            fallback=[ProviderConfig(provider="openrouter", model="model")],
-        )
-        client = AIClient(config=config)
-        request = CompletionRequest(system_prompt="Test", user_prompt="Test")
-
-        async with client:
-            with pytest.raises(httpx.HTTPStatusError) as exc_info:
-                await client.complete_text(request)
-
-        assert exc_info.value.response.status_code == 403
-        assert len(mock_httpx_with_transport.requests_made) == 1
-
-    @pytest.mark.asyncio
-    async def test_http_400_halts_chain(self, mock_httpx_with_transport, monkeypatch):
-        """HTTP 400 (Bad Request) should halt chain immediately."""
-        monkeypatch.setenv("OPENAI_API_KEY", "test-key")
-
-        mock_httpx_with_transport.set_response("api.openai.com", 400, "Bad Request")
-
-        config = AIConfig(
-            primary=ProviderConfig(provider="openai", model="gpt-4o"),
-            fallback=[],
-        )
-        client = AIClient(config=config)
-        request = CompletionRequest(system_prompt="Test", user_prompt="Test")
-
-        async with client:
-            with pytest.raises(httpx.HTTPStatusError) as exc_info:
-                await client.complete_text(request)
-
-        assert exc_info.value.response.status_code == 400
-
-
-@pytest.mark.unit
-class TestRetryableErrorTriggersFallback:
-    """Test client.py:94-102 - Retryable errors trigger fallback chain."""
-
-    @pytest.mark.asyncio
-    async def test_http_503_triggers_fallback_to_secondary(
-        self, mock_httpx_with_transport, monkeypatch
-    ):
-        """HTTP 503 (Service Unavailable) should trigger fallback to secondary provider.
-
-        Target: client.py:94-102 (_is_retryable_error returns True for 5xx)
-        """
-        monkeypatch.setenv("OPENAI_API_KEY", "primary-key")
-        monkeypatch.setenv("OPENROUTER_API_KEY", "secondary-key")
-
-        # Primary returns 503, Secondary succeeds
-        mock_httpx_with_transport.set_response("api.openai.com", 503, "Service Unavailable")
-        mock_httpx_with_transport.set_response("openrouter.ai", 200, "Fallback succeeded!")
-
-        config = AIConfig(
-            primary=ProviderConfig(provider="openai", model="gpt-4o"),
-            fallback=[ProviderConfig(provider="openrouter", model="claude-3.5-sonnet")],
-        )
-        client = AIClient(config=config)
-        request = CompletionRequest(system_prompt="Test", user_prompt="Test")
-
-        # Act
-        async with client:
-            result = await client.complete_text(request)
-
-        # Assert - should succeed via fallback
-        assert result == "Fallback succeeded!"
-
-        # Verify both providers were attempted
-        assert len(mock_httpx_with_transport.requests_made) == 2
-        assert "api.openai.com" in str(mock_httpx_with_transport.requests_made[0].url)
-        assert "openrouter.ai" in str(mock_httpx_with_transport.requests_made[1].url)
-
-    @pytest.mark.asyncio
-    async def test_http_500_triggers_fallback(self, mock_httpx_with_transport, monkeypatch):
-        """HTTP 500 (Internal Server Error) should trigger fallback."""
-        monkeypatch.setenv("OPENAI_API_KEY", "primary-key")
-        monkeypatch.setenv("OPENROUTER_API_KEY", "secondary-key")
-
-        mock_httpx_with_transport.set_response("api.openai.com", 500, "Internal Error")
-        mock_httpx_with_transport.set_response("openrouter.ai", 200, "Recovery success")
-
-        config = AIConfig(
-            primary=ProviderConfig(provider="openai", model="gpt-4o"),
-            fallback=[ProviderConfig(provider="openrouter", model="model")],
-        )
-        client = AIClient(config=config)
-        request = CompletionRequest(system_prompt="Test", user_prompt="Test")
-
-        async with client:
-            result = await client.complete_text(request)
-
-        assert result == "Recovery success"
-        assert len(mock_httpx_with_transport.requests_made) == 2
-
-    @pytest.mark.asyncio
-    async def test_timeout_triggers_fallback(self, monkeypatch):
-        """Timeout exceptions should trigger fallback.
-
-        Target: client.py:94-95 (TimeoutException is retryable)
-        """
-        monkeypatch.setenv("OPENAI_API_KEY", "primary-key")
-        monkeypatch.setenv("OPENROUTER_API_KEY", "secondary-key")
-
-        # Create transport that times out for OpenAI but works for OpenRouter
-        transport = ConfigurableMockTransport()
-        timeout_exc = httpx.TimeoutException("Connection timed out")
-        transport.set_exception("api.openai.com", timeout_exc)
-        transport.set_response("openrouter.ai", 200, "Fallback after timeout")
-
-        def create_client(**kwargs):
-            filtered_kwargs = {k: v for k, v in kwargs.items() if k != "transport"}
-            return _RealAsyncClient(transport=transport, **filtered_kwargs)
-
-        monkeypatch.setattr("httpx.AsyncClient", create_client)
-        monkeypatch.setattr("hestai_mcp.ai.client.httpx.AsyncClient", create_client)
-
-        config = AIConfig(
-            primary=ProviderConfig(provider="openai", model="gpt-4o"),
-            fallback=[ProviderConfig(provider="openrouter", model="model")],
-        )
-        client = AIClient(config=config)
-        request = CompletionRequest(system_prompt="Test", user_prompt="Test")
-
-        async with client:
-            result = await client.complete_text(request)
-
-        assert result == "Fallback after timeout"
-
-    @pytest.mark.asyncio
-    async def test_connect_error_triggers_fallback(self, monkeypatch):
-        """Connection errors should trigger fallback.
-
-        Target: client.py:94 (ConnectError is retryable)
-        """
-        monkeypatch.setenv("OPENAI_API_KEY", "primary-key")
-        monkeypatch.setenv("OPENROUTER_API_KEY", "secondary-key")
-
-        transport = ConfigurableMockTransport()
-        connect_exc = httpx.ConnectError("Connection refused")
-        transport.set_exception("api.openai.com", connect_exc)
-        transport.set_response("openrouter.ai", 200, "Fallback after connect error")
-
-        def create_client(**kwargs):
-            filtered_kwargs = {k: v for k, v in kwargs.items() if k != "transport"}
-            return _RealAsyncClient(transport=transport, **filtered_kwargs)
-
-        monkeypatch.setattr("httpx.AsyncClient", create_client)
-        monkeypatch.setattr("hestai_mcp.ai.client.httpx.AsyncClient", create_client)
-
-        config = AIConfig(
-            primary=ProviderConfig(provider="openai", model="gpt-4o"),
-            fallback=[ProviderConfig(provider="openrouter", model="model")],
-        )
-        client = AIClient(config=config)
-        request = CompletionRequest(system_prompt="Test", user_prompt="Test")
-
-        async with client:
-            result = await client.complete_text(request)
-
-        assert result == "Fallback after connect error"
-
-
-@pytest.mark.unit
-class TestAllProvidersFail:
-    """Test client.py:170-171 - When all providers fail, raise LAST exception."""
-
-    @pytest.mark.asyncio
-    async def test_all_providers_fail_raises_last_exception(
-        self, mock_httpx_with_transport, monkeypatch
-    ):
-        """When all providers return 5xx, raise the LAST exception (from final provider).
-
-        Target: client.py:170-171
-        """
-        monkeypatch.setenv("OPENAI_API_KEY", "primary-key")
-        monkeypatch.setenv("OPENROUTER_API_KEY", "secondary-key")
-
-        # Both providers return 5xx errors
-        mock_httpx_with_transport.set_response("api.openai.com", 500, "Primary failed")
-        mock_httpx_with_transport.set_response("openrouter.ai", 502, "Secondary failed")
-
-        config = AIConfig(
-            primary=ProviderConfig(provider="openai", model="gpt-4o"),
-            fallback=[ProviderConfig(provider="openrouter", model="model")],
-        )
-        client = AIClient(config=config)
-        request = CompletionRequest(system_prompt="Test", user_prompt="Test")
-
-        async with client:
-            with pytest.raises(httpx.HTTPStatusError) as exc_info:
-                await client.complete_text(request)
-
-        # CRITICAL: Should be the LAST error (502 from secondary), not the first (500)
-        assert exc_info.value.response.status_code == 502
-
-        # Verify both providers were tried
-        assert len(mock_httpx_with_transport.requests_made) == 2
-
-    @pytest.mark.asyncio
-    async def test_multiple_fallbacks_all_fail(self, mock_httpx_with_transport, monkeypatch):
-        """With multiple fallbacks, all failing, raise last exception."""
-        monkeypatch.setenv("OPENAI_API_KEY", "key1")
-        monkeypatch.setenv("OPENROUTER_API_KEY", "key2")
-
-        mock_httpx_with_transport.set_response("api.openai.com", 503, "First failed")
-        mock_httpx_with_transport.set_response("openrouter.ai", 504, "Last failed")
-
-        config = AIConfig(
-            primary=ProviderConfig(provider="openai", model="gpt-4o"),
-            fallback=[ProviderConfig(provider="openrouter", model="model")],
-        )
-        client = AIClient(config=config)
-        request = CompletionRequest(system_prompt="Test", user_prompt="Test")
-
-        async with client:
-            with pytest.raises(httpx.HTTPStatusError) as exc_info:
-                await client.complete_text(request)
-
-        # Should be 504 (last error)
-        assert exc_info.value.response.status_code == 504
+        # Verify the tier's model was used
+        intercepted_request = mock_httpx_async_response.requests_made[0]
+        body_content = intercepted_request.content.decode("utf-8")
+        assert "gpt-4o-mini" in body_content, "Tier model should override request model"
 
 
 @pytest.mark.unit
 class TestUnsupportedProvider:
-    """Test client.py:78-79 - Unsupported provider raises ValueError."""
+    """Test client.py - Unsupported provider raises ValueError."""
 
     def test_get_provider_unknown_raises_valueerror(self):
-        """_get_provider with unknown provider name should raise ValueError.
-
-        Target: client.py:78-79
-        """
+        """_get_provider with unknown provider name should raise ValueError."""
         client = AIClient()
 
         with pytest.raises(ValueError) as exc_info:
@@ -826,7 +590,7 @@ class TestUnsupportedProvider:
 
 @pytest.mark.unit
 class TestIsRetryableError:
-    """Test client.py:84-102 - _is_retryable_error logic."""
+    """Test client.py - _is_retryable_error logic."""
 
     def test_timeout_exception_is_retryable(self):
         """TimeoutException should be retryable."""

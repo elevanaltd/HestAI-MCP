@@ -17,6 +17,7 @@ class CompletionRequest(BaseModel):
 
     system_prompt: str
     user_prompt: str
+    model: str = "gpt-4o"  # Default model, should be overridden by tier config
     max_tokens: int = 4096
     temperature: float = 0.7
     timeout_seconds: int = 30
