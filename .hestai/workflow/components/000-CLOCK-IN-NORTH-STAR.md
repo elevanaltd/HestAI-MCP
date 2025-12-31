@@ -106,7 +106,7 @@ the agent with the information needed to begin working effectively.
 |----------|------------------|-----------------|
 | **Context Sources** | Must gather comprehensive context (CI-I3) | Which tools used (Repomix, Dependency Cruiser, etc.) |
 | **Focus Resolution** | Must resolve from somewhere | Priority order: explicit arg > GitHub issue > branch name > "general" |
-| **AI Model** | Must use async (SS-I2) | Configurable via ~/.hestai/config/ai.json |
+| **AI Model** | Must use async (SS-I2) | Configurable via ~/.hestai/config/ai.yaml or .env |
 | **AI Prompts** | Must be versioned and auditable (SS-I5) | Prompt text content |
 | **Session Storage** | Must create session record | Format (JSON in active/, OCTAVE in archive/) |
 | **FAST Layer Format** | Must be OCTAVE (ADR-0046) | Schema evolution within OCTAVE constraints |

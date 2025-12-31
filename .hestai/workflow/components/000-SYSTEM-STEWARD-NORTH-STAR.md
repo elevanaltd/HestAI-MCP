@@ -192,7 +192,7 @@ STEP_5: Return context_paths to agent
 ### Phase 1 (MVP)
 - Wire Repomix MCP into clock_in for whole-repo visibility
 - Wire OCTAVE MCP for output validation
-- Make AI model configurable via ~/.hestai/config/ai.json
+- Make AI model configurable via ~/.hestai/config/ai.yaml or .env
 - Implement async AIClient with provider fallback
 
 ### Phase 2 (Context Intelligence)

@@ -7,9 +7,8 @@ Supports tiered AI configuration for different use cases:
 
 Configuration is loaded from:
 1. ~/.hestai/config/ai.yaml (preferred, supports tiers)
-2. ~/.hestai/config/ai.json (legacy format, auto-converted to tiered)
-3. .env file (for API keys and defaults)
-4. Environment variables (fallback defaults)
+2. .env file (for API keys and defaults)
+3. Environment variables (fallback defaults)
 
 API keys are resolved from:
 1. Keyring (secure, production)
@@ -17,7 +16,6 @@ API keys are resolved from:
 """
 
 import asyncio
-import json
 import logging
 import os
 from pathlib import Path
@@ -156,15 +154,6 @@ def get_yaml_config_path() -> Path:
     return get_config_dir() / "ai.yaml"
 
 
-def get_json_config_path() -> Path:
-    """Get the path to the legacy JSON AI config file.
-
-    Returns:
-        Path to ~/.hestai/config/ai.json
-    """
-    return get_config_dir() / "ai.json"
-
-
 def _get_default_tiered_config() -> TieredAIConfig:
     """Get default tiered configuration.
 
@@ -205,16 +194,14 @@ def _get_default_tiered_config() -> TieredAIConfig:
 def load_config() -> TieredAIConfig:
     """Load tiered AI configuration from disk.
 
-    Tries YAML first, then falls back to JSON (auto-converts legacy format),
-    then returns defaults.
+    Tries YAML config first, then returns defaults from environment/.env.
 
     Returns:
         TieredAIConfig instance
     """
     yaml_path = get_yaml_config_path()
-    json_path = get_json_config_path()
 
-    # Try YAML config first (preferred)
+    # Try YAML config (preferred)
     if yaml_path.exists():
         try:
             config_data = yaml.safe_load(yaml_path.read_text())
@@ -222,42 +209,9 @@ def load_config() -> TieredAIConfig:
                 logger.info(f"Loaded AI config from {yaml_path}")
                 return TieredAIConfig(**config_data)
         except (yaml.YAMLError, TypeError, ValidationError) as e:
-            logger.warning(f"Invalid YAML in {yaml_path}: {e}, trying JSON fallback")
+            logger.warning(f"Invalid YAML in {yaml_path}: {e}, using defaults")
 
-    # Try legacy JSON config
-    if json_path.exists():
-        try:
-            config_data = json.loads(json_path.read_text())
-            # Convert legacy format to tiered format
-            if "primary" in config_data:
-                primary = config_data["primary"]
-                logger.info(f"Loaded legacy AI config from {json_path}, converting to tiered")
-                return TieredAIConfig(
-                    tiers={
-                        "synthesis": TierConfig(
-                            provider=primary["provider"],
-                            model=primary["model"],
-                            description="Converted from legacy primary config",
-                        ),
-                        "analysis": TierConfig(
-                            provider=primary["provider"],
-                            model=primary["model"],
-                            description="Converted from legacy primary config",
-                        ),
-                        "critical": TierConfig(
-                            provider=primary["provider"],
-                            model=primary["model"],
-                            description="Converted from legacy primary config",
-                        ),
-                    },
-                    timeouts=TimeoutConfig(**config_data.get("timeouts", {})),
-                )
-            # Already tiered format in JSON
-            return TieredAIConfig(**config_data)
-        except (json.JSONDecodeError, TypeError, ValidationError) as e:
-            logger.warning(f"Invalid JSON in {json_path}: {e}, using defaults")
-
-    # Return defaults
+    # Return defaults (from .env or built-in)
     logger.info("No AI config found, using defaults (configure at ~/.hestai/config/ai.yaml)")
     return _get_default_tiered_config()
 
