@@ -32,6 +32,17 @@ tiers:
 default_tier: synthesis
 
 # =============================================================================
+# OPERATION TIER MAPPING
+# =============================================================================
+# Map specific operations to tiers. Operations not listed use default_tier.
+# This allows fine-grained control over which model handles each operation.
+
+operations:
+  clock_in_synthesis: synthesis   # Fast context generation on session start
+  context_update: synthesis       # Context updates during session
+  document_analysis: analysis     # Deeper document analysis
+
+# =============================================================================
 # TIMEOUT SETTINGS
 # =============================================================================
 

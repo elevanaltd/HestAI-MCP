@@ -466,3 +466,253 @@ class TestTimeoutConfig:
 
         assert config.connect_seconds == 10
         assert config.request_seconds == 120
+
+
+@pytest.mark.unit
+class TestOperationTierMapping:
+    """Test operation-to-tier mapping in TieredAIConfig."""
+
+    def test_get_operation_tier_returns_configured_tier(self):
+        """When operation is configured, return its tier."""
+        config = TieredAIConfig(
+            tiers={
+                "synthesis": TierConfig(provider="x", model="y"),
+                "analysis": TierConfig(provider="x", model="z"),
+            },
+            operations={"clock_in_synthesis": "analysis"},  # Configured to use analysis
+        )
+
+        result = config.get_operation_tier("clock_in_synthesis")
+
+        assert result == "analysis"
+
+    def test_get_operation_tier_falls_back_to_default(self):
+        """When operation not configured, return default_tier."""
+        config = TieredAIConfig(
+            tiers={"synthesis": TierConfig(provider="x", model="y")},
+            operations={},  # No operations configured
+            default_tier="synthesis",
+        )
+
+        result = config.get_operation_tier("unknown_operation")
+
+        assert result == "synthesis"
+
+    def test_operations_field_defaults_to_empty(self):
+        """Operations field should default to empty dict."""
+        config = TieredAIConfig()
+
+        assert config.operations == {}
+
+    def test_get_operation_tier_with_all_standard_operations(self):
+        """Test all standard operations return expected tiers."""
+        config = TieredAIConfig(
+            tiers={
+                "synthesis": TierConfig(provider="x", model="fast"),
+                "analysis": TierConfig(provider="x", model="balanced"),
+                "critical": TierConfig(provider="x", model="best"),
+            },
+            operations={
+                "clock_in_synthesis": "synthesis",
+                "context_update": "synthesis",
+                "document_analysis": "analysis",
+            },
+            default_tier="synthesis",
+        )
+
+        assert config.get_operation_tier("clock_in_synthesis") == "synthesis"
+        assert config.get_operation_tier("context_update") == "synthesis"
+        assert config.get_operation_tier("document_analysis") == "analysis"
+        # Unmapped operations fall back to default
+        assert config.get_operation_tier("unknown") == "synthesis"
+
+
+@pytest.mark.unit
+class TestTierReferenceValidation:
+    """Test model_validator for tier reference validation."""
+
+    def test_invalid_default_tier_raises_validation_error(self):
+        """When default_tier references a non-existent tier, raise ValidationError."""
+        with pytest.raises(ValidationError) as exc_info:
+            TieredAIConfig(
+                tiers={
+                    "synthesis": TierConfig(provider="x", model="y"),
+                },
+                default_tier="analysis",  # Does not exist in tiers
+            )
+
+        error_message = str(exc_info.value)
+        assert "default_tier" in error_message
+        assert "analysis" in error_message
+        assert "synthesis" in error_message
+
+    def test_operation_mapping_to_nonexistent_tier_raises_validation_error(self):
+        """When operation maps to non-existent tier, raise ValidationError."""
+        with pytest.raises(ValidationError) as exc_info:
+            TieredAIConfig(
+                tiers={
+                    "synthesis": TierConfig(provider="x", model="y"),
+                },
+                operations={
+                    "clock_in": "analysis",  # Maps to non-existent tier
+                },
+                default_tier="synthesis",
+            )
+
+        error_message = str(exc_info.value)
+        assert "clock_in" in error_message
+        assert "analysis" in error_message
+
+    def test_empty_tiers_skips_validation(self):
+        """Empty tiers dict should not trigger validation errors."""
+        # Should not raise - empty config is valid
+        config = TieredAIConfig(
+            tiers={},
+            default_tier="synthesis",  # Would be invalid if tiers were non-empty
+        )
+
+        assert config.default_tier == "synthesis"
+
+    def test_valid_tier_references_passes_validation(self):
+        """Valid tier references should pass validation."""
+        # Should not raise
+        config = TieredAIConfig(
+            tiers={
+                "synthesis": TierConfig(provider="x", model="fast"),
+                "analysis": TierConfig(provider="x", model="balanced"),
+                "critical": TierConfig(provider="x", model="best"),
+            },
+            operations={
+                "clock_in": "synthesis",
+                "deep_analysis": "analysis",
+                "important_decision": "critical",
+            },
+            default_tier="synthesis",
+        )
+
+        assert len(config.tiers) == 3
+        assert len(config.operations) == 3
+
+
+@pytest.mark.unit
+class TestValidationErrorFallback:
+    """Test that ValidationError in config files falls back gracefully."""
+
+    def test_yaml_with_invalid_tier_reference_falls_back_to_json(self, monkeypatch, tmp_path):
+        """YAML with invalid tier reference should fall back to JSON."""
+        yaml_file = tmp_path / "ai.yaml"
+        # This YAML has valid syntax but invalid tier reference
+        invalid_yaml_config = {
+            "tiers": {
+                "synthesis": {"provider": "openrouter", "model": "fast"},
+            },
+            "default_tier": "nonexistent",  # Invalid - doesn't exist in tiers
+        }
+        yaml_file.write_text(yaml.dump(invalid_yaml_config))
+
+        json_file = tmp_path / "ai.json"
+        valid_json_config = {
+            "tiers": {
+                "synthesis": {"provider": "openrouter", "model": "from-json"},
+            },
+            "default_tier": "synthesis",  # Valid
+        }
+        json_file.write_text(json.dumps(valid_json_config))
+
+        monkeypatch.setattr("hestai_mcp.ai.config.get_yaml_config_path", lambda: yaml_file)
+        monkeypatch.setattr("hestai_mcp.ai.config.get_json_config_path", lambda: json_file)
+
+        config = load_config()
+
+        # Should have loaded from JSON fallback
+        assert config.tiers["synthesis"].model == "from-json"
+
+    def test_yaml_with_invalid_operation_mapping_falls_back_to_json(self, monkeypatch, tmp_path):
+        """YAML with invalid operation tier mapping should fall back to JSON."""
+        yaml_file = tmp_path / "ai.yaml"
+        invalid_yaml_config = {
+            "tiers": {
+                "synthesis": {"provider": "openrouter", "model": "fast"},
+            },
+            "operations": {
+                "clock_in": "analysis",  # Invalid - analysis not in tiers
+            },
+            "default_tier": "synthesis",
+        }
+        yaml_file.write_text(yaml.dump(invalid_yaml_config))
+
+        json_file = tmp_path / "ai.json"
+        valid_json_config = {
+            "tiers": {
+                "synthesis": {"provider": "openrouter", "model": "from-json"},
+            },
+            "default_tier": "synthesis",
+        }
+        json_file.write_text(json.dumps(valid_json_config))
+
+        monkeypatch.setattr("hestai_mcp.ai.config.get_yaml_config_path", lambda: yaml_file)
+        monkeypatch.setattr("hestai_mcp.ai.config.get_json_config_path", lambda: json_file)
+
+        config = load_config()
+
+        # Should have loaded from JSON fallback
+        assert config.tiers["synthesis"].model == "from-json"
+
+    def test_json_with_validation_error_falls_back_to_defaults(self, monkeypatch, tmp_path):
+        """JSON with ValidationError should fall back to defaults."""
+        json_file = tmp_path / "ai.json"
+        invalid_json_config = {
+            "tiers": {
+                "synthesis": {"provider": "openrouter", "model": "fast"},
+            },
+            "default_tier": "nonexistent",  # Invalid tier reference
+        }
+        json_file.write_text(json.dumps(invalid_json_config))
+
+        monkeypatch.setattr(
+            "hestai_mcp.ai.config.get_yaml_config_path",
+            lambda: tmp_path / "nonexistent.yaml",
+        )
+        monkeypatch.setattr("hestai_mcp.ai.config.get_json_config_path", lambda: json_file)
+
+        config = load_config()
+
+        # Should have loaded defaults
+        assert isinstance(config, TieredAIConfig)
+        assert "synthesis" in config.tiers
+        assert "analysis" in config.tiers
+        assert "critical" in config.tiers
+        assert config.default_tier == "synthesis"
+
+    def test_both_files_invalid_falls_back_to_defaults(self, monkeypatch, tmp_path):
+        """When both YAML and JSON have ValidationError, use defaults."""
+        yaml_file = tmp_path / "ai.yaml"
+        yaml_file.write_text(
+            yaml.dump(
+                {
+                    "tiers": {"synthesis": {"provider": "x", "model": "y"}},
+                    "default_tier": "missing",
+                }
+            )
+        )
+
+        json_file = tmp_path / "ai.json"
+        json_file.write_text(
+            json.dumps(
+                {
+                    "tiers": {"synthesis": {"provider": "x", "model": "y"}},
+                    "operations": {"op": "missing_tier"},
+                    "default_tier": "synthesis",
+                }
+            )
+        )
+
+        monkeypatch.setattr("hestai_mcp.ai.config.get_yaml_config_path", lambda: yaml_file)
+        monkeypatch.setattr("hestai_mcp.ai.config.get_json_config_path", lambda: json_file)
+
+        config = load_config()
+
+        # Should have loaded defaults
+        assert "synthesis" in config.tiers
+        assert "analysis" in config.tiers
+        assert "critical" in config.tiers

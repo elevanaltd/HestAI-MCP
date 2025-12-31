@@ -10,8 +10,12 @@ from hestai_mcp.ai.config import (
     save_config,
 )
 
+# Backward compatibility alias
+AIConfig = TieredAIConfig
+
 __all__ = [
     "AIClient",
+    "AIConfig",  # Backward compatibility alias
     "TierConfig",
     "TieredAIConfig",
     "TimeoutConfig",

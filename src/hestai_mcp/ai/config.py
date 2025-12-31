@@ -25,7 +25,7 @@ from typing import Literal
 import keyring
 import keyring.errors
 import yaml
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError, model_validator
 
 logger = logging.getLogger(__name__)
 
@@ -61,11 +61,58 @@ class TieredAIConfig(BaseModel):
     - synthesis: Fast/cheap for routine context generation
     - analysis: Balanced for deeper analysis tasks
     - critical: Best available for high-stakes decisions
+
+    Operations can be mapped to specific tiers via the operations field,
+    allowing YAML-based configuration of which tier each operation uses.
     """
 
     tiers: dict[str, TierConfig] = Field(default_factory=dict)
+    operations: dict[str, AITier] = Field(default_factory=dict)
     default_tier: AITier = DEFAULT_TIER
     timeouts: TimeoutConfig = Field(default_factory=TimeoutConfig)
+
+    @model_validator(mode="after")
+    def validate_tier_references(self) -> "TieredAIConfig":
+        """Validate that all referenced tiers exist.
+
+        Ensures:
+        - default_tier exists in tiers (if tiers is non-empty)
+        - All operation mappings reference existing tiers
+
+        This catches configuration errors at load time rather than runtime.
+        """
+        tier_names = set(self.tiers.keys())
+
+        # Skip validation if no tiers configured (empty config)
+        if not tier_names:
+            return self
+
+        # Validate default_tier exists
+        if self.default_tier not in tier_names:
+            raise ValueError(f"default_tier '{self.default_tier}' not found in tiers: {tier_names}")
+
+        # Validate all operation mappings reference existing tiers
+        for operation, tier in self.operations.items():
+            if tier not in tier_names:
+                raise ValueError(
+                    f"Operation '{operation}' maps to unknown tier '{tier}'. "
+                    f"Available tiers: {tier_names}"
+                )
+
+        return self
+
+    def get_operation_tier(self, operation: str) -> AITier:
+        """Get the tier for a named operation.
+
+        Returns configured tier if operation is mapped, otherwise default_tier.
+
+        Args:
+            operation: The operation name (e.g., "clock_in_synthesis", "document_analysis")
+
+        Returns:
+            The AITier to use for this operation.
+        """
+        return self.operations.get(operation, self.default_tier)
 
     def get_tier_config(self, tier: AITier | None = None) -> TierConfig:
         """Get configuration for a specific tier.
@@ -139,6 +186,11 @@ def _get_default_tiered_config() -> TieredAIConfig:
                 description="High-capability model for critical decisions",
             ),
         },
+        operations={
+            "clock_in_synthesis": "synthesis",
+            "context_update": "synthesis",
+            "document_analysis": "analysis",
+        },
         default_tier="synthesis",
         timeouts=TimeoutConfig(),
     )
@@ -163,7 +215,7 @@ def load_config() -> TieredAIConfig:
             if config_data:
                 logger.info(f"Loaded AI config from {yaml_path}")
                 return TieredAIConfig(**config_data)
-        except (yaml.YAMLError, TypeError) as e:
+        except (yaml.YAMLError, TypeError, ValidationError) as e:
             logger.warning(f"Invalid YAML in {yaml_path}: {e}, trying JSON fallback")
 
     # Try legacy JSON config
@@ -196,7 +248,7 @@ def load_config() -> TieredAIConfig:
                 )
             # Already tiered format in JSON
             return TieredAIConfig(**config_data)
-        except (json.JSONDecodeError, TypeError) as e:
+        except (json.JSONDecodeError, TypeError, ValidationError) as e:
             logger.warning(f"Invalid JSON in {json_path}: {e}, using defaults")
 
     # Return defaults
