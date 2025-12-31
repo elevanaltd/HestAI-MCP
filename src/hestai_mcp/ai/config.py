@@ -8,11 +8,12 @@ Supports tiered AI configuration for different use cases:
 Configuration is loaded from:
 1. ~/.hestai/config/ai.yaml (preferred, supports tiers)
 2. ~/.hestai/config/ai.json (legacy format, auto-converted to tiered)
-3. Environment variables (fallback defaults)
+3. .env file (for API keys and defaults)
+4. Environment variables (fallback defaults)
 
 API keys are resolved from:
 1. Keyring (secure, production)
-2. Environment variables (development, CI)
+2. Environment variables / .env file (development, CI)
 """
 
 import asyncio
@@ -25,7 +26,12 @@ from typing import Literal
 import keyring
 import keyring.errors
 import yaml
+from dotenv import load_dotenv
 from pydantic import BaseModel, Field, ValidationError, model_validator
+
+# Load .env file if present (won't override existing env vars)
+# Searches current directory and parent directories
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
