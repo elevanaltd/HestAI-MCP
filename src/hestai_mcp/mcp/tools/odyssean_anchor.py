@@ -23,6 +23,7 @@ import logging
 import re
 import subprocess
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -664,6 +665,53 @@ def inject_arm_section(
 
 
 # =============================================================================
+# Anchor State Persistence (OA-I6 Support)
+# =============================================================================
+
+
+def _persist_anchor_state(
+    session_id: str,
+    working_dir: str,
+    role: str,
+    tier: str,
+) -> None:
+    """
+    Persist anchor validation state to session directory.
+
+    This enables OA-I6 tool gating - work tools can check has_valid_anchor()
+    to verify an agent has completed the binding ceremony before executing.
+
+    Creates anchor.json in: .hestai/sessions/active/{session_id}/anchor.json
+
+    Args:
+        session_id: Session ID from clock_in
+        working_dir: Project working directory path
+        role: The validated agent role
+        tier: The validation tier used
+    """
+    working_path = Path(working_dir)
+    session_dir = working_path / ".hestai" / "sessions" / "active" / session_id
+
+    if not session_dir.exists():
+        logger.warning(f"Session directory not found for anchor persistence: {session_id}")
+        return
+
+    anchor_data = {
+        "validated": True,
+        "timestamp": datetime.now(UTC).isoformat(),
+        "role": role,
+        "tier": tier,
+    }
+
+    anchor_file = session_dir / "anchor.json"
+    try:
+        anchor_file.write_text(json.dumps(anchor_data, indent=2))
+        logger.info(f"Anchor state persisted for session: {session_id}")
+    except OSError as e:
+        logger.error(f"Failed to persist anchor state for session {session_id}: {e}")
+
+
+# =============================================================================
 # Main Odyssean Anchor Tool
 # =============================================================================
 
@@ -856,6 +904,14 @@ def odyssean_anchor(
         arm_section=arm_section,
         tension_text=_extract_tension_section(vector_candidate),
         commit_result=commit_result,
+    )
+
+    # 6. Persist anchor state for OA-I6 tool gating
+    _persist_anchor_state(
+        session_id=session_id,
+        working_dir=working_dir,
+        role=role,
+        tier=tier,
     )
 
     return OdysseanAnchorResult(
