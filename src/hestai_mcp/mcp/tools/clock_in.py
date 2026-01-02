@@ -316,7 +316,18 @@ def build_rich_context_summary(
         except OSError:
             pass
 
-    # 4. Build summary with role and focus context
+    # 4. Check I4 freshness and add warning if stale
+    freshness_warning = _check_context_freshness(project_context_path, working_dir)
+    if freshness_warning:
+        sections.insert(0, f"=== I4 FRESHNESS WARNING ===\n{freshness_warning}")
+
+    # 5. Extract North Star constraints for architectural awareness (Issue #87)
+    north_star_path = working_dir / ".hestai" / "workflow" / "000-MCP-PRODUCT-NORTH-STAR.oct.md"
+    constraints = _extract_north_star_constraints(north_star_path)
+    if constraints:
+        sections.append(f"=== ARCHITECTURAL CONSTRAINTS ===\n{constraints}")
+
+    # 6. Build summary with role and focus context
     header = f"SESSION CONTEXT for {role}\nFOCUS: {focus}\n"
 
     # Combine sections, respecting max total size
@@ -374,6 +385,134 @@ def _get_git_state(working_dir: Path) -> str | None:
 
     except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
         logger.debug(f"Could not get git state: {e}")
+        return None
+
+
+def _check_context_freshness(
+    project_context_path: Path,
+    working_dir: Path,
+    max_age_hours: int = 24,
+) -> str | None:
+    """
+    Check if PROJECT-CONTEXT.oct.md is stale per I4 freshness verification.
+
+    I4::FRESHNESS_VERIFICATION::[
+      PRINCIPLE::context_must_be_verified_as_current_before_use,
+      WHY::prevents_hallucinations_from_stale_data
+    ]
+
+    Stale = last git commit modifying the file > max_age_hours ago,
+    or file exists but has never been committed (no git history).
+
+    Args:
+        project_context_path: Path to PROJECT-CONTEXT.oct.md
+        working_dir: Project root directory (for git commands)
+        max_age_hours: Maximum age in hours before considered stale (default: 24)
+
+    Returns:
+        Warning message if stale, None if fresh
+    """
+    if not project_context_path.exists():
+        return None  # No file = no freshness check needed
+
+    try:
+        # Get the last commit date for this specific file
+        result = subprocess.run(
+            [
+                "git",
+                "log",
+                "-1",
+                "--format=%ct",  # Unix timestamp
+                "--",
+                str(project_context_path.relative_to(working_dir)),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            cwd=str(working_dir),
+        )
+
+        if result.returncode != 0 or not result.stdout.strip():
+            # File exists but has never been committed - considered stale
+            return "I4 WARNING: PROJECT-CONTEXT.oct.md has never been committed to git (freshness unknown)"
+
+        # Parse timestamp and check age
+        from datetime import datetime, timezone
+
+        commit_timestamp = int(result.stdout.strip())
+        commit_time = datetime.fromtimestamp(commit_timestamp, tz=timezone.utc)
+        now = datetime.now(timezone.utc)
+        age_hours = (now - commit_time).total_seconds() / 3600
+
+        if age_hours > max_age_hours:
+            return f"I4 WARNING: PROJECT-CONTEXT.oct.md is stale ({age_hours:.1f}h since last commit, threshold: {max_age_hours}h)"
+
+        return None  # Fresh
+
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError, ValueError) as e:
+        logger.debug(f"Could not check context freshness: {e}")
+        # If we can't check, assume stale (fail-safe for I4)
+        return "I4 WARNING: Could not verify PROJECT-CONTEXT.oct.md freshness (git unavailable)"
+
+
+def _extract_north_star_constraints(north_star_path: Path) -> str | None:
+    """
+    Extract SCOPE_BOUNDARIES and IMMUTABLES from North Star for architectural awareness.
+
+    Per Issue #87: Agents need architectural context to avoid "system blindness".
+    This helps the AI understand what the project IS and IS_NOT.
+
+    Args:
+        north_star_path: Path to North Star file
+
+    Returns:
+        Extracted constraints string, or None if not available
+    """
+    if not north_star_path.exists():
+        return None
+
+    try:
+        content = north_star_path.read_text()
+
+        # Extract relevant sections
+        extracted_parts = []
+
+        # Look for SCOPE_BOUNDARIES section
+        if "SCOPE_BOUNDARIES" in content:
+            # Find the section and extract it
+            start_idx = content.find("SCOPE_BOUNDARIES")
+            if start_idx != -1:
+                # Find the end (next section or file end)
+                section_content = content[start_idx:]
+                # Take up to next major section or 500 chars
+                end_markers = ["IMMUTABLES", "ASSUMPTIONS", "CONSTRAINED_VARIABLES", "===END"]
+                end_idx = len(section_content)
+                for marker in end_markers:
+                    if marker in section_content[20:]:  # Skip past "SCOPE_BOUNDARIES" itself
+                        pos = section_content.find(marker, 20)
+                        if pos < end_idx:
+                            end_idx = pos
+                extracted_parts.append(section_content[: min(end_idx, 500)])
+
+        # Look for key IMMUTABLES mentions
+        if "IMMUTABLES" in content or "I3::" in content or "I4::" in content:
+            # Extract just the immutable references (compact)
+            immutable_refs = []
+            for line in content.split("\n"):
+                if "I1::" in line or "I2::" in line or "I3::" in line or "I4::" in line:
+                    immutable_refs.append(line.strip())
+                    if len(immutable_refs) >= 4:  # Limit to first 4
+                        break
+            if immutable_refs:
+                extracted_parts.append("KEY IMMUTABLES:\n" + "\n".join(immutable_refs))
+
+        if extracted_parts:
+            return "\n\n".join(extracted_parts)
+
+        return None
+
+    except OSError as e:
+        logger.debug(f"Could not extract North Star constraints: {e}")
         return None
 
 
