@@ -15,7 +15,7 @@
 tiers:
   synthesis:
     provider: openrouter
-    model: =google/gemini-3-flash-preview
+    model: google/gemini-3-flash-preview
     description: Fast, cost-effective model for context synthesis
 
   analysis:
