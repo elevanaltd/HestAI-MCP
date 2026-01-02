@@ -127,30 +127,58 @@ Any deviation requires formal amendment.
 
 ## SECTION 4: ARCHITECTURE SUMMARY
 
-### RAPH Vector Structure
+> **Terminology Note**: See docs/odyssean-anchor-terminology.md for the two-layer abstraction
+> (Identity Composition vs Runtime Binding).
+
+### Identity Composition (Design-Time): SHANK/ARM/FLUKE
+
+Used when DESIGNING agent constitutions:
 
 ```
-RAPH_VECTOR = {
-  SHANK: {               # Constitutional Identity
+ODYSSEAN ANCHOR (Agent Identity Architecture)
+├── SHANK    # WHO: Core identity (cognition + archetype)
+├── ARM      # WHERE/WHEN: Phase context (operational environment)
+└── FLUKE    # WHAT: Capabilities (skills, patterns, authority)
+```
+
+### Runtime Binding (Validation): RAPH Vector v4.0
+
+Used when VALIDATING agent binding via odyssean_anchor tool:
+
+```
+RAPH_VECTOR_v4.0 = {
+  BIND: {                # Identity Lock (encompasses SHANK + FLUKE.AUTHORITY)
     ROLE: string,        # Agent role name
     COGNITION: enum,     # ETHOS | LOGOS | PATHOS
-    ARCHETYPES: list,    # e.g., [ATLAS, ATHENA]
-    CONSTRAINTS: list    # Behavioral boundaries
+    ARCHETYPE: string,   # Primary archetype (e.g., HEPHAESTUS)
+    AUTHORITY: string    # RESPONSIBLE[scope] | DELEGATED[parent]
   },
-  ARM: {                 # Contextual Proof
+  ARM: {                 # Context Proof (SERVER-INJECTED, not agent-provided)
     PHASE: string,       # Current workflow phase
-    BRANCH: string,      # Git branch name
-    FILES: list,         # Key files read
-    BLOCKERS: list       # Known impediments
+    BRANCH: string,      # Git branch name + ahead/behind
+    FILES: int,          # Modified file count
+    FOCUS: string        # Session focus topic
   },
-  FLUKE: {               # Authority Gate
-    PARENT_SESSION: string,  # Parent session ID (if sub-agent)
-    DELEGATED_TASK: string,  # Task delegated by parent
-    SKILLS: list,            # Loaded skills
-    AUTHORITY_LEVEL: enum    # FULL | SCOPED | READONLY
+  TENSION: {             # Cognitive Proof (AGENT-GENERATED)
+    # L{N}::[constraint]<->CTX:{path}[state]->TRIGGER[action]
+    # Min count: quick=1, default=2, deep=3
+  },
+  COMMIT: {              # Falsifiable Contract
+    ARTIFACT: string,    # Concrete file path (not "response")
+    GATE: string         # Validation method
   }
 }
 ```
+
+### Relationship Mapping
+
+| Identity (Design) | Runtime (Binding) | Notes |
+|-------------------|-------------------|-------|
+| SHANK | BIND | BIND encompasses SHANK's identity |
+| ARM | ARM | Same semantic: contextual awareness |
+| FLUKE | BIND.AUTHORITY | FLUKE absorbed into BIND |
+| *(none)* | TENSION | Agent reasoning proof (new in v4.0) |
+| *(none)* | COMMIT | Falsifiable contract (new in v4.0) |
 
 ### Binding Flow
 
