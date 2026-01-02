@@ -811,3 +811,366 @@ class TestClockInWithAIIntegration:
             # ai_synthesis should show fallback
             assert "ai_synthesis" in result
             assert result["ai_synthesis"]["source"] == "fallback"
+
+
+@pytest.mark.unit
+class TestRichContextSummary:
+    """
+    Test rich context summary building for AI synthesis.
+
+    The rich context summary provides actual project information to the AI,
+    not just placeholder text like "Context files: 3".
+    """
+
+    def test_build_rich_context_includes_project_context_content(self, mock_hestai_structure: Path):
+        """
+        build_rich_context_summary includes actual PROJECT-CONTEXT.oct.md content.
+
+        This is critical for useful AI synthesis - the AI can only work with
+        what we give it.
+        """
+        from hestai_mcp.mcp.tools.clock_in import (
+            build_rich_context_summary,
+            resolve_context_paths,
+        )
+
+        # Create PROJECT-CONTEXT.oct.md with recognizable content
+        project_context = mock_hestai_structure / ".hestai" / "context" / "PROJECT-CONTEXT.oct.md"
+        project_context.write_text(
+            """===PROJECT_CONTEXT===
+META:
+  TYPE::"PROJECT_CONTEXT"
+  PHASE::B1_FOUNDATION
+  STATUS::active_development
+
+PURPOSE::"Test project for AI synthesis"
+
+NEXT_ACTIONS::[
+  1::implement_feature_X,
+  2::fix_bug_Y
+]
+===END===
+"""
+        )
+
+        context_paths = resolve_context_paths(mock_hestai_structure)
+        summary = build_rich_context_summary(
+            working_dir=mock_hestai_structure,
+            context_paths=context_paths,
+            role="implementation-lead",
+            focus="test-focus",
+        )
+
+        # Should include actual content, not just file count
+        assert "PROJECT-CONTEXT.oct.md" in summary
+        assert "B1_FOUNDATION" in summary
+        assert "Test project for AI synthesis" in summary
+        assert "implement_feature_X" in summary
+
+    def test_build_rich_context_includes_git_state(self, mock_hestai_structure: Path):
+        """
+        build_rich_context_summary includes git state when available.
+
+        Git state provides branch, recent commits, and modified files.
+        """
+        # Initialize git repo
+        import subprocess
+
+        from hestai_mcp.mcp.tools.clock_in import (
+            build_rich_context_summary,
+            resolve_context_paths,
+        )
+
+        subprocess.run(["git", "init"], cwd=str(mock_hestai_structure), capture_output=True)
+        subprocess.run(
+            ["git", "config", "user.email", "test@test.com"],
+            cwd=str(mock_hestai_structure),
+            capture_output=True,
+        )
+        subprocess.run(
+            ["git", "config", "user.name", "Test"],
+            cwd=str(mock_hestai_structure),
+            capture_output=True,
+        )
+
+        # Create a file and commit
+        test_file = mock_hestai_structure / "test.txt"
+        test_file.write_text("test content")
+        subprocess.run(["git", "add", "."], cwd=str(mock_hestai_structure), capture_output=True)
+        subprocess.run(
+            ["git", "commit", "-m", "Initial commit"],
+            cwd=str(mock_hestai_structure),
+            capture_output=True,
+        )
+
+        context_paths = resolve_context_paths(mock_hestai_structure)
+        summary = build_rich_context_summary(
+            working_dir=mock_hestai_structure,
+            context_paths=context_paths,
+            role="implementation-lead",
+            focus="test-focus",
+        )
+
+        # Should include git state
+        assert "GIT STATE" in summary
+        assert "Branch:" in summary
+
+    def test_build_rich_context_includes_active_blockers(self, mock_hestai_structure: Path):
+        """
+        build_rich_context_summary includes active blockers if present.
+        """
+        from hestai_mcp.mcp.tools.clock_in import (
+            build_rich_context_summary,
+            resolve_context_paths,
+        )
+
+        # Create blockers file with active blockers
+        state_dir = mock_hestai_structure / ".hestai" / "context" / "state"
+        state_dir.mkdir(parents=True, exist_ok=True)
+        blockers_file = state_dir / "blockers.oct.md"
+        blockers_file.write_text(
+            """===BLOCKERS===
+META:
+  TYPE::FAST_BLOCKERS
+
+ACTIVE:
+  blocker_001:
+    DESCRIPTION::"Waiting for API key"
+    SINCE::"2026-01-01"
+    STATUS::ACTIVE
+
+===END===
+"""
+        )
+
+        context_paths = resolve_context_paths(mock_hestai_structure)
+        summary = build_rich_context_summary(
+            working_dir=mock_hestai_structure,
+            context_paths=context_paths,
+            role="implementation-lead",
+            focus="test-focus",
+        )
+
+        # Should include active blockers
+        assert "ACTIVE BLOCKERS" in summary or "Waiting for API key" in summary
+
+    def test_build_rich_context_respects_max_size(self, mock_hestai_structure: Path):
+        """
+        build_rich_context_summary respects MAX_TOTAL_CONTEXT_CHARS limit.
+        """
+        from hestai_mcp.mcp.tools.clock_in import (
+            MAX_TOTAL_CONTEXT_CHARS,
+            build_rich_context_summary,
+            resolve_context_paths,
+        )
+
+        # Create very large PROJECT-CONTEXT
+        project_context = mock_hestai_structure / ".hestai" / "context" / "PROJECT-CONTEXT.oct.md"
+        large_content = "X" * 10000  # Much larger than limit
+        project_context.write_text(f"===PROJECT_CONTEXT===\n{large_content}\n===END===")
+
+        context_paths = resolve_context_paths(mock_hestai_structure)
+        summary = build_rich_context_summary(
+            working_dir=mock_hestai_structure,
+            context_paths=context_paths,
+            role="implementation-lead",
+            focus="test-focus",
+        )
+
+        # Should be truncated
+        assert len(summary) <= MAX_TOTAL_CONTEXT_CHARS + 50  # Allow for truncation message
+        assert "truncated" in summary.lower()
+
+
+@pytest.mark.unit
+class TestFreshnessCheck:
+    """
+    Test I4 freshness verification per North Star.
+
+    I4::FRESHNESS_VERIFICATION::[
+      PRINCIPLE::context_must_be_verified_as_current_before_use,
+      WHY::prevents_hallucinations_from_stale_data
+    ]
+    """
+
+    def test_check_context_freshness_returns_warning_for_stale_context(
+        self, mock_hestai_structure: Path
+    ):
+        """
+        _check_context_freshness returns warning when PROJECT-CONTEXT is stale.
+
+        Stale = last git commit modifying file > 24 hours ago.
+        """
+        from hestai_mcp.mcp.tools.clock_in import _check_context_freshness
+
+        # Create PROJECT-CONTEXT
+        project_context = mock_hestai_structure / ".hestai" / "context" / "PROJECT-CONTEXT.oct.md"
+        project_context.write_text("===PROJECT_CONTEXT===\nTEST\n===END===")
+
+        # Simulate stale file by checking without recent git commit
+        # (file exists but no git history = considered stale)
+        warning = _check_context_freshness(
+            project_context_path=project_context,
+            working_dir=mock_hestai_structure,
+        )
+
+        # Should return a warning (not None)
+        assert warning is not None
+        assert "stale" in warning.lower() or "fresh" in warning.lower()
+
+    def test_check_context_freshness_returns_none_for_fresh_context(
+        self, mock_hestai_structure: Path
+    ):
+        """
+        _check_context_freshness returns None when PROJECT-CONTEXT is fresh.
+
+        Fresh = last git commit modifying file < 24 hours ago.
+        """
+        import subprocess
+
+        from hestai_mcp.mcp.tools.clock_in import _check_context_freshness
+
+        # Initialize git repo and commit PROJECT-CONTEXT
+        subprocess.run(["git", "init"], cwd=str(mock_hestai_structure), capture_output=True)
+        subprocess.run(
+            ["git", "config", "user.email", "test@test.com"],
+            cwd=str(mock_hestai_structure),
+            capture_output=True,
+        )
+        subprocess.run(
+            ["git", "config", "user.name", "Test"],
+            cwd=str(mock_hestai_structure),
+            capture_output=True,
+        )
+
+        # Create and commit PROJECT-CONTEXT
+        project_context = mock_hestai_structure / ".hestai" / "context" / "PROJECT-CONTEXT.oct.md"
+        project_context.write_text("===PROJECT_CONTEXT===\nTEST\n===END===")
+        subprocess.run(["git", "add", "."], cwd=str(mock_hestai_structure), capture_output=True)
+        subprocess.run(
+            ["git", "commit", "-m", "Add PROJECT-CONTEXT"],
+            cwd=str(mock_hestai_structure),
+            capture_output=True,
+        )
+
+        warning = _check_context_freshness(
+            project_context_path=project_context,
+            working_dir=mock_hestai_structure,
+        )
+
+        # Should return None (no warning for fresh context)
+        assert warning is None
+
+    def test_build_rich_context_includes_freshness_warning_when_stale(
+        self, mock_hestai_structure: Path
+    ):
+        """
+        build_rich_context_summary includes freshness warning in output when stale.
+
+        Per I4: context_must_be_verified_as_current_before_use
+        """
+        from hestai_mcp.mcp.tools.clock_in import (
+            build_rich_context_summary,
+            resolve_context_paths,
+        )
+
+        # Create PROJECT-CONTEXT without git (simulates stale)
+        project_context = mock_hestai_structure / ".hestai" / "context" / "PROJECT-CONTEXT.oct.md"
+        project_context.write_text("===PROJECT_CONTEXT===\nTEST\n===END===")
+
+        context_paths = resolve_context_paths(mock_hestai_structure)
+        summary = build_rich_context_summary(
+            working_dir=mock_hestai_structure,
+            context_paths=context_paths,
+            role="implementation-lead",
+            focus="test-focus",
+        )
+
+        # Should include freshness warning
+        assert (
+            "FRESHNESS" in summary.upper()
+            or "STALE" in summary.upper()
+            or "WARNING" in summary.upper()
+        )
+
+
+@pytest.mark.unit
+class TestNorthStarConstraintsExtraction:
+    """
+    Test North Star constraints extraction for architectural awareness.
+
+    Per Issue #87: Agents need architectural context to avoid "system blindness".
+    """
+
+    def test_extract_north_star_constraints_returns_scope_boundaries(
+        self, mock_hestai_structure: Path
+    ):
+        """
+        _extract_north_star_constraints extracts SCOPE_BOUNDARIES from North Star.
+        """
+        from hestai_mcp.mcp.tools.clock_in import _extract_north_star_constraints
+
+        # Create North Star with scope boundaries
+        workflow_dir = mock_hestai_structure / ".hestai" / "workflow"
+        workflow_dir.mkdir(parents=True, exist_ok=True)
+        north_star = workflow_dir / "000-MCP-PRODUCT-NORTH-STAR.oct.md"
+        north_star.write_text(
+            """===NORTH_STAR===
+SCOPE_BOUNDARIES::[
+  IS::[persistent_memory_system, structural_governance_engine],
+  IS_NOT::[SaaS_product, AI_model]
+]
+===END===
+"""
+        )
+
+        constraints = _extract_north_star_constraints(north_star)
+
+        # Should extract scope boundaries
+        assert constraints is not None
+        assert "persistent_memory_system" in constraints or "SCOPE" in constraints
+
+    def test_build_rich_context_includes_north_star_constraints(self, mock_hestai_structure: Path):
+        """
+        build_rich_context_summary includes North Star constraints when available.
+
+        This helps prevent Issue #87 "system architecture blindness".
+        """
+        from hestai_mcp.mcp.tools.clock_in import (
+            build_rich_context_summary,
+            resolve_context_paths,
+        )
+
+        # Create North Star
+        workflow_dir = mock_hestai_structure / ".hestai" / "workflow"
+        workflow_dir.mkdir(parents=True, exist_ok=True)
+        north_star = workflow_dir / "000-MCP-PRODUCT-NORTH-STAR.oct.md"
+        north_star.write_text(
+            """===NORTH_STAR===
+IMMUTABLES::[
+  I3::DUAL_LAYER_AUTHORITY,
+  I4::FRESHNESS_VERIFICATION
+]
+
+SCOPE_BOUNDARIES::[
+  IS::[persistent_memory_system],
+  IS_NOT::[SaaS_product]
+]
+===END===
+"""
+        )
+
+        context_paths = resolve_context_paths(mock_hestai_structure)
+        summary = build_rich_context_summary(
+            working_dir=mock_hestai_structure,
+            context_paths=context_paths,
+            role="implementation-lead",
+            focus="test-focus",
+        )
+
+        # Should include architectural constraints
+        assert (
+            "ARCHITECTURAL" in summary.upper()
+            or "CONSTRAINT" in summary.upper()
+            or "SCOPE" in summary.upper()
+        )

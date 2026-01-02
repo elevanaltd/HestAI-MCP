@@ -442,23 +442,45 @@ def update_fast_layer_on_clock_out(
     persist_blockers_on_close(state_dir, session_id)
 
 
-# AI Synthesis Constants
-SYNTHESIS_SYSTEM_PROMPT = """You are an AI assistant helping to synthesize context for an agent session.
-Based on the provided role, focus, and context summary, generate a concise synthesis that helps
-the agent understand their current work context.
+# AI Synthesis - Using Layered Constitutional Injection pattern
+# Architecture: debate 2026-01-02-context-steward-prompt-architecture
+# - Identity Kernel (~30 lines): WHO the agent IS - always loaded
+# - Operation Protocol (~50 lines): WHAT this call does - per-tool
+# Key insight: IDENTITY ≠ OPERATION. Layer them, don't blend them.
 
-Format your response as structured text with these sections:
-FOCUS_SUMMARY: A one-line summary of the current focus
-KEY_TASKS: Bullet points of key tasks to accomplish
-BLOCKERS: Any blockers or concerns (or "None identified")
-CONTEXT: Any relevant contextual information
+# Import the layered prompt components
+try:
+    from hestai_mcp.ai.prompts import (
+        CLOCK_IN_SYNTHESIS_PROTOCOL,
+        compose_prompt,
+    )
+
+    SYNTHESIS_SYSTEM_PROMPT = compose_prompt(CLOCK_IN_SYNTHESIS_PROTOCOL)
+except ImportError:
+    # Fallback for when prompts module not available (e.g., during testing)
+    SYNTHESIS_SYSTEM_PROMPT = """You are Context Steward, the internal AI agent for HestAI-MCP.
+
+OPERATION: Session Context Synthesis (clock_in)
+
+Generate actionable context for an agent starting a work session.
+
+OUTPUT FORMAT:
+FOCUS_SUMMARY: <one-line summary>
+KEY_TASKS:
+* <task from context>
+BLOCKERS: <from context or "None identified">
+CONTEXT: <relevant project state>
+
+CRITICAL: Only include information from provided context. Do NOT invent details.
 """
 
 SYNTHESIS_USER_PROMPT_TEMPLATE = """Role: {role}
 Focus: {focus}
-Context Summary: {context_summary}
 
-Please synthesize this information into actionable context for the session."""
+PROJECT CONTEXT:
+{context_summary}
+
+Synthesize this into actionable session context. Only reference information explicitly provided above."""
 
 
 async def synthesize_fast_layer_with_ai(

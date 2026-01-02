@@ -18,12 +18,19 @@ Note: Uses direct .hestai/ directory (ADR-0007), no symlinks or worktrees.
 import json
 import logging
 import re
+import subprocess
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+
+# Maximum characters to include from each context file
+MAX_CONTEXT_FILE_CHARS = 2000
+# Maximum total context characters to send to AI
+MAX_TOTAL_CONTEXT_CHARS = 4000
 
 
 # Issue pattern regex: matches #XX, issue-XX, issues-XX
@@ -249,11 +256,312 @@ def resolve_context_paths(working_dir: Path) -> list[str]:
             context_paths.append(str(path))
 
     # Also check for project north star in workflow/
-    workflow_path = working_dir / ".hestai" / "workflow" / "000-PROJECT-NORTH-STAR.oct.md"
-    if workflow_path.exists():
-        context_paths.append(str(workflow_path))
+    # Support multiple naming patterns per naming-standard.oct.md
+    north_star_path = _find_north_star_file(working_dir)
+    if north_star_path:
+        context_paths.append(str(north_star_path))
 
     return context_paths
+
+
+def _find_north_star_file(working_dir: Path) -> Path | None:
+    """
+    Find the North Star file in .hestai/workflow/ using flexible naming patterns.
+
+    Per naming-standard.oct.md, North Star files follow pattern:
+    000-{PROJECT}-NORTH-STAR(-SUMMARY)?(.oct)?.md
+
+    This supports:
+    - 000-PROJECT-NORTH-STAR.oct.md (generic)
+    - 000-MCP-PRODUCT-NORTH-STAR.oct.md (project-specific)
+    - 000-MCP-PRODUCT-NORTH-STAR.md (without .oct)
+
+    Returns the first matching file, preferring .oct.md over .md.
+    """
+    workflow_dir = working_dir / ".hestai" / "workflow"
+    if not workflow_dir.exists():
+        return None
+
+    # Priority order: .oct.md first, then .md
+    # Exclude -SUMMARY files (those are compressed versions)
+    try:
+        candidates = []
+        for path in workflow_dir.iterdir():
+            name = path.name
+            if (
+                name.startswith("000-")
+                and "NORTH-STAR" in name
+                and "-SUMMARY" not in name
+                and name.endswith(".md")
+            ):
+                candidates.append(path)
+
+        if not candidates:
+            return None
+
+        # Prefer .oct.md over .md
+        for candidate in candidates:
+            if candidate.name.endswith(".oct.md"):
+                return candidate
+
+        # Fall back to first .md
+        return candidates[0]
+
+    except OSError:
+        return None
+
+
+def build_rich_context_summary(
+    working_dir: Path,
+    context_paths: list[str],
+    role: str,
+    focus: str,
+) -> str:
+    """
+    Build a rich context summary for AI synthesis by reading actual file contents.
+
+    This is the key to useful AI synthesis - the AI can only work with what we give it.
+    We read PROJECT-CONTEXT.oct.md and git state to provide real project information.
+
+    Args:
+        working_dir: Project root directory
+        context_paths: List of context file paths to read
+        role: Agent role for context
+        focus: Session focus for context
+
+    Returns:
+        Rich context string with actual project information
+    """
+    sections = []
+
+    # 1. Read PROJECT-CONTEXT.oct.md (most important)
+    project_context_path = working_dir / ".hestai" / "context" / "PROJECT-CONTEXT.oct.md"
+    if project_context_path.exists():
+        try:
+            content = project_context_path.read_text()
+            # Truncate if too long
+            if len(content) > MAX_CONTEXT_FILE_CHARS:
+                content = content[:MAX_CONTEXT_FILE_CHARS] + "\n... [truncated]"
+            sections.append(f"=== PROJECT-CONTEXT.oct.md ===\n{content}")
+        except OSError as e:
+            logger.warning(f"Could not read PROJECT-CONTEXT: {e}")
+
+    # 2. Get git state (branch, recent commits, modified files)
+    git_state = _get_git_state(working_dir)
+    if git_state:
+        sections.append(f"=== GIT STATE ===\n{git_state}")
+
+    # 3. Check for blockers in state/ (if exists)
+    blockers_path = working_dir / ".hestai" / "context" / "state" / "blockers.oct.md"
+    if blockers_path.exists():
+        try:
+            content = blockers_path.read_text()
+            if "ACTIVE:" in content and content.split("ACTIVE:")[1].strip():
+                # Only include if there are actual blockers
+                active_section = content.split("ACTIVE:")[1].split("===")[0].strip()
+                if active_section:
+                    sections.append(f"=== ACTIVE BLOCKERS ===\n{active_section}")
+        except OSError:
+            pass
+
+    # 4. Check I4 freshness and add warning if stale
+    freshness_warning = _check_context_freshness(project_context_path, working_dir)
+    if freshness_warning:
+        sections.insert(0, f"=== I4 FRESHNESS WARNING ===\n{freshness_warning}")
+
+    # 5. Extract North Star constraints for architectural awareness (Issue #87)
+    # Use flexible finder to support multiple naming patterns
+    north_star_path = _find_north_star_file(working_dir)
+    if north_star_path:
+        constraints = _extract_north_star_constraints(north_star_path)
+        if constraints:
+            sections.append(f"=== ARCHITECTURAL CONSTRAINTS ===\n{constraints}")
+
+    # 6. Build summary with role and focus context
+    header = f"SESSION CONTEXT for {role}\nFOCUS: {focus}\n"
+
+    # Combine sections, respecting max total size
+    combined = header + "\n\n".join(sections)
+    if len(combined) > MAX_TOTAL_CONTEXT_CHARS:
+        combined = combined[:MAX_TOTAL_CONTEXT_CHARS] + "\n... [context truncated]"
+
+    return combined
+
+
+def _get_git_state(working_dir: Path) -> str | None:
+    """
+    Get git state for context (branch, recent commits, modified files).
+
+    Returns None if git is not available or fails.
+    """
+    try:
+        # Get current branch
+        branch_result = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            cwd=str(working_dir),
+        )
+        branch = branch_result.stdout.strip() if branch_result.returncode == 0 else "unknown"
+
+        # Get recent commits (last 3)
+        log_result = subprocess.run(
+            ["git", "log", "--oneline", "-3"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            cwd=str(working_dir),
+        )
+        recent_commits = log_result.stdout.strip() if log_result.returncode == 0 else ""
+
+        # Get modified files
+        status_result = subprocess.run(
+            ["git", "status", "--short"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            cwd=str(working_dir),
+        )
+        modified = status_result.stdout.strip() if status_result.returncode == 0 else ""
+
+        parts = [f"Branch: {branch}"]
+        if recent_commits:
+            parts.append(f"Recent commits:\n{recent_commits}")
+        if modified:
+            parts.append(f"Modified files:\n{modified}")
+
+        return "\n".join(parts)
+
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
+        logger.debug(f"Could not get git state: {e}")
+        return None
+
+
+def _check_context_freshness(
+    project_context_path: Path,
+    working_dir: Path,
+    max_age_hours: int = 24,
+) -> str | None:
+    """
+    Check if PROJECT-CONTEXT.oct.md is stale per I4 freshness verification.
+
+    I4::FRESHNESS_VERIFICATION::[
+      PRINCIPLE::context_must_be_verified_as_current_before_use,
+      WHY::prevents_hallucinations_from_stale_data
+    ]
+
+    Stale = last git commit modifying the file > max_age_hours ago,
+    or file exists but has never been committed (no git history).
+
+    Args:
+        project_context_path: Path to PROJECT-CONTEXT.oct.md
+        working_dir: Project root directory (for git commands)
+        max_age_hours: Maximum age in hours before considered stale (default: 24)
+
+    Returns:
+        Warning message if stale, None if fresh
+    """
+    if not project_context_path.exists():
+        return None  # No file = no freshness check needed
+
+    try:
+        # Get the last commit date for this specific file
+        result = subprocess.run(
+            [
+                "git",
+                "log",
+                "-1",
+                "--format=%ct",  # Unix timestamp
+                "--",
+                str(project_context_path.relative_to(working_dir)),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            cwd=str(working_dir),
+        )
+
+        if result.returncode != 0 or not result.stdout.strip():
+            # File exists but has never been committed - considered stale
+            return "I4 WARNING: PROJECT-CONTEXT.oct.md has never been committed to git (freshness unknown)"
+
+        # Parse timestamp and check age
+        commit_timestamp = int(result.stdout.strip())
+        commit_time = datetime.fromtimestamp(commit_timestamp, tz=UTC)
+        now = datetime.now(UTC)
+        age_hours = (now - commit_time).total_seconds() / 3600
+
+        if age_hours > max_age_hours:
+            return f"I4 WARNING: PROJECT-CONTEXT.oct.md is stale ({age_hours:.1f}h since last commit, threshold: {max_age_hours}h)"
+
+        return None  # Fresh
+
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError, ValueError) as e:
+        logger.debug(f"Could not check context freshness: {e}")
+        # If we can't check, assume stale (fail-safe for I4)
+        return "I4 WARNING: Could not verify PROJECT-CONTEXT.oct.md freshness (git unavailable)"
+
+
+def _extract_north_star_constraints(north_star_path: Path) -> str | None:
+    """
+    Extract SCOPE_BOUNDARIES and IMMUTABLES from North Star for architectural awareness.
+
+    Per Issue #87: Agents need architectural context to avoid "system blindness".
+    This helps the AI understand what the project IS and IS_NOT.
+
+    Args:
+        north_star_path: Path to North Star file
+
+    Returns:
+        Extracted constraints string, or None if not available
+    """
+    if not north_star_path.exists():
+        return None
+
+    try:
+        content = north_star_path.read_text()
+
+        # Extract relevant sections
+        extracted_parts = []
+
+        # Look for SCOPE_BOUNDARIES section
+        if "SCOPE_BOUNDARIES" in content:
+            # Find the section and extract it
+            start_idx = content.find("SCOPE_BOUNDARIES")
+            if start_idx != -1:
+                # Find the end (next section or file end)
+                section_content = content[start_idx:]
+                # Take up to next major section or 500 chars
+                end_markers = ["IMMUTABLES", "ASSUMPTIONS", "CONSTRAINED_VARIABLES", "===END"]
+                end_idx = len(section_content)
+                for marker in end_markers:
+                    if marker in section_content[20:]:  # Skip past "SCOPE_BOUNDARIES" itself
+                        pos = section_content.find(marker, 20)
+                        if pos < end_idx:
+                            end_idx = pos
+                extracted_parts.append(section_content[: min(end_idx, 500)])
+
+        # Look for key IMMUTABLES mentions
+        if "IMMUTABLES" in content or "I3::" in content or "I4::" in content:
+            # Extract just the immutable references (compact)
+            immutable_refs = []
+            for line in content.split("\n"):
+                if "I1::" in line or "I2::" in line or "I3::" in line or "I4::" in line:
+                    immutable_refs.append(line.strip())
+                    if len(immutable_refs) >= 4:  # Limit to first 4
+                        break
+            if immutable_refs:
+                extracted_parts.append("KEY IMMUTABLES:\n" + "\n".join(immutable_refs))
+
+        if extracted_parts:
+            return "\n\n".join(extracted_parts)
+
+        return None
+
+    except OSError as e:
+        logger.debug(f"Could not extract North Star constraints: {e}")
+        return None
 
 
 def ensure_hestai_structure(working_dir: Path) -> str:
@@ -492,10 +800,14 @@ async def clock_in_async(
     ai_synthesis_result = None
     if enable_ai_synthesis:
         try:
-            # Build context summary from available context
+            # Build RICH context summary with actual file contents and git state
+            # This is key to useful AI synthesis - the AI can only work with what we give it
             context_paths = resolve_context_paths(working_dir_path)
-            context_summary = (
-                f"Role: {role}, Focus: {resolved_focus_value}, Context files: {len(context_paths)}"
+            context_summary = build_rich_context_summary(
+                working_dir=working_dir_path,
+                context_paths=context_paths,
+                role=role,
+                focus=resolved_focus_value,
             )
 
             ai_synthesis_result = await synthesize_fast_layer_with_ai(
