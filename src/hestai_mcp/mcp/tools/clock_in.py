@@ -256,11 +256,59 @@ def resolve_context_paths(working_dir: Path) -> list[str]:
             context_paths.append(str(path))
 
     # Also check for project north star in workflow/
-    workflow_path = working_dir / ".hestai" / "workflow" / "000-PROJECT-NORTH-STAR.oct.md"
-    if workflow_path.exists():
-        context_paths.append(str(workflow_path))
+    # Support multiple naming patterns per naming-standard.oct.md
+    north_star_path = _find_north_star_file(working_dir)
+    if north_star_path:
+        context_paths.append(str(north_star_path))
 
     return context_paths
+
+
+def _find_north_star_file(working_dir: Path) -> Path | None:
+    """
+    Find the North Star file in .hestai/workflow/ using flexible naming patterns.
+
+    Per naming-standard.oct.md, North Star files follow pattern:
+    000-{PROJECT}-NORTH-STAR(-SUMMARY)?(.oct)?.md
+
+    This supports:
+    - 000-PROJECT-NORTH-STAR.oct.md (generic)
+    - 000-MCP-PRODUCT-NORTH-STAR.oct.md (project-specific)
+    - 000-MCP-PRODUCT-NORTH-STAR.md (without .oct)
+
+    Returns the first matching file, preferring .oct.md over .md.
+    """
+    workflow_dir = working_dir / ".hestai" / "workflow"
+    if not workflow_dir.exists():
+        return None
+
+    # Priority order: .oct.md first, then .md
+    # Exclude -SUMMARY files (those are compressed versions)
+    try:
+        candidates = []
+        for path in workflow_dir.iterdir():
+            name = path.name
+            if (
+                name.startswith("000-")
+                and "NORTH-STAR" in name
+                and "-SUMMARY" not in name
+                and name.endswith(".md")
+            ):
+                candidates.append(path)
+
+        if not candidates:
+            return None
+
+        # Prefer .oct.md over .md
+        for candidate in candidates:
+            if candidate.name.endswith(".oct.md"):
+                return candidate
+
+        # Fall back to first .md
+        return candidates[0]
+
+    except OSError:
+        return None
 
 
 def build_rich_context_summary(
@@ -322,10 +370,12 @@ def build_rich_context_summary(
         sections.insert(0, f"=== I4 FRESHNESS WARNING ===\n{freshness_warning}")
 
     # 5. Extract North Star constraints for architectural awareness (Issue #87)
-    north_star_path = working_dir / ".hestai" / "workflow" / "000-MCP-PRODUCT-NORTH-STAR.oct.md"
-    constraints = _extract_north_star_constraints(north_star_path)
-    if constraints:
-        sections.append(f"=== ARCHITECTURAL CONSTRAINTS ===\n{constraints}")
+    # Use flexible finder to support multiple naming patterns
+    north_star_path = _find_north_star_file(working_dir)
+    if north_star_path:
+        constraints = _extract_north_star_constraints(north_star_path)
+        if constraints:
+            sections.append(f"=== ARCHITECTURAL CONSTRAINTS ===\n{constraints}")
 
     # 6. Build summary with role and focus context
     header = f"SESSION CONTEXT for {role}\nFOCUS: {focus}\n"
@@ -437,11 +487,9 @@ def _check_context_freshness(
             return "I4 WARNING: PROJECT-CONTEXT.oct.md has never been committed to git (freshness unknown)"
 
         # Parse timestamp and check age
-        from datetime import datetime, timezone
-
         commit_timestamp = int(result.stdout.strip())
-        commit_time = datetime.fromtimestamp(commit_timestamp, tz=timezone.utc)
-        now = datetime.now(timezone.utc)
+        commit_time = datetime.fromtimestamp(commit_timestamp, tz=UTC)
+        now = datetime.now(UTC)
         age_hours = (now - commit_time).total_seconds() / 3600
 
         if age_hours > max_age_hours:
