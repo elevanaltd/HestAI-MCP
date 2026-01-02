@@ -145,7 +145,7 @@ The MCP tool enforces strict rules. If any rule fails, it returns a formatted er
 ## Migration Guide
 
 1.  **Agents**: Update `system-steward`, `implementation-lead`, etc., to use `odyssean_anchor` tool instead of `anchor_submit`.
-2.  **Commands**: Update `/bind` command to use `odyssean_anchor` MCP tool (see docs/reference/commands/bind.md).
+2.  **Commands**: Update `/bind` command to use `odyssean_anchor` MCP tool (see docs/commands/bind.md).
 3.  **Subagents**: Update `Task()` prompt wrapper to instruct subagents to call `odyssean_anchor` first.
 
 ---
@@ -218,7 +218,7 @@ GATE::{validation_method}
 - MCP Tool: src/hestai_mcp/mcp/tools/odyssean_anchor.py (949 lines)
 - Gating: src/hestai_mcp/mcp/tools/gating.py (has_valid_anchor)
 - Server: src/hestai_mcp/mcp/server.py (odyssean_anchor exposed)
-- Command: docs/reference/commands/bind.md (v4.0 ceremony reference)
+- Command: docs/commands/bind.md (v4.0 ceremony reference)
 - Tests: 397 passing (51 anchor + 22 gating + 5 integration)
 - Quality Gates: CRS (Codex) APPROVE, CE (Gemini) GO
 
