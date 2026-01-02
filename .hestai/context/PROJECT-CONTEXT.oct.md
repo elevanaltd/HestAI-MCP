@@ -191,8 +191,8 @@ GOVERNANCE_ACTIONS_COMPLETED::[
 SCOPE::VERIFIED_ALIGNED::[
   ✅::persistent_memory_system[Layer_1_2_3_architecture],
   ✅::structural_governance_engine[read_only_Layer_1],
-  ✅::orchestra_conductor_ambient_awareness[ADR-0002_Orchestra_Map],
-  ✅::dual_layer_context_protocol[ADR-0001_proven]
+  ✅::orchestra_conductor_ambient_awareness[ADR-0034_Orchestra_Map],
+  ✅::dual_layer_context_protocol[ADR-0033_proven]
 ]
 
 ===END===

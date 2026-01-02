@@ -6,6 +6,8 @@ META:
   EXTRACTED::"2026-01-02"
   PURPOSE::"Implementation patterns for odyssean_anchor MCP tool"
   EVIDENCE_BASE::"4 validated agent vectors + multi-model assessment + specification documents"
+  TERMINOLOGY::"See docs/odyssean-anchor-terminology.md for two-layer abstraction (Identity Composition vs Runtime Binding)"
+  LAYER::IDENTITY_COMPOSITION[design-time_patterns_for_agent_prompts]
 
 ## ERROR_TEMPLATES
 
