@@ -18,12 +18,19 @@ Note: Uses direct .hestai/ directory (ADR-0007), no symlinks or worktrees.
 import json
 import logging
 import re
+import subprocess
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+
+# Maximum characters to include from each context file
+MAX_CONTEXT_FILE_CHARS = 2000
+# Maximum total context characters to send to AI
+MAX_TOTAL_CONTEXT_CHARS = 4000
 
 
 # Issue pattern regex: matches #XX, issue-XX, issues-XX
@@ -254,6 +261,120 @@ def resolve_context_paths(working_dir: Path) -> list[str]:
         context_paths.append(str(workflow_path))
 
     return context_paths
+
+
+def build_rich_context_summary(
+    working_dir: Path,
+    context_paths: list[str],
+    role: str,
+    focus: str,
+) -> str:
+    """
+    Build a rich context summary for AI synthesis by reading actual file contents.
+
+    This is the key to useful AI synthesis - the AI can only work with what we give it.
+    We read PROJECT-CONTEXT.oct.md and git state to provide real project information.
+
+    Args:
+        working_dir: Project root directory
+        context_paths: List of context file paths to read
+        role: Agent role for context
+        focus: Session focus for context
+
+    Returns:
+        Rich context string with actual project information
+    """
+    sections = []
+
+    # 1. Read PROJECT-CONTEXT.oct.md (most important)
+    project_context_path = working_dir / ".hestai" / "context" / "PROJECT-CONTEXT.oct.md"
+    if project_context_path.exists():
+        try:
+            content = project_context_path.read_text()
+            # Truncate if too long
+            if len(content) > MAX_CONTEXT_FILE_CHARS:
+                content = content[:MAX_CONTEXT_FILE_CHARS] + "\n... [truncated]"
+            sections.append(f"=== PROJECT-CONTEXT.oct.md ===\n{content}")
+        except OSError as e:
+            logger.warning(f"Could not read PROJECT-CONTEXT: {e}")
+
+    # 2. Get git state (branch, recent commits, modified files)
+    git_state = _get_git_state(working_dir)
+    if git_state:
+        sections.append(f"=== GIT STATE ===\n{git_state}")
+
+    # 3. Check for blockers in state/ (if exists)
+    blockers_path = working_dir / ".hestai" / "context" / "state" / "blockers.oct.md"
+    if blockers_path.exists():
+        try:
+            content = blockers_path.read_text()
+            if "ACTIVE:" in content and content.split("ACTIVE:")[1].strip():
+                # Only include if there are actual blockers
+                active_section = content.split("ACTIVE:")[1].split("===")[0].strip()
+                if active_section:
+                    sections.append(f"=== ACTIVE BLOCKERS ===\n{active_section}")
+        except OSError:
+            pass
+
+    # 4. Build summary with role and focus context
+    header = f"SESSION CONTEXT for {role}\nFOCUS: {focus}\n"
+
+    # Combine sections, respecting max total size
+    combined = header + "\n\n".join(sections)
+    if len(combined) > MAX_TOTAL_CONTEXT_CHARS:
+        combined = combined[:MAX_TOTAL_CONTEXT_CHARS] + "\n... [context truncated]"
+
+    return combined
+
+
+def _get_git_state(working_dir: Path) -> str | None:
+    """
+    Get git state for context (branch, recent commits, modified files).
+
+    Returns None if git is not available or fails.
+    """
+    try:
+        # Get current branch
+        branch_result = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            cwd=str(working_dir),
+        )
+        branch = branch_result.stdout.strip() if branch_result.returncode == 0 else "unknown"
+
+        # Get recent commits (last 3)
+        log_result = subprocess.run(
+            ["git", "log", "--oneline", "-3"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            cwd=str(working_dir),
+        )
+        recent_commits = log_result.stdout.strip() if log_result.returncode == 0 else ""
+
+        # Get modified files
+        status_result = subprocess.run(
+            ["git", "status", "--short"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            cwd=str(working_dir),
+        )
+        modified = status_result.stdout.strip() if status_result.returncode == 0 else ""
+
+        parts = [f"Branch: {branch}"]
+        if recent_commits:
+            parts.append(f"Recent commits:\n{recent_commits}")
+        if modified:
+            parts.append(f"Modified files:\n{modified}")
+
+        return "\n".join(parts)
+
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
+        logger.debug(f"Could not get git state: {e}")
+        return None
 
 
 def ensure_hestai_structure(working_dir: Path) -> str:
@@ -492,10 +613,14 @@ async def clock_in_async(
     ai_synthesis_result = None
     if enable_ai_synthesis:
         try:
-            # Build context summary from available context
+            # Build RICH context summary with actual file contents and git state
+            # This is key to useful AI synthesis - the AI can only work with what we give it
             context_paths = resolve_context_paths(working_dir_path)
-            context_summary = (
-                f"Role: {role}, Focus: {resolved_focus_value}, Context files: {len(context_paths)}"
+            context_summary = build_rich_context_summary(
+                working_dir=working_dir_path,
+                context_paths=context_paths,
+                role=role,
+                focus=resolved_focus_value,
             )
 
             ai_synthesis_result = await synthesize_fast_layer_with_ai(
