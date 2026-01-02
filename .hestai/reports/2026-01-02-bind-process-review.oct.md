@@ -230,13 +230,13 @@ TOOL_GATING::has_valid_anchor(session_id)[future_work_tools_can_check]
 
 ## SECTION 4: RECOMMENDATIONS SUMMARY
 
-| ID | Priority | Issue | Action | Owner |
-|----|----------|-------|--------|-------|
-| R1 | MEDIUM | Arrow format mismatch | Update bind.md to use ASCII arrows (double and single) | implementation-lead |
-| R2 | LOW | Archetype documentation | Add clarification about primary archetype selection | documentation |
-| R3 | LOW | AUTHORITY examples | Add bracket content examples to bind.md | documentation |
-| R4 | LOW | ADR-0036 reference | Verify ADR exists and update PROJECT-CONTEXT | system-steward |
-| R5 | INFO | T2/T2b consolidation | Consider separating in TODOS template | optional |
+| ID | Priority | Issue | Action | Owner | Status |
+|----|----------|-------|--------|-------|--------|
+| R1 | MEDIUM | Arrow format mismatch | Update bind.md to use ASCII arrows (double and single) | implementation-lead | DONE |
+| R2 | LOW | Archetype documentation | Add clarification about primary archetype selection | documentation | DONE |
+| R3 | LOW | AUTHORITY examples | Add bracket content examples to bind.md | documentation | DONE |
+| R4 | LOW | ADR-0036 reference | ADR-0036 EXISTS. PROJECT-CONTEXT had wrong ADR numbers (0001-0004 were hallucinated). Fixed to 0031-0036. | system-steward | DONE |
+| R5 | INFO | T2/T2b consolidation | Consider separating in TODOS template | optional | - |
 
 ---
 

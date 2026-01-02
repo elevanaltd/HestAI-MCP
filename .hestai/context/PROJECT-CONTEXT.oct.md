@@ -17,10 +17,12 @@ ARCHITECTURE::THREE_LAYER:
   LAYER_3_SEMANTIC_KNOWLEDGE::Basic_Memory_MCP[pending_Phase_2.5,oracle_layer]
 
 AUTHORITATIVE_REFERENCES::[
-  ADR_0001::"Dual-Layer Context Architecture - System vs Product separation",
-  ADR_0002::"Orchestra Map Architecture - Anchor Pattern Inversion + Semantic Knowledge",
-  ADR_0003::"RAPH Protocol v2.3 - Rigorous Grounding & Provenance binding",
-  ADR_0004::"Progressive Testing Model - NOW/SOON/LATER integration gates"
+  // NOTE: ADR numbering follows GitHub Issue numbers per ADR-0031
+  ADR_0031::"GitHub Issue-Based Document Numbering",
+  ADR_0033::"Dual-Layer Context Architecture - System vs Product separation",
+  ADR_0034::"Orchestra Map Architecture - Anchor Pattern Inversion + Semantic Knowledge",
+  ADR_0035::"Living Artifacts Auto-Refresh - Split-artifact hybrid",
+  ADR_0036::"Odyssean Anchor Binding - Unified agent identity with RAPH Vector"
 ]
 
 PHASE_STATUS::[
