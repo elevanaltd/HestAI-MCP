@@ -46,7 +46,7 @@ IMMUTABLES_ACTIVE::[
   I2::STRUCTURAL_INTEGRITY_PRIORITY->PROVEN[architectural_mandate],
   I3::DUAL_LAYER_AUTHORITY->PROVEN[ADR-0001],
   I4::FRESHNESS_VERIFICATION->PENDING[B1_freshness_check],
-  I5::ODYSSEAN_IDENTITY_BINDING->IN_PROGRESS[Phase_1-3_COMPLETE_Issue_#11_2026-01-02],
+  I5::ODYSSEAN_IDENTITY_BINDING->PROVEN[Issue_#11_2026-01-02_odyssean_anchor+oa-load_command],
   I6::UNIVERSAL_SCOPE->PENDING[multi-repo_testing]
 ]
 
@@ -69,19 +69,15 @@ BLOCKERS::[
 ]
 
 RESOLVED_2026-01-02::[
-  ODYSSEAN_ANCHOR_IMPLEMENTATION::PHASES_1-3_COMPLETE[Issue_#11]::[
+  ODYSSEAN_ANCHOR_IMPLEMENTATION::ALL_PHASES_COMPLETE[Issue_#11]::[
     Phase_1::PR_#126_merged[odyssean_anchor_tool_949_lines+54_tests],
     Phase_2::gating.py[has_valid_anchor+22_tests+zombie_state_fix],
     Phase_3::server.py[MCP_tool_exposed+5_integration_tests],
+    Phase_4::docs/reference/commands/bind.md[v4.0_ceremony_reference],
     TOTAL_TESTS::397_passing,
-    I5_STATUS::IN_PROGRESS[awaiting_user_config_updates],
+    I5_STATUS::PROVEN[odyssean_anchor_MCP+bind_command_reference],
     QUALITY_GATES::[CRS_Codex_APPROVE,CE_Gemini_GO],
-    COMMITS::[
-      "test(mcp): add failing tests for OA-I6 tool gating enforcement (#11)",
-      "feat(mcp): implement has_valid_anchor for OA-I6 tool gating (#11)",
-      "fix(mcp): handle anchor state persistence failure to prevent zombie state (#11)",
-      "feat(mcp): expose odyssean_anchor tool via MCP server (#11)"
-    ]
+    USAGE::"Copy docs/reference/commands/bind.md to ~/.claude/commands/bind.md"
   ]
 ]
 
@@ -162,15 +158,9 @@ CLOCK_IN_STATUS::[
 ]
 
 NEXT_ACTIONS::[
-  // ODYSSEAN ANCHOR PHASES 1-3 COMPLETE (2026-01-02)
-  0::ODYSSEAN_ANCHOR_PHASE_4[user_config_updates]::[
-    0a::update_bind.md_to_use_odyssean_anchor[~/.claude/commands/bind.md],
-    0b::update_subagent_rules_for_anchor_first[~/.claude/skills/subagent-rules/SKILL.md],
-    0c::deprecate_anchor_submit_references,
-    0d::update_I5_status_to_PROVEN,
-    RATIONALE::"MCP tool ready - user config needs updating",
-    STATUS::"READY_FOR_USER[requires_editing_~/.claude/files]"
-  ],
+  // ODYSSEAN ANCHOR ALL PHASES COMPLETE (2026-01-02) - I5 PROVEN
+  // Reference /bind command at docs/reference/commands/bind.md
+  // Users: Copy to ~/.claude/commands/bind.md to use with odyssean_anchor MCP tool
   1::ADD_CI_PYTHON_MATRIX[high_value_medium_effort]::[
     1a::add_python_3.10_3.11_3.12_to_CI_matrix,
     1b::add_python_3.13_canary_with_continue_on_error,

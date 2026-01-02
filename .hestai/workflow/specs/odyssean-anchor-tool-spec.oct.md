@@ -177,7 +177,7 @@ PERFORMANCE::[
 
 ADR_0036::"docs/adr/adr-0036-odyssean-anchor-binding.md"
 DEBATE_RECORD::"docs/debates/2025-12-27-load-command-architecture.oct.md"
-BIND_COMMAND::"/Users/shaunbuswell/.claude/commands/bind.md"
+BIND_COMMAND_REFERENCE::"docs/reference/commands/bind.md"
 NORTH_STAR_I5::"ODYSSEAN_IDENTITY_BINDING"
 
 ===END===
