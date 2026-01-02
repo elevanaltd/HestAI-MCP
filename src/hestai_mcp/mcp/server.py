@@ -4,7 +4,8 @@ HestAI MCP Server - Dual-Layer Context Architecture (ADR-0007).
 This MCP server provides context management tools for AI agents:
 - clock_in: Register session start and return context paths
 - clock_out: Archive session transcript with OCTAVE compression
-- document_submit: Submit documents to .hestai/ (TODO - Phase 3)
+- odyssean_anchor: Validate and complete agent identity vector (RAPH Vector v4.0)
+- document_submit: Submit documents to .hestai/ (TODO - Phase 4)
 
 Architecture:
 - System Governance: .hestai-sys/ delivered by MCP (not committed)
@@ -23,6 +24,7 @@ from mcp.types import TextContent, Tool
 
 from hestai_mcp.mcp.tools.clock_in import clock_in_async
 from hestai_mcp.mcp.tools.clock_out import clock_out
+from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
 
 logger = logging.getLogger(__name__)
 
@@ -172,6 +174,47 @@ async def list_tools() -> list[Tool]:
                 "required": ["session_id"],
             },
         ),
+        Tool(
+            name="odyssean_anchor",
+            description=(
+                "Validate and complete agent identity vector (RAPH Vector v4.0). "
+                "Validates BIND, TENSION, COMMIT sections and injects ARM. "
+                "Returns validated anchor or retry guidance. "
+                "Implements OA-I5: Odyssean Identity Binding."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "role": {
+                        "type": "string",
+                        "description": "Expected role name (must match BIND.ROLE)",
+                    },
+                    "vector_candidate": {
+                        "type": "string",
+                        "description": "Agent's BIND+TENSION+COMMIT sections",
+                    },
+                    "session_id": {
+                        "type": "string",
+                        "description": "Session ID from clock_in for ARM injection",
+                    },
+                    "working_dir": {
+                        "type": "string",
+                        "description": "Project working directory path",
+                    },
+                    "tier": {
+                        "type": "string",
+                        "description": "Validation tier: quick, default, or deep",
+                        "default": "default",
+                    },
+                    "retry_count": {
+                        "type": "integer",
+                        "description": "Current retry attempt (0, 1, 2)",
+                        "default": 0,
+                    },
+                },
+                "required": ["role", "vector_candidate", "session_id", "working_dir"],
+            },
+        ),
     ]
 
 
@@ -245,6 +288,30 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         )
 
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
+
+    elif name == "odyssean_anchor":
+        import json
+
+        anchor_result = odyssean_anchor(
+            role=arguments["role"],
+            vector_candidate=arguments["vector_candidate"],
+            session_id=arguments["session_id"],
+            working_dir=arguments["working_dir"],
+            tier=arguments.get("tier", "default"),
+            retry_count=arguments.get("retry_count", 0),
+        )
+
+        # Convert result dataclass to dict for JSON serialization
+        result_dict = {
+            "success": anchor_result.success,
+            "anchor": anchor_result.anchor,
+            "errors": anchor_result.errors,
+            "guidance": anchor_result.guidance,
+            "retry_count": anchor_result.retry_count,
+            "terminal": anchor_result.terminal,
+        }
+
+        return [TextContent(type="text", text=json.dumps(result_dict, indent=2))]
 
     else:
         raise ValueError(f"Unknown tool: {name}")

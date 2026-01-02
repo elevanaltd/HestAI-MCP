@@ -255,15 +255,15 @@ class TestListTools:
         assert "session_id" in schema["required"]
 
     @pytest.mark.asyncio
-    async def test_returns_two_tools(self):
-        """Returns exactly two tools (clock_in and clock_out)."""
+    async def test_returns_three_tools(self):
+        """Returns exactly three tools (clock_in, clock_out, odyssean_anchor)."""
         from hestai_mcp.mcp.server import list_tools
 
         tools = await list_tools()
 
-        assert len(tools) == 2
+        assert len(tools) == 3
         tool_names = {t.name for t in tools}
-        assert tool_names == {"clock_in", "clock_out"}
+        assert tool_names == {"clock_in", "clock_out", "odyssean_anchor"}
 
 
 # =============================================================================
