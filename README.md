@@ -2,6 +2,7 @@
 
 **Model Context Protocol server implementing dual-layer context architecture for AI agent coordination**
 
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
@@ -141,4 +142,6 @@ Documentation placement is governed by rules in `hub/governance/rules/`:
 
 ## License
 
-MIT
+Apache License 2.0 - see [LICENSE](LICENSE) for details.
+
+"Odyssean Anchor" is a registered trademark of Shaun Buswell - see [docs/trademarks.md](docs/trademarks.md) for usage guidelines.
