@@ -1172,3 +1172,622 @@ class TestJsonImportPlacement:
             f"Found json imports inside functions at lines: {visitor.function_imports}. "
             "json should be imported at module level only."
         )
+
+
+# =============================================================================
+# AI Check Concern Branches (Coverage: lines 259-260, 266-278, 281-292, 299-300)
+# =============================================================================
+
+
+@pytest.mark.unit
+class TestAICheckConcernBranches:
+    """Test AI-driven checks that generate concerns."""
+
+    @pytest.mark.asyncio
+    async def test_validate_semantic_cognition_concern_adds_to_list(self, tmp_path: Path):
+        """Cognition appropriateness concerns are added to concerns list.
+
+        This covers lines 259-260 - cognition concern path.
+        """
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+            SemanticChecksConfig,
+            SemanticConfig,
+            validate_semantic,
+        )
+
+        mock_client = _create_mock_ai_client(
+            '{"appropriate": false, "reason": "PATHOS is not suitable for validators"}'
+        )
+
+        config = SemanticConfig(
+            enabled=True,
+            tier="analysis",
+            timeout_seconds=15,
+            fail_mode="block",  # Block mode to make concerns cause failure
+            checks=SemanticChecksConfig(
+                cognition_appropriateness=True,
+                tension_relevance=False,
+                ctx_validity=False,
+                commit_feasibility=False,
+            ),
+        )
+
+        with patch(
+            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+            return_value=mock_client,
+        ):
+            result = await validate_semantic(
+                role="test-methodology-guardian",
+                cognition_type="PATHOS",  # Mismatched for guardian
+                tensions=[],
+                commit_artifact="src/test.py",
+                working_dir=str(tmp_path),
+                config=config,
+            )
+
+        assert result.success is False
+        assert any("cognition" in c.lower() for c in result.concerns)
+
+    @pytest.mark.asyncio
+    async def test_validate_semantic_tension_relevance_concern(self, tmp_path: Path):
+        """Tension relevance concerns are added to concerns list.
+
+        This covers lines 266-278 - tension relevance concern path.
+        """
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+            SemanticChecksConfig,
+            SemanticConfig,
+            validate_semantic,
+        )
+
+        mock_client = _create_mock_ai_client(
+            '{"all_valid": false, "invalid_constraints": ["HALLUCINATED_CONSTRAINT"]}'
+        )
+
+        config = SemanticConfig(
+            enabled=True,
+            tier="analysis",
+            timeout_seconds=15,
+            fail_mode="block",
+            checks=SemanticChecksConfig(
+                cognition_appropriateness=False,
+                tension_relevance=True,  # Enable tension check
+                ctx_validity=False,
+                commit_feasibility=False,
+            ),
+        )
+
+        tensions = [{"constraint": "HALLUCINATED_CONSTRAINT", "ctx_path": "file.md"}]
+
+        with (
+            patch(
+                "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+                return_value=mock_client,
+            ),
+            patch(
+                "hestai_mcp.mcp.tools.odyssean_anchor_semantic._load_constitution",
+                return_value="I1::TDD, MIP",
+            ),
+        ):
+            result = await validate_semantic(
+                role="test-role",
+                cognition_type="LOGOS",
+                tensions=tensions,
+                commit_artifact="src/test.py",
+                working_dir=str(tmp_path),
+                config=config,
+            )
+
+        assert result.success is False
+        assert any("invalid" in c.lower() or "hallucinated" in c.lower() for c in result.concerns)
+
+    @pytest.mark.asyncio
+    async def test_validate_semantic_commit_feasibility_concern(self, tmp_path: Path):
+        """Commit feasibility concerns are added to concerns list.
+
+        This covers lines 281-292 - commit feasibility concern path.
+        """
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+            SemanticChecksConfig,
+            SemanticConfig,
+            validate_semantic,
+        )
+
+        mock_client = _create_mock_ai_client(
+            '{"feasible": false, "reason": "Complete rewrite is not achievable"}'
+        )
+
+        config = SemanticConfig(
+            enabled=True,
+            tier="analysis",
+            timeout_seconds=15,
+            fail_mode="block",
+            checks=SemanticChecksConfig(
+                cognition_appropriateness=False,
+                tension_relevance=False,
+                ctx_validity=False,
+                commit_feasibility=True,  # Enable feasibility check
+            ),
+        )
+
+        with (
+            patch(
+                "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+                return_value=mock_client,
+            ),
+            patch(
+                "hestai_mcp.mcp.tools.odyssean_anchor_semantic._get_session_focus",
+                return_value="general",
+            ),
+        ):
+            result = await validate_semantic(
+                role="test-role",
+                cognition_type="LOGOS",
+                tensions=[],
+                commit_artifact="Complete rewrite of entire codebase",
+                working_dir=str(tmp_path),
+                config=config,
+            )
+
+        assert result.success is False
+        assert any("commit" in c.lower() or "feasib" in c.lower() for c in result.concerns)
+
+    @pytest.mark.asyncio
+    async def test_validate_semantic_timeout_error_handling(self, tmp_path: Path):
+        """Timeout during validation is handled gracefully.
+
+        This covers lines 299-300 - TimeoutError handling.
+        """
+        import asyncio
+
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+            SemanticChecksConfig,
+            SemanticConfig,
+            validate_semantic,
+        )
+
+        async def slow_completion(*args, **kwargs):
+            await asyncio.sleep(100)
+            return '{"appropriate": true}'
+
+        mock_client = MagicMock()
+        mock_client.complete_text = slow_completion
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=None)
+
+        config = SemanticConfig(
+            enabled=True,
+            tier="analysis",
+            timeout_seconds=1,  # Very short timeout
+            fail_mode="warn",  # Warn mode returns success
+            checks=SemanticChecksConfig(
+                cognition_appropriateness=True,
+                tension_relevance=False,
+                ctx_validity=False,
+                commit_feasibility=False,
+            ),
+        )
+
+        with patch(
+            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+            return_value=mock_client,
+        ):
+            result = await validate_semantic(
+                role="test-role",
+                cognition_type="LOGOS",
+                tensions=[],
+                commit_artifact="test.py",
+                working_dir=str(tmp_path),
+                config=config,
+            )
+
+        # Should succeed in warn mode but note timeout
+        assert result.success is True
+        assert result.timed_out or any("timeout" in c.lower() for c in result.concerns)
+
+
+# =============================================================================
+# AI Response Parsing Edge Cases (Coverage: lines 375-378, 383-386, 458-461, 483, 487, 526-528)
+# =============================================================================
+
+
+@pytest.mark.unit
+class TestAIResponseParsingEdgeCases:
+    """Test edge cases in AI response parsing."""
+
+    @pytest.mark.asyncio
+    async def test_check_cognition_appropriateness_json_parse_failure(self):
+        """Handles invalid JSON response gracefully.
+
+        This covers lines 458-461 - JSON decode error in cognition check.
+        """
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+            check_cognition_appropriateness,
+        )
+
+        # Return invalid JSON
+        mock_client = _create_mock_ai_client("not valid json {}")
+
+        with patch(
+            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+            return_value=mock_client,
+        ):
+            result = await check_cognition_appropriateness(
+                role="test-role",
+                cognition_type="LOGOS",
+                tier="analysis",
+            )
+
+        # Should gracefully return appropriate=True on parse error
+        assert result.appropriate is True
+
+    @pytest.mark.asyncio
+    async def test_check_tension_relevance_empty_tensions(self):
+        """Returns valid for empty tensions list.
+
+        This covers lines 483, 487 - empty tensions short-circuit.
+        """
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+            check_tension_relevance,
+        )
+
+        # Should return valid without calling AI for empty tensions
+        result = await check_tension_relevance(
+            tensions=[],
+            constitution_text="I1::TDD",
+            tier="analysis",
+        )
+
+        assert result.valid is True
+
+    @pytest.mark.asyncio
+    async def test_check_tension_relevance_no_constraints(self):
+        """Returns valid when tensions have no constraints.
+
+        This covers line 487 - empty constraint_names.
+        """
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+            check_tension_relevance,
+        )
+
+        # Tensions with empty/missing constraints
+        tensions = [{"ctx_path": "file.md"}, {"ctx_path": "file2.md", "constraint": ""}]
+
+        result = await check_tension_relevance(
+            tensions=tensions,
+            constitution_text="I1::TDD",
+            tier="analysis",
+        )
+
+        assert result.valid is True
+
+    @pytest.mark.asyncio
+    async def test_check_tension_relevance_json_parse_failure(self):
+        """Handles invalid JSON response gracefully.
+
+        This covers lines 526-528 - JSON decode error in tension check.
+        """
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+            check_tension_relevance,
+        )
+
+        mock_client = _create_mock_ai_client("invalid json response")
+
+        tensions = [{"constraint": "TDD_MANDATE", "ctx_path": "file.md"}]
+
+        with patch(
+            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+            return_value=mock_client,
+        ):
+            result = await check_tension_relevance(
+                tensions=tensions,
+                constitution_text="I1::TDD",
+                tier="analysis",
+            )
+
+        # Should gracefully return valid on parse error
+        assert result.valid is True
+
+    @pytest.mark.asyncio
+    async def test_check_commit_feasibility_json_parse_failure(self):
+        """Handles invalid JSON response gracefully.
+
+        This covers lines 588-590 - JSON decode error in feasibility check.
+        """
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+            check_commit_feasibility,
+        )
+
+        mock_client = _create_mock_ai_client("not json")
+
+        with patch(
+            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+            return_value=mock_client,
+        ):
+            result = await check_commit_feasibility(
+                artifact="src/test.py",
+                focus="general",
+                tier="analysis",
+            )
+
+        # Should gracefully return feasible on parse error
+        assert result.feasible is True
+
+
+# =============================================================================
+# Helper Function Edge Cases (Coverage: lines 600-616, 621-642)
+# =============================================================================
+
+
+@pytest.mark.unit
+class TestHelperFunctionEdgeCases:
+    """Test helper function edge cases for constitution and session loading."""
+
+    def test_load_constitution_tries_multiple_locations(self, tmp_path: Path):
+        """_load_constitution tries multiple file locations.
+
+        This covers lines 600-616 - constitution loading.
+        """
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import _load_constitution
+
+        # Create the first candidate location
+        workflow_dir = tmp_path / ".hestai" / "workflow"
+        workflow_dir.mkdir(parents=True)
+        north_star = workflow_dir / "000-MCP-PRODUCT-NORTH-STAR.md"
+        north_star.write_text("# Product North Star\nI1::TDD")
+
+        result = _load_constitution(str(tmp_path))
+
+        assert "TDD" in result
+        assert "Product North Star" in result
+
+    def test_load_constitution_falls_back_to_hub_governance(self, tmp_path: Path, monkeypatch):
+        """_load_constitution falls back to hub governance location.
+
+        This covers lines 604-606 - second candidate location.
+        """
+        from pathlib import Path as PathClass
+
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import _load_constitution
+
+        # Create the second candidate location (skip first)
+        hub_dir = tmp_path / "hub" / "governance" / "workflow"
+        hub_dir.mkdir(parents=True)
+        system_north_star = hub_dir / "000-SYSTEM-HESTAI-NORTH-STAR.md"
+        system_north_star.write_text("# System North Star\nI2::PHASE_GATED")
+
+        # Mock Path.home() to not interfere with test
+        monkeypatch.setattr(PathClass, "home", lambda: tmp_path / "nonexistent_home")
+
+        result = _load_constitution(str(tmp_path))
+
+        assert "System North Star" in result or "PHASE_GATED" in result
+
+    def test_load_constitution_returns_empty_when_not_found(self, tmp_path: Path, monkeypatch):
+        """_load_constitution returns empty string when no constitution found.
+
+        This covers line 616 - no constitution found.
+        """
+        from pathlib import Path as PathClass
+
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import _load_constitution
+
+        # Mock Path.home() to not interfere with test
+        monkeypatch.setattr(PathClass, "home", lambda: tmp_path / "nonexistent_home")
+
+        # Don't create any constitution files
+        result = _load_constitution(str(tmp_path))
+
+        assert result == ""
+
+    def test_load_constitution_handles_read_error(self, tmp_path: Path, monkeypatch):
+        """_load_constitution handles file read errors.
+
+        This covers lines 613-614 - OSError handling.
+        """
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import _load_constitution
+
+        # Create file but make it unreadable
+        workflow_dir = tmp_path / ".hestai" / "workflow"
+        workflow_dir.mkdir(parents=True)
+        north_star = workflow_dir / "000-MCP-PRODUCT-NORTH-STAR.md"
+        north_star.write_text("content")
+
+        def failing_read(self, *args, **kwargs):
+            raise OSError("Permission denied")
+
+        monkeypatch.setattr(Path, "read_text", failing_read)
+
+        # Should return empty string on error
+        result = _load_constitution(str(tmp_path))
+        assert result == ""
+
+    def test_get_session_focus_returns_general_when_no_sessions(self, tmp_path: Path):
+        """_get_session_focus returns 'general' when no sessions exist.
+
+        This covers lines 624-625 - no sessions directory.
+        """
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import _get_session_focus
+
+        result = _get_session_focus(str(tmp_path))
+        assert result == "general"
+
+    def test_get_session_focus_returns_general_for_empty_sessions(self, tmp_path: Path):
+        """_get_session_focus returns 'general' when sessions dir is empty.
+
+        This covers lines 630-631 - empty sessions directory.
+        """
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import _get_session_focus
+
+        sessions_dir = tmp_path / ".hestai" / "sessions" / "active"
+        sessions_dir.mkdir(parents=True)
+
+        result = _get_session_focus(str(tmp_path))
+        assert result == "general"
+
+    def test_get_session_focus_reads_from_session_json(self, tmp_path: Path):
+        """_get_session_focus reads focus from session.json.
+
+        This covers lines 633-638 - successful session focus reading.
+        """
+        import json
+
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import _get_session_focus
+
+        sessions_dir = tmp_path / ".hestai" / "sessions" / "active"
+        session_dir = sessions_dir / "test-session-123"
+        session_dir.mkdir(parents=True)
+
+        session_data = {"focus": "b2-implementation"}
+        (session_dir / "session.json").write_text(json.dumps(session_data))
+
+        result = _get_session_focus(str(tmp_path))
+        assert result == "b2-implementation"
+
+    def test_get_session_focus_handles_json_error(self, tmp_path: Path):
+        """_get_session_focus handles invalid session.json.
+
+        This covers lines 639-640 - JSONDecodeError handling.
+        """
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import _get_session_focus
+
+        sessions_dir = tmp_path / ".hestai" / "sessions" / "active"
+        session_dir = sessions_dir / "test-session-123"
+        session_dir.mkdir(parents=True)
+
+        # Write invalid JSON
+        (session_dir / "session.json").write_text("{ invalid json }")
+
+        result = _get_session_focus(str(tmp_path))
+        assert result == "general"
+
+    def test_get_session_focus_handles_missing_focus_key(self, tmp_path: Path):
+        """_get_session_focus handles missing focus key.
+
+        This covers line 638 - missing focus key returns 'general'.
+        """
+        import json
+
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import _get_session_focus
+
+        sessions_dir = tmp_path / ".hestai" / "sessions" / "active"
+        session_dir = sessions_dir / "test-session-123"
+        session_dir.mkdir(parents=True)
+
+        session_data = {"session_id": "test"}  # No focus key
+        (session_dir / "session.json").write_text(json.dumps(session_data))
+
+        result = _get_session_focus(str(tmp_path))
+        assert result == "general"
+
+
+# =============================================================================
+# Config Loading Edge Cases (Coverage: line 147, 168-170, 232, 353)
+# =============================================================================
+
+
+@pytest.mark.unit
+class TestConfigLoadingEdgeCases:
+    """Test edge cases in semantic config loading."""
+
+    def test_load_config_handles_empty_yaml(self, tmp_path: Path):
+        """Handles empty ai.yaml file.
+
+        This covers line 147 - empty config_data.
+        """
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import load_semantic_config
+
+        config_dir = tmp_path / ".hestai" / "config"
+        config_dir.mkdir(parents=True)
+        config_file = config_dir / "ai.yaml"
+        config_file.write_text("")  # Empty file
+
+        with patch(
+            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.get_yaml_config_path",
+            return_value=config_file,
+        ):
+            config = load_semantic_config()
+
+        assert config.enabled is False  # Default
+
+    def test_load_config_handles_yaml_error(self, tmp_path: Path):
+        """Handles invalid YAML syntax.
+
+        This covers lines 168-170 - YAML parsing error.
+        """
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import load_semantic_config
+
+        config_dir = tmp_path / ".hestai" / "config"
+        config_dir.mkdir(parents=True)
+        config_file = config_dir / "ai.yaml"
+        config_file.write_text("invalid: yaml: content: [")  # Invalid YAML
+
+        with patch(
+            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.get_yaml_config_path",
+            return_value=config_file,
+        ):
+            config = load_semantic_config()
+
+        assert config.enabled is False  # Falls back to default
+
+    @pytest.mark.asyncio
+    async def test_validate_semantic_loads_config_when_none(self, tmp_path: Path):
+        """validate_semantic loads config when not provided.
+
+        This covers line 232 - config loading fallback.
+        """
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+            SemanticConfig,
+            validate_semantic,
+        )
+
+        # Create disabled config
+        default_config = SemanticConfig(enabled=False)
+
+        with patch(
+            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.load_semantic_config",
+            return_value=default_config,
+        ):
+            result = await validate_semantic(
+                role="test-role",
+                cognition_type="LOGOS",
+                tensions=[],
+                commit_artifact="test.py",
+                working_dir=str(tmp_path),
+                config=None,  # Will load from function
+            )
+
+        assert result.success is True
+        assert result.skipped is True
+
+
+# =============================================================================
+# CTX Validity Additional Coverage (line 353)
+# =============================================================================
+
+
+@pytest.mark.unit
+class TestCtxValidityAdditional:
+    """Additional CTX validity tests for coverage."""
+
+    def test_check_ctx_validity_skips_empty_ctx_path(self, tmp_path: Path):
+        """Skips validation for empty ctx_path.
+
+        This covers line 353 - empty ctx_path continue.
+        """
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import check_ctx_validity
+
+        # Create a valid file
+        (tmp_path / "docs").mkdir()
+        (tmp_path / "docs" / "file.md").write_text("content")
+
+        tensions = [
+            {"ctx_path": "", "constraint": "EMPTY_CTX"},  # Should be skipped
+            {"ctx_path": "docs/file.md", "constraint": "VALID"},
+        ]
+
+        result = check_ctx_validity(tensions, str(tmp_path))
+
+        # Should be valid - empty ctx_path is skipped
+        assert result.valid is True
+        assert len(result.missing_files) == 0
