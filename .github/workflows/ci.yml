@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
       - id: progressive
         name: Progressive preflight (stdlib-only)
         run: python scripts/ci/validate_progressive_behavior.py --github-output "$GITHUB_OUTPUT"
@@ -34,7 +34,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
       - name: Determine changed docs
         id: diff
         shell: bash
@@ -92,11 +92,15 @@ jobs:
   typecheck:
     runs-on: ubuntu-latest
     needs: [preflight]
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: ${{ matrix.python-version }}
           cache: "pip"
       - name: Install
         run: |
@@ -108,11 +112,15 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     needs: [preflight]
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: ${{ matrix.python-version }}
           cache: "pip"
       - name: Install
         run: |
@@ -126,11 +134,15 @@ jobs:
   test_now:
     runs-on: ubuntu-latest
     needs: [preflight]
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: ${{ matrix.python-version }}
           cache: "pip"
       - name: Install
         run: |
@@ -143,11 +155,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: [preflight]
     if: needs.preflight.outputs.run_contracts == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: ${{ matrix.python-version }}
           cache: "pip"
       - name: Install
         run: |
@@ -163,7 +179,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
           cache: "pip"
       - name: Build wheel
         run: |
@@ -183,7 +199,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
       - name: Download dist artifact
         uses: actions/download-artifact@v4
         with:
@@ -215,11 +231,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: [preflight, artifact_validate]
     if: needs.preflight.outputs.run_integration == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: ${{ matrix.python-version }}
           cache: "pip"
       - name: Download dist artifact
         uses: actions/download-artifact@v4

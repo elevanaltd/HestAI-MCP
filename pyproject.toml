@@ -8,14 +8,13 @@ version = "0.1.0"
 description = "HestAI Context Management MCP Server - Dual-Layer Architecture"
 authors = [{name = "HestAI", email = "noreply@hestai.dev"}]
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = {text = "Apache-2.0"}
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
@@ -81,7 +80,7 @@ addopts = [
 asyncio_mode = "auto"
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
@@ -100,7 +99,7 @@ disallow_untyped_defs = false
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py311"
 src = ["src", "tests"]
 
 [tool.ruff.lint]
@@ -125,7 +124,7 @@ ignore = [
 
 [tool.black]
 line-length = 100
-target-version = ["py310", "py311", "py312"]
+target-version = ["py311", "py312"]
 include = '\.pyi?$'
 extend-exclude = '''
 /(

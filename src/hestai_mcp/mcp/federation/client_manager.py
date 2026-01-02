@@ -19,11 +19,10 @@ import logging
 import os
 from contextlib import AsyncExitStack
 from types import TracebackType
-from typing import Any
+from typing import Any, Self
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
-from typing_extensions import Self
 
 logger = logging.getLogger(__name__)
 
@@ -280,7 +279,7 @@ class MCPClientManager:
                     session.initialize(),
                     timeout=self.connect_timeout,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 raise MCPConnectionError(
                     server_name=server_name,
                     message=f"Connection timed out after {self.connect_timeout}s",
@@ -407,7 +406,7 @@ class MCPClientManager:
             )
             logger.debug(f"Tool {tool_name} returned: {result}")
             return result
-        except asyncio.TimeoutError:
+        except TimeoutError:
             raise MCPToolError(
                 server_name=server_name,
                 tool_name=local_tool_name,

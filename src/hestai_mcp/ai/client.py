@@ -5,9 +5,9 @@ must be async. No blocking calls in the MCP server event loop.
 """
 
 from types import TracebackType
+from typing import Self
 
 import httpx
-from typing_extensions import Self
 
 from hestai_mcp.ai.config import (
     AITier,

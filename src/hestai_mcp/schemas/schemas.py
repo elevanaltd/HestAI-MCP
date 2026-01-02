@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, Literal
 
@@ -16,7 +16,7 @@ class HestAIEvent(BaseModel):
     """Immutable event record for the HestAI context ledger."""
 
     id: UUID4
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     session_id: str
     role: str
     type: EventType
