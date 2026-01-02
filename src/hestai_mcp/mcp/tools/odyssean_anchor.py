@@ -674,7 +674,7 @@ def _persist_anchor_state(
     working_dir: str,
     role: str,
     tier: str,
-) -> None:
+) -> tuple[bool, str]:
     """
     Persist anchor validation state to session directory.
 
@@ -688,13 +688,18 @@ def _persist_anchor_state(
         working_dir: Project working directory path
         role: The validated agent role
         tier: The validation tier used
+
+    Returns:
+        Tuple of (success, error_message). On success, error_message is empty.
+        On failure, error_message describes what went wrong.
     """
     working_path = Path(working_dir)
     session_dir = working_path / ".hestai" / "sessions" / "active" / session_id
 
     if not session_dir.exists():
-        logger.warning(f"Session directory not found for anchor persistence: {session_id}")
-        return
+        error_msg = f"Failed to persist anchor state: session directory not found ({session_id})"
+        logger.warning(error_msg)
+        return False, error_msg
 
     anchor_data = {
         "validated": True,
@@ -707,8 +712,11 @@ def _persist_anchor_state(
     try:
         anchor_file.write_text(json.dumps(anchor_data, indent=2))
         logger.info(f"Anchor state persisted for session: {session_id}")
+        return True, ""
     except OSError as e:
-        logger.error(f"Failed to persist anchor state for session {session_id}: {e}")
+        error_msg = f"Failed to persist anchor state: {e}"
+        logger.error(f"{error_msg} (session: {session_id})")
+        return False, error_msg
 
 
 # =============================================================================
@@ -907,12 +915,32 @@ def odyssean_anchor(
     )
 
     # 6. Persist anchor state for OA-I6 tool gating
-    _persist_anchor_state(
+    # CRITICAL: Must check for persistence failure to prevent "zombie state"
+    # where agent appears bound but anchor.json not written to disk
+    persist_success, persist_error = _persist_anchor_state(
         session_id=session_id,
         working_dir=working_dir,
         role=role,
         tier=tier,
     )
+
+    if not persist_success:
+        return OdysseanAnchorResult(
+            success=False,
+            anchor=None,
+            errors=[persist_error],
+            guidance=(
+                "VALIDATION_FAILED: Anchor state could not be persisted\n"
+                "---\n\n"
+                f"ERROR: {persist_error}\n\n"
+                "RETRY GUIDANCE:\n"
+                "- Verify session directory exists and is writable\n"
+                "- Check disk space and permissions\n"
+                "- Retry the odyssean_anchor call"
+            ),
+            retry_count=retry_count,
+            terminal=False,
+        )
 
     return OdysseanAnchorResult(
         success=True,
