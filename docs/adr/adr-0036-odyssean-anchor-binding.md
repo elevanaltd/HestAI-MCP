@@ -32,9 +32,9 @@ We introduce **Odyssean Anchor**, a unified binding mechanism and MCP tool that:
 
 Implement the **Odyssean Anchor** pattern as the exclusive method for agent identity binding.
 
-### 1. The Unified Binding Ceremony (`/oa-load`)
+### 1. The Unified Binding Ceremony (`/bind`)
 
-All agents (main or sub) bind via a standardized sequence, orchestrated by the `/oa-load` command (or equivalent subagent protocol):
+All agents (main or sub) bind via a standardized sequence, orchestrated by the `/bind` command (or equivalent subagent protocol):
 
 ```octave
 BINDING_SEQUENCE::[
@@ -145,7 +145,7 @@ The MCP tool enforces strict rules. If any rule fails, it returns a formatted er
 ## Migration Guide
 
 1.  **Agents**: Update `system-steward`, `implementation-lead`, etc., to use `odyssean_anchor` tool instead of `anchor_submit`.
-2.  **Commands**: Create `/oa-load` alias to trigger the 5-step sequence.
+2.  **Commands**: Update `/bind` command to use `odyssean_anchor` MCP tool (see docs/commands/bind.md).
 3.  **Subagents**: Update `Task()` prompt wrapper to instruct subagents to call `odyssean_anchor` first.
 
 ---
@@ -208,11 +208,19 @@ GATE::{validation_method}
 ```
 
 **Implementation Phases**:
-- Phase 0: This amendment (schema freeze)
-- Phase 1: Implement odyssean_anchor tool with v4.0 + ARM injection
-- Phase 2: Implement OA-I6 tool gating
-- Phase 3: Update /oa-load command
-- Phase 4: Documentation alignment
+- Phase 0: This amendment (schema freeze) - COMPLETE
+- Phase 1: Implement odyssean_anchor tool with v4.0 + ARM injection - COMPLETE (PR #126)
+- Phase 2: Implement OA-I6 tool gating - COMPLETE (gating.py, has_valid_anchor)
+- Phase 3: Update /bind command - COMPLETE (docs/reference/commands/bind.md)
+- Phase 4: Documentation alignment - COMPLETE (2026-01-02)
+
+**Implementation Evidence** (Issue #11):
+- MCP Tool: src/hestai_mcp/mcp/tools/odyssean_anchor.py (949 lines)
+- Gating: src/hestai_mcp/mcp/tools/gating.py (has_valid_anchor)
+- Server: src/hestai_mcp/mcp/server.py (odyssean_anchor exposed)
+- Command: docs/commands/bind.md (v4.0 ceremony reference)
+- Tests: 397 passing (51 anchor + 22 gating + 5 integration)
+- Quality Gates: CRS (Codex) APPROVE, CE (Gemini) GO
 
 ---
 

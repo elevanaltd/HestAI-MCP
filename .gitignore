@@ -1,5 +1,5 @@
 # Claude Code configuration and state (local user settings)
-.claude/
+/.claude/
 
 # Gemini clipboard cache (temporary clipboard artifacts)
 .gemini-clipboard/
@@ -12,6 +12,7 @@
 
 # Operational timestamps (session-specific state)
 .hestai/last_cleanup
+.hestai/context/state/
 
 # Raw session archives (OCTAVE compressed versions are committed)
 .hestai/sessions/archive/*-raw.jsonl

@@ -1426,3 +1426,176 @@ GATE::pytest"""
         # The ARTIFACT:: in BIND should NOT satisfy the requirement
         assert result.valid is False
         assert "ARTIFACT" in str(result.errors)
+
+
+# =============================================================================
+# Anchor State Persistence Tests (OA-I6 Support)
+# =============================================================================
+
+
+@pytest.mark.unit
+class TestAnchorStatePersistence:
+    """Test anchor state persistence for OA-I6 tool gating."""
+
+    def test_odyssean_anchor_returns_false_on_persist_failure(self, tmp_path, monkeypatch):
+        """odyssean_anchor returns success=False when anchor.json write fails.
+
+        This tests the "zombie state" bug fix: if _persist_anchor_state() fails
+        (e.g., OSError during file write), odyssean_anchor() must return
+        success=False, NOT success=True.
+
+        Without this fix, agents appear bound (success=True returned) but
+        anchor.json is not written to disk, causing has_valid_anchor() to
+        return False and trapping agents in an infinite retry loop.
+
+        GitHub Issue: #102 - CRS/CE blocking on zombie state bug
+        """
+        import json
+        from pathlib import Path
+
+        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+
+        # Setup valid session environment
+        working_dir = tmp_path / "project"
+        working_dir.mkdir()
+        hestai_dir = working_dir / ".hestai"
+        sessions_dir = hestai_dir / "sessions" / "active"
+        sessions_dir.mkdir(parents=True)
+
+        session_id = "test-persist-failure"
+        session_dir = sessions_dir / session_id
+        session_dir.mkdir()
+
+        session_data = {
+            "session_id": session_id,
+            "role": "implementation-lead",
+            "focus": "b2-implementation",
+            "working_dir": str(working_dir),
+        }
+        (session_dir / "session.json").write_text(json.dumps(session_data))
+
+        context_dir = hestai_dir / "context"
+        context_dir.mkdir()
+        (context_dir / "PROJECT-CONTEXT.oct.md").write_text(
+            """===PROJECT_CONTEXT===
+META:
+  PHASE::B2
+===END===
+"""
+        )
+
+        # Valid vector that would normally succeed
+        valid_vector = """## BIND (Identity Lock)
+ROLE::implementation-lead
+COGNITION::LOGOS::HEPHAESTUS
+AUTHORITY::RESPONSIBLE[build_phase_execution]
+
+## TENSION (Cognitive Proof - AGENT GENERATED)
+L1::[TDD_MANDATE]<->CTX:.hestai/workflow/000-MCP-NORTH-STAR.md[I1::TDD]->TRIGGER[WRITE_TEST_FIRST]
+L2::[MINIMAL_INTERVENTION]<->CTX:docs/adr/adr-0036.md:177[schema_v4]->TRIGGER[IMPLEMENT_MINIMAL]
+
+## COMMIT (Falsifiable Contract)
+ARTIFACT::src/hestai_mcp/mcp/tools/odyssean_anchor.py
+GATE::pytest tests/unit/mcp/tools/test_odyssean_anchor.py -v"""
+
+        # Monkeypatch Path.write_text to raise OSError when writing anchor.json
+        original_write_text = Path.write_text
+
+        def failing_write_text(self, content, *args, **kwargs):
+            if self.name == "anchor.json":
+                raise OSError("Simulated disk write failure for anchor.json")
+            return original_write_text(self, content, *args, **kwargs)
+
+        monkeypatch.setattr(Path, "write_text", failing_write_text)
+
+        # Call odyssean_anchor with valid input - persist will fail
+        result = odyssean_anchor(
+            role="implementation-lead",
+            vector_candidate=valid_vector,
+            session_id=session_id,
+            working_dir=str(working_dir),
+            tier="default",
+        )
+
+        # CRITICAL ASSERTION: Must return success=False when persist fails
+        assert result.success is False, (
+            "odyssean_anchor MUST return success=False when anchor.json persist fails. "
+            f"Got success={result.success}. This is the zombie state bug - agent appears "
+            "bound but anchor.json not written, causing has_valid_anchor() to fail."
+        )
+
+        # Error message should indicate persistence failure
+        error_str = " ".join(result.errors).lower() if result.errors else ""
+        guidance_str = result.guidance.lower() if result.guidance else ""
+        assert "persist" in error_str or "persist" in guidance_str or "anchor" in error_str, (
+            f"Error should mention persistence failure. Got errors={result.errors}, "
+            f"guidance={result.guidance}"
+        )
+
+    def test_odyssean_anchor_persists_anchor_on_success(self, tmp_path):
+        """odyssean_anchor creates anchor.json on successful validation.
+
+        Verifies the normal success path: when validation passes and persist
+        succeeds, anchor.json should exist with correct content.
+        """
+        import json
+
+        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+
+        # Setup valid session
+        working_dir = tmp_path / "project"
+        working_dir.mkdir()
+        hestai_dir = working_dir / ".hestai"
+        sessions_dir = hestai_dir / "sessions" / "active"
+        sessions_dir.mkdir(parents=True)
+
+        session_id = "test-persist-success"
+        session_dir = sessions_dir / session_id
+        session_dir.mkdir()
+
+        session_data = {
+            "session_id": session_id,
+            "role": "implementation-lead",
+            "focus": "b2-implementation",
+            "working_dir": str(working_dir),
+        }
+        (session_dir / "session.json").write_text(json.dumps(session_data))
+
+        context_dir = hestai_dir / "context"
+        context_dir.mkdir()
+        (context_dir / "PROJECT-CONTEXT.oct.md").write_text("PHASE::B2")
+
+        valid_vector = """## BIND (Identity Lock)
+ROLE::implementation-lead
+COGNITION::LOGOS::HEPHAESTUS
+AUTHORITY::RESPONSIBLE[build_phase_execution]
+
+## TENSION (Cognitive Proof - AGENT GENERATED)
+L1::[TDD_MANDATE]<->CTX:.hestai/workflow/000-MCP-NORTH-STAR.md[I1::TDD]->TRIGGER[WRITE_TEST_FIRST]
+L2::[MINIMAL_INTERVENTION]<->CTX:docs/adr/adr-0036.md:177[schema_v4]->TRIGGER[IMPLEMENT_MINIMAL]
+
+## COMMIT (Falsifiable Contract)
+ARTIFACT::src/hestai_mcp/mcp/tools/odyssean_anchor.py
+GATE::pytest tests/unit/mcp/tools/test_odyssean_anchor.py -v"""
+
+        result = odyssean_anchor(
+            role="implementation-lead",
+            vector_candidate=valid_vector,
+            session_id=session_id,
+            working_dir=str(working_dir),
+            tier="default",
+        )
+
+        # Should succeed
+        assert result.success is True
+
+        # anchor.json should exist
+        anchor_file = session_dir / "anchor.json"
+        assert anchor_file.exists(), "anchor.json should be created on successful validation"
+
+        # Verify content
+        anchor_data = json.loads(anchor_file.read_text())
+        assert anchor_data["validated"] is True
+        assert anchor_data["role"] == "implementation-lead"
+        assert anchor_data["tier"] == "default"
+        assert "timestamp" in anchor_data
