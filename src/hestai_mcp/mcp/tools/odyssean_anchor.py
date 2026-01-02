@@ -743,7 +743,9 @@ def _run_semantic_validation(
     Run semantic validation if enabled (sync wrapper for async validation).
 
     This function loads semantic config and runs AI-driven validation checks
-    if enabled. Uses asyncio.run() to bridge sync/async boundary.
+    if enabled. Handles async context properly:
+    - If called from running event loop (MCP server): uses thread pool executor
+    - If called from sync context: uses asyncio.run()
 
     On error or timeout: returns success=True (graceful degradation).
 
@@ -771,19 +773,45 @@ def _run_semantic_validation(
         if not config.enabled:
             return SemanticValidationResult(success=True, skipped=True)
 
-        # Run async validation in sync context
-        result = asyncio.run(
-            validate_semantic(
-                role=role,
-                cognition_type=cognition_type,
-                tensions=tensions,
-                commit_artifact=commit_artifact,
-                working_dir=working_dir,
-                config=config,
-            )
-        )
+        # Check if we're already in a running event loop
+        try:
+            asyncio.get_running_loop()
+            # We're in an async context (e.g., MCP server's call_tool)
+            # Run the async validation in a thread pool to avoid blocking
+            import concurrent.futures
 
-        return result
+            def run_in_new_loop() -> SemanticValidationResult:
+                """Run the async validation in a new event loop in a thread."""
+                return asyncio.run(
+                    validate_semantic(
+                        role=role,
+                        cognition_type=cognition_type,
+                        tensions=tensions,
+                        commit_artifact=commit_artifact,
+                        working_dir=working_dir,
+                        config=config,
+                    )
+                )
+
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(run_in_new_loop)
+                result = future.result(timeout=config.timeout_seconds + 5)
+
+            return result
+
+        except RuntimeError:
+            # No running event loop - we can use asyncio.run() directly
+            result = asyncio.run(
+                validate_semantic(
+                    role=role,
+                    cognition_type=cognition_type,
+                    tensions=tensions,
+                    commit_artifact=commit_artifact,
+                    working_dir=working_dir,
+                    config=config,
+                )
+            )
+            return result
 
     except Exception as e:
         # Graceful degradation on any error

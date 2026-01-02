@@ -867,3 +867,308 @@ class TestOdysseanAnchorIntegration:
         assert result.skipped is False
         assert result.timed_out is False
         assert "test concern" in result.concerns
+
+
+# =============================================================================
+# BLOCKING ISSUE 1: asyncio.run() in Running Event Loop (CRS Review)
+# =============================================================================
+
+
+@pytest.mark.unit
+class TestAsyncContextExecution:
+    """Test that semantic validation runs correctly from async context (MCP server).
+
+    BLOCKING ISSUE: asyncio.run() raises RuntimeError when called from within
+    a running event loop (like the MCP server's async context). The current
+    implementation silently catches this and skips semantic validation.
+
+    These tests verify the fix works correctly.
+    """
+
+    @pytest.mark.asyncio
+    async def test_semantic_validation_runs_in_async_context(self, tmp_path: Path):
+        """Verify semantic validation actually executes when called from async context.
+
+        This is the key test - it simulates the MCP server's async call_tool()
+        calling _run_semantic_validation() and verifies validation actually runs.
+        """
+        from hestai_mcp.mcp.tools.odyssean_anchor import _run_semantic_validation
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+            SemanticChecksConfig,
+            SemanticConfig,
+        )
+
+        # Create a file so CTX validation has something to check
+        (tmp_path / "docs").mkdir()
+        (tmp_path / "docs" / "test.md").write_text("# Test")
+
+        # Create config with only ctx_validity enabled (non-AI, deterministic)
+        config = SemanticConfig(
+            enabled=True,
+            tier="analysis",
+            timeout_seconds=15,
+            fail_mode="block",
+            checks=SemanticChecksConfig(
+                cognition_appropriateness=False,
+                tension_relevance=False,
+                ctx_validity=True,  # Only this check - filesystem based, no AI
+                commit_feasibility=False,
+            ),
+        )
+
+        # Mock load_semantic_config to return our test config
+        with patch(
+            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.load_semantic_config",
+            return_value=config,
+        ):
+            # Call from async context (simulating MCP server's call_tool)
+            # This should NOT skip semantic validation
+            result = _run_semantic_validation(
+                role="test-role",
+                cognition_type="LOGOS",
+                tensions=[{"ctx_path": "docs/test.md", "constraint": "TEST"}],
+                commit_artifact="src/test.py",
+                working_dir=str(tmp_path),
+            )
+
+        # Key assertion: validation was NOT skipped
+        assert result.skipped is False, (
+            "Semantic validation was skipped when called from async context. "
+            "This indicates asyncio.run() failed in the running event loop."
+        )
+        # And it should succeed since file exists
+        assert result.success is True
+
+    @pytest.mark.asyncio
+    async def test_semantic_validation_detects_missing_file_from_async_context(
+        self, tmp_path: Path
+    ):
+        """Verify semantic validation detects issues when called from async context.
+
+        This proves the validation actually ran (not just returned a stub result).
+        """
+        from hestai_mcp.mcp.tools.odyssean_anchor import _run_semantic_validation
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+            SemanticChecksConfig,
+            SemanticConfig,
+        )
+
+        # Config with block mode and ctx_validity only
+        config = SemanticConfig(
+            enabled=True,
+            tier="analysis",
+            timeout_seconds=15,
+            fail_mode="block",
+            checks=SemanticChecksConfig(
+                cognition_appropriateness=False,
+                tension_relevance=False,
+                ctx_validity=True,
+                commit_feasibility=False,
+            ),
+        )
+
+        with patch(
+            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.load_semantic_config",
+            return_value=config,
+        ):
+            # Reference a file that doesn't exist
+            result = _run_semantic_validation(
+                role="test-role",
+                cognition_type="LOGOS",
+                tensions=[{"ctx_path": "nonexistent/file.md", "constraint": "TEST"}],
+                commit_artifact="src/test.py",
+                working_dir=str(tmp_path),
+            )
+
+        # Key assertion: validation ran and detected the missing file
+        assert result.skipped is False, "Semantic validation was incorrectly skipped"
+        assert result.success is False, "Validation should fail for missing file"
+        assert len(result.concerns) > 0, "Should have concerns about missing file"
+        assert any("nonexistent" in c.lower() for c in result.concerns)
+
+
+# =============================================================================
+# BLOCKING ISSUE 2: CTX Path Traversal Vulnerability (CRS Review)
+# =============================================================================
+
+
+@pytest.mark.unit
+class TestCtxPathTraversalSecurity:
+    """Test CTX path validation prevents path traversal attacks.
+
+    SECURITY VULNERABILITY: check_ctx_validity() doesn't properly sandbox paths.
+    An attacker-controlled TENSION.ctx_path could:
+    1. Use absolute paths like /etc/passwd
+    2. Use relative traversal like ../../etc/passwd
+
+    With fail_mode=block, accept/reject leaks target path existence (oracle attack).
+    """
+
+    def test_ctx_validity_rejects_absolute_paths(self, tmp_path: Path):
+        """CTX paths must be relative, not absolute."""
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import check_ctx_validity
+
+        # Attempt to reference an absolute path (security violation)
+        tensions = [
+            {"ctx_path": "/etc/passwd", "constraint": "EXPLOIT"},
+        ]
+
+        result = check_ctx_validity(tensions, str(tmp_path))
+
+        # Security: absolute paths should be INVALID (rejected)
+        assert result.valid is False, (
+            "SECURITY: Absolute path '/etc/passwd' was not rejected. "
+            "CTX paths must be relative to working_dir."
+        )
+        # The missing_files list should include the rejected path
+        assert "/etc/passwd" in result.missing_files
+
+    def test_ctx_validity_rejects_path_traversal_dotdot(self, tmp_path: Path):
+        """CTX paths with .. must not escape working directory."""
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import check_ctx_validity
+
+        # Create a file outside working_dir to test traversal
+        parent_dir = tmp_path.parent
+        secret_file = parent_dir / "secret.txt"
+        secret_file.write_text("secret data")
+
+        # Attempt path traversal
+        tensions = [
+            {"ctx_path": "../secret.txt", "constraint": "EXPLOIT"},
+        ]
+
+        result = check_ctx_validity(tensions, str(tmp_path))
+
+        # Security: path traversal should be INVALID
+        assert result.valid is False, (
+            "SECURITY: Path traversal '../secret.txt' was not rejected. "
+            "CTX paths must stay within working_dir."
+        )
+
+    def test_ctx_validity_rejects_deep_traversal(self, tmp_path: Path):
+        """CTX paths with multiple .. levels must not escape working directory."""
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import check_ctx_validity
+
+        tensions = [
+            {"ctx_path": "../../etc/passwd", "constraint": "EXPLOIT"},
+        ]
+
+        result = check_ctx_validity(tensions, str(tmp_path))
+
+        assert (
+            result.valid is False
+        ), "SECURITY: Deep traversal '../../etc/passwd' was not rejected."
+
+    def test_ctx_validity_allows_relative_within_workdir(self, tmp_path: Path):
+        """Valid relative paths within working_dir should be allowed."""
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import check_ctx_validity
+
+        # Create nested structure
+        (tmp_path / "docs" / "sub").mkdir(parents=True)
+        (tmp_path / "docs" / "sub" / "file.md").write_text("# Doc")
+
+        tensions = [
+            {"ctx_path": "docs/sub/file.md", "constraint": "VALID"},
+        ]
+
+        result = check_ctx_validity(tensions, str(tmp_path))
+
+        # Valid relative path should work
+        assert result.valid is True
+        assert len(result.missing_files) == 0
+
+    def test_ctx_validity_rejects_backslash_traversal(self, tmp_path: Path):
+        """CTX paths with Windows-style backslashes should be handled safely."""
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import check_ctx_validity
+
+        tensions = [
+            {"ctx_path": "..\\..\\etc\\passwd", "constraint": "EXPLOIT"},
+        ]
+
+        result = check_ctx_validity(tensions, str(tmp_path))
+
+        # Should not allow backslash traversal either
+        assert result.valid is False, "SECURITY: Backslash traversal was not rejected."
+
+    def test_ctx_validity_requires_file_not_directory(self, tmp_path: Path):
+        """CTX paths must point to files, not directories."""
+        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import check_ctx_validity
+
+        # Create a directory
+        (tmp_path / "docs").mkdir()
+
+        tensions = [
+            {"ctx_path": "docs", "constraint": "DIR_NOT_FILE"},
+        ]
+
+        result = check_ctx_validity(tensions, str(tmp_path))
+
+        # Should be invalid - directories are not valid CTX targets
+        assert (
+            result.valid is False
+        ), "CTX path pointing to directory should be rejected - must be a file."
+
+
+# =============================================================================
+# CRITICAL ISSUE 3: json Import Inside try Block (CRS Review)
+# =============================================================================
+
+
+@pytest.mark.unit
+class TestJsonImportPlacement:
+    """Test that json imports are at module level, not inside functions.
+
+    ISSUE: json imports inside try blocks in _get_session_focus() and
+    other functions can cause subtle issues and is poor practice.
+    """
+
+    def test_json_import_at_module_level(self):
+        """Verify json is imported at module level in odyssean_anchor_semantic.py."""
+        import ast
+        from pathlib import Path
+
+        # Read the source file
+        source_file = (
+            Path(__file__).parent.parent.parent.parent.parent
+            / "src"
+            / "hestai_mcp"
+            / "mcp"
+            / "tools"
+            / "odyssean_anchor_semantic.py"
+        )
+        source_code = source_file.read_text()
+
+        # Parse the AST
+        tree = ast.parse(source_code)
+
+        # Check for local imports inside functions by looking for
+        # import statements after the first function definition
+        class FunctionImportVisitor(ast.NodeVisitor):
+            def __init__(self):
+                self.in_function = False
+                self.function_imports = []
+
+            def visit_FunctionDef(self, node):
+                self.in_function = True
+                self.generic_visit(node)
+                self.in_function = False
+
+            def visit_AsyncFunctionDef(self, node):
+                self.in_function = True
+                self.generic_visit(node)
+                self.in_function = False
+
+            def visit_Import(self, node):
+                if self.in_function:
+                    for alias in node.names:
+                        if alias.name == "json":
+                            self.function_imports.append(node.lineno)
+
+        visitor = FunctionImportVisitor()
+        visitor.visit(tree)
+
+        # There should be no json imports inside functions
+        assert len(visitor.function_imports) == 0, (
+            f"Found json imports inside functions at lines: {visitor.function_imports}. "
+            "json should be imported at module level only."
+        )

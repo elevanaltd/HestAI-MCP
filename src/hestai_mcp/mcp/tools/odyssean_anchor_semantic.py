@@ -20,6 +20,7 @@ ADR: docs/adr/adr-0036-odyssean-anchor-binding.md (Semantic Validation Extension
 """
 
 import asyncio
+import json
 import logging
 import os
 import re
@@ -330,15 +331,21 @@ def check_ctx_validity(tensions: list[dict], working_dir: str) -> CtxValidityRes
     """
     Check if CTX paths reference actual files (non-AI check).
 
+    SECURITY: This function prevents path traversal attacks by:
+    1. Rejecting absolute paths (must be relative)
+    2. Rejecting paths with .. that escape working_dir
+    3. Requiring paths to resolve to files (not directories)
+    4. Handling Windows-style backslashes
+
     Args:
         tensions: List of parsed tensions with ctx_path field
         working_dir: Project working directory
 
     Returns:
-        CtxValidityResult with validity and list of missing files
+        CtxValidityResult with validity and list of missing/invalid files
     """
     missing_files: list[str] = []
-    working_path = Path(working_dir)
+    working_path = Path(working_dir).resolve()
 
     for tension in tensions:
         ctx_path = tension.get("ctx_path", "")
@@ -348,10 +355,40 @@ def check_ctx_validity(tensions: list[dict], working_dir: str) -> CtxValidityRes
         # Strip line range suffixes (e.g., ":10-20" or ":45")
         clean_path = re.sub(r":\d+(-\d+)?$", "", ctx_path)
 
-        # Check if file exists
-        full_path = working_path / clean_path
-        if not full_path.exists():
+        # SECURITY: Reject absolute paths
+        if clean_path.startswith("/") or clean_path.startswith("\\"):
             missing_files.append(ctx_path)
+            continue
+
+        # SECURITY: Normalize path separators and check for traversal
+        # Handle Windows-style backslashes
+        normalized_path = clean_path.replace("\\", "/")
+
+        # SECURITY: Reject if path contains .. (even if not at start)
+        if ".." in normalized_path:
+            missing_files.append(ctx_path)
+            continue
+
+        # Resolve the full path
+        try:
+            full_path = (working_path / clean_path).resolve()
+        except (OSError, ValueError):
+            # Invalid path
+            missing_files.append(ctx_path)
+            continue
+
+        # SECURITY: Verify path is within working directory
+        try:
+            full_path.relative_to(working_path)
+        except ValueError:
+            # Path escapes working directory
+            missing_files.append(ctx_path)
+            continue
+
+        # SECURITY: Require file, not directory
+        if not full_path.is_file():
+            missing_files.append(ctx_path)
+            continue
 
     return CtxValidityResult(
         valid=len(missing_files) == 0,
@@ -410,8 +447,6 @@ Respond with JSON only."""
 
     # Parse response
     try:
-        import json
-
         result = json.loads(response)
         if result.get("appropriate", True):
             return CognitionAppropriatenessResult(appropriate=True)
@@ -480,8 +515,6 @@ Respond with JSON only."""
         )
 
     try:
-        import json
-
         result = json.loads(response)
         if result.get("all_valid", True):
             return TensionRelevanceResult(valid=True)
@@ -544,8 +577,6 @@ Respond with JSON only."""
         )
 
     try:
-        import json
-
         result = json.loads(response)
         if result.get("feasible", True):
             return CommitFeasibilityResult(feasible=True)
@@ -602,8 +633,6 @@ def _get_session_focus(working_dir: str) -> str:
         for session_dir in sorted(session_dirs, reverse=True):
             session_file = session_dir / "session.json"
             if session_file.exists():
-                import json
-
                 data = json.loads(session_file.read_text())
                 focus = data.get("focus", "general")
                 return str(focus) if focus else "general"
