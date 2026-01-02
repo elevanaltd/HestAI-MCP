@@ -1,5 +1,7 @@
 # Odyssean Anchor Terminology Guide
 
+> **Trademark Notice**: "Odyssean Anchor" is a registered trademark of Shaun Buswell (UK00004198373). See [trademarks.md](trademarks.md) for usage guidelines.
+
 **Status**: AUTHORITATIVE
 **Date**: 2026-01-01
 **Source**: debates/2026-01-01-identity-vs-binding-terminology.oct.md
