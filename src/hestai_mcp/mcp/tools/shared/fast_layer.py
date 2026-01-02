@@ -16,7 +16,7 @@ Per ADR-0056: Velocity-Layered Fragments Architecture
 import logging
 import re
 import subprocess
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -136,7 +136,7 @@ def populate_current_focus(
     # Sanitize branch as well (could contain special chars from git)
     safe_branch = sanitize_octave_scalar(branch)
 
-    timestamp = datetime.now(timezone.utc).isoformat()
+    timestamp = datetime.now(UTC).isoformat()
 
     content = f"""===CURRENT_FOCUS===
 META:
@@ -277,7 +277,7 @@ def clear_current_focus(
     if not current_focus_path.exists():
         return
 
-    timestamp = datetime.now(timezone.utc).isoformat()
+    timestamp = datetime.now(UTC).isoformat()
 
     content = f"""===CURRENT_FOCUS===
 META:

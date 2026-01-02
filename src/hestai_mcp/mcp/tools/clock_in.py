@@ -19,7 +19,7 @@ import json
 import logging
 import re
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -362,7 +362,7 @@ def clock_in(
         "focus": resolved_focus_value,
         "focus_source": focus_resolved["source"],
         "model": model,
-        "started_at": datetime.now(timezone.utc).isoformat(),
+        "started_at": datetime.now(UTC).isoformat(),
         "transcript_path": transcript_path,
     }
 
@@ -467,7 +467,7 @@ async def clock_in_async(
         "focus": resolved_focus_value,
         "focus_source": focus_resolved["source"],
         "model": model,
-        "started_at": datetime.now(timezone.utc).isoformat(),
+        "started_at": datetime.now(UTC).isoformat(),
         "transcript_path": transcript_path,
     }
 
