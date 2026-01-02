@@ -1,7 +1,7 @@
 # ADR-0036: Odyssean Anchor Binding Architecture
 
-**Status**: ACCEPTED
-**Date**: 2025-12-19
+**Status**: ACCEPTED (Amended 2026-01-01)
+**Date**: 2025-12-19 (Amendment 01: 2026-01-01)
 **Author**: holistic-orchestrator (consolidated from Odyssean Anchor Project ADRs 001-003)
 **Supersedes**: Legacy `anchor_submit` and `load2.md` patterns
 **Implements**: I1 (Verifiable Behavioral Specification), I3 (Structural Enforcement)
@@ -150,7 +150,75 @@ The MCP tool enforces strict rules. If any rule fails, it returns a formatted er
 
 ---
 
+## Amendments
+
+### Amendment 01: Schema Simplification to v4.0 (2026-01-01)
+
+**Decision Source**: debates/2026-01-01-agent-format-oa.oct.md
+
+**Summary**: Wind/Wall/Door debate synthesized schema simplification from 6 sections to 4 sections with Server-Authoritative ARM pattern.
+
+**Changes**:
+
+1. **Schema Reduction**: From 6 sections (BIND, ARM, FLUKE, TENSION, HAZARD, COMMIT) to 4 sections (BIND, ARM, TENSION, COMMIT)
+   - FLUKE absorbed into BIND.AUTHORITY
+   - HAZARD absorbed into TENSION anti-patterns
+   - SOURCES redundant with CTX citations
+
+2. **Server-Authoritative ARM**: Tool INJECTS ARM from server state rather than validating agent claims
+   - Prevents context hallucination
+   - ARM derived from: git state, PROJECT-CONTEXT.oct.md, clock_in session
+
+3. **Terminology Resolution**:
+   - SHANK (legacy) → BIND section
+   - FLUKE (legacy) → absorbed into COMMIT/AUTHORITY
+   - RAPH Vector → Complete 4-section structure
+
+4. **Updated Tool Signature**:
+```python
+def odyssean_anchor(
+    role: str,
+    vector_candidate: str,  # Agent's BIND+TENSION+COMMIT (not ARM)
+    session_id: str,        # For ARM injection
+    tier: str = "default"
+) -> OdysseanAnchorResult:
+```
+
+5. **Updated Canonical Schema (v4.0)**:
+```octave
+===RAPH_VECTOR::v4.0===
+## BIND (Identity Lock)
+ROLE::{agent_name}
+COGNITION::{type}::{archetype}
+AUTHORITY::{RESPONSIBLE|DELEGATED[parent_session]}
+
+## ARM (Context Proof - SERVER INJECTED)
+PHASE::{current_phase}
+BRANCH::{name}[{ahead}↑{behind}↓]
+FILES::{count}[{top_modified}]
+FOCUS::{focus_topic}
+
+## TENSION (Cognitive Proof - AGENT GENERATED)
+L{N}::[{constraint}]↔CTX:{path}[{state}]->TRIGGER[{action}]
+
+## COMMIT (Falsifiable Contract)
+ARTIFACT::{file_path}
+GATE::{validation_method}
+===END_RAPH_VECTOR===
+```
+
+**Implementation Phases**:
+- Phase 0: This amendment (schema freeze)
+- Phase 1: Implement odyssean_anchor tool with v4.0 + ARM injection
+- Phase 2: Implement OA-I6 tool gating
+- Phase 3: Update /oa-load command
+- Phase 4: Documentation alignment
+
+---
+
 ## References
 
 - Derived from Odyssean Anchor Project (ADRs 001, 002, 003)
 - Living Orchestra North Star: I1 (Behavioral Spec), I3 (Structural Enforcement)
+- debates/2026-01-01-agent-format-oa.oct.md (Amendment 01 synthesis)
+- debates/2025-12-31-odyssean-anchor-strategy.oct.md (Prior decision)
