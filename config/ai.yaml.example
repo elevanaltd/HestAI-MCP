@@ -15,17 +15,17 @@
 tiers:
   synthesis:
     provider: openrouter
-    model: google/gemini-2.0-flash-lite
+    model: =google/gemini-3-flash-preview
     description: Fast, cost-effective model for context synthesis
 
   analysis:
     provider: openrouter
-    model: anthropic/claude-3.5-sonnet
+    model: google/gemini-3-pro-preview
     description: Balanced model for deeper analysis
 
   critical:
     provider: openrouter
-    model: anthropic/claude-3.5-sonnet
+    model: google/gemini-3-pro-preview
     description: High-capability model for critical decisions
 
 # Which tier to use by default
@@ -41,6 +41,7 @@ operations:
   clock_in_synthesis: synthesis   # Fast context generation on session start
   context_update: synthesis       # Context updates during session
   document_analysis: analysis     # Deeper document analysis
+  odyssean_anchor_validation: analysis  # Semantic validation of agent binding (Issue #131)
 
 # =============================================================================
 # TIMEOUT SETTINGS
@@ -56,21 +57,42 @@ timeouts:
 #
 # OpenRouter models (use with provider: openrouter):
 #   Fast/Cheap:
-#     - google/gemini-2.0-flash-lite    # Very fast, very cheap
-#     - google/gemini-2.0-flash         # Fast, cheap
+#     - google/gemini-2.5-flash-lite    # Very fast, very cheap
+#     - google/gemini-3-flash-preview   # Fast, cheap
 #     - mistralai/mistral-7b-instruct   # Fast, cheap
 #
 #   Balanced:
-#     - anthropic/claude-3.5-sonnet     # Great quality/price balance
-#     - openai/gpt-4o                   # OpenAI's latest
-#     - google/gemini-1.5-pro           # Google's best
+#     - anthropic/claude-4.5-sonnet     # Great quality/price balance
+#     - openai/gpt-5.2                   # OpenAI's latest
+#     - google/gemini-3-pro-preview     # Google's best
 #
 #   High-capability:
-#     - anthropic/claude-3-opus         # Highest quality (expensive)
-#     - openai/gpt-4-turbo              # OpenAI's best
+#     - anthropic/claude-opus-4.5       # Highest quality (expensive)
+#     - openai/gpt-5.2.                 # OpenAI's best
 #
 # See full list: https://openrouter.ai/models
 #
+# =============================================================================
+# ODYSSEAN ANCHOR SEMANTIC VALIDATION (Issue #131)
+# =============================================================================
+# Optional AI-driven semantic validation for agent binding.
+# When enabled, validates that TENSION and COMMIT reflect genuine understanding.
+# Can be overridden via environment variables:
+#   HESTAI_OA_SEMANTIC_VALIDATION=true
+#   HESTAI_OA_SEMANTIC_FAIL_MODE=warn
+
+odyssean_anchor:
+  semantic_validation:
+    enabled: false              # Default off for backward compatibility
+    tier: analysis              # Which AI tier to use (synthesis/analysis/critical)
+    timeout_seconds: 15         # Max time for semantic validation
+    fail_mode: warn             # warn (log only) | block (reject bind)
+    checks:
+      cognition_appropriateness: true   # Is COGNITION type correct for role?
+      tension_relevance: true           # Do TENSIONs cite real constraints?
+      ctx_validity: true                # Do CTX paths reference actual files?
+      commit_feasibility: true          # Is COMMIT artifact achievable?
+
 # =============================================================================
 # ALTERNATIVE: SINGLE PROVIDER SETUP
 # =============================================================================
@@ -79,10 +101,10 @@ timeouts:
 # tiers:
 #   synthesis:
 #     provider: openrouter
-#     model: anthropic/claude-3.5-sonnet
+#     model: google/gemini-3-pro-preview
 #   analysis:
 #     provider: openrouter
-#     model: anthropic/claude-3.5-sonnet
+#     model: google/gemini-3-pro-preview
 #   critical:
 #     provider: openrouter
-#     model: anthropic/claude-3.5-sonnet
+#     model: google/gemini-3-pro-preview

@@ -50,6 +50,9 @@ ENV/
 env/
 .env
 
+# Local AI configuration (use config/ai.yaml.example as template)
+config/ai.yaml
+
 # Testing
 .pytest_cache/
 .coverage
