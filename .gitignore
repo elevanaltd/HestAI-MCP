@@ -18,6 +18,7 @@
 
 # Raw debate transcripts (OCTAVE compressed versions are committed)
 debates/*.json
+debates/*.lock
 
 # Python
 __pycache__/
