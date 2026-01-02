@@ -4,8 +4,12 @@ SS-I2 Compliance: All provider calls must be async.
 """
 
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
+
+if TYPE_CHECKING:
+    import httpx
 
 
 class CompletionRequest(BaseModel):
@@ -13,6 +17,7 @@ class CompletionRequest(BaseModel):
 
     system_prompt: str
     user_prompt: str
+    model: str = "gpt-4o"  # Default model, should be overridden by tier config
     max_tokens: int = 4096
     temperature: float = 0.7
     timeout_seconds: int = 30
@@ -79,7 +84,3 @@ class BaseProvider(ABC):
             Various exceptions for connection errors, auth failures, etc.
         """
         pass
-
-
-# Import at end to avoid circular imports
-import httpx  # noqa: E402

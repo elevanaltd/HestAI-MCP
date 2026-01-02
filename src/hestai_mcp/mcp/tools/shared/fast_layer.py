@@ -493,8 +493,11 @@ async def synthesize_fast_layer_with_ai(
         from hestai_mcp.ai.config import load_config
         from hestai_mcp.ai.providers.base import CompletionRequest
 
-        # Load AI config - may raise if not configured
-        load_config()
+        # Load AI config
+        config = load_config()
+
+        # Get tier for this operation (configurable via YAML)
+        tier = config.get_operation_tier("clock_in_synthesis")
 
         # Build the user prompt
         user_prompt = SYNTHESIS_USER_PROMPT_TEMPLATE.format(
@@ -512,9 +515,9 @@ async def synthesize_fast_layer_with_ai(
             timeout_seconds=15,  # Quick timeout to not block session start
         )
 
-        # Call AI using async context manager
-        async with AIClient() as client:
-            ai_response = await client.complete_text(request)
+        # Call AI using async context manager with explicit tier
+        async with AIClient(config) as client:
+            ai_response = await client.complete_text(request, tier=tier)
 
         logger.info(f"AI synthesis completed for session {session_id}")
 

@@ -1,0 +1,88 @@
+# HestAI-MCP AI Configuration
+# Copy this file to ~/.hestai/config/ai.yaml
+#
+# This configures which AI models to use for different tasks.
+# API keys are loaded from environment variables or system keyring.
+
+# =============================================================================
+# TIERED MODEL CONFIGURATION
+# =============================================================================
+# Different tiers for different use cases:
+# - synthesis: Fast, cheap models for routine tasks (clock_in context generation)
+# - analysis: Balanced models for deeper analysis
+# - critical: Best available for high-stakes decisions
+
+tiers:
+  synthesis:
+    provider: openrouter
+    model: google/gemini-2.0-flash-lite
+    description: Fast, cost-effective model for context synthesis
+
+  analysis:
+    provider: openrouter
+    model: anthropic/claude-3.5-sonnet
+    description: Balanced model for deeper analysis
+
+  critical:
+    provider: openrouter
+    model: anthropic/claude-3.5-sonnet
+    description: High-capability model for critical decisions
+
+# Which tier to use by default
+default_tier: synthesis
+
+# =============================================================================
+# OPERATION TIER MAPPING
+# =============================================================================
+# Map specific operations to tiers. Operations not listed use default_tier.
+# This allows fine-grained control over which model handles each operation.
+
+operations:
+  clock_in_synthesis: synthesis   # Fast context generation on session start
+  context_update: synthesis       # Context updates during session
+  document_analysis: analysis     # Deeper document analysis
+
+# =============================================================================
+# TIMEOUT SETTINGS
+# =============================================================================
+
+timeouts:
+  connect_seconds: 5
+  request_seconds: 30
+
+# =============================================================================
+# POPULAR MODEL OPTIONS (for reference)
+# =============================================================================
+#
+# OpenRouter models (use with provider: openrouter):
+#   Fast/Cheap:
+#     - google/gemini-2.0-flash-lite    # Very fast, very cheap
+#     - google/gemini-2.0-flash         # Fast, cheap
+#     - mistralai/mistral-7b-instruct   # Fast, cheap
+#
+#   Balanced:
+#     - anthropic/claude-3.5-sonnet     # Great quality/price balance
+#     - openai/gpt-4o                   # OpenAI's latest
+#     - google/gemini-1.5-pro           # Google's best
+#
+#   High-capability:
+#     - anthropic/claude-3-opus         # Highest quality (expensive)
+#     - openai/gpt-4-turbo              # OpenAI's best
+#
+# See full list: https://openrouter.ai/models
+#
+# =============================================================================
+# ALTERNATIVE: SINGLE PROVIDER SETUP
+# =============================================================================
+# If you prefer to use a single model for everything, set all tiers to the same:
+#
+# tiers:
+#   synthesis:
+#     provider: openrouter
+#     model: anthropic/claude-3.5-sonnet
+#   analysis:
+#     provider: openrouter
+#     model: anthropic/claude-3.5-sonnet
+#   critical:
+#     provider: openrouter
+#     model: anthropic/claude-3.5-sonnet
