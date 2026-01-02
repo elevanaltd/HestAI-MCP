@@ -1,5 +1,5 @@
 # Claude Code configuration and state (local user settings)
-.claude/
+/.claude/
 
 # Gemini clipboard cache (temporary clipboard artifacts)
 .gemini-clipboard/
