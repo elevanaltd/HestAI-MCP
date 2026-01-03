@@ -10,6 +10,7 @@ Key Features:
 - COMMIT section validation (artifact + gate)
 - ARM injection from session/git state (server-authoritative)
 - Self-correction protocol with retry guidance (max 2 retries)
+- Optional semantic validation (AI-driven, Issue #131)
 
 Schema: RAPH Vector v4.0 per ADR-0036 Amendment 01
 Key Innovation: Server-Authoritative ARM (agent provides BIND+TENSION+COMMIT, tool injects ARM)
@@ -18,6 +19,9 @@ GitHub Issue: #102
 ADR: docs/adr/adr-0036-odyssean-anchor-binding.md
 """
 
+from __future__ import annotations
+
+import asyncio
 import json
 import logging
 import re
@@ -25,6 +29,10 @@ import subprocess
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from hestai_mcp.mcp.tools.odyssean_anchor_semantic import SemanticValidationResult
 
 logger = logging.getLogger(__name__)
 
@@ -720,6 +728,98 @@ def _persist_anchor_state(
 
 
 # =============================================================================
+# Semantic Validation Integration (Issue #131)
+# =============================================================================
+
+
+def _run_semantic_validation(
+    role: str,
+    cognition_type: str,
+    tensions: list[dict],
+    commit_artifact: str,
+    working_dir: str,
+) -> SemanticValidationResult:
+    """
+    Run semantic validation if enabled (sync wrapper for async validation).
+
+    This function loads semantic config and runs AI-driven validation checks
+    if enabled. Handles async context properly:
+    - If called from running event loop (MCP server): uses thread pool executor
+    - If called from sync context: uses asyncio.run()
+
+    On error or timeout: returns success=True (graceful degradation).
+
+    Args:
+        role: The agent role from BIND section
+        cognition_type: The cognition type (ETHOS, LOGOS, PATHOS)
+        tensions: List of parsed tensions from TENSION section
+        commit_artifact: The artifact from COMMIT section
+        working_dir: Project working directory
+
+    Returns:
+        SemanticValidationResult with success status and concerns
+    """
+    # Import here to avoid circular imports
+    from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        SemanticValidationResult,
+        load_semantic_config,
+        validate_semantic,
+    )
+
+    try:
+        config = load_semantic_config()
+
+        # Short-circuit if disabled
+        if not config.enabled:
+            return SemanticValidationResult(success=True, skipped=True)
+
+        # Check if we're already in a running event loop
+        try:
+            asyncio.get_running_loop()
+            # We're in an async context (e.g., MCP server's call_tool)
+            # Run the async validation in a thread pool to avoid blocking
+            import concurrent.futures
+
+            def run_in_new_loop() -> SemanticValidationResult:
+                """Run the async validation in a new event loop in a thread."""
+                return asyncio.run(
+                    validate_semantic(
+                        role=role,
+                        cognition_type=cognition_type,
+                        tensions=tensions,
+                        commit_artifact=commit_artifact,
+                        working_dir=working_dir,
+                        config=config,
+                    )
+                )
+
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(run_in_new_loop)
+                result = future.result(timeout=config.timeout_seconds + 5)
+
+            return result
+
+        except RuntimeError:
+            # No running event loop - we can use asyncio.run() directly
+            result = asyncio.run(
+                validate_semantic(
+                    role=role,
+                    cognition_type=cognition_type,
+                    tensions=tensions,
+                    commit_artifact=commit_artifact,
+                    working_dir=working_dir,
+                    config=config,
+                )
+            )
+            return result
+
+    except Exception as e:
+        # Graceful degradation on any error
+        logger.warning(f"Semantic validation error: {e}")
+        return SemanticValidationResult(success=True, skipped=True, concerns=[])
+
+
+# =============================================================================
 # Main Odyssean Anchor Tool
 # =============================================================================
 
@@ -740,7 +840,14 @@ def odyssean_anchor(
     2. Validates TENSION section (agent provides, CTX citations required)
     3. Validates COMMIT section (agent provides)
     4. Injects ARM section (server-authoritative from session/git)
-    5. Returns validated anchor or retry guidance
+    5. Runs semantic validation if enabled (Issue #131)
+    6. Returns validated anchor or retry guidance
+
+    Semantic Validation (optional, Issue #131):
+    - Configurable via ai.yaml odyssean_anchor.semantic_validation section
+    - Environment overrides: HESTAI_OA_SEMANTIC_VALIDATION, HESTAI_OA_SEMANTIC_FAIL_MODE
+    - Checks: cognition_appropriateness, tension_relevance, ctx_validity, commit_feasibility
+    - Default: disabled for backward compatibility
 
     Self-Correction Protocol (OA-I3):
     - Max 2 retries with specific guidance per failure
@@ -878,6 +985,24 @@ def odyssean_anchor(
         guidance_parts.append(
             "- Ensure valid session_id from clock_in\n" "- Verify working_dir path is correct"
         )
+
+    # 5. Semantic validation (optional, AI-driven, Issue #131)
+    # Only runs if structural validation passes and semantic validation is enabled
+    if not all_errors:
+        semantic_result = _run_semantic_validation(
+            role=role,
+            cognition_type=bind_result.cognition_type,
+            tensions=tension_result.tensions,
+            commit_artifact=commit_result.artifact,
+            working_dir=working_dir,
+        )
+        if not semantic_result.success:
+            all_errors.extend(semantic_result.concerns)
+            guidance_parts.append(
+                "- Review semantic validation concerns above\n"
+                "- Ensure COGNITION type matches role responsibilities\n"
+                "- Verify CTX files exist and are accessible"
+            )
 
     # If any errors, return failure with guidance
     if all_errors:
