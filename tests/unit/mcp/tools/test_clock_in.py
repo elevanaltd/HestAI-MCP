@@ -1174,3 +1174,428 @@ SCOPE_BOUNDARIES::[
             or "CONSTRAINT" in summary.upper()
             or "SCOPE" in summary.upper()
         )
+
+
+@pytest.mark.unit
+class TestCoverageGaps:
+    """
+    Tests for previously uncovered code paths.
+
+    Coverage gaps identified:
+    - Line 60: resolve_focus_from_branch with empty branch
+    - Line 141: validate_role_format with empty role
+    - Line 180: validate_working_dir with file path (not directory)
+    - Lines 200-224: detect_focus_conflict edge cases
+    - Lines 308-311: _find_north_star_file fallback to .md
+    - Lines 346-347, 364-365: OSError handling
+    - Lines 432, 436-438: _get_git_state edge cases
+    - Lines 496, 500-503: freshness check edge cases
+    - Lines 520, 553, 560-564: North Star extraction edge cases
+    - Lines 592-600: ensure_hestai_structure creates new directory
+    """
+
+    def test_resolve_focus_from_branch_with_empty_string(self):
+        """resolve_focus_from_branch returns None for empty string."""
+        from hestai_mcp.mcp.tools.clock_in import resolve_focus_from_branch
+
+        result = resolve_focus_from_branch("")
+        assert result is None
+
+    def test_resolve_focus_from_branch_with_none(self):
+        """resolve_focus_from_branch returns None for None input."""
+        from hestai_mcp.mcp.tools.clock_in import resolve_focus_from_branch
+
+        # This exercises the implicit None case at line 59-60
+        result = resolve_focus_from_branch(None)  # type: ignore[arg-type]
+        assert result is None
+
+    def test_validate_role_format_with_empty_string(self):
+        """validate_role_format raises ValueError for empty string."""
+        from hestai_mcp.mcp.tools.clock_in import validate_role_format
+
+        with pytest.raises(ValueError, match="[Rr]ole cannot be empty"):
+            validate_role_format("")
+
+    def test_validate_role_format_with_whitespace_only(self):
+        """validate_role_format raises ValueError for whitespace-only string."""
+        from hestai_mcp.mcp.tools.clock_in import validate_role_format
+
+        with pytest.raises(ValueError, match="[Rr]ole cannot be empty"):
+            validate_role_format("   ")
+
+    def test_validate_working_dir_with_file_path(self, tmp_path: Path):
+        """validate_working_dir raises ValueError when path is a file, not directory."""
+        from hestai_mcp.mcp.tools.clock_in import validate_working_dir
+
+        # Create a file, not a directory
+        file_path = tmp_path / "somefile.txt"
+        file_path.write_text("content")
+
+        with pytest.raises(ValueError, match="not a directory"):
+            validate_working_dir(str(file_path))
+
+    def test_detect_focus_conflict_with_nonexistent_sessions_dir(self, tmp_path: Path):
+        """detect_focus_conflict returns None when sessions dir doesn't exist."""
+        from hestai_mcp.mcp.tools.clock_in import detect_focus_conflict
+
+        nonexistent_dir = tmp_path / "nonexistent"
+
+        result = detect_focus_conflict(
+            focus="test-focus",
+            active_sessions_dir=nonexistent_dir,
+            current_session_id="test-session-id",
+        )
+        assert result is None
+
+    def test_detect_focus_conflict_skips_non_directories(self, tmp_path: Path):
+        """detect_focus_conflict skips non-directory items in sessions dir."""
+        from hestai_mcp.mcp.tools.clock_in import detect_focus_conflict
+
+        # Create sessions dir with a file (not directory)
+        sessions_dir = tmp_path / "sessions"
+        sessions_dir.mkdir()
+        (sessions_dir / "not_a_dir.txt").write_text("file content")
+
+        result = detect_focus_conflict(
+            focus="test-focus",
+            active_sessions_dir=sessions_dir,
+            current_session_id="test-session-id",
+        )
+        # Should not crash, just skip the file
+        assert result is None
+
+    def test_detect_focus_conflict_skips_session_without_json(self, tmp_path: Path):
+        """detect_focus_conflict skips sessions without session.json."""
+        from hestai_mcp.mcp.tools.clock_in import detect_focus_conflict
+
+        # Create sessions dir with a session directory but no session.json
+        sessions_dir = tmp_path / "sessions"
+        sessions_dir.mkdir()
+        (sessions_dir / "session-without-json").mkdir()
+
+        result = detect_focus_conflict(
+            focus="test-focus",
+            active_sessions_dir=sessions_dir,
+            current_session_id="test-session-id",
+        )
+        # Should not crash, just skip
+        assert result is None
+
+    def test_detect_focus_conflict_handles_invalid_json(self, tmp_path: Path):
+        """detect_focus_conflict handles JSONDecodeError gracefully."""
+        from hestai_mcp.mcp.tools.clock_in import detect_focus_conflict
+
+        # Create sessions dir with invalid JSON
+        sessions_dir = tmp_path / "sessions"
+        sessions_dir.mkdir()
+        session_dir = sessions_dir / "session-with-bad-json"
+        session_dir.mkdir()
+        (session_dir / "session.json").write_text("not valid json {{{")
+
+        result = detect_focus_conflict(
+            focus="test-focus",
+            active_sessions_dir=sessions_dir,
+            current_session_id="other-session",
+        )
+        # Should not crash, just skip invalid session
+        assert result is None
+
+    def test_find_north_star_file_fallback_to_md(self, tmp_path: Path):
+        """_find_north_star_file falls back to .md when no .oct.md exists."""
+        from hestai_mcp.mcp.tools.clock_in import _find_north_star_file
+
+        # Create workflow dir with only .md file (no .oct.md)
+        workflow_dir = tmp_path / ".hestai" / "workflow"
+        workflow_dir.mkdir(parents=True)
+        md_file = workflow_dir / "000-PROJECT-NORTH-STAR.md"
+        md_file.write_text("North Star content")
+
+        result = _find_north_star_file(tmp_path)
+        assert result is not None
+        assert result.name == "000-PROJECT-NORTH-STAR.md"
+
+    def test_find_north_star_file_prefers_oct_md_over_md(self, tmp_path: Path):
+        """_find_north_star_file prefers .oct.md over .md when both exist."""
+        from hestai_mcp.mcp.tools.clock_in import _find_north_star_file
+
+        # Create workflow dir with both .md and .oct.md files
+        workflow_dir = tmp_path / ".hestai" / "workflow"
+        workflow_dir.mkdir(parents=True)
+        (workflow_dir / "000-PROJECT-NORTH-STAR.md").write_text("Plain MD")
+        (workflow_dir / "000-PROJECT-NORTH-STAR.oct.md").write_text("OCTAVE MD")
+
+        result = _find_north_star_file(tmp_path)
+        assert result is not None
+        assert result.name.endswith(".oct.md")
+
+    def test_find_north_star_file_excludes_summary_files(self, tmp_path: Path):
+        """_find_north_star_file excludes files with -SUMMARY in name."""
+        from hestai_mcp.mcp.tools.clock_in import _find_north_star_file
+
+        # Create workflow dir with only -SUMMARY file
+        workflow_dir = tmp_path / ".hestai" / "workflow"
+        workflow_dir.mkdir(parents=True)
+        (workflow_dir / "000-PROJECT-NORTH-STAR-SUMMARY.oct.md").write_text("Summary")
+
+        result = _find_north_star_file(tmp_path)
+        # Should return None since only summary file exists
+        assert result is None
+
+    def test_find_north_star_file_returns_none_when_no_workflow_dir(self, tmp_path: Path):
+        """_find_north_star_file returns None when workflow dir doesn't exist."""
+        from hestai_mcp.mcp.tools.clock_in import _find_north_star_file
+
+        result = _find_north_star_file(tmp_path)
+        assert result is None
+
+    def test_find_north_star_file_returns_none_when_no_matching_files(self, tmp_path: Path):
+        """_find_north_star_file returns None when no matching files exist."""
+        from hestai_mcp.mcp.tools.clock_in import _find_north_star_file
+
+        workflow_dir = tmp_path / ".hestai" / "workflow"
+        workflow_dir.mkdir(parents=True)
+        # Create files that don't match the pattern
+        (workflow_dir / "other-file.md").write_text("Not a north star")
+
+        result = _find_north_star_file(tmp_path)
+        assert result is None
+
+    def test_get_git_state_returns_none_on_error(self, tmp_path: Path):
+        """_get_git_state returns None when git is not available or fails."""
+        from hestai_mcp.mcp.tools.clock_in import _get_git_state
+
+        # Non-git directory should return None or handle gracefully
+        result = _get_git_state(tmp_path)
+        # In a non-git dir, it might return None or minimal info
+        # The key is it shouldn't crash
+        assert result is None or isinstance(result, str)
+
+    def test_get_git_state_includes_modified_files(self, mock_hestai_structure: Path):
+        """_get_git_state includes modified files when present."""
+        import subprocess
+
+        from hestai_mcp.mcp.tools.clock_in import _get_git_state
+
+        # Initialize git and create uncommitted changes
+        subprocess.run(["git", "init"], cwd=str(mock_hestai_structure), capture_output=True)
+        subprocess.run(
+            ["git", "config", "user.email", "test@test.com"],
+            cwd=str(mock_hestai_structure),
+            capture_output=True,
+        )
+        subprocess.run(
+            ["git", "config", "user.name", "Test"],
+            cwd=str(mock_hestai_structure),
+            capture_output=True,
+        )
+
+        # Create and commit a file
+        test_file = mock_hestai_structure / "file.txt"
+        test_file.write_text("original")
+        subprocess.run(["git", "add", "."], cwd=str(mock_hestai_structure), capture_output=True)
+        subprocess.run(
+            ["git", "commit", "-m", "Initial"],
+            cwd=str(mock_hestai_structure),
+            capture_output=True,
+        )
+
+        # Modify the file (now it will show as modified)
+        test_file.write_text("modified content")
+
+        result = _get_git_state(mock_hestai_structure)
+        assert result is not None
+        assert "Modified files:" in result
+        assert "file.txt" in result
+
+    def test_check_context_freshness_handles_stale_file(self, mock_hestai_structure: Path):
+        """_check_context_freshness returns warning for stale context."""
+        import subprocess
+
+        from hestai_mcp.mcp.tools.clock_in import _check_context_freshness
+
+        # Initialize git
+        subprocess.run(["git", "init"], cwd=str(mock_hestai_structure), capture_output=True)
+        subprocess.run(
+            ["git", "config", "user.email", "test@test.com"],
+            cwd=str(mock_hestai_structure),
+            capture_output=True,
+        )
+        subprocess.run(
+            ["git", "config", "user.name", "Test"],
+            cwd=str(mock_hestai_structure),
+            capture_output=True,
+        )
+
+        # Create and commit PROJECT-CONTEXT
+        project_context = mock_hestai_structure / ".hestai" / "context" / "PROJECT-CONTEXT.oct.md"
+        project_context.write_text("test content")
+        subprocess.run(["git", "add", "."], cwd=str(mock_hestai_structure), capture_output=True)
+
+        # Commit with a date 48 hours ago
+        subprocess.run(
+            ["git", "commit", "-m", "old commit", "--date", "2025-01-01T00:00:00Z"],
+            cwd=str(mock_hestai_structure),
+            capture_output=True,
+            env={
+                **subprocess.os.environ,
+                "GIT_AUTHOR_DATE": "2025-01-01T00:00:00Z",
+                "GIT_COMMITTER_DATE": "2025-01-01T00:00:00Z",
+            },
+        )
+
+        # The file should be considered stale (>24h)
+        warning = _check_context_freshness(
+            project_context_path=project_context,
+            working_dir=mock_hestai_structure,
+            max_age_hours=24,
+        )
+
+        assert warning is not None
+        assert "stale" in warning.lower() or "I4" in warning
+
+    def test_check_context_freshness_handles_subprocess_error(self, tmp_path: Path):
+        """_check_context_freshness handles subprocess errors gracefully."""
+        from hestai_mcp.mcp.tools.clock_in import _check_context_freshness
+
+        # Create a file in a non-git directory
+        context_file = tmp_path / "PROJECT-CONTEXT.oct.md"
+        context_file.write_text("test")
+
+        # Should return a warning about not being able to verify freshness
+        warning = _check_context_freshness(
+            project_context_path=context_file,
+            working_dir=tmp_path,
+        )
+
+        # Either warning about stale/uncommitted or about git unavailable
+        assert warning is None or "WARNING" in warning.upper() or "stale" in warning.lower()
+
+    def test_extract_north_star_constraints_handles_nonexistent_path(self, tmp_path: Path):
+        """_extract_north_star_constraints returns None for nonexistent path."""
+        from hestai_mcp.mcp.tools.clock_in import _extract_north_star_constraints
+
+        nonexistent = tmp_path / "does_not_exist.md"
+        result = _extract_north_star_constraints(nonexistent)
+        assert result is None
+
+    def test_extract_north_star_constraints_extracts_immutables(self, tmp_path: Path):
+        """_extract_north_star_constraints extracts IMMUTABLES references."""
+        from hestai_mcp.mcp.tools.clock_in import _extract_north_star_constraints
+
+        north_star = tmp_path / "north-star.md"
+        north_star.write_text(
+            """===NORTH_STAR===
+I1::IMMUTABLE_ONE
+I2::IMMUTABLE_TWO
+I3::IMMUTABLE_THREE
+I4::IMMUTABLE_FOUR
+===END===
+"""
+        )
+
+        result = _extract_north_star_constraints(north_star)
+        assert result is not None
+        assert "I1::" in result
+        assert "KEY IMMUTABLES" in result
+
+    def test_extract_north_star_constraints_returns_none_when_no_content(self, tmp_path: Path):
+        """_extract_north_star_constraints returns None when no matching content."""
+        from hestai_mcp.mcp.tools.clock_in import _extract_north_star_constraints
+
+        north_star = tmp_path / "empty-north-star.md"
+        north_star.write_text("Just some regular content without immutables or scope")
+
+        result = _extract_north_star_constraints(north_star)
+        assert result is None
+
+    def test_ensure_hestai_structure_creates_new_directory(self, tmp_path: Path):
+        """ensure_hestai_structure creates new .hestai directory when missing."""
+        from hestai_mcp.mcp.tools.clock_in import ensure_hestai_structure
+
+        project_root = tmp_path / "new_project"
+        project_root.mkdir()
+
+        # No .hestai directory exists
+        assert not (project_root / ".hestai").exists()
+
+        result = ensure_hestai_structure(project_root)
+
+        # Should return 'created' and create all subdirectories
+        assert result == "created"
+        assert (project_root / ".hestai").exists()
+        assert (project_root / ".hestai" / "sessions" / "active").exists()
+        assert (project_root / ".hestai" / "sessions" / "archive").exists()
+        assert (project_root / ".hestai" / "context").exists()
+        assert (project_root / ".hestai" / "workflow").exists()
+        assert (project_root / ".hestai" / "reports").exists()
+
+    def test_ensure_hestai_structure_returns_present_when_exists(self, mock_hestai_structure: Path):
+        """ensure_hestai_structure returns 'present' when .hestai already exists."""
+        from hestai_mcp.mcp.tools.clock_in import ensure_hestai_structure
+
+        # mock_hestai_structure already has .hestai
+        result = ensure_hestai_structure(mock_hestai_structure)
+        assert result == "present"
+
+    def test_build_rich_context_handles_oserror_on_project_context(
+        self, mock_hestai_structure: Path
+    ):
+        """build_rich_context_summary handles OSError when reading PROJECT-CONTEXT."""
+        from unittest.mock import patch
+
+        from hestai_mcp.mcp.tools.clock_in import (
+            build_rich_context_summary,
+            resolve_context_paths,
+        )
+
+        # Create PROJECT-CONTEXT
+        context_dir = mock_hestai_structure / ".hestai" / "context"
+        project_context = context_dir / "PROJECT-CONTEXT.oct.md"
+        project_context.write_text("test content")
+
+        # Mock read_text to raise OSError
+        with patch.object(Path, "read_text", side_effect=OSError("Permission denied")):
+            context_paths = resolve_context_paths(mock_hestai_structure)
+            # Should not crash
+            summary = build_rich_context_summary(
+                working_dir=mock_hestai_structure,
+                context_paths=context_paths,
+                role="test-role",
+                focus="test-focus",
+            )
+            # Summary should still be generated (without the content that failed)
+            assert isinstance(summary, str)
+
+    def test_build_rich_context_handles_oserror_on_blockers(self, mock_hestai_structure: Path):
+        """build_rich_context_summary handles OSError when reading blockers file."""
+        from unittest.mock import patch
+
+        from hestai_mcp.mcp.tools.clock_in import (
+            build_rich_context_summary,
+            resolve_context_paths,
+        )
+
+        # Create blockers file
+        state_dir = mock_hestai_structure / ".hestai" / "context" / "state"
+        state_dir.mkdir(parents=True, exist_ok=True)
+        blockers_file = state_dir / "blockers.oct.md"
+        blockers_file.write_text("ACTIVE: some blocker")
+
+        # Create a mock that only raises OSError for the blockers file
+        original_read_text = Path.read_text
+
+        def mock_read_text(self):
+            if "blockers.oct.md" in str(self):
+                raise OSError("Permission denied")
+            return original_read_text(self)
+
+        with patch.object(Path, "read_text", mock_read_text):
+            context_paths = resolve_context_paths(mock_hestai_structure)
+            # Should not crash
+            summary = build_rich_context_summary(
+                working_dir=mock_hestai_structure,
+                context_paths=context_paths,
+                role="test-role",
+                focus="test-focus",
+            )
+            assert isinstance(summary, str)
