@@ -1,40 +1,45 @@
 ---
 description: MCP tool implementation patterns
 globs:
-  - "src/hestai_mcp/tools/**/*.py"
-  - "src/hestai_mcp/server.py"
+  - "src/hestai_mcp/mcp/tools/**/*.py"
+  - "src/hestai_mcp/mcp/server.py"
 ---
 
 # MCP Tool Implementation
 
 ## Tool Structure
 
-Tools live in `src/hestai_mcp/tools/` and follow this pattern:
+Tools live in `src/hestai_mcp/mcp/tools/` and return dicts:
 
 ```python
-from mcp.types import Tool, TextContent
-
-async def my_tool(arguments: dict) -> list[TextContent]:
-    """Tool description for Claude."""
+async def my_tool_async(
+    required_param: str,
+    optional_param: str | None = None,
+) -> dict[str, Any]:
+    """Tool description."""
+    # Validate inputs first
+    validated = validate_param(required_param)
     # Implementation
-    return [TextContent(type="text", text=result)]
+    return {"status": "success", "data": result}
 ```
 
 ## Session Tools
 
-- `clock_in` - Start session, returns context paths
-- `clock_out` - Archive session transcript
-- `odyssean_anchor` - Validate agent identity binding
+- `clock_in` - Start session, returns context paths + AI synthesis
+- `clock_out` - Archive session transcript to OCTAVE
+- `odyssean_anchor` - Validate agent identity binding (RAPH vector)
 
 ## Key Directories
 
-- `.hestai/context/` - Living context files
-- `.hestai/sessions/active/` - Current session data
+- `.hestai/context/` - Living context files (PROJECT-CONTEXT, etc.)
+- `.hestai/sessions/active/` - Current session data (gitignored)
+- `.hestai/sessions/archive/` - Compressed session archives (committed)
 - `.hestai/workflow/` - North Star and specs
 
-## Error Responses
+## Shared Utilities
 
-Return structured errors with actionable guidance:
-```python
-return [TextContent(type="text", text=f"ERROR: {reason}\nSuggestion: {fix}")]
-```
+Tools use shared modules in `src/hestai_mcp/mcp/tools/shared/`:
+- `path_resolution.py` - Path validation and traversal prevention
+- `security.py` - Input sanitization
+- `fast_layer.py` - Git state and branch detection
+- `compression.py` - OCTAVE compression helpers

@@ -23,11 +23,13 @@ python -m pytest -m contract    # Contract tests (SOON)
 
 ## Core Files
 
-- `src/hestai_mcp/` - Main package
-- `src/hestai_mcp/server.py` - MCP server entry point
-- `src/hestai_mcp/tools/` - MCP tool implementations
-- `tests/` - Test suite with markers: smoke, unit, behavior, contract
+- `src/hestai_mcp/mcp/server.py` - MCP server entry point
+- `src/hestai_mcp/mcp/tools/` - MCP tool implementations (clock_in, clock_out, odyssean_anchor)
+- `src/hestai_mcp/ai/` - AI client and provider abstractions
+- `src/hestai_mcp/schemas/` - Pydantic schemas
+- `tests/` - Test suite mirroring src/ structure
 - `.hestai/workflow/` - North Star and workflow docs
+- `docs/ARCHITECTURE.md` - System architecture reference
 
 ## Testing
 
