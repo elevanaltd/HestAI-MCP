@@ -37,7 +37,7 @@ I4::FRESHNESS_VERIFICATION::[
 I5::ODYSSEAN_IDENTITY_BINDING::[
   PRINCIPLE::agents_must_undergo_structural_identity_verification_to_operate,
   WHY::prevents_generic_drift+enforces_role_constraints,
-  STATUS::PENDING[oa-load_tool]
+  STATUS::PENDING[bind_command]
 ]
 
 I6::UNIVERSAL_SCOPE::[
