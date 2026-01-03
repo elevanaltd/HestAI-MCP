@@ -1,6 +1,6 @@
 ---
 description: Testing patterns and conventions for HestAI MCP
-globs:
+paths:
   - "tests/**/*.py"
   - "**/test_*.py"
 ---

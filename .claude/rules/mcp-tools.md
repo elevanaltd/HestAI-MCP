@@ -1,6 +1,6 @@
 ---
 description: MCP tool implementation patterns
-globs:
+paths:
   - "src/hestai_mcp/mcp/tools/**/*.py"
   - "src/hestai_mcp/mcp/server.py"
 ---

@@ -1,6 +1,6 @@
 ---
 description: Python code style for HestAI MCP
-globs:
+paths:
   - "src/**/*.py"
   - "scripts/**/*.py"
 ---
