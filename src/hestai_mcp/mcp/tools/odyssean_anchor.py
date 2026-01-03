@@ -296,12 +296,23 @@ def validate_tension_section(tension_text: str, tier: str = "default") -> Tensio
     errors = []
     tensions = []
 
-    # Parse tension lines (format: L{N}::[constraint]<->CTX:...[state]->TRIGGER[action])
+    # Parse tension lines using OCTAVE operators per octave-5-llm-core.oct.md
+    # Format: L{N}::[constraint]⇌CTX:{path}[state]→TRIGGER[action]
+    # Accepts both Unicode (⇌, →) and ASCII aliases (<->, ->) per OCTAVE spec §2b
+    # Note: <-> is legacy alias for ⇌ (tension), -> is alias for → (flow)
+
+    # Tension operator: ⇌ (Unicode) or <-> (ASCII alias)
+    tension_op = r"(?:⇌|<->)"
+    # Flow operator: → (Unicode) or -> (ASCII alias)
+    flow_op = r"(?:→|->)"
+
     # First pattern: with line number prefix
-    tension_pattern = re.compile(r"L(\d+)::\[([^\]]+)\]<->(?:CTX:)?([^\[]*)\[([^\]]*)\]->(.*)")
+    tension_pattern = re.compile(
+        rf"L(\d+)::\[([^\]]+)\]{tension_op}(?:CTX:)?([^\[]*)\[([^\]]*)\]{flow_op}(.*)"
+    )
 
     # Alternative pattern without line number prefix
-    alt_pattern = re.compile(r"\[([^\]]+)\]<->CTX:([^\[]*)\[([^\]]*)\]->(.*)")
+    alt_pattern = re.compile(rf"\[([^\]]+)\]{tension_op}CTX:([^\[]*)\[([^\]]*)\]{flow_op}(.*)")
 
     # Pattern to extract TRIGGER[action] from the end portion
     trigger_pattern = re.compile(r"TRIGGER\[([^\]]+)\]")
@@ -932,7 +943,7 @@ def odyssean_anchor(
                 min_req = TIER_TENSION_REQUIREMENTS.get(tier, 2)
                 guidance_parts.append(
                     f"- Add more TENSION lines. Tier '{tier}' requires minimum {min_req}\n"
-                    "- Format: L{{N}}::[constraint]<->CTX:path[state]->TRIGGER[action]"
+                    "- Format: L{{N}}::[constraint]⇌CTX:path[state]→TRIGGER[action]"
                 )
             if "generic" in error.lower():
                 guidance_parts.append(

@@ -182,12 +182,18 @@ NORTH_STAR_I5::"ODYSSEAN_IDENTITY_BINDING"
 
 ## SYNTAX_NOTES
 
-TENSION_OPERATORS::[
-  // Both ASCII and Unicode accepted by validator, normalized to Unicode
-  ASCII::"<->" normalized_to "⇌" for_tension,
-  ASCII::"->" normalized_to "→" for_flow,
-  CANONICAL::Unicode_preferred_in_documentation,
-  AUTHORING::ASCII_accepted_for_typing_convenience
+RAPH_TENSION_SYNTAX::[
+  // RAPH Vector TENSION lines use OCTAVE operators per octave-5-llm-core.oct.md
+  FORMAT::"L{N}::[constraint]⇌CTX:{path}[state]→TRIGGER[action]"
+  OPERATORS::[
+    "⇌"::tension[binary_opposition_between_constraint_and_context],
+    "→"::flow[progression_to_trigger_action]
+  ]
+  ASCII_ALIASES::[
+    "<->"::accepted_normalized_to_⇌,
+    "->"::accepted_normalized_to_→
+  ]
+  RECOMMENDATION::"Use Unicode (⇌, →) for canonical output; ASCII accepted for input"
 ]
 
 AUTHORITY_FORMAT::[

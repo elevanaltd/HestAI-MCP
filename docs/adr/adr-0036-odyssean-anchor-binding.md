@@ -206,8 +206,10 @@ FILES::{count}[{top_modified}]
 FOCUS::{focus_topic}
 
 ## TENSION (Cognitive Proof - AGENT GENERATED)
-L{N}::[{constraint}]<->CTX:{path}[{state}]->TRIGGER[{action}]
-// ASCII operators (<-> and ->) accepted and normalized to Unicode (⇌ and →)
+L{N}::[{constraint}]⇌CTX:{path}[{state}]→TRIGGER[{action}]
+// Uses OCTAVE operators per octave-5-llm-core.oct.md:
+// ⇌ = tension (binary opposition), → = flow (progression)
+// ASCII aliases (<-> and ->) accepted for input
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::{file_path}
@@ -217,8 +219,8 @@ GATE::{validation_method}
 
 **Syntax Notes**:
 - AUTHORITY requires brackets: `RESPONSIBLE[scope]` or `DELEGATED[parent_session]`
-- TENSION operators: ASCII `<->` and `->` accepted, normalized to Unicode `⇌` and `→`
-- Both ASCII and Unicode valid for input; Unicode canonical for output
+- TENSION uses OCTAVE operators: `⇌` (tension) and `→` (flow) per octave-5-llm-core.oct.md
+- ASCII aliases (`<->` and `->`) accepted for input, normalized to Unicode canonical form
 
 **Implementation Phases**:
 - Phase 0: This amendment (schema freeze) - COMPLETE
