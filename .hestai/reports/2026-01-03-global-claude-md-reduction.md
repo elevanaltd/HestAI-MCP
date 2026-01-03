@@ -58,8 +58,30 @@ All `.claude/rules/*.md` files consume tokens from session start.
 
 **Implication:** Keep rules concise. Current total: ~1.7k tokens (acceptable).
 
+## Boris's Key Insight: Verification
+
+From Boris's X post (2025): "Probably the most important thing to get great results
+out of Claude Code -- give Claude a way to verify its work. If Claude has that
+feedback loop, it will 2-3x the quality of the final result."
+
+HestAI alignment:
+- Quality gates (lint, typecheck, test) provide verification
+- TDD protocol enforces test-first verification
+- `odyssean_anchor` validates agent identity
+
+## Additional Boris Practices (from X post)
+
+| Practice | HestAI Status |
+|----------|---------------|
+| Plan mode first (shift+tab×2) | Supported via /design command |
+| Subagents for workflows | ✓ Task() with specialized agents |
+| PostToolUse hooks | ✓ SessionStart hooks implemented |
+| Shared `.claude/settings.json` | Not yet (local-first approach) |
+| Parallel sessions (5+ local) | ✓ Supported via worktrees |
+
 ## Related
 
-- Boris's recommendations: https://www.anthropic.com/engineering/claude-code-best-practices
+- Boris's X post: https://x.com/bcherny/status/2007179832300581177
+- Anthropic best practices: https://www.anthropic.com/engineering/claude-code-best-practices
 - I5 (Odyssean Identity Binding): Agents still undergo full binding ceremony
 - ADR-0007: Context delivered via .hestai/ structure
