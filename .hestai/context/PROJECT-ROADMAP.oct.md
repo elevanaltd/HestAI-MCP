@@ -4,24 +4,25 @@
 META:
   TYPE::"PROJECT_ROADMAP"
   NAME::"HestAI-MCP Development Roadmap"
-  VERSION::"0.4.0"
+  VERSION::"0.5.0"
   HORIZON::"Architecture validation + three-layer implementation"
-  UPDATED::"2025-12-28T22:00:00Z"
+  UPDATED::"2026-01-03T12:00:00Z"
 
 VISION::"Production-ready MCP server implementing three-layer cognitive architecture (System Governance + Project Context + Semantic Knowledge) for persistent AI agent coordination and oracle semantics"
 
 PROGRESS_SUMMARY::[
-  COMPLETE::phases_0_through_2.5[foundation+porting+server+hub+architecture],
-  LINES_OF_CODE::2541[ported]+181[server]+1101[hub]+2048[SS-I2_SS-I3],
-  TESTS::126[all_passing],
+  COMPLETE::phases_0_through_2.5[foundation+porting+server+hub+architecture+odyssean_anchor],
+  LINES_OF_CODE::28227[total_source],
+  TESTS::511[all_passing],
+  COVERAGE::94%[overall],
   QUALITY::ruff[0_errors]+mypy[0_errors]+black[passing],
-  ADRs_COMPLETE::4_total[0001-0004_comprehensive_architecture],
+  ADRs_COMPLETE::13_total[comprehensive_architecture],
   ARCHITECTURE_VALIDATED::Orchestra_Map[85%_confidence_Anchor_Pattern_Inversion],
-  SYSTEM_STEWARD::SS-I2[async_AIClient]+SS-I3[MCP_federation_complete]
+  ODYSSEAN_ANCHOR::COMPLETE[I5_PROVEN_Issue_#11_ADR-0036]
 ]
 
 PHASES:
-  PHASE_0::FOUNDATION[days:1]:
+  PHASE_0::FOUNDATION:
     GOAL::"Project structure, git initialization, OCTAVE context files"
     DELIVERABLES::[
       ✅::directory_structure_ADR_0007_compliant,
@@ -32,7 +33,7 @@ PHASES:
     ]
     STATUS::COMPLETE[2025-12-19]
 
-  PHASE_1::CODE_PORTING[days:2-4]:
+  PHASE_1::CODE_PORTING:
     GOAL::"Port proven code from hestai-core without worktree/symlink logic"
     DELIVERABLES::[
       ✅::ai_client_system_ported[297_lines],
@@ -41,45 +42,53 @@ PHASES:
       ✅::shared_utilities_ported[1078_lines],
       ✅::jsonl_lens_ported[313_lines],
       ✅::schemas_ported[73_lines],
-      ✅::relevant_tests_ported[58_tests_passing]
+      ✅::tests_ported[511_tests_passing]
     ]
     EXCLUSIONS::[✅::anchor_manager_excluded, ✅::worktree_logic_excluded, ✅::symlink_management_excluded]
     STATUS::COMPLETE[2025-12-19]
 
-  PHASE_2::MCP_SERVER_FOUNDATION[days:5-7]:
+  PHASE_2::MCP_SERVER_FOUNDATION:
     GOAL::"Basic MCP server with clock_in/clock_out working"
     DELIVERABLES::[
-      ✅::server_initialization[181_lines],
-      ✅::tool_registration[clock_in+clock_out],
+      ✅::server_initialization,
+      ✅::tool_registration[clock_in+clock_out+odyssean_anchor],
       ✅::clock_in_functional,
       ✅::clock_out_functional,
       ✅::hestai_sys_injection_stub,
       ✅::document_submit_placeholder
     ]
-    QUALITY::[
-      ✅::pytest[58/58_passing],
-      ✅::ruff[0_errors],
-      ✅::mypy[0_errors],
-      ✅::coverage[62%]
-    ]
     STATUS::COMPLETE[2025-12-19]
 
-  PHASE_2.5::ORCHESTRA_MAP_SEMANTIC_SPIKE[days:6-7]:
-    GOAL::"Validate Orchestra Map architecture with Anchor Pattern Inversion + Layer 3 semantic knowledge"
-    NOTE::"Architectural innovation phase - defined in ADR-0002"
+  PHASE_2.5::ODYSSEAN_ANCHOR_IMPLEMENTATION:
+    GOAL::"Implement Odyssean Anchor binding protocol for agent identity verification"
+    NOTE::"Implements I5 - Odyssean Identity Binding per ADR-0036"
     DELIVERABLES::[
-      ✅::ADR_0001_dual_layer_proven[System_vs_Product_separation],
-      ✅::ADR_0002_Orchestra_Map_designed[Anchor_Pattern_Inversion+85%_confidence],
-      ✅::ADR_0003_RAPH_protocol_defined[v2.3_rigorous_grounding],
-      ✅::ADR_0004_progressive_testing_model[NOW_SOON_LATER_gates],
-      🔄::Layer_3_Basic_Memory_PoC[semantic_oracle_pending_Phase_2.5],
+      ✅::odyssean_anchor_tool[949_lines+54_tests],
+      ✅::gating_module[has_valid_anchor+22_tests],
+      ✅::server_integration[5_integration_tests],
+      ✅::bind_command_v4.0[docs/commands/bind.md],
+      ✅::RAPH_Vector_v4.0_schema[BIND+ARM+TENSION+COMMIT]
+    ]
+    ISSUE::#11
+    ADR::ADR-0036
+    STATUS::COMPLETE[2026-01-02]
+
+  PHASE_2.5b::ORCHESTRA_MAP_SEMANTIC_SPIKE:
+    GOAL::"Validate Orchestra Map architecture with Anchor Pattern Inversion + Layer 3 semantic knowledge"
+    NOTE::"Architectural innovation phase - defined in ADR-0034"
+    DELIVERABLES::[
+      ✅::ADR_0033_dual_layer_proven[System_vs_Product_separation],
+      ✅::ADR_0034_Orchestra_Map_designed[Anchor_Pattern_Inversion+85%_confidence],
+      ✅::ADR_0035_living_artifacts_defined,
+      ✅::ADR_0036_RAPH_protocol_defined[v4.0_rigorous_grounding],
+      🔄::Layer_3_Basic_Memory_PoC[semantic_oracle_pending],
       🔄::concept_spec_coherence_patterns[staleness_detection+co-change_analysis]
     ]
-    STATUS::IN_PROGRESS[Phase_2.5_semantic_spike_active]
+    STATUS::IN_PROGRESS[Layer_3_PoC_blocked]
 
-  PHASE_3::SINGLE_WRITER_MCP_TOOLS[days:8-10]:
+  PHASE_3::SINGLE_WRITER_MCP_TOOLS:
     GOAL::"Implement System Steward pattern - MCP tools as exclusive context writers (I3 enforcement)"
-    NOTE::"Implements ADR-0001 I3 immutable - Dual Layer Authority"
+    NOTE::"Implements ADR-0033 I3 immutable - Dual Layer Authority"
     DELIVERABLES::[
       document_submit_tool[context_routing_system],
       context_update_tool[conflict_resolution_via_MCP],
@@ -88,15 +97,15 @@ PHASES:
       atomic_writes[transaction_safety],
       freshness_verification[I4_validation]
     ]
-    STATUS::IN_PROGRESS[Phase_3_pending_implementation]
+    STATUS::PENDING[implementation_ready]
 
-  PHASE_4::GOVERNANCE_DELIVERY_AND_LAYER_3[days:11-14]:
+  PHASE_4::GOVERNANCE_DELIVERY_AND_LAYER_3:
     GOAL::"Deliver .hestai-sys/ governance + integrate Layer 3 semantic knowledge oracle"
     NOTE::"Completes I3 (read-only Layer 1) + delivers Layer 3 (Basic Memory MCP oracle)"
     DELIVERABLES::[
       ✅::bundled_hub_architecture[no_external_dependency],
       hestai_sys_population_on_startup[inject_system_governance()],
-      ✅::version_tracking[hub/VERSION_1.0.0],
+      ✅::version_tracking[hub/VERSION],
       governance_file_injection_to_projects[Layer_1_delivery],
       Layer_3_Basic_Memory_integration[semantic_oracle],
       pre_commit_hooks[block_direct_.hestai_writes],
@@ -105,22 +114,41 @@ PHASES:
     ]
     STATUS::PENDING[Phase_3_completion_blocking]
 
+  PHASE_6::DOCUMENTATION:
+    GOAL::"Complete user documentation and setup guides"
+    NOTE::"Now unblocked after I5 completion"
+    DELIVERABLES::[
+      document_octave-mcp_setup_guide,
+      document_debate-hall-mcp_setup_guide,
+      complete_README_user_documentation,
+      API_reference_documentation
+    ]
+    STATUS::UNBLOCKED[I5_complete_2026-01-02]
+
 MILESTONES:
   FOUNDATION_MVP::[
     ✅::clock_in_clock_out_working,
     ✅::OCTAVE_files_readable_by_agents,
     ✅::no_symlink_issues,
-    ✅::dual_layer_architecture_proven[ADR-0001]
+    ✅::dual_layer_architecture_proven[ADR-0033]
   ]
   STATUS::ACHIEVED[2025-12-19]
 
   ARCHITECTURE_VALIDATED::[
     ✅::Orchestra_Map_designed[85%_confidence],
     ✅::Anchor_Pattern_Inversion_validated,
-    ✅::RAPH_protocol_v2.3_complete,
+    ✅::RAPH_protocol_v4.0_complete,
     ✅::Progressive_testing_model_defined
   ]
   STATUS::ACHIEVED[2025-12-21]
+
+  ODYSSEAN_ANCHOR_COMPLETE::[
+    ✅::odyssean_anchor_tool_implemented[949_lines],
+    ✅::gating_module_complete[has_valid_anchor],
+    ✅::bind_command_v4.0_documented,
+    ✅::I5_PROVEN[Issue_#11_resolved]
+  ]
+  STATUS::ACHIEVED[2026-01-02]
 
   PRODUCTION_READY::[
     document_submit_routing,
@@ -138,35 +166,29 @@ RISKS:
   MCP_PROTOCOL::✅_RESOLVED[server_functional]
   ARCHITECTURE_COMPLEXITY::MITIGATED[ADRs_document_decisions,Phase_2.5_validation]
   LAYER_3_INTEGRATION::IN_PROGRESS[Basic_Memory_MCP_PoC_pending]
-  QUALITY_GATES::✅_RESOLVED[126_tests_passing,ruff_0_errors,mypy_0_errors]
+  QUALITY_GATES::✅_RESOLVED[511_tests_passing,ruff_0_errors,mypy_0_errors,94%_coverage]
 
-COMMITS:
-  FOUNDATION::[
-    "19b350f"::initialize_project,
-    "c58209d"::port_core_modules,
-    "9d3f0db"::add_mcp_server
+KEY_ACHIEVEMENTS_2026::[
+  2026-01-02::ODYSSEAN_ANCHOR_COMPLETE[I5_PROVEN]::[
+    PR_#126::odyssean_anchor_tool[949_lines+54_tests],
+    PR_#127-130::gating+integration+docs,
+    QUALITY_GATES::[CRS_Codex_APPROVE,CE_Gemini_GO],
+    USAGE::"Copy docs/commands/bind.md to ~/.claude/commands/bind.md"
+  ],
+  2026-01-03::CONTEXT_FRESHNESS_UPDATE[I4_COMPLIANCE]::[
+    PROJECT-CHECKLIST::updated_to_v0.5.0,
+    PROJECT-ROADMAP::updated_to_v0.5.0,
+    TEST_COUNT::511_passing,
+    COVERAGE::94%
   ]
-  QUALITY::[
-    "30d3b51"::fix_ruff_errors,
-    "137e0d7"::complete_oct_to_oct.md_migration,
-    "8c54c7f"::port_comprehensive_tests
-  ]
-  DOCUMENTATION::[
-    "453a1d8"::update_project_context,
-    "62e9461"::system_steward_review,
-    "1d4a25e"::update_checklist
-  ]
-  HUB::[
-    "1d5fb07"::implement_bundled_hub_architecture
-  ]
-  SYSTEM_STEWARD::[
-    "PR#106"::SS-I2_async_AIClient+SS-I3_MCP_federation[
-      "d41a6ea"::feat_ai_convert_AIClient_to_async-first,
-      "5bd8a63"::feat_mcp_implement_real_MCP_client_connections,
-      "f159ef5"::feat_mcp_externalize_server_config_to_env_vars,
-      "2ca7829"::fix_ai_handle_NoKeyringError_in_CI,
-      "02f7192"::fix_ai_use_correct_keyring_service_name
-    ]
-  ]
+]
+
+SYSTEM_STEWARD_GUIDANCE::[
+  ROADMAP_MAINTENANCE::"Update after each milestone achievement or phase completion",
+  VERSION_INCREMENT::"Increment VERSION on structural changes, not minor updates",
+  MILESTONE_TRACKING::"Move items from PENDING to ACHIEVED when evidence exists",
+  RISK_UPDATES::"Update RISKS section as new risks emerge or existing risks resolve",
+  FRESHNESS_RULE::"UPDATED timestamp must match git commit date of last modification"
+]
 
 ===END===
