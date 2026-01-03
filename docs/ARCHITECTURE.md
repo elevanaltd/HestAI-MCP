@@ -78,7 +78,7 @@ Context must never be stale. We use a **Split-Artifact Hybrid** approach:
 Defined in [ADR-0036](adr/adr-0036-odyssean-anchor-binding.md).
 
 Agents must bind to the project with verified identity.
-*   **Unified Path**: Main agents and subagents use the exact same `/oa-load` ceremony.
+*   **Unified Path**: Main agents and subagents use the exact same `/bind` ceremony.
 *   **Structural Validation**: The `odyssean_anchor` MCP tool enforces a strict schema (RAPH Vector).
 *   **Self-Correction**: Agents must retry if validation fails (Max 2 attempts).
 
