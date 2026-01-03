@@ -1,5 +1,9 @@
-# Claude Code configuration and state (local user settings)
-/.claude/
+# Claude Code local settings (user-specific, not committed)
+/.claude/settings.json
+/.claude/settings.local.json
+/.claude/commands/
+
+# NOTE: .claude/rules/ IS committed (team conventions per Boris's best practices)
 
 # Gemini clipboard cache (temporary clipboard artifacts)
 .gemini-clipboard/
