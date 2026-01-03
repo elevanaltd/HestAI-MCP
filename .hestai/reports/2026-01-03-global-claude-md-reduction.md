@@ -43,6 +43,21 @@ The governance context is still fully available:
 2. SessionStart hook loads North Star Summary
 3. `odyssean_anchor` validates full RAPH vector
 
+## Clarification: .claude/rules/ Loading Behavior
+
+**Tested 2026-01-03:** Rules are loaded at **startup**, not lazily.
+
+| Behavior | Expected | Actual |
+|----------|----------|--------|
+| Rules discovery | Startup | ✓ Startup |
+| Token consumption | On file match | ✗ Always loaded |
+| `paths:` frontmatter | Lazy loading | Conditional **application** only |
+
+The `paths:` field tells Claude when to **apply** rules, not when to **load** them.
+All `.claude/rules/*.md` files consume tokens from session start.
+
+**Implication:** Keep rules concise. Current total: ~1.7k tokens (acceptable).
+
 ## Related
 
 - Boris's recommendations: https://www.anthropic.com/engineering/claude-code-best-practices
