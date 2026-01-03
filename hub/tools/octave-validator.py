@@ -2,9 +2,9 @@
 """
 OCTAVE Validator - v5.1.0 Implementation
 
-VENDORED FROM: /Volumes/OCTAVE/octave/tools/octave-validator.py
-CANONICAL SOURCE: OCTAVE project at /Volumes/OCTAVE/octave/
-SYNC DATE: 2025-12-24
+VENDORED FROM: /Volumes/OCTAVE/octave-mcp/tools/octave-validator.py
+CANONICAL SOURCE: OCTAVE project at /Volumes/OCTAVE/octave-mcp/
+SYNC DATE: 2026-01-03
 VERSION: 5.1.0 (synced from canonical)
 
 This validator checks OCTAVE v5.1.0 formatted documents for envelope (markers + META) and formatting compliance.
@@ -35,9 +35,7 @@ class OctaveValidator:
         # Replace quoted content so punctuation/operators inside quotes don't affect structural checks.
         return cls.QUOTED_RE.sub('""', line)
 
-    def __init__(
-        self, version: str = "5.1.0", profile: str = "protocol", unknown_policy: str = "ignore"
-    ):
+    def __init__(self, version: str = "5.1.0", profile: str = "protocol", unknown_policy: str = "ignore"):
         self.version = version
         self.profile = profile  # protocol, hestai-agent, hestai-skill
         self.unknown_policy = unknown_policy  # ignore | warn | strict
@@ -141,13 +139,11 @@ class OctaveValidator:
                     f"Line {line_num}: Constraint operator '&' can only be used inside brackets (e.g., [\"value\"&REQ&REGEX->§TARGET])."
                 )
 
-            # Check for tension operator _VERSUS_ (cannot be chained)
-            if "_VERSUS_" in scan_line:
-                versus_count = scan_line.count("_VERSUS_")
-                if versus_count > 1:
-                    self.errors.append(
-                        f"Line {line_num}: Tension operator '_VERSUS_' cannot be chained."
-                    )
+            # Check for tension operator ⇌ or vs (cannot be chained, binary only)
+            # v5.1.0 spec: tension is ⇌ (Unicode) with ASCII alias 'vs' (word boundaries required)
+            tension_count = scan_line.count("⇌") + len(re.findall(r"\bvs\b", scan_line))
+            if tension_count > 1:
+                self.errors.append(f"Line {line_num}: Tension operator '⇌'/'vs' cannot be chained (binary only).")
 
             # Normalize/validate target selector: allow '#TARGET' form and canonical '§TARGET'
             if "-> #".lower() in scan_line.lower() or re.search(r"->\s*#", scan_line):
@@ -163,9 +159,7 @@ class OctaveValidator:
 
             # Check for tabs
             if "\t" in line:
-                self.errors.append(
-                    f"Line {line_num}: Tab characters are not allowed. Use spaces for indentation."
-                )
+                self.errors.append(f"Line {line_num}: Tab characters are not allowed. Use spaces for indentation.")
 
             # Basic key format validation (ignore :: inside quoted strings)
             if "::" in scan_line:
@@ -181,9 +175,7 @@ class OctaveValidator:
 
         return len(self.errors) == 0, self.errors + self.warnings
 
-    def _validate_and_extract_meta(
-        self, lines: list[str], header_index: int, footer_index: int
-    ) -> int:
+    def _validate_and_extract_meta(self, lines: list[str], header_index: int, footer_index: int) -> int:
         """
         Validate META placement and required keys.
         Returns index of the META line if found, otherwise -1.
@@ -259,12 +251,10 @@ class OctaveValidator:
             "SCHEMA",
             "ROLE",
         }
-        unknown_keys = [k for k in meta if k not in allowed_meta]
+        unknown_keys = [k for k in meta.keys() if k not in allowed_meta]
         if unknown_keys:
             if self.unknown_policy == "strict" and self.profile == "protocol":
-                self.errors.append(
-                    f"E007: Unknown META field(s) {unknown_keys} not allowed in STRICT mode."
-                )
+                self.errors.append(f"E007: Unknown META field(s) {unknown_keys} not allowed in STRICT mode.")
             elif self.unknown_policy == "warn":
                 self.warnings.append(f"Unknown META field(s) {unknown_keys} encountered.")
 
@@ -274,9 +264,7 @@ class OctaveValidator:
         """Validate HestAI-skill specific requirements."""
         has_section_order = "SECTION_ORDER::" in document
         if not has_section_order:
-            self.warnings.append(
-                "HestAI-skill documents should include SECTION_ORDER for navigation."
-            )
+            self.warnings.append("HestAI-skill documents should include SECTION_ORDER for navigation.")
 
         # Check for @N section anchors
         section_anchors = re.findall(r"@(\d+)::", document)
@@ -285,9 +273,7 @@ class OctaveValidator:
             anchor_nums = sorted([int(n) for n in section_anchors])
             expected = list(range(1, len(anchor_nums) + 1))
             if anchor_nums != expected:
-                self.warnings.append(
-                    f"Section anchors should be sequential starting from @1. Found: {anchor_nums}"
-                )
+                self.warnings.append(f"Section anchors should be sequential starting from @1. Found: {anchor_nums}")
 
     def format_results(self, is_valid: bool, messages: list[str]) -> str:
         """Format validation results into a readable string."""
@@ -307,9 +293,7 @@ class OctaveValidator:
             )
 
 
-def validate_octave_document(
-    octave_text: str, version: str = "5.1.0", profile: str = "protocol"
-) -> str:
+def validate_octave_document(octave_text: str, version: str = "5.1.0", profile: str = "protocol") -> str:
     """Validates an OCTAVE document for structure and format."""
     validator = OctaveValidator(version, profile)
     is_valid, messages = validator.validate_octave_document(octave_text)
@@ -341,13 +325,7 @@ def scan_directory(directory: str, profile: str = "protocol", version: str = "5.
             is_valid, messages = validator.validate_octave_document(content)
             results.append({"file": str(file_path), "valid": is_valid, "messages": messages})
         except Exception as e:
-            results.append(
-                {
-                    "file": str(file_path),
-                    "valid": False,
-                    "messages": [f"Error reading file: {str(e)}"],
-                }
-            )
+            results.append({"file": str(file_path), "valid": False, "messages": [f"Error reading file: {str(e)}"]})
 
     return results
 
@@ -383,18 +361,9 @@ def format_scan_results(results: list[dict]) -> str:
 
 def main() -> None:
     """Command-line interface for OCTAVE validator."""
-    parser = argparse.ArgumentParser(
-        description="Validate OCTAVE documents against the v5.1.0 specification."
-    )
-    parser.add_argument(
-        "file", nargs="?", help="Path to OCTAVE document file (optional if using --path)"
-    )
-    parser.add_argument(
-        "--version",
-        "-v",
-        default="5.1.0",
-        help="OCTAVE version to validate against (default: 5.1.0)",
-    )
+    parser = argparse.ArgumentParser(description="Validate OCTAVE documents against the v5.1.0 specification.")
+    parser.add_argument("file", nargs="?", help="Path to OCTAVE document file (optional if using --path)")
+    parser.add_argument("--version", "-v", default="5.1.0", help="OCTAVE version to validate against (default: 5.1.0)")
     parser.add_argument(
         "--profile",
         "-p",
