@@ -1,0 +1,14 @@
+{
+  "version": "1.0.0",
+  "skills": {
+    "test-coverage": {
+      "type": "domain",
+      "description": "Python pytest coverage analysis, gap identification, and TDD workflow for achieving 90%+ coverage",
+      "autoInject": true,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": ["coverage", "pytest", "test gaps", "uncovered", "90%"]
+      }
+    }
+  }
+}
