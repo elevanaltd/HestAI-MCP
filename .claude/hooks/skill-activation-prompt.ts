@@ -57,7 +57,7 @@ async function main(): Promise<void> {
     // 1. HESTAI_HUB_SKILLS_PATH (hub-level, set by setup-mcp.sh)
     // 2. HESTAI_SKILLS_PATH (explicit override or set by hook.sh)
     // 3. Local project hub/library/skills/ fallback
-    const projectDir = process.env.CLAUDE_PROJECT_DIR || process.cwd();
+    const projectDir = data.cwd || process.env.CLAUDE_PROJECT_DIR || process.cwd();
     const skillsBase =
       process.env.HESTAI_HUB_SKILLS_PATH ||
       process.env.HESTAI_SKILLS_PATH ||
