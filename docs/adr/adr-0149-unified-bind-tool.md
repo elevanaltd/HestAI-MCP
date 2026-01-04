@@ -4,7 +4,7 @@
 - **Type**: ADR
 - **Author**: holistic-orchestrator
 - **Created**: 2026-01-04
-- **Updated**: 2026-01-04
+- **Updated**: 2026-01-04 (Revised to use octave-mcp)
 - **GitHub Issue**: [#149](https://github.com/elevanaltd/HestAI-MCP/issues/149)
 - **Phase**: B1
 - **Supersedes**: (none)
@@ -17,7 +17,7 @@ The current agent binding process has several pain points:
 
 1. **Two-step ceremony**: Agents must call `clock_in` then `odyssean_anchor` separately, creating a "limbo" state
 2. **Format divergence**: RAPH Vector v4.0 diverged from OCTAVE syntax unnecessarily (per octave-integration-summary.md)
-3. **Unicode fragility**: Unicode operators (⇌ → ∧) cause parsing failures despite parser supporting ASCII alternatives
+3. **Custom parsing**: We're maintaining regex-based parsers when `octave-mcp` v0.3.0 provides full parsing/emission
 4. **CLI fragmentation**: Different CLIs (Claude, Codex, Gemini) need different binding approaches
 5. **Weak validation**: OA-I4 (contextual proof) accepts empty values; OA-I5 (authority) lacks parent verification
 
@@ -25,10 +25,13 @@ A multi-model debate using Wind/Wall/Door pattern with Claude Opus (Ideator), GP
 
 ## Decision
 
-We will create a **unified `bind` MCP tool** that treats RAPH Vector as an OCTAVE Identity Schema:
+We will create a **unified `bind` MCP tool** that:
+1. Uses `octave-mcp` v0.3.0 as the parsing/emission engine
+2. Treats RAPH Vector as an OCTAVE Identity Schema
+3. Leverages octave-mcp's operators and validation
 
-### 1. Reframe RAPH as OCTAVE Schema
-Instead of a competing format, RAPH v4.0 becomes the schema definition for `TYPE::IDENTITY` OCTAVE blocks:
+### 1. Use octave-mcp for All OCTAVE Operations
+Instead of custom regex parsing, we'll use the official library:
 
 ```octave
 ===IDENTITY===
@@ -60,22 +63,37 @@ COMMIT:
 ===END===
 ```
 
-### 2. Create Unified Tool
-The new `bind()` tool will:
-- Combine `clock_in` and `odyssean_anchor` into one atomic operation
-- Accept IDENTITY blocks in standard OCTAVE format
-- Create session and validate identity in single transaction
-- Return session_id and validated identity to agent context
+### 2. Implementation with octave-mcp
+```python
+import octave_mcp
+
+async def bind(identity_block: str) -> dict:
+    # Parse using octave-mcp instead of custom regex
+    doc = octave_mcp.parse(identity_block)
+
+    # Validate schema using octave-mcp's validation
+    if not octave_mcp.validate_schema(doc, "identity"):
+        return {"error": "Invalid IDENTITY schema"}
+
+    # Extract fields using octave-mcp's accessors
+    role = octave_mcp.get_field(doc, "BIND.ROLE")
+    authority = octave_mcp.get_field(doc, "BIND.AUTHORITY")
+
+    # Create session and return
+    session_id = create_session(role, doc)
+    return {"session_id": session_id, "identity": octave_mcp.emit(doc)}
+```
 
 ### 3. Strengthen Validation
 - **OA-I4**: Add `CONTEXT_HASH` requirement - agents must hash git status + phase to prove context processing
 - **OA-I5**: Verify DELEGATED authority references real parent session
 - **ARM**: Reject empty/unknown values (no more weak proofs)
+- **Use octave-mcp operators**: The library handles ⇌, →, ⊕ correctly without custom parsing
 
 ### 4. Universal Discovery
 - Agents read constitutions from `hub/agents/{role}.oct.md` (future: `.hestai-sys/agents/`)
 - Schema documented at `hub/library/schemas/identity.oct.schema`
-- ASCII operators (`<->`, `->`) as primary, Unicode as legacy
+- **octave-mcp handles operators**: No need to worry about ASCII vs Unicode - the library manages it
 
 ## Consequences
 
@@ -84,10 +102,13 @@ The new `bind()` tool will:
 - **Universal compatibility**: Works for ANY agent from ANY CLI via MCP protocol
 - **OCTAVE alignment**: RAPH becomes standard OCTAVE schema, not custom format
 - **Stronger validation**: Context hash and parent verification close security gaps
-- **No Unicode issues**: ASCII operators as primary eliminates parsing failures
+- **No parsing issues**: octave-mcp handles all operator parsing correctly
+- **Maintainability**: Remove 500+ lines of custom regex code
+- **Future-proof**: Automatically support new OCTAVE features as library updates
 
 ### Negative
 - **Breaking change**: Existing agents using two-step ceremony must update
+- **Dependency**: Adds octave-mcp v0.3.0 as required dependency
 - **Migration effort**: Need to create identity.oct.schema and unified tool
 - **Backward compatibility**: May need transition period supporting both approaches
 
@@ -108,25 +129,32 @@ The new `bind()` tool will:
 
 ## Implementation Plan
 
-1. **Phase 1: Schema Definition** (2 days)
+1. **Phase 0: Add octave-mcp Dependency** (Immediate)
+   - Add `octave-mcp>=0.3.0` to pyproject.toml
+   - Verify compatibility with existing code
+   - Test operator parsing (⇌, →, ⊕) works correctly
+
+2. **Phase 1: Schema Definition** (2 days)
    - Create `hub/library/schemas/identity.oct.schema`
    - Document schema at `hub/library/schemas/identity.md`
-   - Define validation rules for IDENTITY blocks
+   - Define validation rules for IDENTITY blocks using octave-mcp
 
-2. **Phase 2: Tool Implementation** (3 days)
-   - Create `src/hestai_mcp/mcp/tools/bind.py`
+3. **Phase 2: Tool Implementation** (3 days)
+   - Create `src/hestai_mcp/mcp/tools/bind.py` using octave-mcp
+   - Replace custom regex parsing with octave_mcp.parse()
+   - Use octave_mcp.emit() for canonical output
    - Merge clock_in and odyssean_anchor logic
    - Add context hash generation and verification
    - Implement parent session verification
 
-3. **Phase 3: Migration Support** (2 days)
+4. **Phase 3: Migration Support** (2 days)
    - Update existing agents to use new bind tool
    - Create migration guide for external consumers
-   - Add compatibility layer if needed
+   - Remove legacy regex parsing code
 
-4. **Phase 4: Documentation** (1 day)
+5. **Phase 4: Documentation** (1 day)
    - Update bind command at `hub/library/commands/bind.md`
-   - Document ASCII operators as primary
+   - Document that octave-mcp handles all operators
    - Update agent constitutions with new format
 
 ## Validation Criteria
