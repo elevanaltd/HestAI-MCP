@@ -150,7 +150,7 @@ The MCP tool enforces strict rules. If any rule fails, it returns a formatted er
 ## Migration Guide
 
 1.  **Agents**: Update `system-steward`, `implementation-lead`, etc., to use `odyssean_anchor` tool instead of `anchor_submit`.
-2.  **Commands**: Update `/bind` command to use `odyssean_anchor` MCP tool (see docs/commands/bind.md).
+2.  **Commands**: Update `/bind` command to use `odyssean_anchor` MCP tool (see hub/library/commands/bind.md).
 3.  **Subagents**: Update `Task()` prompt wrapper to instruct subagents to call `odyssean_anchor` first.
 
 ---
