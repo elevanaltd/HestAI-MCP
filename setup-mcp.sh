@@ -38,6 +38,38 @@ readonly MCP_SERVER_NAME="hestai"
 readonly VENV_PATH=".venv"
 
 # ----------------------------------------------------------------------------
+# Skills Path Configuration (Virtual Skill Overlay)
+# ----------------------------------------------------------------------------
+# HESTAI_HUB_SKILLS_PATH: Hub-level skills library path
+# This enables the Virtual Skill Overlay system where skills are loaded
+# from a centralized hub location rather than per-project directories.
+#
+# Precedence (in skill-activation hooks):
+# 1. HESTAI_HUB_SKILLS_PATH (hub-level, set here)
+# 2. HESTAI_SKILLS_PATH (explicit override)
+# 3. Local hub/library/skills/ fallback (project-relative)
+# ----------------------------------------------------------------------------
+
+get_hub_skills_path() {
+    local script_dir=$(get_script_dir)
+    echo "$script_dir/hub/library/skills"
+}
+
+export_hub_skills_path() {
+    local hub_skills_path=$(get_hub_skills_path)
+
+    # Validate the path exists before exporting
+    if [[ -d "$hub_skills_path" ]]; then
+        export HESTAI_HUB_SKILLS_PATH="$hub_skills_path"
+        print_success "HESTAI_HUB_SKILLS_PATH set to: $hub_skills_path"
+        return 0
+    else
+        print_warning "Hub skills directory not found: $hub_skills_path"
+        return 1
+    fi
+}
+
+# ----------------------------------------------------------------------------
 # Utility Functions
 # ----------------------------------------------------------------------------
 
@@ -218,6 +250,9 @@ ensure_venv_exists() {
 
         print_success "Package installed"
     fi
+
+    # Export hub skills path for Virtual Skill Overlay
+    export_hub_skills_path || true
 
     return 0
 }

@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment files with secrets
+.env
+
+# State files (per-session, transient)
+state/
+
+# Cache
+.cache/
+
+# Debug logs
+*.log
+skill-injection-debug.log
+skill-injection-debug.log.old
+
+# OS files
+.DS_Store

@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "skills": {
+    "test-coverage": {
+      "type": "domain",
+      "description": "Python pytest coverage analysis, gap identification, and TDD workflow for achieving 90%+ coverage",
+      "autoInject": true,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": ["coverage", "pytest", "test gaps", "uncovered", "90%"]
+      }
+    },
+    "python-style": {
+      "type": "domain",
+      "description": "Python code style guidelines including type hints, imports, error handling, and docstrings",
+      "autoInject": false,
+      "injectionOrder": 40,
+      "promptTriggers": {
+        "keywords": ["python style", "type hints", "docstrings", "python imports", "ruff", "black", "mypy", "PEP 8"]
+      }
+    },
+    "testing": {
+      "type": "domain",
+      "description": "Testing patterns and conventions including pytest markers, TDD protocol, and coverage requirements",
+      "autoInject": false,
+      "injectionOrder": 45,
+      "promptTriggers": {
+        "keywords": ["pytest", "test markers", "TDD", "test driven", "unit tests", "behavior tests", "integration tests"]
+      }
+    },
+    "mcp-tools": {
+      "type": "domain",
+      "description": "MCP tool implementation patterns including tool structure, session tools, and shared utilities",
+      "autoInject": false,
+      "injectionOrder": 55,
+      "promptTriggers": {
+        "keywords": ["MCP tool", "clock_in", "clock_out", "odyssean_anchor", "mcp server", "tool implementation"]
+      }
+    }
+  }
+}
