@@ -350,6 +350,7 @@ dependencies = [
     { name = "httpx" },
     { name = "keyring" },
     { name = "mcp" },
+    { name = "octave-mcp" },
     { name = "pydantic" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
@@ -373,6 +374,7 @@ requires-dist = [
     { name = "keyring", specifier = ">=24.0.0" },
     { name = "mcp", specifier = ">=0.1.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.7.0" },
+    { name = "octave-mcp", specifier = ">=0.3.0,<1.0.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.4.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.21.0" },
@@ -684,6 +686,22 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/a2/6e/371856a3fb9d31ca8dac321cda606860fa4548858c0cc45d9d1d4ca2628b/mypy_extensions-1.1.0.tar.gz", hash = "sha256:52e68efc3284861e772bbcd66823fde5ae21fd2fdb51c62a211403730b916558", size = 6343, upload-time = "2025-04-22T14:54:24.164Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/79/7b/2c79738432f5c924bef5071f933bcc9efd0473bac3b4aa584a6f7c1c8df8/mypy_extensions-1.1.0-py3-none-any.whl", hash = "sha256:1be4cccdb0f2482337c4743e60421de3a356cd97508abadd57d47403e94f5505", size = 4963, upload-time = "2025-04-22T14:54:22.983Z" },
+]
+
+[[package]]
+name = "octave-mcp"
+version = "0.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "click" },
+    { name = "mcp" },
+    { name = "pydantic" },
+    { name = "python-dotenv" },
+    { name = "pyyaml" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/56/ec/606b9ec9bb4bfe6e72ba9c991fae0d0f70bac51a91c528f593d0d4dc07d5/octave_mcp-0.3.0.tar.gz", hash = "sha256:2c9f8941fcc556abd6fa6c50e461f3684c1e30af2b61871be9b4acc66cf77a5f", size = 93448, upload-time = "2026-01-04T10:29:02.724Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/30/aa/cc8260aabdf4ecd9bed05d2541baeab09adf4f1fbf90821d08addec2eb90/octave_mcp-0.3.0-py3-none-any.whl", hash = "sha256:c670836c52102a93224f8c4c0733b5cf38d7814a0ea855619b462a99f03f0ac6", size = 104431, upload-time = "2026-01-04T10:29:01.021Z" },
 ]
 
 [[package]]

@@ -63,6 +63,19 @@ if validation_errors:
     octave_content = octave_mcp.emit(doc)  # Fix formatting issues
 ```
 
+### OCTAVE Compliance Strategy
+
+**Key Principle**: OCTAVE is the authoritative specification. Our custom RAPH Vector format must align with OCTAVE standards.
+
+#### Format Transformation Approach
+
+We've identified that our RAPH Vector v4.0 format diverges from OCTAVE in several ways:
+- Non-standard envelope suffix (::v4.0)
+- Markdown-style headers (## BIND) instead of OCTAVE fields
+- Custom micro-syntax that needs preservation
+
+A transformation module (`octave_transform.py`) handles bidirectional conversion between formats during migration.
+
 ### Hybrid 3-Layer Architecture
 
 Instead of wholesale replacement, implement graduated integration:
