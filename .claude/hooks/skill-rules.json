@@ -1,40 +1,382 @@
 {
   "version": "1.0.0",
   "skills": {
+    "build-execution": {
+      "type": "domain",
+      "description": "Build execution philosophy including TDD discipline, Minimal Intervention Principle, system awareness, and verification protocols",
+      "autoInject": false,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": [
+          "build phase",
+          "TDD",
+          "test first",
+          "red green refactor",
+          "minimal code",
+          "system awareness",
+          "implementation",
+          "code quality",
+          "verification protocols",
+          "build philosophy",
+          "build execution",
+          "test driven development"
+        ]
+      }
+    },
+    "ci-error-resolution": {
+      "type": "domain",
+      "description": "CI/CD pipeline failure resolution with autonomous iteration loops. Local validation \u2192 branch & PR creation \u2192 CI monitoring \u2192 iteration until green",
+      "autoInject": false,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": [
+          "ci pipeline failures",
+          "github actions errors",
+          "autonomous ci resolution",
+          "ci iteration",
+          "pr creation for errors",
+          "pipeline validation",
+          "test failures in ci",
+          "build failures in ci",
+          "continuous integration",
+          "CI error",
+          "CI failed",
+          "pipeline failed"
+        ]
+      }
+    },
+    "debate-hall": {
+      "type": "domain",
+      "description": "Wind/Wall/Door multi-perspective debate orchestration using debate-hall-mcp tools. Use when facilitating structured debates, architectural decisions, or multi-perspective analysis.",
+      "autoInject": false,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": [
+          "debate",
+          "wind wall door",
+          "dialectic",
+          "multi-perspective",
+          "structured decision",
+          "architecture decision"
+        ]
+      }
+    },
+    "documentation-placement": {
+      "type": "domain",
+      "description": "Document placement rules, visibility protocols, and timeline test (before-code vs after-code). Defines where documentation belongs (dev/docs/ vs coordination/)",
+      "autoInject": false,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": [
+          "documentation placement",
+          "where to put docs",
+          "document organization",
+          "visibility rules",
+          "timeline test",
+          "before-code vs after-code",
+          "documentation first",
+          "phase artifact",
+          "coordination repo",
+          "dev repo",
+          "ADR placement"
+        ]
+      }
+    },
+    "error-triage": {
+      "type": "domain",
+      "description": "Systematic error resolution with priority-based triage preventing cascade failures. Build\u2192Types\u2192Unused\u2192Async\u2192Logic\u2192Tests priority order",
+      "autoInject": false,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": [
+          "error resolution",
+          "CI failures",
+          "systematic error fixing",
+          "cascade detection",
+          "type safety theater",
+          "build errors",
+          "type errors",
+          "validation theater",
+          "error triage",
+          "fix errors",
+          "error cascade",
+          "type violations"
+        ]
+      }
+    },
+    "ho-mode": {
+      "type": "domain",
+      "description": "HO lane discipline enforcement. Coordination-only tools. Prevents direct code implementation, enforces delegation to specialists",
+      "autoInject": false,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": [
+          "/role ho",
+          "holistic orchestrator",
+          "HO mode",
+          "orchestrator mode",
+          "coordination only",
+          "delegate to specialists",
+          "orchestration discipline",
+          "HO activation"
+        ]
+      }
+    },
+    "ho-orchestrate": {
+      "type": "domain",
+      "description": "HO work orchestration protocol with enforced quality gates and debate-hall escalation. Ensures IL uses build-execution+TDD, quality gates via CRS+CE",
+      "autoInject": false,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": [
+          "orchestrate implementation",
+          "HO orchestrate",
+          "delegate work",
+          "quality gates",
+          "CRS review",
+          "CE review",
+          "debate escalation",
+          "orchestration protocol",
+          "implementation orchestration"
+        ]
+      }
+    },
+    "mcp-tools": {
+      "type": "domain",
+      "description": "MCP tool implementation patterns for HestAI including tool structure, session tools, and shared utilities",
+      "autoInject": false,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": [
+          "MCP tool",
+          "clock_in",
+          "clock_out",
+          "odyssean_anchor",
+          "mcp server",
+          "tool implementation",
+          "hestai context",
+          "session management",
+          "path_resolution",
+          "fast_layer"
+        ]
+      }
+    },
+    "octave-compression": {
+      "type": "domain",
+      "description": "Specialized workflow for transforming verbose natural language into semantic OCTAVE structures. REQUIRES octave-literacy to be loaded first",
+      "autoInject": false,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": [
+          "compress to octave",
+          "semantic compression",
+          "documentation refactoring",
+          "octave compression",
+          "compress documentation",
+          "knowledge artifact",
+          "semantic density",
+          "OCTAVE format conversion"
+        ]
+      }
+    },
+    "octave-literacy": {
+      "type": "domain",
+      "description": "Fundamental reading and writing capability for the OCTAVE format. Basic structural competence without full architectural specifications",
+      "autoInject": true,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": [
+          "octave format",
+          "write octave",
+          "octave syntax",
+          "structured output",
+          "OCTAVE basics",
+          "OCTAVE literacy",
+          "OCTAVE structure",
+          "semantic format",
+          "key::value",
+          "OCTAVE notation"
+        ]
+      }
+    },
+    "octave-mastery": {
+      "type": "domain",
+      "description": "Advanced semantic vocabulary and architectural patterns for the OCTAVE format. REQUIRES octave-literacy to be loaded first",
+      "autoInject": false,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": [
+          "octave architecture",
+          "agent design",
+          "semantic pantheon",
+          "advanced octave",
+          "OCTAVE mastery",
+          "holographic patterns",
+          "archetypes",
+          "high-density specifications",
+          "system architecture",
+          "OCTAVE patterns"
+        ]
+      }
+    },
+    "octave-mythology": {
+      "type": "domain",
+      "description": "Functional mythological compression for OCTAVE documents. Semantic shorthand for LLM audiences, not prose decoration",
+      "autoInject": false,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": [
+          "mythology",
+          "archetype",
+          "SISYPHEAN",
+          "ICARIAN",
+          "semantic compression",
+          "evidence-based",
+          "mythological domains",
+          "OCTAVE mythology",
+          "PROMETHEAN",
+          "functional mythology",
+          "compression patterns"
+        ]
+      }
+    },
+    "python-style": {
+      "type": "domain",
+      "description": "Python code style guidelines for HestAI MCP including type hints, imports, error handling, and docstrings",
+      "autoInject": false,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": [
+          "python style",
+          "type hints",
+          "docstrings",
+          "python imports",
+          "ruff",
+          "black",
+          "mypy",
+          "PEP 8",
+          "python formatting"
+        ]
+      }
+    },
+    "stub-detection": {
+      "type": "domain",
+      "description": "Systematic detection of placeholder implementations, stubs, and hidden incomplete code. Three-pattern taxonomy with search strategies",
+      "autoInject": false,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": [
+          "placeholder audit",
+          "stub detection",
+          "find stubs",
+          "unimplemented features",
+          "code audit",
+          "incomplete implementation",
+          "dead code",
+          "hidden placeholders",
+          "TODO",
+          "FIXME",
+          "NotImplementedError"
+        ]
+      }
+    },
+    "test-ci-pipeline": {
+      "type": "domain",
+      "description": "CI/CD pipeline configuration for monorepo testing including GitHub Actions workflows, Turborepo integration, quality gates, and preview deployments",
+      "autoInject": false,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": [
+          "CI configuration",
+          "github actions testing",
+          "CI pipeline",
+          "turborepo CI",
+          "quality gates",
+          "preview integration",
+          "CI troubleshooting",
+          "workflow configuration",
+          "test pipeline",
+          "CI/CD setup"
+        ]
+      }
+    },
     "test-coverage": {
       "type": "domain",
       "description": "Python pytest coverage analysis, gap identification, and TDD workflow for achieving 90%+ coverage",
       "autoInject": true,
       "injectionOrder": 50,
       "promptTriggers": {
-        "keywords": ["coverage", "pytest", "test gaps", "uncovered", "90%"]
+        "keywords": [
+          "coverage analysis",
+          "pytest coverage",
+          "test gaps",
+          "90% coverage",
+          "uncovered lines",
+          "coverage report",
+          "improve coverage",
+          "test coverage gaps",
+          "missing coverage"
+        ]
       }
     },
-    "python-style": {
+    "test-infrastructure": {
       "type": "domain",
-      "description": "Python code style guidelines including type hints, imports, error handling, and docstrings",
+      "description": "Core test infrastructure patterns for monorepo Vitest setup including global configuration, mocking patterns, and test standards",
       "autoInject": false,
-      "injectionOrder": 40,
+      "injectionOrder": 50,
       "promptTriggers": {
-        "keywords": ["python style", "type hints", "docstrings", "python imports", "ruff", "black", "mypy", "PEP 8"]
+        "keywords": [
+          "vitest setup",
+          "test configuration",
+          "test infrastructure setup",
+          "test mocking patterns",
+          "test cleanup",
+          "test standards",
+          "monorepo testing",
+          "vitest config",
+          "test utilities",
+          "test environment"
+        ]
       }
     },
     "testing": {
       "type": "domain",
-      "description": "Testing patterns and conventions including pytest markers, TDD protocol, and coverage requirements",
+      "description": "Testing patterns and conventions for HestAI MCP including pytest markers, TDD protocol, and coverage requirements",
       "autoInject": false,
-      "injectionOrder": 45,
+      "injectionOrder": 50,
       "promptTriggers": {
-        "keywords": ["pytest", "test markers", "TDD", "test driven", "unit tests", "behavior tests", "integration tests"]
+        "keywords": [
+          "pytest",
+          "test markers",
+          "TDD",
+          "test driven",
+          "unit tests",
+          "behavior tests",
+          "integration tests",
+          "conftest",
+          "async testing",
+          "pytest-asyncio"
+        ]
       }
     },
-    "mcp-tools": {
+    "vercel-preview": {
       "type": "domain",
-      "description": "MCP tool implementation patterns including tool structure, session tools, and shared utilities",
+      "description": "Vercel preview deployment access patterns including automation bypass, protected preview authentication, and CI integration",
       "autoInject": false,
-      "injectionOrder": 55,
+      "injectionOrder": 50,
       "promptTriggers": {
-        "keywords": ["MCP tool", "clock_in", "clock_out", "odyssean_anchor", "mcp server", "tool implementation"]
+        "keywords": [
+          "vercel preview",
+          "preview deployment",
+          "automation bypass",
+          "protected preview",
+          "preview authentication",
+          "UI validation CI",
+          "vercel deployment",
+          "preview URL",
+          "vercel CI",
+          "preview testing"
+        ]
       }
     }
   }
