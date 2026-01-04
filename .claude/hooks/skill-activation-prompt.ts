@@ -158,7 +158,7 @@ async function main(): Promise<void> {
             continue;
           }
 
-          const skillPath = join(skillsBase, `${skillName}.oct.md`);
+          const skillPath = join(skillsBase, skillName, 'SKILL.md');
 
           // Security: Validate path containment
           if (!validatePathContainment(skillPath, skillsBase)) {

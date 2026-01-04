@@ -46,6 +46,6 @@ export const DEFAULT_INJECTION_ORDER = 50;
 // Character width for visual consistency in terminal output
 export const BANNER_WIDTH = 45;
 
-// HestAI-specific: Skills file extension
-// Skills are stored as OCTAVE markdown files
-export const SKILL_FILE_EXTENSION = '.oct.md';
+// HestAI-specific: Skills file name
+// Skills are stored as SKILL.md in {skill-name}/ directories
+export const SKILL_FILE_NAME = 'SKILL.md';

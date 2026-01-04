@@ -7,7 +7,7 @@
 
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
-import { SKILL_FILE_EXTENSION } from './constants.js';
+import { SKILL_FILE_NAME } from './constants.js';
 import { validateSkillName, validatePathContainment } from './security.js';
 
 /**
@@ -56,7 +56,7 @@ export function injectSkillContent(
       continue;
     }
 
-    const skillPath = join(skillsBase, `${skillName}${SKILL_FILE_EXTENSION}`);
+    const skillPath = join(skillsBase, skillName, SKILL_FILE_NAME);
 
     // Security: Validate path containment
     if (!validatePathContainment(skillPath, skillsBase)) {
