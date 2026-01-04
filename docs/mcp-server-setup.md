@@ -9,42 +9,45 @@ This repository contains the **HestAI MCP server** - a Model Context Protocol se
 ### Quick Setup (Automatic Configuration)
 
 ```bash
-./setup_mcp_server.sh
+./setup-mcp.sh           # Interactive setup
+./setup-mcp.sh --all     # Configure all clients automatically
 ```
 
-This enhanced script will:
-- Create a Python virtual environment (`.venv`)
-- Install the hestai-mcp package in development mode
-- Install all required dependencies
-- **Automatically update your Claude Desktop configuration** (with your permission)
-- Create a backup of your existing config before making changes
+This script supports multiple AI clients:
+- **Claude Desktop** - Desktop application
+- **Claude Code CLI** - Command-line interface
+- **OpenAI Codex CLI** - OpenAI's CLI tool
+- **Google Gemini CLI** - Google's CLI tool
 
-The script features:
+Features:
+- ✅ **Multi-client support** - Configure any or all AI clients
 - ✅ **Automatic platform detection** (macOS, Linux, WSL, Windows)
 - ✅ **Smart configuration updates** - merges with existing config
 - ✅ **Backup creation** - saves your config before modifications
-- ✅ **Colored output** - clear success/warning/error messages
-- ✅ **Cross-platform support** - works on all major platforms
+- ✅ **Interactive menu** - guided setup experience
+- ✅ **Worktree-aware** - works correctly in git worktrees
+- ✅ **Uninstall option** - clean removal with `--uninstall`
 
-### Manual Configuration (if automatic setup is skipped)
+See `./setup-mcp.sh --help` for all options.
 
-If you choose to skip automatic configuration:
+### Manual Configuration
+
+Run `./setup-mcp.sh --show-config` to get copy/paste configuration for your setup.
+
+Example configuration for Claude Desktop / Claude Code CLI:
 
 ```json
 {
   "mcpServers": {
-    "hestai-mcp": {
-      "command": "/Volumes/HestAI-MCP/worktrees/document-submit/.venv/bin/python",
-      "args": [
-        "-m",
-        "hestai_mcp.mcp.server"
-      ]
+    "hestai": {
+      "command": "/path/to/HestAI-MCP/.venv/bin/python",
+      "args": ["/path/to/HestAI-MCP/src/hestai_mcp/mcp/server.py"]
     }
   }
 }
 ```
 
-4. Restart Claude Desktop
+After configuring, restart your AI client to apply changes.
 
 ## Available Tools
 
@@ -101,7 +104,7 @@ HestAI-MCP/
 ├── docs/
 │   ├── adr/                       # Architecture Decision Records
 │   └── ARCHITECTURE.md            # System architecture overview
-└── setup_mcp_server.sh            # Setup script
+└── setup-mcp.sh                   # Setup script (multi-client)
 ```
 
 ## Development
@@ -128,4 +131,4 @@ After configuring Claude Desktop and restarting, the tools will be available as:
 - Hub injection is planned for Phase 4 (currently commented out)
 
 ---
-*Last updated: 2025-12-19*
+*Last updated: 2026-01-04*
