@@ -61,6 +61,7 @@ export function validateSkillName(skillName: string): boolean {
  *
  * Security: Prevents directory traversal attacks by ensuring the
  * resolved path stays within the designated base directory.
+ * Uses realpathSync to resolve symlinks and prevent symlink-based traversal.
  *
  * @param targetPath - Path to validate
  * @param basePath - Base directory that must contain the target
@@ -70,19 +71,38 @@ export function validateSkillName(skillName: string): boolean {
  * ```typescript
  * validatePathContainment('/base/skills/test.md', '/base/skills');  // true
  * validatePathContainment('/base/skills/../etc/passwd', '/base/skills');  // false
+ * // Symlink attack: /base/skills/evil.md -> /etc/passwd
+ * validatePathContainment('/base/skills/evil.md', '/base/skills');  // false (symlink resolved)
  * ```
  */
 export function validatePathContainment(targetPath: string, basePath: string): boolean {
   try {
-    // Normalize paths to handle . and ..
-    const normalizedTarget = normalize(resolve(targetPath));
-    const normalizedBase = normalize(resolve(basePath));
+    // SECURITY: Resolve base path to canonical form (must exist)
+    let canonicalBase: string;
+    try {
+      canonicalBase = realpathSync(basePath);
+    } catch {
+      // Base directory doesn't exist or is inaccessible - reject
+      return false;
+    }
+
+    // SECURITY: Resolve target path to canonical form
+    // This follows symlinks and reveals the true destination
+    let canonicalTarget: string;
+    try {
+      canonicalTarget = realpathSync(targetPath);
+    } catch {
+      // Target doesn't exist yet - use normalized path for new files
+      // but still validate against canonical base
+      canonicalTarget = normalize(resolve(targetPath));
+    }
 
     // Ensure base path ends with separator for proper prefix matching
-    const baseWithSep = normalizedBase.endsWith('/') ? normalizedBase : normalizedBase + '/';
+    // This prevents /base/skills matching /base/skillsevil
+    const baseWithSep = canonicalBase.endsWith('/') ? canonicalBase : canonicalBase + '/';
 
     // Check if target starts with base (or equals base)
-    return normalizedTarget === normalizedBase || normalizedTarget.startsWith(baseWithSep);
+    return canonicalTarget === canonicalBase || canonicalTarget.startsWith(baseWithSep);
   } catch {
     // Any path resolution error means invalid path
     return false;

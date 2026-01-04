@@ -30,23 +30,73 @@ validate_skill_name() {
 }
 
 # Security: Validate path containment
+# Cross-platform realpath wrapper (macOS realpath doesn't support -e flag)
+resolve_canonical_path() {
+    local path="$1"
+    local must_exist="$2"  # "true" or "false"
+
+    # Check existence first if required
+    if [[ "$must_exist" == "true" ]] && [[ ! -e "$path" ]]; then
+        return 1
+    fi
+
+    # Use realpath without -e flag for macOS compatibility
+    # realpath follows symlinks by default
+    realpath "$path" 2>/dev/null
+}
+
 validate_path_containment() {
     local resolved_path="$1"
     local base_path="$2"
 
     # Resolve both paths to absolute canonical form
+    # Uses realpath to follow symlinks (critical for symlink traversal prevention)
     local canonical_resolved
     local canonical_base
 
-    canonical_resolved="$(cd "$(dirname "$resolved_path")" 2>/dev/null && pwd)/$(basename "$resolved_path")"
-    canonical_base="$(cd "$base_path" 2>/dev/null && pwd)"
-
-    # Check if resolved path starts with base path
-    if [[ "$canonical_resolved" != "$canonical_base"* ]]; then
-        echo "ERROR: Path traversal detected: $resolved_path does not start with $base_path" >&2
+    # Resolve base path - must exist
+    if [[ ! -d "$base_path" ]]; then
+        echo "ERROR: Base path does not exist or is not a directory: $base_path" >&2
         return 1
     fi
-    return 0
+    if ! canonical_base="$(resolve_canonical_path "$base_path" "true")"; then
+        echo "ERROR: Base path is inaccessible: $base_path" >&2
+        return 1
+    fi
+
+    # Resolve target path - follow symlinks to reveal true destination
+    if [[ -e "$resolved_path" ]]; then
+        # File/symlink exists - resolve to canonical path (symlinks resolved)
+        # This is the CRITICAL security check: symlinks are followed to their target
+        if ! canonical_resolved="$(resolve_canonical_path "$resolved_path" "true")"; then
+            echo "ERROR: Cannot resolve path: $resolved_path" >&2
+            return 1
+        fi
+    else
+        # File doesn't exist yet - resolve parent dir and append filename
+        local parent_dir
+        parent_dir="$(dirname "$resolved_path")"
+        if [[ ! -d "$parent_dir" ]]; then
+            echo "ERROR: Parent directory does not exist: $parent_dir" >&2
+            return 1
+        fi
+        if ! parent_dir="$(resolve_canonical_path "$parent_dir" "true")"; then
+            echo "ERROR: Cannot resolve parent directory: $(dirname "$resolved_path")" >&2
+            return 1
+        fi
+        canonical_resolved="${parent_dir}/$(basename "$resolved_path")"
+    fi
+
+    # SECURITY: Check containment with path separator boundary
+    # This prevents /base/skills from matching /base/skillsevil
+    # Must match exactly OR start with base + separator
+    if [[ "$canonical_resolved" == "$canonical_base" ]] || \
+       [[ "$canonical_resolved" == "$canonical_base/"* ]]; then
+        return 0
+    fi
+
+    echo "ERROR: Path traversal detected: $resolved_path resolves outside $base_path" >&2
+    return 1
 }
 
 # Security: Validate directory exists
