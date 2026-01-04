@@ -1,8 +1,8 @@
 ---
 name: ho-orchestrate
-description: HO work orchestration protocol with enforced quality gates and debate-hall escalation. Ensures IL uses build-execution+TDD, quality gates via CRS+CE
-allowed-tools: ["Task", "TodoWrite", "AskUserQuestion", "Read", "Grep", "Glob", "Write", "Edit", "mcp__pal__clink", "Skill", "mcp__debate-hall__*"]
-triggers: ["orchestrate implementation", "HO orchestrate", "delegate work", "quality gates", "CRS review", "CE review", "debate escalation", "orchestration protocol", "implementation orchestration"]
+description: HO work orchestration protocol with enforced quality gates and debate-hall escalation. Loads ho-mode, ensures IL uses build-execution+TDD, quality gates via CRS(Gemini)+CE(Codex), debate-hall for complex decisions (Claude→Wind, Codex→Wall, Gemini→Door per M019/M021). NEVER implements directly. Use when orchestrating implementation work.
+allowed-tools: [Task, TodoWrite, AskUserQuestion, Read, Grep, Glob, Write, Edit, mcp__pal__clink, Skill, mcp__debate-hall__init_debate, mcp__debate-hall__add_turn, mcp__debate-hall__get_debate, mcp__debate-hall__close_debate, mcp__debate-hall__pick_next_speaker]
+triggers: ["orchestrate implementation", "HO orchestrate", "delegate work", "quality gates", "CRS review", "CE review", "debate escalation", "orchestration protocol", "implementation orchestration", "subagent delegation", "Task with binding"]
 ---
 
 ===HO_ORCHESTRATE===
@@ -33,12 +33,42 @@ IL_HANDOFF_MANDATE::[
     Read("~/.claude/skills/build-execution/build-philosophy.oct.md")
   ],
   ENFORCE::[RED->GREEN->REFACTOR,test_before_code,minimal_intervention],
-  CAPTURE::agent_id[for_resume_on_rework]
+  CAPTURE::agent_id[for_resume_on_rework],
+  BINDING_PROTOCOL::MANDATORY[for_write_operations]
+]
+
+SUBAGENT_SELF_BIND_PROTOCOL::[
+  // Critical: Subagents don't know they're subagents unless told
+  // They hit the same CLAUDE.md binding requirement for writes
+  // PREREQUISITE: HO must be bound first to have a session_id to pass
+  IF::task_requires[Edit∨Write∨NotebookEdit∨git_operations]
+  THEN::include_in_prompt[
+    "## BINDING PROTOCOL (FOR WRITE OPERATIONS)",
+    "You are being invoked as a subagent via Task().",
+    "Parent session: {orchestrator_session_id}",
+    "Working directory: {cwd}",
+    "",
+    "Since this task requires write operations, you MUST self-bind:",
+    "1. mcp__hestai__clock_in(role:'{subagent_type}', working_dir:'{cwd}', focus:'{task_focus}')",
+    "2. Build RAPH vector with AUTHORITY::DELEGATED[parent:{orchestrator_session_id}]",
+    "3. mcp__hestai__odyssean_anchor(role, vector, session_id, working_dir, tier:'quick')",
+    "",
+    "If binding fails after 2 retries, continue in read-only mode."
+  ]
 ]
 
 HANDOFF_TEMPLATE:
   ```octave
+  // NOTE: {ho_session_id} comes from HO's own clock_in response
+  // HO must be bound before delegating write operations
   Task(implementation-lead):
+    ## BINDING PROTOCOL (FOR WRITE OPERATIONS)
+    You are a subagent invoked via Task(). Parent: {ho_session_id}
+    Since this task requires writing code, you MUST self-bind first:
+    1. mcp__hestai__clock_in(role:"implementation-lead", working_dir:"{cwd}", focus:"{task}")
+    2. Build RAPH with AUTHORITY::DELEGATED[parent:{ho_session_id}]
+    3. mcp__hestai__odyssean_anchor(role, vector, session_id, working_dir, tier:"quick")
+
     GOVERNANCE::TRACED[T+R+A+C+E+D]
     PHASE::{current_phase}
     SKILLS::[
