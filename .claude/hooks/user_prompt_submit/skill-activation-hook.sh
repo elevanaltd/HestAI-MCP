@@ -59,11 +59,30 @@ validate_directory_exists() {
     return 0
 }
 
-# Set up skills path with security validation
+# Set up skills path with security validation and fallback chain
+# Precedence:
+# 1. HESTAI_HUB_SKILLS_PATH (hub-level, set by setup-mcp.sh)
+# 2. HESTAI_SKILLS_PATH (explicit override, already set)
+# 3. Local project hub/library/skills/ fallback
 setup_skills_path() {
-    local skills_base="${PROJECT_DIR}/hub/library/skills"
+    # If HESTAI_HUB_SKILLS_PATH is already set and valid, use it
+    if [[ -n "${HESTAI_HUB_SKILLS_PATH:-}" ]]; then
+        if validate_directory_exists "$HESTAI_HUB_SKILLS_PATH"; then
+            # HESTAI_HUB_SKILLS_PATH is valid, export as HESTAI_SKILLS_PATH for TypeScript
+            export HESTAI_SKILLS_PATH="${HESTAI_HUB_SKILLS_PATH}"
+            return 0
+        fi
+    fi
 
-    # Validate skills directory exists before exporting
+    # If HESTAI_SKILLS_PATH is already set and valid, keep it
+    if [[ -n "${HESTAI_SKILLS_PATH:-}" ]]; then
+        if validate_directory_exists "$HESTAI_SKILLS_PATH"; then
+            return 0
+        fi
+    fi
+
+    # Fallback to local project skills directory
+    local skills_base="${PROJECT_DIR}/hub/library/skills"
     if validate_directory_exists "$skills_base"; then
         export HESTAI_SKILLS_PATH="$skills_base"
     fi

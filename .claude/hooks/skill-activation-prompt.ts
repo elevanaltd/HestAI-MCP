@@ -53,8 +53,15 @@ async function main(): Promise<void> {
     const data: HookInput = JSON.parse(input);
 
     // Determine project directory and skills base path
+    // Precedence:
+    // 1. HESTAI_HUB_SKILLS_PATH (hub-level, set by setup-mcp.sh)
+    // 2. HESTAI_SKILLS_PATH (explicit override or set by hook.sh)
+    // 3. Local project hub/library/skills/ fallback
     const projectDir = process.env.CLAUDE_PROJECT_DIR || process.cwd();
-    const skillsBase = process.env.HESTAI_SKILLS_PATH || join(projectDir, 'hub', 'library', 'skills');
+    const skillsBase =
+      process.env.HESTAI_HUB_SKILLS_PATH ||
+      process.env.HESTAI_SKILLS_PATH ||
+      join(projectDir, 'hub', 'library', 'skills');
 
     // Load skill rules
     const rulesPath = join(projectDir, '.claude', 'hooks', 'skill-rules.json');
