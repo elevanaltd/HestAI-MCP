@@ -45,6 +45,13 @@ class TestOdysseanAnchorIntegration:
             check=True,
             capture_output=True,
         )
+        # Disable global hooks for test hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=project_dir,
+            check=True,
+            capture_output=True,
+        )
         subprocess.run(
             ["git", "config", "user.email", "test@test.com"],
             cwd=project_dir,
@@ -63,7 +70,7 @@ class TestOdysseanAnchorIntegration:
         readme.write_text("# Test Project\n\nThis is a test project for integration testing.")
         subprocess.run(["git", "add", "."], cwd=project_dir, check=True, capture_output=True)
         subprocess.run(
-            ["git", "commit", "-m", "Initial commit"],
+            ["git", "commit", "--no-verify", "-m", "Initial commit"],
             cwd=project_dir,
             check=True,
             capture_output=True,
@@ -138,6 +145,13 @@ GATE::pytest -m integration
         project_dir.mkdir()
 
         subprocess.run(["git", "init"], cwd=project_dir, check=True, capture_output=True)
+        # Disable global hooks for test hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=project_dir,
+            check=True,
+            capture_output=True,
+        )
         subprocess.run(
             ["git", "config", "user.email", "test@test.com"],
             cwd=project_dir,
@@ -155,7 +169,7 @@ GATE::pytest -m integration
         (project_dir / "file1.txt").write_text("initial content")
         subprocess.run(["git", "add", "."], cwd=project_dir, check=True, capture_output=True)
         subprocess.run(
-            ["git", "commit", "-m", "initial"],
+            ["git", "commit", "--no-verify", "-m", "initial"],
             cwd=project_dir,
             check=True,
             capture_output=True,
@@ -218,6 +232,13 @@ GATE::pytest -m integration
 
         # Setup git with main branch
         subprocess.run(["git", "init"], cwd=project_dir, check=True, capture_output=True)
+        # Disable global hooks for test hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=project_dir,
+            check=True,
+            capture_output=True,
+        )
         subprocess.run(
             ["git", "config", "user.email", "test@test.com"],
             cwd=project_dir,
@@ -234,7 +255,7 @@ GATE::pytest -m integration
         (project_dir / "README.md").write_text("# Project")
         subprocess.run(["git", "add", "."], cwd=project_dir, check=True, capture_output=True)
         subprocess.run(
-            ["git", "commit", "-m", "initial"],
+            ["git", "commit", "--no-verify", "-m", "initial"],
             cwd=project_dir,
             check=True,
             capture_output=True,
@@ -298,6 +319,13 @@ GATE::pytest -m integration
 
         # Minimal git setup
         subprocess.run(["git", "init"], cwd=project_dir, check=True, capture_output=True)
+        # Disable global hooks for test hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=project_dir,
+            check=True,
+            capture_output=True,
+        )
         subprocess.run(
             ["git", "config", "user.email", "test@test.com"],
             cwd=project_dir,
@@ -313,7 +341,7 @@ GATE::pytest -m integration
         (project_dir / "README.md").write_text("# Quick")
         subprocess.run(["git", "add", "."], cwd=project_dir, check=True, capture_output=True)
         subprocess.run(
-            ["git", "commit", "-m", "init"],
+            ["git", "commit", "--no-verify", "-m", "init"],
             cwd=project_dir,
             check=True,
             capture_output=True,
@@ -366,6 +394,13 @@ GATE::human review
         project_dir.mkdir()
 
         subprocess.run(["git", "init"], cwd=project_dir, check=True, capture_output=True)
+        # Disable global hooks for test hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=project_dir,
+            check=True,
+            capture_output=True,
+        )
         subprocess.run(
             ["git", "config", "user.email", "test@test.com"],
             cwd=project_dir,
@@ -381,7 +416,7 @@ GATE::human review
         (project_dir / "README.md").write_text("# Test")
         subprocess.run(["git", "add", "."], cwd=project_dir, check=True, capture_output=True)
         subprocess.run(
-            ["git", "commit", "-m", "init"],
+            ["git", "commit", "--no-verify", "-m", "init"],
             cwd=project_dir,
             check=True,
             capture_output=True,

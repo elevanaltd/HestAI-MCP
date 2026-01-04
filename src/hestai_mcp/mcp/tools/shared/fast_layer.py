@@ -485,6 +485,32 @@ PROJECT CONTEXT:
 
 Synthesize this into actionable session context. Only reference information explicitly provided above."""
 
+# Required OCTAVE fields per protocols.py CLOCK_IN_SYNTHESIS_PROTOCOL
+REQUIRED_OCTAVE_FIELDS = [
+    "CONTEXT_FILES::",
+    "FOCUS::",
+    "PHASE::",
+    "BLOCKERS::",
+    "TASKS::",
+    "FRESHNESS_WARNING::",
+]
+
+
+def _validate_octave_synthesis(response: str) -> bool:
+    """
+    Validate AI response contains all required OCTAVE fields.
+
+    Anti-fragility check: ensures AI output meets structural contract.
+    If ANY field is missing, returns False to trigger fallback.
+
+    Args:
+        response: AI-generated synthesis text
+
+    Returns:
+        True if all required fields present, False otherwise
+    """
+    return all(field in response for field in REQUIRED_OCTAVE_FIELDS)
+
 
 async def synthesize_fast_layer_with_ai(
     session_id: str,
@@ -546,25 +572,32 @@ async def synthesize_fast_layer_with_ai(
 
         logger.info(f"AI synthesis completed for session {session_id}")
 
-        return {
-            "synthesis": ai_response,
-            "source": "ai",
-        }
+        # Anti-fragility: Validate AI response has all required OCTAVE fields
+        # If any field missing, swap to validated fallback
+        if _validate_octave_synthesis(ai_response):
+            return {
+                "synthesis": ai_response,
+                "source": "ai",
+            }
+        else:
+            logger.warning(f"AI generated invalid OCTAVE for session {session_id}, using fallback")
+            # Fall through to fallback synthesis below
 
     except Exception as e:
         # SS-I6 Fallback: Use OCTAVE format matching AI output contract
         # Per CRS issue #140: Fallback must emit same structured format as AI synthesis
         logger.warning(f"AI synthesis failed for session {session_id}, using fallback: {e}")
 
-        # OCTAVE format matching CLOCK_IN_SYNTHESIS_PROTOCOL in protocols.py
-        fallback_synthesis = f"""CONTEXT_FILES::[@.hestai/context/PROJECT-CONTEXT.oct.md, @.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md]
+    # OCTAVE format matching CLOCK_IN_SYNTHESIS_PROTOCOL in protocols.py
+    # Used for both AI failure AND invalid AI output (anti-fragility)
+    fallback_synthesis = f"""CONTEXT_FILES::[@.hestai/context/PROJECT-CONTEXT.oct.md, @.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md]
 FOCUS::{focus}
 PHASE::UNKNOWN
 BLOCKERS::[]
 TASKS::[Review context for {role}, Complete {focus} objectives]
 FRESHNESS_WARNING::AI_SYNTHESIS_UNAVAILABLE"""
 
-        return {
-            "synthesis": fallback_synthesis,
-            "source": "fallback",
-        }
+    return {
+        "synthesis": fallback_synthesis,
+        "source": "fallback",
+    }

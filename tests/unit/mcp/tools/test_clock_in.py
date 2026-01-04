@@ -937,6 +937,12 @@ NEXT_ACTIONS::[
         )
 
         subprocess.run(["git", "init"], cwd=str(mock_hestai_structure), capture_output=True)
+        # Disable global hooks for test hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=str(mock_hestai_structure),
+            capture_output=True,
+        )
         subprocess.run(
             ["git", "config", "user.email", "test@test.com"],
             cwd=str(mock_hestai_structure),
@@ -953,7 +959,7 @@ NEXT_ACTIONS::[
         test_file.write_text("test content")
         subprocess.run(["git", "add", "."], cwd=str(mock_hestai_structure), capture_output=True)
         subprocess.run(
-            ["git", "commit", "-m", "Initial commit"],
+            ["git", "commit", "--no-verify", "-m", "Initial commit"],
             cwd=str(mock_hestai_structure),
             capture_output=True,
         )
@@ -1087,6 +1093,12 @@ class TestFreshnessCheck:
 
         # Initialize git repo and commit PROJECT-CONTEXT
         subprocess.run(["git", "init"], cwd=str(mock_hestai_structure), capture_output=True)
+        # Disable global hooks for test hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=str(mock_hestai_structure),
+            capture_output=True,
+        )
         subprocess.run(
             ["git", "config", "user.email", "test@test.com"],
             cwd=str(mock_hestai_structure),
@@ -1103,7 +1115,7 @@ class TestFreshnessCheck:
         project_context.write_text("===PROJECT_CONTEXT===\nTEST\n===END===")
         subprocess.run(["git", "add", "."], cwd=str(mock_hestai_structure), capture_output=True)
         subprocess.run(
-            ["git", "commit", "-m", "Add PROJECT-CONTEXT"],
+            ["git", "commit", "--no-verify", "-m", "Add PROJECT-CONTEXT"],
             cwd=str(mock_hestai_structure),
             capture_output=True,
         )
@@ -1433,6 +1445,12 @@ class TestCoverageGaps:
 
         # Initialize git and create uncommitted changes
         subprocess.run(["git", "init"], cwd=str(mock_hestai_structure), capture_output=True)
+        # Disable global hooks for test hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=str(mock_hestai_structure),
+            capture_output=True,
+        )
         subprocess.run(
             ["git", "config", "user.email", "test@test.com"],
             cwd=str(mock_hestai_structure),
@@ -1449,7 +1467,7 @@ class TestCoverageGaps:
         test_file.write_text("original")
         subprocess.run(["git", "add", "."], cwd=str(mock_hestai_structure), capture_output=True)
         subprocess.run(
-            ["git", "commit", "-m", "Initial"],
+            ["git", "commit", "--no-verify", "-m", "Initial"],
             cwd=str(mock_hestai_structure),
             capture_output=True,
         )
@@ -1470,6 +1488,12 @@ class TestCoverageGaps:
 
         # Initialize git
         subprocess.run(["git", "init"], cwd=str(mock_hestai_structure), capture_output=True)
+        # Disable global hooks for test hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=str(mock_hestai_structure),
+            capture_output=True,
+        )
         subprocess.run(
             ["git", "config", "user.email", "test@test.com"],
             cwd=str(mock_hestai_structure),
@@ -1488,7 +1512,7 @@ class TestCoverageGaps:
 
         # Commit with a date 48 hours ago
         subprocess.run(
-            ["git", "commit", "-m", "old commit", "--date", "2025-01-01T00:00:00Z"],
+            ["git", "commit", "--no-verify", "-m", "old commit", "--date", "2025-01-01T00:00:00Z"],
             cwd=str(mock_hestai_structure),
             capture_output=True,
             env={

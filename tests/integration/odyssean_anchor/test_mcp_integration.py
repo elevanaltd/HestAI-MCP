@@ -108,6 +108,13 @@ class TestOdysseanAnchorMCPIntegration:
             check=True,
             capture_output=True,
         )
+        # Disable global hooks for test hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=project_dir,
+            check=True,
+            capture_output=True,
+        )
         subprocess.run(
             ["git", "config", "user.email", "test@test.com"],
             cwd=project_dir,
@@ -126,7 +133,7 @@ class TestOdysseanAnchorMCPIntegration:
         readme.write_text("# MCP Test Project")
         subprocess.run(["git", "add", "."], cwd=project_dir, check=True, capture_output=True)
         subprocess.run(
-            ["git", "commit", "-m", "Initial commit"],
+            ["git", "commit", "--no-verify", "-m", "Initial commit"],
             cwd=project_dir,
             check=True,
             capture_output=True,
@@ -224,6 +231,13 @@ GATE::pytest -m integration
         project_dir.mkdir()
 
         subprocess.run(["git", "init"], cwd=project_dir, check=True, capture_output=True)
+        # Disable global hooks for test hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=project_dir,
+            check=True,
+            capture_output=True,
+        )
         subprocess.run(
             ["git", "config", "user.email", "test@test.com"],
             cwd=project_dir,
@@ -239,7 +253,7 @@ GATE::pytest -m integration
         (project_dir / "README.md").write_text("# Test")
         subprocess.run(["git", "add", "."], cwd=project_dir, check=True, capture_output=True)
         subprocess.run(
-            ["git", "commit", "-m", "init"],
+            ["git", "commit", "--no-verify", "-m", "init"],
             cwd=project_dir,
             check=True,
             capture_output=True,

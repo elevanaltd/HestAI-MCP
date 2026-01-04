@@ -541,6 +541,12 @@ META:
 
         # Initialize git repo
         subprocess.run(["git", "init"], cwd=str(working_dir), capture_output=True)
+        # Disable global hooks for test hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=str(working_dir),
+            capture_output=True,
+        )
         subprocess.run(
             ["git", "config", "user.email", "test@test.com"],
             cwd=str(working_dir),
@@ -553,7 +559,9 @@ META:
         (working_dir / "test.txt").write_text("test")
         subprocess.run(["git", "add", "."], cwd=str(working_dir), capture_output=True)
         subprocess.run(
-            ["git", "commit", "-m", "Initial commit"], cwd=str(working_dir), capture_output=True
+            ["git", "commit", "--no-verify", "-m", "Initial commit"],
+            cwd=str(working_dir),
+            capture_output=True,
         )
 
         result = inject_arm_section(
@@ -605,6 +613,12 @@ META:
 
         # Initialize git repo and add modified file
         subprocess.run(["git", "init"], cwd=str(working_dir), capture_output=True)
+        # Disable global hooks for test hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=str(working_dir),
+            capture_output=True,
+        )
         subprocess.run(
             ["git", "config", "user.email", "test@test.com"],
             cwd=str(working_dir),
@@ -616,7 +630,9 @@ META:
         (working_dir / "file1.txt").write_text("content")
         subprocess.run(["git", "add", "."], cwd=str(working_dir), capture_output=True)
         subprocess.run(
-            ["git", "commit", "-m", "Initial"], cwd=str(working_dir), capture_output=True
+            ["git", "commit", "--no-verify", "-m", "Initial"],
+            cwd=str(working_dir),
+            capture_output=True,
         )
         # Modify a file
         (working_dir / "file1.txt").write_text("modified content")
@@ -1042,6 +1058,12 @@ META:
 
         # Setup git
         subprocess.run(["git", "init"], cwd=str(working_dir), capture_output=True)
+        # Disable global hooks for test hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=str(working_dir),
+            capture_output=True,
+        )
         subprocess.run(
             ["git", "config", "user.email", "test@test.com"],
             cwd=str(working_dir),
@@ -1053,7 +1075,9 @@ META:
         (working_dir / "test.txt").write_text("content")
         subprocess.run(["git", "add", "."], cwd=str(working_dir), capture_output=True)
         subprocess.run(
-            ["git", "commit", "-m", "Initial"], cwd=str(working_dir), capture_output=True
+            ["git", "commit", "--no-verify", "-m", "Initial"],
+            cwd=str(working_dir),
+            capture_output=True,
         )
 
         valid_vector = """## BIND (Identity Lock)
@@ -1917,6 +1941,12 @@ class TestGitOperationsEdgeCases:
 
         # Initialize git with a remote tracking branch
         subprocess.run(["git", "init"], cwd=str(working_dir), capture_output=True)
+        # Disable global hooks for test hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=str(working_dir),
+            capture_output=True,
+        )
         subprocess.run(
             ["git", "config", "user.email", "test@test.com"],
             cwd=str(working_dir),
@@ -1932,7 +1962,7 @@ class TestGitOperationsEdgeCases:
         (working_dir / "test.txt").write_text("initial")
         subprocess.run(["git", "add", "."], cwd=str(working_dir), capture_output=True)
         subprocess.run(
-            ["git", "commit", "-m", "Initial"],
+            ["git", "commit", "--no-verify", "-m", "Initial"],
             cwd=str(working_dir),
             capture_output=True,
         )
@@ -1979,6 +2009,12 @@ class TestGitOperationsEdgeCases:
 
         # Initialize git
         subprocess.run(["git", "init"], cwd=str(working_dir), capture_output=True)
+        # Disable global hooks for test hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=str(working_dir),
+            capture_output=True,
+        )
         subprocess.run(
             ["git", "config", "user.email", "test@test.com"],
             cwd=str(working_dir),
@@ -1992,7 +2028,7 @@ class TestGitOperationsEdgeCases:
         (working_dir / "test.txt").write_text("content")
         subprocess.run(["git", "add", "."], cwd=str(working_dir), capture_output=True)
         subprocess.run(
-            ["git", "commit", "-m", "Initial"],
+            ["git", "commit", "--no-verify", "-m", "Initial"],
             cwd=str(working_dir),
             capture_output=True,
         )
@@ -2722,14 +2758,45 @@ class TestGitRemoteTracking:
 
         # Create a bare repo to act as "remote"
         remote_dir = tmp_path / "remote.git"
-        subprocess.run(["git", "init", "--bare"], cwd=str(tmp_path), capture_output=True)
+        subprocess.run(
+            ["git", "init", "--bare"],
+            cwd=str(tmp_path),
+            capture_output=True,
+            check=True,
+        )
+        # Disable global hooks for bare repo hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=str(tmp_path),
+            capture_output=True,
+            check=True,
+        )
         subprocess.run(
             ["git", "init", "--bare", str(remote_dir)],
             capture_output=True,
+            check=True,
+        )
+        # Disable global hooks for remote bare repo hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=str(remote_dir),
+            capture_output=True,
+            check=True,
         )
 
         # Initialize local repo
-        subprocess.run(["git", "init"], cwd=str(working_dir), capture_output=True)
+        subprocess.run(
+            ["git", "init"],
+            cwd=str(working_dir),
+            capture_output=True,
+            check=True,
+        )
+        # Disable global hooks for test hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=str(working_dir),
+            capture_output=True,
+        )
         subprocess.run(
             ["git", "config", "user.email", "test@test.com"],
             cwd=str(working_dir),
@@ -2746,31 +2813,43 @@ class TestGitRemoteTracking:
             ["git", "remote", "add", "origin", str(remote_dir)],
             cwd=str(working_dir),
             capture_output=True,
+            check=True,
         )
 
         # Create initial commit
         (working_dir / "test.txt").write_text("initial")
         subprocess.run(["git", "add", "."], cwd=str(working_dir), capture_output=True)
         subprocess.run(
-            ["git", "commit", "-m", "Initial"],
+            ["git", "commit", "--no-verify", "-m", "Initial"],
             cwd=str(working_dir),
             capture_output=True,
+            check=True,
         )
 
         # Push to remote
-        subprocess.run(
-            ["git", "push", "-u", "origin", "master"],
+        branch = subprocess.run(
+            ["git", "branch", "--show-current"],
             cwd=str(working_dir),
             capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+        assert branch, "Expected an active branch after initial commit"
+        subprocess.run(
+            ["git", "push", "-u", "origin", branch],
+            cwd=str(working_dir),
+            capture_output=True,
+            check=True,
         )
 
         # Create local-only commit (ahead by 1)
         (working_dir / "test.txt").write_text("updated")
         subprocess.run(["git", "add", "."], cwd=str(working_dir), capture_output=True)
         subprocess.run(
-            ["git", "commit", "-m", "Update"],
+            ["git", "commit", "--no-verify", "-m", "Update"],
             cwd=str(working_dir),
             capture_output=True,
+            check=True,
         )
 
         result = inject_arm_section(
