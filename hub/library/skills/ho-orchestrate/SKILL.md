@@ -2,6 +2,7 @@
 name: ho-orchestrate
 description: HO work orchestration protocol with enforced quality gates and debate-hall escalation. Loads ho-mode, ensures IL uses build-execution+TDD, quality gates via CRS(Gemini)+CE(Codex), debate-hall for complex decisions (Claude→Wind, Codex→Wall, Gemini→Door per M019/M021). NEVER implements directly. Use when orchestrating implementation work.
 allowed-tools: [Task, TodoWrite, AskUserQuestion, Read, Grep, Glob, Write, Edit, mcp__pal__clink, Skill, mcp__debate-hall__init_debate, mcp__debate-hall__add_turn, mcp__debate-hall__get_debate, mcp__debate-hall__close_debate, mcp__debate-hall__pick_next_speaker]
+triggers: ["orchestrate implementation", "HO orchestrate", "delegate work", "quality gates", "CRS review", "CE review", "debate escalation", "orchestration protocol", "implementation orchestration", "subagent delegation", "Task with binding"]
 ---
 
 ===HO_ORCHESTRATE===
