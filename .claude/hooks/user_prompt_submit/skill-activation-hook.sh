@@ -23,6 +23,10 @@
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 HOOKS_DIR="${PROJECT_DIR}/.claude/hooks"
 
+# Export CLAUDE_PROJECT_DIR so TypeScript process receives it as environment variable
+# This is critical for proper path resolution in the skill activation hook
+export CLAUDE_PROJECT_DIR="$PROJECT_DIR"
+
 # Security: Validate skill name format (allowlist pattern)
 validate_skill_name() {
     local skill_name="$1"

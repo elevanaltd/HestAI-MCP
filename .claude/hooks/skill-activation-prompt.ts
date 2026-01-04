@@ -38,7 +38,7 @@ interface HookInput {
   session_id: string;
   conversation_id?: string;
   transcript_path: string;
-  cwd: string;
+  cwd?: string;
   permission_mode: string;
   prompt: string;
 }
