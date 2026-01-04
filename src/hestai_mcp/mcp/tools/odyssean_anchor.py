@@ -43,16 +43,30 @@ logger = logging.getLogger(__name__)
 # Valid cognition types per OCTAVE architecture
 VALID_COGNITION_TYPES = {"ETHOS", "LOGOS", "PATHOS"}
 
-# Valid archetypes per OCTAVE mythology
+# Valid archetypes per OCTAVE Semantic Pantheon (octave-mastery skill §1)
+# Plus narrative dynamics (§2) and system forces (§3) for extended usage
 VALID_ARCHETYPES = {
-    "ATLAS",
-    "ATHENA",
-    "HEPHAESTUS",
-    "HERMES",
-    "APOLLO",
-    "ARGUS",
-    "PROMETHEUS",
-    "DIONYSUS",
+    # Semantic Pantheon - 10 core domains
+    "ZEUS",  # Executive function, authority, strategic direction
+    "ATHENA",  # Strategic wisdom, planning, elegant solutions
+    "APOLLO",  # Analytics, data, insight, clarity, prediction
+    "HERMES",  # Communication, translation, APIs, messaging
+    "HEPHAESTUS",  # Infrastructure, tooling, engineering, automation
+    "ARES",  # Security, defense, stress testing, adversarial
+    "ARTEMIS",  # Monitoring, observation, logging, alerting
+    "POSEIDON",  # Data lakes, storage, databases
+    "DEMETER",  # Resource allocation, budgeting, scaling
+    "DIONYSUS",  # User experience, engagement, creativity
+    # Narrative dynamics archetypes (octave-mythology §3)
+    "ODYSSEUS",  # Long transformative journey, navigation
+    "SISYPHUS",  # Repetitive maintenance, cyclical patterns
+    "PROMETHEUS",  # Breakthrough innovation, boundary-breaking
+    "ICARUS",  # Overreach from early success
+    "PANDORA",  # Unforeseen cascading problems
+    "ATLAS",  # Ultimate accountability, system-wide burden
+    "ARGUS",  # Vigilant observation, multi-perspective
+    "THEMIS",  # Justice, rule enforcement, fairness
+    "DAEDALUS",  # Architectural mastery, complex construction
 }
 
 # Tier requirements for tension count
@@ -227,10 +241,16 @@ def validate_bind_section(bind_text: str) -> BindValidationResult:
         errors.append("BIND: Missing ROLE field")
 
     # Extract COGNITION from scoped section only
-    cognition_match = re.search(r"COGNITION::([A-Z]+)::([A-Z]+)", scoped_text)
+    # Supports multiple archetypes: COGNITION::LOGOS::ATLAS⊕ODYSSEUS⊕APOLLO
+    # Also accepts + as ASCII alias for ⊕ (synthesis operator)
+    cognition_match = re.search(r"COGNITION::([A-Z]+)::([A-Z⊕+]+)", scoped_text)
     if cognition_match:
         cognition_type = cognition_match.group(1)
-        cognition_archetype = cognition_match.group(2)
+        archetype_str = cognition_match.group(2)
+
+        # Split on ⊕ or + (synthesis operator and its ASCII alias)
+        archetypes = re.split(r"[⊕+]", archetype_str)
+        cognition_archetype = archetype_str  # Store full string for output
 
         if cognition_type not in VALID_COGNITION_TYPES:
             errors.append(
@@ -238,14 +258,17 @@ def validate_bind_section(bind_text: str) -> BindValidationResult:
                 f"Valid types: {', '.join(sorted(VALID_COGNITION_TYPES))}"
             )
 
-        if cognition_archetype not in VALID_ARCHETYPES:
+        # Validate each archetype in the list
+        invalid_archetypes = [a for a in archetypes if a not in VALID_ARCHETYPES]
+        if invalid_archetypes:
             errors.append(
-                f"BIND: Invalid COGNITION archetype '{cognition_archetype}'. "
+                f"BIND: Invalid COGNITION archetype(s) '{', '.join(invalid_archetypes)}'. "
                 f"Valid archetypes: {', '.join(sorted(VALID_ARCHETYPES))}"
             )
     else:
         errors.append(
-            "BIND: Missing or malformed COGNITION field (expected COGNITION::{type}::{archetype})"
+            "BIND: Missing or malformed COGNITION field "
+            "(expected COGNITION::{type}::{archetype} or COGNITION::{type}::{arch1}⊕{arch2}⊕{arch3})"
         )
 
     # Extract AUTHORITY
@@ -904,6 +927,7 @@ def odyssean_anchor(
             if "COGNITION" in error:
                 guidance_parts.append(
                     "- Add COGNITION::{type}::{archetype} to BIND section\n"
+                    "- Multiple archetypes supported: {type}::{arch1}⊕{arch2}⊕{arch3}\n"
                     f"- Valid types: {', '.join(sorted(VALID_COGNITION_TYPES))}\n"
                     f"- Valid archetypes: {', '.join(sorted(VALID_ARCHETYPES))}"
                 )

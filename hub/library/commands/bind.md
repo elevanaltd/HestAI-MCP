@@ -42,8 +42,8 @@ TODOS::[
 T5_DETAIL::
   BUILD::VECTOR_CANDIDATE::[
     "## BIND",
-    "ROLE::{role}","COGNITION::{cognition}::{primary_archetype}","AUTHORITY::{authority}",
-    // NOTE: Use PRIMARY archetype only (first from constitution's ARCHETYPES list)
+    "ROLE::{role}","COGNITION::{cognition}::{archetypes}","AUTHORITY::{authority}",
+    // archetypes: Single (ATLAS) or multiple via synthesis (ATLAS⊕ODYSSEUS⊕APOLLO)
     "## TENSION","{tensions_from_T3}",
     "## COMMIT",
     "ARTIFACT::{artifact}","GATE::{gate}"
@@ -56,13 +56,13 @@ T5_DETAIL::
 
 ---
 
-VECTOR_SCHEMA::v4.0
-  ===RAPH_VECTOR::v4.0===
+VECTOR_SCHEMA::v4.1
+  ===RAPH_VECTOR::v4.1===
   ## BIND
   ROLE::{name}
-  COGNITION::{type}::{primary_archetype}
-  // PRIMARY_ARCHETYPE: First archetype from constitution's ARCHETYPES list
-  // Full archetype list remains in constitution for reference; BIND uses primary only
+  COGNITION::{type}::{archetypes}
+  // archetypes: Single archetype (ATLAS) or multiple via ⊕ synthesis (ATLAS⊕ODYSSEUS⊕APOLLO)
+  // Use archetypes from constitution's ARCHETYPES list - all are valid
   AUTHORITY::{RESPONSIBLE[scope]|DELEGATED[parent_session::task]}
 
   ## ARM (MCP-INJECTED)

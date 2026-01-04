@@ -89,11 +89,11 @@ RESOLVED_2026-01-02::[
     Phase_1::PR_#126_merged[odyssean_anchor_tool_949_lines+54_tests],
     Phase_2::gating.py[has_valid_anchor+22_tests+zombie_state_fix],
     Phase_3::server.py[MCP_tool_exposed+5_integration_tests],
-    Phase_4::docs/commands/bind.md[v4.0_ceremony_reference],
+    Phase_4::hub/library/commands/bind.md[v4.1_ceremony_reference],
     TOTAL_TESTS::511_passing,
     I5_STATUS::PROVEN[odyssean_anchor_MCP+bind_command_reference],
     QUALITY_GATES::[CRS_Codex_APPROVE,CE_Gemini_GO],
-    USAGE::"Copy docs/commands/bind.md to ~/.claude/commands/bind.md"
+    USAGE::"Copy hub/library/commands/bind.md to ~/.claude/commands/bind.md"
   ]
 ]
 
@@ -200,7 +200,7 @@ SYSTEM_STEWARD_GUIDANCE::[
 COMPLETED_ACTIONS::[
   CI_PYTHON_MATRIX::DONE[3.11+3.12_in_CI_matrix],
   ODYSSEAN_ANCHOR::DONE[I5_PROVEN_Issue_#11_ADR-0036],
-  BIND_COMMAND::DONE[docs/commands/bind.md_with_odyssean_anchor_MCP]
+  BIND_COMMAND::DONE[hub/library/commands/bind.md_with_odyssean_anchor_MCP]
 ]
 
 GOVERNANCE_ACTIONS_COMPLETED::[

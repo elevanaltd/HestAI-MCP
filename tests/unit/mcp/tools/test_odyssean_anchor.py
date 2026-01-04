@@ -147,6 +147,48 @@ AUTHORITY::DELEGATED[parent_session_abc123]"""
         assert result.valid is True
         assert "DELEGATED" in result.authority
 
+    def test_validate_bind_accepts_multiple_archetypes_unicode(self):
+        """Accepts BIND section with multiple archetypes using ⊕ (synthesis operator)."""
+        from hestai_mcp.mcp.tools.odyssean_anchor import validate_bind_section
+
+        valid_bind = """## BIND (Identity Lock)
+ROLE::holistic-orchestrator
+COGNITION::LOGOS::ATLAS⊕ODYSSEUS⊕APOLLO
+AUTHORITY::RESPONSIBLE[system_coherence_orchestration]"""
+
+        result = validate_bind_section(valid_bind)
+
+        assert result.valid is True
+        assert result.cognition_archetype == "ATLAS⊕ODYSSEUS⊕APOLLO"
+
+    def test_validate_bind_accepts_multiple_archetypes_ascii(self):
+        """Accepts BIND section with multiple archetypes using + (ASCII alias for ⊕)."""
+        from hestai_mcp.mcp.tools.odyssean_anchor import validate_bind_section
+
+        valid_bind = """## BIND (Identity Lock)
+ROLE::holistic-orchestrator
+COGNITION::LOGOS::ATLAS+ODYSSEUS+APOLLO
+AUTHORITY::RESPONSIBLE[system_coherence_orchestration]"""
+
+        result = validate_bind_section(valid_bind)
+
+        assert result.valid is True
+        assert result.cognition_archetype == "ATLAS+ODYSSEUS+APOLLO"
+
+    def test_validate_bind_rejects_invalid_archetype_in_list(self):
+        """Rejects BIND section if any archetype in the list is invalid."""
+        from hestai_mcp.mcp.tools.odyssean_anchor import validate_bind_section
+
+        invalid_bind = """## BIND (Identity Lock)
+ROLE::holistic-orchestrator
+COGNITION::LOGOS::ATLAS⊕INVALID⊕APOLLO
+AUTHORITY::RESPONSIBLE[system_coherence_orchestration]"""
+
+        result = validate_bind_section(invalid_bind)
+
+        assert result.valid is False
+        assert "INVALID" in str(result.errors)
+
 
 # =============================================================================
 # TENSION Section Validation Tests
