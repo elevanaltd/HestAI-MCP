@@ -40,6 +40,7 @@ IL_HANDOFF_MANDATE::[
 SUBAGENT_SELF_BIND_PROTOCOL::[
   // Critical: Subagents don't know they're subagents unless told
   // They hit the same CLAUDE.md binding requirement for writes
+  // PREREQUISITE: HO must be bound first to have a session_id to pass
   IF::task_requires[Edit∨Write∨NotebookEdit∨git_operations]
   THEN::include_in_prompt[
     "## BINDING PROTOCOL (FOR WRITE OPERATIONS)",
@@ -49,7 +50,7 @@ SUBAGENT_SELF_BIND_PROTOCOL::[
     "",
     "Since this task requires write operations, you MUST self-bind:",
     "1. mcp__hestai__clock_in(role:'{subagent_type}', working_dir:'{cwd}', focus:'{task_focus}')",
-    "2. Build RAPH vector with AUTHORITY::DELEGATED[parent:{orchestrator_session}]",
+    "2. Build RAPH vector with AUTHORITY::DELEGATED[parent:{orchestrator_session_id}]",
     "3. mcp__hestai__odyssean_anchor(role, vector, session_id, working_dir, tier:'quick')",
     "",
     "If binding fails after 2 retries, continue in read-only mode."
@@ -58,12 +59,14 @@ SUBAGENT_SELF_BIND_PROTOCOL::[
 
 HANDOFF_TEMPLATE:
   ```octave
+  // NOTE: {ho_session_id} comes from HO's own clock_in response
+  // HO must be bound before delegating write operations
   Task(implementation-lead):
     ## BINDING PROTOCOL (FOR WRITE OPERATIONS)
     You are a subagent invoked via Task(). Parent: {ho_session_id}
     Since this task requires writing code, you MUST self-bind first:
     1. mcp__hestai__clock_in(role:"implementation-lead", working_dir:"{cwd}", focus:"{task}")
-    2. Build RAPH with AUTHORITY::DELEGATED[ho:{ho_session_id}]
+    2. Build RAPH with AUTHORITY::DELEGATED[parent:{ho_session_id}]
     3. mcp__hestai__odyssean_anchor(role, vector, session_id, working_dir, tier:"quick")
 
     GOVERNANCE::TRACED[T+R+A+C+E+D]
