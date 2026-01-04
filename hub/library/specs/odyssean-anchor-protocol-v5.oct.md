@@ -46,10 +46,18 @@ PROTOCOL_FLOW::[
 
   STEP_2_IDENTITY_COMMIT::[
     ACTOR::Agent
-    ACTION::`odyssean_anchor(stage="commit_identity", payload="{SHAFT_VECTOR}")`
-    PAYLOAD_FORMAT::"SHAFT::{role}|{cognition}|{archetypes}|..."
+    ACTION::`odyssean_anchor(stage="commit_identity", payload="{PARTIAL_IDENTITY_BLOCK}")`
+    PAYLOAD_FORMAT::[
+      "===IDENTITY===",
+      "BIND:",
+      "  ROLE::{role}",
+      "  COGNITION::{cognition}",
+      "  ARCHETYPES::{archetypes}",
+      "  AUTHORITY::{authority}",
+      "===END==="
+    ]
     TOOL_LOGIC::[
-      "Validates agent extracted correct identity traits",
+      "Validates BIND section against schema",
       "Creates Session (Clock In) [if FULL/LITE]",
       "Computes Context (ARM) [if FULL/LITE]",
       "Returns: ARM_CONTEXT + INSTRUCTION('Bind Identity to Context')"
@@ -59,9 +67,17 @@ PROTOCOL_FLOW::[
 
   STEP_3_BINDING_PROOF::[
     ACTOR::Agent
-    ACTION::`odyssean_anchor(stage="bind", payload="{ANCHOR_VECTOR}")`
-    PAYLOAD_FORMAT::"RAPH::{BIND + ARM + TENSIONS + COMMIT}"
+    ACTION::`odyssean_anchor(stage="bind", payload="{FULL_IDENTITY_BLOCK}")`
+    PAYLOAD_FORMAT::[
+      "===IDENTITY===",
+      "BIND::{...}",
+      "ARM::{injected_by_server}",
+      "TENSIONS::{...}",
+      "COMMIT::{...}",
+      "===END==="
+    ]
     TOOL_LOGIC::[
+      "Validates full schema (BIND+ARM+TENSIONS+COMMIT)",
       "Validates Tensions against ARM Context",
       "Validates Commit contract",
       "Persists Anchor State [if FULL/LITE]",
@@ -72,19 +88,19 @@ PROTOCOL_FLOW::[
 ]
 
 DATA_STRUCTURES::[
-  SHAFT_VECTOR::[
-    "Simplified identity extraction proof.",
-    "Proves agent read the constitution."
+  PARTIAL_IDENTITY_BLOCK::[
+    "Standard OCTAVE block containing only BIND section.",
+    "Proves agent read the constitution and extracted identity."
   ],
   ARM_CONTEXT::[
-    "Server-injected reality.",
+    "Server-injected reality (OCTAVE ARM section).",
     "FULL: Phase + Branch + Files + Hash + Skills + Blockers",
     "LITE: Phase + Branch + Files",
     "UNTRACKED: Phase only"
   ],
-  ANCHOR_VECTOR::[
-    "The final cryptographic identity structure (RAPH v5.0).",
-    "Combines Agent Identity + Server Reality + Cognitive Tensions."
+  FULL_IDENTITY_BLOCK::[
+    "The final cryptographic identity structure (Identity Schema v5.0).",
+    "Combines Agent Identity (BIND) + Server Reality (ARM) + Cognitive Tensions."
   ]
 ]
 
