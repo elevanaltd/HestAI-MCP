@@ -1,7 +1,8 @@
 ---
 name: test-ci-pipeline
-description: CI/CD pipeline configuration for monorepo testing including GitHub Actions workflows, Turborepo integration, two-tier quality gates (typecheck→lint→test→build), preview branch integration, retry logic, and environment management. Use when configuring CI pipelines, troubleshooting CI test failures, implementing preview deployments, or optimizing CI performance. Triggers on: CI configuration, github actions testing, CI pipeline, turborepo CI, quality gates, preview integration, CI troubleshooting.
-allowed-tools: Read
+description: CI/CD pipeline configuration for monorepo testing including GitHub Actions workflows, Turborepo integration, quality gates, and preview deployments
+allowed-tools: ["Read", "Write", "Edit", "Bash"]
+triggers: ["CI configuration", "github actions testing", "CI pipeline", "turborepo CI", "quality gates", "preview integration", "CI troubleshooting", "workflow configuration", "test pipeline", "CI/CD setup"]
 ---
 
 # test-ci-pipeline

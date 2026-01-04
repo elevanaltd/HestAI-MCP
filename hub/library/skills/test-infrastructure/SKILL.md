@@ -1,7 +1,8 @@
 ---
 name: test-infrastructure
-description: Core test infrastructure patterns for monorepo Vitest setup including global configuration, browser API polyfills, mocking patterns, test cleanup, directory structure, and coverage philosophy. Use when setting up Vitest test infrastructure, configuring test environments, implementing test utilities, or establishing test standards. Triggers on: vitest setup, test configuration, test infrastructure setup, test mocking patterns, test cleanup, test standards, monorepo testing.
-allowed-tools: Read
+description: Core test infrastructure patterns for monorepo Vitest setup including global configuration, mocking patterns, and test standards
+allowed-tools: ["Read", "Write", "Edit", "Bash"]
+triggers: ["vitest setup", "test configuration", "test infrastructure setup", "test mocking patterns", "test cleanup", "test standards", "monorepo testing", "vitest config", "test utilities", "test environment"]
 ---
 
 # test-infrastructure

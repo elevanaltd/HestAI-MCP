@@ -1,7 +1,8 @@
 ---
 name: octave-mythology
-description: Functional mythological compression for OCTAVE documents. Semantic shorthand for LLM audiences, not prose decoration. Activates 60-70% compression with 88-96% zero-shot comprehension. Triggers on: mythology, archetype, SISYPHEAN, ICARIAN, semantic compression, evidence-based.
-allowed-tools: Read
+description: Functional mythological compression for OCTAVE documents. Semantic shorthand for LLM audiences, not prose decoration
+allowed-tools: ["Read", "Write", "Edit"]
+triggers: ["mythology", "archetype", "SISYPHEAN", "ICARIAN", "semantic compression", "evidence-based", "mythological domains", "OCTAVE mythology", "PROMETHEAN", "functional mythology", "compression patterns"]
 ---
 
 # OCTAVE Mythology Skill

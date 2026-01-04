@@ -1,7 +1,8 @@
 ---
 name: vercel-preview
-description: Vercel preview deployment access patterns including automation bypass, protected preview authentication, CI integration, and Playwright/Chrome DevTools configuration. Use when accessing protected Vercel previews, configuring CI for preview testing, or setting up UI validation agents. Triggers on vercel preview, preview deployment, automation bypass, protected preview, preview authentication, UI validation CI.
-allowed-tools: [Read, Bash, WebFetch]
+description: Vercel preview deployment access patterns including automation bypass, protected preview authentication, and CI integration
+allowed-tools: ["Read", "Bash", "WebFetch"]
+triggers: ["vercel preview", "preview deployment", "automation bypass", "protected preview", "preview authentication", "UI validation CI", "vercel deployment", "preview URL", "vercel CI", "preview testing"]
 ---
 
 # Vercel Preview Access Skill

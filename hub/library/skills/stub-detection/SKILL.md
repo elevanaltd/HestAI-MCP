@@ -1,7 +1,8 @@
 ---
 name: stub-detection
-description: Systematic detection of placeholder implementations, stubs, and hidden incomplete code. Three-pattern taxonomy (obvious, hidden, silent failures) with search strategies. Use when auditing codebases, reviewing MCP tools, identifying technical debt, finding unimplemented features. Triggers on placeholder audit, stub detection, find stubs, unimplemented features, code audit, incomplete implementation, dead code, hidden placeholders.
-allowed-tools: Read, Bash, Grep, Glob
+description: Systematic detection of placeholder implementations, stubs, and hidden incomplete code. Three-pattern taxonomy with search strategies
+allowed-tools: ["Read", "Bash", "Grep", "Glob"]
+triggers: ["placeholder audit", "stub detection", "find stubs", "unimplemented features", "code audit", "incomplete implementation", "dead code", "hidden placeholders", "TODO", "FIXME", "NotImplementedError"]
 ---
 
 ===STUB_DETECTION_PROTOCOL===

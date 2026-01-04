@@ -1,7 +1,8 @@
 ---
 name: ci-error-resolution
-description: CI/CD pipeline failure resolution with autonomous iteration loops. Local validation → branch & PR creation → CI monitoring → iteration until green. Proven patterns for GitHub Actions, includes role-specific adaptations. Use when CI pipeline failures occur, GitHub Actions errors detected, autonomous error resolution needed, PR creation for fixes required. Triggers on ci pipeline failures, github actions errors, autonomous ci resolution, ci iteration, pr creation for errors, pipeline validation, test failures in ci, build failures in ci, continuous integration debugging.
-allowed-tools: Bash, Read, Grep
+description: CI/CD pipeline failure resolution with autonomous iteration loops. Local validation → branch & PR creation → CI monitoring → iteration until green
+allowed-tools: ["Bash", "Read", "Grep", "Edit", "Write"]
+triggers: ["ci pipeline failures", "github actions errors", "autonomous ci resolution", "ci iteration", "pr creation for errors", "pipeline validation", "test failures in ci", "build failures in ci", "continuous integration", "CI error", "CI failed", "pipeline failed"]
 ---
 
 ===CI_ERROR_RESOLUTION===

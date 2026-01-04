@@ -1,7 +1,8 @@
 ---
 name: build-execution
-description: Build execution philosophy including TDD discipline, Minimal Intervention Principle, system awareness, and verification protocols. Use when implementing code, managing build phase, enforcing test-first practices, or preventing accumulative complexity. Triggers on: build phase, TDD, test first, red green refactor, minimal code, system awareness, implementation, code quality, verification protocols, build philosophy.
-allowed-tools: Read
+description: Build execution philosophy including TDD discipline, Minimal Intervention Principle, system awareness, and verification protocols
+allowed-tools: ["Read", "Write", "Edit", "Bash", "Grep"]
+triggers: ["build phase", "TDD", "test first", "red green refactor", "minimal code", "system awareness", "implementation", "code quality", "verification protocols", "build philosophy", "build execution", "test driven development"]
 ---
 
 # Build Execution Skill

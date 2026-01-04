@@ -1,7 +1,8 @@
 ---
 name: documentation-placement
-description: Document placement rules, visibility protocols, and timeline test (before-code vs after-code). Defines where documentation belongs (dev/docs/ vs coordination/), documentation-first PR protocol, and phase artifact placement. Critical for documentation organization and visibility.
-allowed-tools: Read, Write, Bash
+description: Document placement rules, visibility protocols, and timeline test (before-code vs after-code). Defines where documentation belongs (dev/docs/ vs coordination/)
+allowed-tools: ["Read", "Write", "Bash"]
+triggers: ["documentation placement", "where to put docs", "document organization", "visibility rules", "timeline test", "before-code vs after-code", "documentation first", "phase artifact", "coordination repo", "dev repo", "ADR placement"]
 ---
 
 # Documentation Placement Skill

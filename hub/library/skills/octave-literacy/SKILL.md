@@ -1,7 +1,8 @@
 ---
 name: octave-literacy
-description: Fundamental reading and writing capability for the OCTAVE format. Inject this to give an agent basic structural competence without the overhead of full architectural specifications. Triggers on: octave format, write octave, octave syntax, structured output.
-allowed-tools: Read
+description: Fundamental reading and writing capability for the OCTAVE format. Basic structural competence without full architectural specifications
+allowed-tools: ["Read", "Write", "Edit"]
+triggers: ["octave format", "write octave", "octave syntax", "structured output", "OCTAVE basics", "OCTAVE literacy", "OCTAVE structure", "semantic format", "key::value", "OCTAVE notation"]
 ---
 
 # OCTAVE Literacy Skill

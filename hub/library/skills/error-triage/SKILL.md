@@ -1,7 +1,8 @@
 ---
 name: error-triage
-description: Systematic error resolution with priority-based triage preventing cascade failures. Build→Types→Unused→Async→Logic→Tests priority order, TYPE_SAFETY_THEATER detection, proven from B2 validation work. Use when resolving errors, CI failures, cascade detection, type safety violations. Triggers on error resolution, CI failures, systematic error fixing, cascade detection, type safety theater, build errors, type errors, validation theater.
-allowed-tools: Read, Bash, Grep, Glob
+description: Systematic error resolution with priority-based triage preventing cascade failures. Build→Types→Unused→Async→Logic→Tests priority order
+allowed-tools: ["Read", "Bash", "Grep", "Glob", "Edit"]
+triggers: ["error resolution", "CI failures", "systematic error fixing", "cascade detection", "type safety theater", "build errors", "type errors", "validation theater", "error triage", "fix errors", "error cascade", "type violations"]
 ---
 
 ===ERROR_TRIAGE_PROTOCOL===

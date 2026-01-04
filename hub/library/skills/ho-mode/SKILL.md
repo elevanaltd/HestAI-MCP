@@ -1,7 +1,8 @@
 ---
 name: holistic-orchestrator-mode
-description: HO lane discipline enforcement. Coordination-only tools. Prevents direct code implementation, enforces delegation to specialists. Auto-loads on /role ho activation. CRITICAL for preventing orchestrator drift into implementation.
-allowed-tools: [Task, TodoWrite, AskUserQuestion, Read, Grep, Glob, Write, Edit, mcp__pal__clink, Skill]
+description: HO lane discipline enforcement. Coordination-only tools. Prevents direct code implementation, enforces delegation to specialists
+allowed-tools: ["Task", "TodoWrite", "AskUserQuestion", "Read", "Grep", "Glob", "Write", "Edit", "mcp__pal__clink", "Skill"]
+triggers: ["/role ho", "holistic orchestrator", "HO mode", "orchestrator mode", "coordination only", "delegate to specialists", "orchestration discipline", "HO activation"]
 ---
 
 ===HO_MODE===
