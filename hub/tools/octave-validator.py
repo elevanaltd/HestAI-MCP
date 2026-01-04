@@ -251,7 +251,7 @@ class OctaveValidator:
             "SCHEMA",
             "ROLE",
         }
-        unknown_keys = [k for k in meta.keys() if k not in allowed_meta]
+        unknown_keys = [k for k in meta if k not in allowed_meta]
         if unknown_keys:
             if self.unknown_policy == "strict" and self.profile == "protocol":
                 self.errors.append(f"E007: Unknown META field(s) {unknown_keys} not allowed in STRICT mode.")
