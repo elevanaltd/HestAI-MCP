@@ -11,10 +11,11 @@ Architecture Decision: debate 2026-01-02-context-steward-prompt-architecture
 
 from hestai_mcp.ai.prompts.identity_kernel import CONTEXT_STEWARD_IDENTITY
 
-# clock_in synthesis protocol (~40 lines)
+# clock_in synthesis protocol (~50 lines)
+# Enhanced with structured OCTAVE output format per issue #140
 CLOCK_IN_SYNTHESIS_PROTOCOL = """OPERATION: Session Context Synthesis (clock_in)
 
-PURPOSE: Generate actionable context for an agent starting a work session.
+PURPOSE: Generate structured, actionable context for Claude Code agent session.
 
 INPUT YOU WILL RECEIVE:
 - Role: The agent's designated role (e.g., "implementation-lead")
@@ -22,24 +23,28 @@ INPUT YOU WILL RECEIVE:
 - Project Context: Content from PROJECT-CONTEXT.oct.md (if available)
 - Git State: Branch, recent commits, modified files
 
-OUTPUT FORMAT (use exactly this structure):
-FOCUS_SUMMARY: <one-line summary of the session focus>
+OUTPUT FORMAT (use exactly this OCTAVE structure):
+CONTEXT_FILES::[@.hestai/context/PROJECT-CONTEXT.oct.md:L1-50, @.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md:L1-30]
+FOCUS::{focus_value_from_input}
+PHASE::{phase_from_context_or_UNKNOWN}
+BLOCKERS::[{blocker1}, {blocker2}] or BLOCKERS::[]
+TASKS::[{task1_from_context}, {task2_from_context}]
+FRESHNESS_WARNING::{warning_if_stale_or_NONE}
 
-KEY_TASKS:
-* <task derived from context - cite source>
-* <task derived from context - cite source>
-* <task if relevant to focus>
-
-BLOCKERS: <from context, or "None identified in provided context">
-
-CONTEXT: <relevant project state that informs the session>
+FIELD DEFINITIONS:
+- CONTEXT_FILES: File paths with line ranges for Claude Code navigation (@path:L#-#)
+- FOCUS: Echo the focus value from input
+- PHASE: Extract from PROJECT-CONTEXT META.PHASE or use "UNKNOWN"
+- BLOCKERS: List of active blockers or empty list
+- TASKS: Actionable tasks derived from context (cite source)
+- FRESHNESS_WARNING: I4 warning if context is stale, otherwise "NONE"
 
 CRITICAL RULES:
+- Use OCTAVE :: syntax for all fields (not colons)
 - Only include tasks that appear in the provided context
-- If PROJECT-CONTEXT is not provided, state "Limited context available"
-- Cite sources: "per PROJECT-CONTEXT" or "from git status"
+- Extract PHASE from PROJECT-CONTEXT if available
 - Do NOT invent tasks, deadlines, or project details
-- If focus is generic ("general"), summarize current project state instead
+- Keep output compact and navigable
 """
 
 # clock_out compression protocol (~45 lines)

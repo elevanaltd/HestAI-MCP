@@ -818,10 +818,20 @@ async def clock_in_async(
             )
             logger.info(f"AI synthesis completed for session {session_id}")
         except Exception as e:
-            # SS-I6 Fallback: Continue without AI synthesis
+            # SS-I6 Fallback: Use OCTAVE format matching AI output contract
+            # Per CRS issue #140: Fallback must emit same structured format as AI synthesis
             logger.warning(f"AI synthesis failed for session {session_id}: {e}")
+
+            # OCTAVE format matching CLOCK_IN_SYNTHESIS_PROTOCOL in protocols.py
+            fallback_synthesis = f"""CONTEXT_FILES::[@.hestai/context/PROJECT-CONTEXT.oct.md, @.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md]
+FOCUS::{resolved_focus_value}
+PHASE::UNKNOWN
+BLOCKERS::[]
+TASKS::[Review context for {role}, Complete {resolved_focus_value} objectives]
+FRESHNESS_WARNING::AI_SYNTHESIS_UNAVAILABLE"""
+
             ai_synthesis_result = {
-                "synthesis": "AI synthesis unavailable",
+                "synthesis": fallback_synthesis,
                 "source": "fallback",
             }
 

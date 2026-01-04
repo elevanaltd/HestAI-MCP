@@ -458,20 +458,23 @@ try:
     SYNTHESIS_SYSTEM_PROMPT = compose_prompt(CLOCK_IN_SYNTHESIS_PROTOCOL)
 except ImportError:
     # Fallback for when prompts module not available (e.g., during testing)
+    # Uses structured OCTAVE format per issue #140
     SYNTHESIS_SYSTEM_PROMPT = """You are Context Steward, the internal AI agent for HestAI-MCP.
 
 OPERATION: Session Context Synthesis (clock_in)
 
-Generate actionable context for an agent starting a work session.
+Generate structured, actionable context for Claude Code agent session.
 
-OUTPUT FORMAT:
-FOCUS_SUMMARY: <one-line summary>
-KEY_TASKS:
-* <task from context>
-BLOCKERS: <from context or "None identified">
-CONTEXT: <relevant project state>
+OUTPUT FORMAT (use exactly this OCTAVE structure):
+CONTEXT_FILES::[@.hestai/context/PROJECT-CONTEXT.oct.md:L1-50]
+FOCUS::{focus_value_from_input}
+PHASE::{phase_from_context_or_UNKNOWN}
+BLOCKERS::[]
+TASKS::[{task_from_context}]
+FRESHNESS_WARNING::NONE
 
 CRITICAL: Only include information from provided context. Do NOT invent details.
+Use OCTAVE :: syntax for all fields.
 """
 
 SYNTHESIS_USER_PROMPT_TEMPLATE = """Role: {role}
@@ -549,15 +552,17 @@ async def synthesize_fast_layer_with_ai(
         }
 
     except Exception as e:
-        # SS-I6 Fallback: Use template-based approach on any failure
+        # SS-I6 Fallback: Use OCTAVE format matching AI output contract
+        # Per CRS issue #140: Fallback must emit same structured format as AI synthesis
         logger.warning(f"AI synthesis failed for session {session_id}, using fallback: {e}")
 
-        fallback_synthesis = f"""FOCUS_SUMMARY: {focus}
-KEY_TASKS:
-- Review context for {role}
-- Complete {focus} objectives
-BLOCKERS: None identified (AI synthesis unavailable)
-CONTEXT: Session started without AI context synthesis."""
+        # OCTAVE format matching CLOCK_IN_SYNTHESIS_PROTOCOL in protocols.py
+        fallback_synthesis = f"""CONTEXT_FILES::[@.hestai/context/PROJECT-CONTEXT.oct.md, @.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md]
+FOCUS::{focus}
+PHASE::UNKNOWN
+BLOCKERS::[]
+TASKS::[Review context for {role}, Complete {focus} objectives]
+FRESHNESS_WARNING::AI_SYNTHESIS_UNAVAILABLE"""
 
         return {
             "synthesis": fallback_synthesis,

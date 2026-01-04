@@ -596,3 +596,86 @@ BLOCKERS: None identified
             assert inspect.iscoroutine(coro)
             result = await coro
             assert result is not None
+
+    @pytest.mark.asyncio
+    async def test_fallback_synthesis_uses_octave_format(self, tmp_path: Path):
+        """
+        Fallback synthesis emits OCTAVE format matching AI output contract.
+
+        BLOCKING FIX: Fallback must use same structured format as AI synthesis
+        to maintain contract consistency. Legacy prose format (FOCUS_SUMMARY,
+        KEY_TASKS) breaks structured navigation.
+
+        Required OCTAVE fields per protocols.py:
+        - CONTEXT_FILES::
+        - FOCUS::
+        - PHASE::
+        - BLOCKERS::
+        - TASKS::
+        - FRESHNESS_WARNING::
+        """
+        from unittest.mock import AsyncMock, MagicMock, patch
+
+        from hestai_mcp.mcp.tools.shared.fast_layer import synthesize_fast_layer_with_ai
+
+        with (
+            patch("hestai_mcp.ai.client.AIClient") as mock_ai_client_cls,
+            patch("hestai_mcp.ai.config.load_config") as mock_load_config,
+        ):
+            mock_load_config.return_value = MagicMock()
+
+            # Force AI failure to trigger fallback
+            mock_client = AsyncMock()
+            mock_client.complete_text = AsyncMock(side_effect=Exception("AI unavailable"))
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            mock_ai_client_cls.return_value = mock_client
+
+            result = await synthesize_fast_layer_with_ai(
+                session_id="test-session-123",
+                role="implementation-lead",
+                focus="crs-blocking-fixes",
+                context_summary="Fixing CRS blocking issues",
+            )
+
+            synthesis = result["synthesis"]
+
+            # Must contain OCTAVE format fields
+            assert "CONTEXT_FILES::" in synthesis, "Fallback must include CONTEXT_FILES:: field"
+            assert "FOCUS::" in synthesis, "Fallback must include FOCUS:: field"
+            assert "PHASE::" in synthesis, "Fallback must include PHASE:: field"
+            assert "BLOCKERS::" in synthesis, "Fallback must include BLOCKERS:: field"
+            assert "TASKS::" in synthesis, "Fallback must include TASKS:: field"
+            assert "FRESHNESS_WARNING::" in synthesis, "Fallback must include FRESHNESS_WARNING::"
+
+            # Must NOT contain legacy prose format
+            assert "FOCUS_SUMMARY" not in synthesis, "Fallback must not use legacy FOCUS_SUMMARY"
+            assert "KEY_TASKS" not in synthesis, "Fallback must not use legacy KEY_TASKS"
+
+    @pytest.mark.asyncio
+    async def test_fallback_synthesis_includes_role_and_focus_values(self, tmp_path: Path):
+        """
+        Fallback synthesis correctly interpolates role and focus into OCTAVE fields.
+        """
+        from unittest.mock import patch
+
+        from hestai_mcp.mcp.tools.shared.fast_layer import synthesize_fast_layer_with_ai
+
+        # Trigger fallback via config load failure
+        with patch(
+            "hestai_mcp.ai.config.load_config",
+            side_effect=FileNotFoundError("No config"),
+        ):
+            result = await synthesize_fast_layer_with_ai(
+                session_id="test-session",
+                role="code-review-specialist",
+                focus="pr-review",
+                context_summary="Reviewing pull request",
+            )
+
+            synthesis = result["synthesis"]
+
+            # Focus value should appear in FOCUS:: field
+            assert "pr-review" in synthesis
+            # Role should appear somewhere in context (tasks or notes)
+            assert "code-review-specialist" in synthesis
