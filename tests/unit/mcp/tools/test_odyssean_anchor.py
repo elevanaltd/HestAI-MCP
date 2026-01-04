@@ -147,6 +147,48 @@ AUTHORITY::DELEGATED[parent_session_abc123]"""
         assert result.valid is True
         assert "DELEGATED" in result.authority
 
+    def test_validate_bind_accepts_multiple_archetypes_unicode(self):
+        """Accepts BIND section with multiple archetypes using ⊕ (synthesis operator)."""
+        from hestai_mcp.mcp.tools.odyssean_anchor import validate_bind_section
+
+        valid_bind = """## BIND (Identity Lock)
+ROLE::holistic-orchestrator
+COGNITION::LOGOS::ATLAS⊕ODYSSEUS⊕APOLLO
+AUTHORITY::RESPONSIBLE[system_coherence_orchestration]"""
+
+        result = validate_bind_section(valid_bind)
+
+        assert result.valid is True
+        assert result.cognition_archetype == "ATLAS⊕ODYSSEUS⊕APOLLO"
+
+    def test_validate_bind_accepts_multiple_archetypes_ascii(self):
+        """Accepts BIND section with multiple archetypes using + (ASCII alias for ⊕)."""
+        from hestai_mcp.mcp.tools.odyssean_anchor import validate_bind_section
+
+        valid_bind = """## BIND (Identity Lock)
+ROLE::holistic-orchestrator
+COGNITION::LOGOS::ATLAS+ODYSSEUS+APOLLO
+AUTHORITY::RESPONSIBLE[system_coherence_orchestration]"""
+
+        result = validate_bind_section(valid_bind)
+
+        assert result.valid is True
+        assert result.cognition_archetype == "ATLAS+ODYSSEUS+APOLLO"
+
+    def test_validate_bind_rejects_invalid_archetype_in_list(self):
+        """Rejects BIND section if any archetype in the list is invalid."""
+        from hestai_mcp.mcp.tools.odyssean_anchor import validate_bind_section
+
+        invalid_bind = """## BIND (Identity Lock)
+ROLE::holistic-orchestrator
+COGNITION::LOGOS::ATLAS⊕INVALID⊕APOLLO
+AUTHORITY::RESPONSIBLE[system_coherence_orchestration]"""
+
+        result = validate_bind_section(invalid_bind)
+
+        assert result.valid is False
+        assert "INVALID" in str(result.errors)
+
 
 # =============================================================================
 # TENSION Section Validation Tests
@@ -162,8 +204,8 @@ class TestTensionSectionValidation:
         from hestai_mcp.mcp.tools.odyssean_anchor import validate_tension_section
 
         valid_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[TDD_MANDATE]<->CTX:.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md[I1::TDD]->TRIGGER[WRITE_TEST_FIRST]
-L2::[MINIMAL_INTERVENTION]<->CTX:docs/adr/adr-0036-odyssean-anchor-binding.md:177[schema_v4.0]->TRIGGER[IMPLEMENT_MINIMAL]"""
+L1::[TDD_MANDATE]⇌CTX:.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md[I1::TDD]→TRIGGER[WRITE_TEST_FIRST]
+L2::[MINIMAL_INTERVENTION]⇌CTX:docs/adr/adr-0036-odyssean-anchor-binding.md:177[schema_v4.0]→TRIGGER[IMPLEMENT_MINIMAL]"""
 
         result = validate_tension_section(valid_tension, tier="default")
 
@@ -177,7 +219,7 @@ L2::[MINIMAL_INTERVENTION]<->CTX:docs/adr/adr-0036-odyssean-anchor-binding.md:17
 
         # Only 1 tension, but default tier requires 2
         invalid_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[TDD_MANDATE]<->CTX:path/to/file.md[state]->TRIGGER[ACTION]"""
+L1::[TDD_MANDATE]⇌CTX:path/to/file.md[state]→TRIGGER[ACTION]"""
 
         result = validate_tension_section(invalid_tension, tier="default")
 
@@ -189,7 +231,7 @@ L1::[TDD_MANDATE]<->CTX:path/to/file.md[state]->TRIGGER[ACTION]"""
         from hestai_mcp.mcp.tools.odyssean_anchor import validate_tension_section
 
         valid_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[STATUS_CHECK]<->CTX:path/to/file.md[current_state]->TRIGGER[REPORT]"""
+L1::[STATUS_CHECK]⇌CTX:path/to/file.md[current_state]→TRIGGER[REPORT]"""
 
         result = validate_tension_section(valid_tension, tier="quick")
 
@@ -202,8 +244,8 @@ L1::[STATUS_CHECK]<->CTX:path/to/file.md[current_state]->TRIGGER[REPORT]"""
 
         # Only 2 tensions, but deep tier requires 3
         invalid_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[CONSTRAINT_A]<->CTX:file1.md:10-20[state_a]->TRIGGER[ACTION_A]
-L2::[CONSTRAINT_B]<->CTX:file2.md:30-40[state_b]->TRIGGER[ACTION_B]"""
+L1::[CONSTRAINT_A]⇌CTX:file1.md:10-20[state_a]→TRIGGER[ACTION_A]
+L2::[CONSTRAINT_B]⇌CTX:file2.md:30-40[state_b]→TRIGGER[ACTION_B]"""
 
         result = validate_tension_section(invalid_tension, tier="deep")
 
@@ -215,9 +257,9 @@ L2::[CONSTRAINT_B]<->CTX:file2.md:30-40[state_b]->TRIGGER[ACTION_B]"""
         from hestai_mcp.mcp.tools.odyssean_anchor import validate_tension_section
 
         valid_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[CONSTRAINT_A]<->CTX:file1.md:10-20[state_a]->TRIGGER[ACTION_A]
-L2::[CONSTRAINT_B]<->CTX:file2.md:30-40[state_b]->TRIGGER[ACTION_B]
-L3::[CONSTRAINT_C]<->CTX:file3.md:50-60[state_c]->TRIGGER[ACTION_C]"""
+L1::[CONSTRAINT_A]⇌CTX:file1.md:10-20[state_a]→TRIGGER[ACTION_A]
+L2::[CONSTRAINT_B]⇌CTX:file2.md:30-40[state_b]→TRIGGER[ACTION_B]
+L3::[CONSTRAINT_C]⇌CTX:file3.md:50-60[state_c]→TRIGGER[ACTION_C]"""
 
         result = validate_tension_section(valid_tension, tier="deep")
 
@@ -229,8 +271,8 @@ L3::[CONSTRAINT_C]<->CTX:file3.md:50-60[state_c]->TRIGGER[ACTION_C]"""
         from hestai_mcp.mcp.tools.odyssean_anchor import validate_tension_section
 
         invalid_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[TDD_MANDATE]<->[some_state]->TRIGGER[WRITE_TEST_FIRST]
-L2::[MINIMAL_INTERVENTION]<->[another_state]->TRIGGER[IMPLEMENT_MINIMAL]"""
+L1::[TDD_MANDATE]⇌[some_state]→TRIGGER[WRITE_TEST_FIRST]
+L2::[MINIMAL_INTERVENTION]⇌[another_state]→TRIGGER[IMPLEMENT_MINIMAL]"""
 
         result = validate_tension_section(invalid_tension, tier="default")
 
@@ -242,8 +284,8 @@ L2::[MINIMAL_INTERVENTION]<->[another_state]->TRIGGER[IMPLEMENT_MINIMAL]"""
         from hestai_mcp.mcp.tools.odyssean_anchor import validate_tension_section
 
         invalid_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[TDD_MANDATE]<->CTX:file.md[state]->IMPLICATION
-L2::[MINIMAL_INTERVENTION]<->CTX:file2.md[state2]->IMPLICATION2"""
+L1::[TDD_MANDATE]⇌CTX:file.md[state]→IMPLICATION
+L2::[MINIMAL_INTERVENTION]⇌CTX:file2.md[state2]→IMPLICATION2"""
 
         result = validate_tension_section(invalid_tension, tier="default")
 
@@ -255,8 +297,8 @@ L2::[MINIMAL_INTERVENTION]<->CTX:file2.md[state2]->IMPLICATION2"""
         from hestai_mcp.mcp.tools.odyssean_anchor import validate_tension_section
 
         invalid_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[TODO]<->CTX:file.md[state]->TRIGGER[ACTION]
-L2::[CONSTRAINT]<->CTX:file2.md[state2]->TRIGGER[ACTION2]"""
+L1::[TODO]⇌CTX:file.md[state]→TRIGGER[ACTION]
+L2::[CONSTRAINT]⇌CTX:file2.md[state2]→TRIGGER[ACTION2]"""
 
         result = validate_tension_section(invalid_tension, tier="default")
 
@@ -269,14 +311,38 @@ L2::[CONSTRAINT]<->CTX:file2.md[state2]->TRIGGER[ACTION2]"""
 
         # Missing line ranges for deep tier
         invalid_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[ARCHITECTURAL_DECISION]<->CTX:file1.md[state_a]->TRIGGER[ACTION_A]
-L2::[DESIGN_CONSTRAINT]<->CTX:file2.md[state_b]->TRIGGER[ACTION_B]
-L3::[IMMUTABLE_RULE]<->CTX:file3.md[state_c]->TRIGGER[ACTION_C]"""
+L1::[ARCHITECTURAL_DECISION]⇌CTX:file1.md[state_a]→TRIGGER[ACTION_A]
+L2::[DESIGN_CONSTRAINT]⇌CTX:file2.md[state_b]→TRIGGER[ACTION_B]
+L3::[IMMUTABLE_RULE]⇌CTX:file3.md[state_c]→TRIGGER[ACTION_C]"""
 
         result = validate_tension_section(invalid_tension, tier="deep")
 
         assert result.valid is False
         assert "line" in str(result.errors).lower() or "range" in str(result.errors).lower()
+
+    def test_validate_tension_accepts_ascii_operator_aliases(self):
+        """Accepts TENSION section with ASCII operator aliases (<-> and ->).
+
+        Per OCTAVE spec: parser accepts both ASCII and Unicode operators for
+        backward compatibility. Unicode (the canonical form) is preferred for
+        emission, but ASCII aliases must remain valid for input.
+
+        This test ensures backward compatibility with existing agent vectors.
+        """
+        from hestai_mcp.mcp.tools.odyssean_anchor import validate_tension_section
+
+        # ASCII aliases: <-> for bidirectional, -> for implication
+        ascii_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
+L1::[TDD_MANDATE]<->CTX:.hestai/workflow/NORTH-STAR.md[I1::TDD]->TRIGGER[WRITE_TEST_FIRST]
+L2::[MINIMAL_INTERVENTION]<->CTX:docs/adr/adr-0036.md:177[schema]->TRIGGER[IMPLEMENT_MINIMAL]"""
+
+        result = validate_tension_section(ascii_tension, tier="default")
+
+        assert result.valid is True, (
+            "ASCII operator aliases (<-> and ->) must remain valid for backward compatibility. "
+            f"Got errors: {result.errors}"
+        )
+        assert result.tension_count == 2
 
 
 # =============================================================================
@@ -631,8 +697,8 @@ COGNITION::LOGOS::HEPHAESTUS
 AUTHORITY::RESPONSIBLE[build_phase_execution]
 
 ## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[TDD_MANDATE]<->CTX:.hestai/workflow/000-MCP-NORTH-STAR.md[I1::TDD]->TRIGGER[WRITE_TEST_FIRST]
-L2::[MINIMAL_INTERVENTION]<->CTX:docs/adr/adr-0036.md:177[schema_v4]->TRIGGER[IMPLEMENT_MINIMAL]
+L1::[TDD_MANDATE]⇌CTX:.hestai/workflow/000-MCP-NORTH-STAR.md[I1::TDD]→TRIGGER[WRITE_TEST_FIRST]
+L2::[MINIMAL_INTERVENTION]⇌CTX:docs/adr/adr-0036.md:177[schema_v4]→TRIGGER[IMPLEMENT_MINIMAL]
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::src/hestai_mcp/mcp/tools/odyssean_anchor.py
@@ -689,7 +755,7 @@ COGNITION::LOGOS::HEPHAESTUS
 AUTHORITY::RESPONSIBLE[build]
 
 ## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[CONSTRAINT]<->[state]->TRIGGER[ACTION]
+L1::[CONSTRAINT]⇌[state]→TRIGGER[ACTION]
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::response
@@ -855,8 +921,8 @@ COGNITION::LOGOS::HEPHAESTUS
 AUTHORITY::RESPONSIBLE[build]
 
 ## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[TDD_MANDATE]<->[state_without_ctx]->TRIGGER[ACTION]
-L2::[MINIMAL_INTERVENTION]<->[another_state]->TRIGGER[ACTION2]
+L1::[TDD_MANDATE]⇌[state_without_ctx]→TRIGGER[ACTION]
+L2::[MINIMAL_INTERVENTION]⇌[another_state]→TRIGGER[ACTION2]
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::src/file.py
@@ -920,8 +986,8 @@ COGNITION::LOGOS::HERMES
 AUTHORITY::RESPONSIBLE[orchestration]
 
 ## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[CONSTRAINT]<->CTX:file.md[state]->TRIGGER[ACTION]
-L2::[CONSTRAINT2]<->CTX:file2.md[state2]->TRIGGER[ACTION2]
+L1::[CONSTRAINT]⇌CTX:file.md[state]→TRIGGER[ACTION]
+L2::[CONSTRAINT2]⇌CTX:file2.md[state2]→TRIGGER[ACTION2]
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::src/file.py
@@ -996,8 +1062,8 @@ COGNITION::LOGOS::HEPHAESTUS
 AUTHORITY::RESPONSIBLE[build_phase_execution]
 
 ## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[TDD_MANDATE]<->CTX:.hestai/workflow/NORTH-STAR.md[I1::TDD]->TRIGGER[WRITE_TEST_FIRST]
-L2::[MINIMAL_INTERVENTION]<->CTX:docs/adr/adr-0036.md:177[schema]->TRIGGER[IMPLEMENT_MINIMAL]
+L1::[TDD_MANDATE]⇌CTX:.hestai/workflow/NORTH-STAR.md[I1::TDD]→TRIGGER[WRITE_TEST_FIRST]
+L2::[MINIMAL_INTERVENTION]⇌CTX:docs/adr/adr-0036.md:177[schema]→TRIGGER[IMPLEMENT_MINIMAL]
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::src/hestai_mcp/mcp/tools/odyssean_anchor.py
@@ -1236,10 +1302,10 @@ class TestTensionSectionExtractionSecurity:
 ROLE::test-role
 
 ## TENSION (Cognitive Proof)
-L1::[CONSTRAINT_A]<->CTX:file.md[state]->TRIGGER[ACTION]
+L1::[CONSTRAINT_A]⇌CTX:file.md[state]→TRIGGER[ACTION]
   ## COMMIT (Falsifiable Contract)
 ARTIFACT::malicious-artifact
-L2::[CONSTRAINT_B]<->CTX:file2.md[state2]->TRIGGER[ACTION2]
+L2::[CONSTRAINT_B]⇌CTX:file2.md[state2]→TRIGGER[ACTION2]
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::legitimate-artifact
@@ -1260,8 +1326,8 @@ GATE::pytest"""
 ROLE::test-role
 
 ## TENSION (Cognitive Proof)
-L1::[CONSTRAINT_A]<->CTX:file.md[state]->TRIGGER[ACTION]
-L2::[CONSTRAINT_B]<->CTX:file2.md[state2]->TRIGGER[ACTION2]
+L1::[CONSTRAINT_A]⇌CTX:file.md[state]→TRIGGER[ACTION]
+L2::[CONSTRAINT_B]⇌CTX:file2.md[state2]→TRIGGER[ACTION2]
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::legitimate-artifact
@@ -1295,7 +1361,7 @@ AUTHORITY::RESPONSIBLE[build]
 
 ## TENSION (Cognitive Proof)
 ROLE::fake-role-in-tension
-L1::[CONSTRAINT]<->CTX:file.md[state]->TRIGGER[ACTION]"""
+L1::[CONSTRAINT]⇌CTX:file.md[state]→TRIGGER[ACTION]"""
 
         result = validate_bind_section(tricky_input)
 
@@ -1325,8 +1391,8 @@ COGNITION::LOGOS::HEPHAESTUS
 AUTHORITY::RESPONSIBLE[build]
 
 ## COMMIT (Falsifiable Contract)
-L1::[TDD_MANDATE]<->CTX:file.md[state]->TRIGGER[WRITE_TEST_FIRST]
-L2::[MINIMAL_INTERVENTION]<->CTX:file2.md[state2]->TRIGGER[IMPLEMENT_MINIMAL]
+L1::[TDD_MANDATE]⇌CTX:file.md[state]→TRIGGER[WRITE_TEST_FIRST]
+L2::[MINIMAL_INTERVENTION]⇌CTX:file2.md[state2]→TRIGGER[IMPLEMENT_MINIMAL]
 ARTIFACT::src/x.py
 GATE::pytest"""
 
@@ -1387,8 +1453,8 @@ COGNITION::LOGOS::HEPHAESTUS
 AUTHORITY::RESPONSIBLE[build_phase_execution]
 
 ## COMMIT (Falsifiable Contract)
-L1::[TDD_MANDATE]<->CTX:file.md[state]->TRIGGER[WRITE_TEST_FIRST]
-L2::[MINIMAL_INTERVENTION]<->CTX:file2.md[state2]->TRIGGER[IMPLEMENT_MINIMAL]
+L1::[TDD_MANDATE]⇌CTX:file.md[state]→TRIGGER[WRITE_TEST_FIRST]
+L2::[MINIMAL_INTERVENTION]⇌CTX:file2.md[state2]→TRIGGER[IMPLEMENT_MINIMAL]
 ARTIFACT::src/x.py
 GATE::pytest"""
 
@@ -1493,8 +1559,8 @@ COGNITION::LOGOS::HEPHAESTUS
 AUTHORITY::RESPONSIBLE[build_phase_execution]
 
 ## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[TDD_MANDATE]<->CTX:.hestai/workflow/000-MCP-NORTH-STAR.md[I1::TDD]->TRIGGER[WRITE_TEST_FIRST]
-L2::[MINIMAL_INTERVENTION]<->CTX:docs/adr/adr-0036.md:177[schema_v4]->TRIGGER[IMPLEMENT_MINIMAL]
+L1::[TDD_MANDATE]⇌CTX:.hestai/workflow/000-MCP-NORTH-STAR.md[I1::TDD]→TRIGGER[WRITE_TEST_FIRST]
+L2::[MINIMAL_INTERVENTION]⇌CTX:docs/adr/adr-0036.md:177[schema_v4]→TRIGGER[IMPLEMENT_MINIMAL]
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::src/hestai_mcp/mcp/tools/odyssean_anchor.py
@@ -1573,8 +1639,8 @@ COGNITION::LOGOS::HEPHAESTUS
 AUTHORITY::RESPONSIBLE[build_phase_execution]
 
 ## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[TDD_MANDATE]<->CTX:.hestai/workflow/000-MCP-NORTH-STAR.md[I1::TDD]->TRIGGER[WRITE_TEST_FIRST]
-L2::[MINIMAL_INTERVENTION]<->CTX:docs/adr/adr-0036.md:177[schema_v4]->TRIGGER[IMPLEMENT_MINIMAL]
+L1::[TDD_MANDATE]⇌CTX:.hestai/workflow/000-MCP-NORTH-STAR.md[I1::TDD]→TRIGGER[WRITE_TEST_FIRST]
+L2::[MINIMAL_INTERVENTION]⇌CTX:docs/adr/adr-0036.md:177[schema_v4]→TRIGGER[IMPLEMENT_MINIMAL]
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::src/hestai_mcp/mcp/tools/odyssean_anchor.py
@@ -1619,11 +1685,11 @@ class TestAlternativeTensionPattern:
         """
         from hestai_mcp.mcp.tools.odyssean_anchor import validate_tension_section
 
-        # Alternative format: [constraint]<->CTX:path[state]->TRIGGER[action]
+        # Alternative format: [constraint]⇌CTX:path[state]→TRIGGER[action]
         # (without the L{N}:: prefix)
         alt_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
-[TDD_MANDATE]<->CTX:.hestai/workflow/north-star.md[I1::TDD]->TRIGGER[WRITE_TEST_FIRST]
-[MINIMAL_INTERVENTION]<->CTX:docs/adr/adr-0036.md[schema_v4]->TRIGGER[IMPLEMENT_MINIMAL]"""
+[TDD_MANDATE]⇌CTX:.hestai/workflow/north-star.md[I1::TDD]→TRIGGER[WRITE_TEST_FIRST]
+[MINIMAL_INTERVENTION]⇌CTX:docs/adr/adr-0036.md[schema_v4]→TRIGGER[IMPLEMENT_MINIMAL]"""
 
         result = validate_tension_section(alt_tension, tier="default")
 
@@ -1639,8 +1705,8 @@ class TestAlternativeTensionPattern:
 
         # Alternative format with missing CTX
         invalid_alt_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
-[TDD_MANDATE]<->CTX:[I1::TDD]->TRIGGER[WRITE_TEST_FIRST]
-[MINIMAL_INTERVENTION]<->CTX:[schema_v4]->TRIGGER[IMPLEMENT_MINIMAL]"""
+[TDD_MANDATE]⇌CTX:[I1::TDD]→TRIGGER[WRITE_TEST_FIRST]
+[MINIMAL_INTERVENTION]⇌CTX:[schema_v4]→TRIGGER[IMPLEMENT_MINIMAL]"""
 
         result = validate_tension_section(invalid_alt_tension, tier="default")
 
@@ -1654,8 +1720,8 @@ class TestAlternativeTensionPattern:
 
         # Alternative format with missing TRIGGER
         alt_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
-[TDD_MANDATE]<->CTX:file.md[state]->IMPLICATION_WITHOUT_TRIGGER
-[MINIMAL_INTERVENTION]<->CTX:file2.md[state2]->ALSO_NO_TRIGGER"""
+[TDD_MANDATE]⇌CTX:file.md[state]→IMPLICATION_WITHOUT_TRIGGER
+[MINIMAL_INTERVENTION]⇌CTX:file2.md[state2]→ALSO_NO_TRIGGER"""
 
         result = validate_tension_section(alt_tension, tier="default")
 
@@ -1668,8 +1734,8 @@ class TestAlternativeTensionPattern:
 
         # Mix of both formats
         mixed_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[TDD_MANDATE]<->CTX:file1.md[state1]->TRIGGER[ACTION1]
-[MINIMAL_INTERVENTION]<->CTX:file2.md[state2]->TRIGGER[ACTION2]"""
+L1::[TDD_MANDATE]⇌CTX:file1.md[state1]→TRIGGER[ACTION1]
+[MINIMAL_INTERVENTION]⇌CTX:file2.md[state2]→TRIGGER[ACTION2]"""
 
         result = validate_tension_section(mixed_tension, tier="default")
 
@@ -2235,8 +2301,8 @@ COGNITION::LOGOS::HEPHAESTUS
 AUTHORITY::RESPONSIBLE[build]
 
 ## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[TDD_MANDATE]<->CTX:file.md[state]->IMPLICATION_NO_TRIGGER
-L2::[MIP]<->CTX:file2.md[state2]->ALSO_NO_TRIGGER
+L1::[TDD_MANDATE]⇌CTX:file.md[state]→IMPLICATION_NO_TRIGGER
+L2::[MIP]⇌CTX:file2.md[state2]→ALSO_NO_TRIGGER
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::src/file.py
@@ -2287,9 +2353,9 @@ COGNITION::LOGOS::HEPHAESTUS
 AUTHORITY::RESPONSIBLE[build]
 
 ## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[TDD_MANDATE]<->CTX:file.md[state]->TRIGGER[ACTION]
-L2::[MIP]<->CTX:file2.md[state2]->TRIGGER[ACTION2]
-L3::[QUALITY]<->CTX:file3.md[state3]->TRIGGER[ACTION3]
+L1::[TDD_MANDATE]⇌CTX:file.md[state]→TRIGGER[ACTION]
+L2::[MIP]⇌CTX:file2.md[state2]→TRIGGER[ACTION2]
+L3::[QUALITY]⇌CTX:file3.md[state3]→TRIGGER[ACTION3]
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::src/file.py
@@ -2341,8 +2407,8 @@ COGNITION::LOGOS::HEPHAESTUS
 AUTHORITY::RESPONSIBLE[build]
 
 ## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[TDD_MANDATE]<->CTX:file.md[state]->TRIGGER[ACTION]
-L2::[MIP]<->CTX:file2.md[state2]->TRIGGER[ACTION2]
+L1::[TDD_MANDATE]⇌CTX:file.md[state]→TRIGGER[ACTION]
+L2::[MIP]⇌CTX:file2.md[state2]→TRIGGER[ACTION2]
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::response
@@ -2394,8 +2460,8 @@ COGNITION::LOGOS::HEPHAESTUS
 AUTHORITY::RESPONSIBLE[build]
 
 ## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[TDD_MANDATE]<->CTX:file.md[state]->TRIGGER[ACTION]
-L2::[MIP]<->CTX:file2.md[state2]->TRIGGER[ACTION2]
+L1::[TDD_MANDATE]⇌CTX:file.md[state]→TRIGGER[ACTION]
+L2::[MIP]⇌CTX:file2.md[state2]→TRIGGER[ACTION2]
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::TBD
@@ -2439,8 +2505,8 @@ COGNITION::LOGOS::HEPHAESTUS
 AUTHORITY::RESPONSIBLE[build]
 
 ## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[TDD_MANDATE]<->CTX:file.md[state]->TRIGGER[ACTION]
-L2::[MIP]<->CTX:file2.md[state2]->TRIGGER[ACTION2]
+L1::[TDD_MANDATE]⇌CTX:file.md[state]→TRIGGER[ACTION]
+L2::[MIP]⇌CTX:file2.md[state2]→TRIGGER[ACTION2]
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::src/file.py
@@ -2496,8 +2562,8 @@ COGNITION::LOGOS::HEPHAESTUS
 AUTHORITY::RESPONSIBLE[build]
 
 ## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[TDD_MANDATE]<->CTX:file.md[state]->TRIGGER[ACTION]
-L2::[MIP]<->CTX:file2.md[state2]->TRIGGER[ACTION2]
+L1::[TDD_MANDATE]⇌CTX:file.md[state]→TRIGGER[ACTION]
+L2::[MIP]⇌CTX:file2.md[state2]→TRIGGER[ACTION2]
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::src/file.py
@@ -2761,8 +2827,8 @@ COGNITION::LOGOS::HEPHAESTUS
 AUTHORITY::RESPONSIBLE[build]
 
 ## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[TDD_MANDATE]<->CTX:file.md[state]->TRIGGER[ACTION]
-L2::[MIP]<->CTX:file2.md[state2]->TRIGGER[ACTION2]
+L1::[TDD_MANDATE]⇌CTX:file.md[state]→TRIGGER[ACTION]
+L2::[MIP]⇌CTX:file2.md[state2]→TRIGGER[ACTION2]
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::response
@@ -2814,8 +2880,8 @@ COGNITION::LOGOS::HEPHAESTUS
 AUTHORITY::RESPONSIBLE[build]
 
 ## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[TDD_MANDATE]<->CTX:file.md[state]->TRIGGER[ACTION]
-L2::[MIP]<->CTX:file2.md[state2]->TRIGGER[ACTION2]
+L1::[TDD_MANDATE]⇌CTX:file.md[state]→TRIGGER[ACTION]
+L2::[MIP]⇌CTX:file2.md[state2]→TRIGGER[ACTION2]
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::TODO
@@ -2867,8 +2933,8 @@ COGNITION::LOGOS::HEPHAESTUS
 AUTHORITY::RESPONSIBLE[build]
 
 ## TENSION (Cognitive Proof - AGENT GENERATED)
-L1::[TDD_MANDATE]<->CTX:file.md[state]->TRIGGER[ACTION]
-L2::[MIP]<->CTX:file2.md[state2]->TRIGGER[ACTION2]
+L1::[TDD_MANDATE]⇌CTX:file.md[state]→TRIGGER[ACTION]
+L2::[MIP]⇌CTX:file2.md[state2]→TRIGGER[ACTION2]
 
 ## COMMIT (Falsifiable Contract)
 GATE::pytest"""

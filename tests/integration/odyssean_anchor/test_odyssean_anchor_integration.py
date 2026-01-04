@@ -104,8 +104,8 @@ COGNITION::LOGOS::HEPHAESTUS
 AUTHORITY::RESPONSIBLE[integration_test]
 
 ## TENSION (Cognitive Proof)
-L1::[TDD_MANDATE]<->CTX:README.md[exists]->TRIGGER[VERIFY]
-L2::[STRUCTURAL_INTEGRITY]<->CTX:PROJECT-CONTEXT.oct.md[B1]->TRIGGER[VALIDATE]
+L1::[TDD_MANDATE]⇌CTX:README.md[exists]→TRIGGER[VERIFY]
+L2::[STRUCTURAL_INTEGRITY]⇌CTX:PROJECT-CONTEXT.oct.md[B1]→TRIGGER[VALIDATE]
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::tests/integration/odyssean_anchor/test_odyssean_anchor_integration.py
@@ -184,8 +184,8 @@ COGNITION::LOGOS::HEPHAESTUS
 AUTHORITY::RESPONSIBLE[git_state_test]
 
 ## TENSION (Cognitive Proof)
-L1::[GIT_STATE_AWARENESS]<->CTX:file1.txt[modified]->TRIGGER[TRACK]
-L2::[FILE_CHANGES]<->CTX:file2.txt[untracked]->TRIGGER[MONITOR]
+L1::[GIT_STATE_AWARENESS]⇌CTX:file1.txt[modified]→TRIGGER[TRACK]
+L2::[FILE_CHANGES]⇌CTX:file2.txt[untracked]→TRIGGER[MONITOR]
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::tests/integration/odyssean_anchor/test_odyssean_anchor_integration.py
@@ -266,8 +266,8 @@ COGNITION::LOGOS::HEPHAESTUS
 AUTHORITY::RESPONSIBLE[branch_test]
 
 ## TENSION (Cognitive Proof)
-L1::[BRANCH_AWARENESS]<->CTX:README.md[exists]->TRIGGER[VERIFY]
-L2::[FEATURE_WORK]<->CTX:PROJECT-CONTEXT.oct.md[B2]->TRIGGER[BUILD]
+L1::[BRANCH_AWARENESS]⇌CTX:README.md[exists]→TRIGGER[VERIFY]
+L2::[FEATURE_WORK]⇌CTX:PROJECT-CONTEXT.oct.md[B2]→TRIGGER[BUILD]
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::tests/integration/odyssean_anchor/test_odyssean_anchor_integration.py
@@ -338,7 +338,7 @@ COGNITION::LOGOS::HEPHAESTUS
 AUTHORITY::RESPONSIBLE[quick_check]
 
 ## TENSION (Cognitive Proof)
-L1::[STATUS_CHECK]<->CTX:README.md[exists]->TRIGGER[REPORT]
+L1::[STATUS_CHECK]⇌CTX:README.md[exists]→TRIGGER[REPORT]
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::status_report.md
@@ -405,7 +405,7 @@ COGNITION::LOGOS::HEPHAESTUS
 AUTHORITY::RESPONSIBLE[build]
 
 ## TENSION (Cognitive Proof)
-L1::[CONSTRAINT]<->[state]->TRIGGER[ACTION]
+L1::[CONSTRAINT]⇌[state]→TRIGGER[ACTION]
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::response

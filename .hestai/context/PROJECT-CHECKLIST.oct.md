@@ -2,10 +2,11 @@
 // HestAI-MCP current tasks and progress tracking
 
 META:
+  TYPE::"PROJECT_CHECKLIST"
   NAME::"HestAI-MCP Task Checklist"
-  VERSION::"0.1.0"
-  LAST_UPDATE::"2025-12-19T05:00:00Z"
-  REVIEWED_BY::"system-steward"
+  VERSION::"0.5.0"
+  LAST_UPDATE::"2026-01-03T12:00:00Z"
+  REVIEWED_BY::"holistic-orchestrator"
 
 PHASE_0_FOUNDATION:
   STATUS::COMPLETE
@@ -23,78 +24,94 @@ PHASE_1_CODE_PORTING:
   TASKS:
     ai_client_port:
       STATUS::DONE
-      SOURCE::/Volumes/HestAI-Projects/hestai-core/src/hestai_core/ai/
-      TARGET::/Volumes/HestAI-MCP/src/hestai_mcp/ai/
       FILES::[client.py,config.py,providers/base.py,providers/openai_compat.py]
       LINES::297
 
     clock_tools_port:
       STATUS::DONE
-      SOURCE::/Volumes/HestAI-Projects/hestai-core/src/hestai_core/mcp/tools/
-      TARGET::/Volumes/HestAI-MCP/src/hestai_mcp/mcp/tools/
       FILES::[clock_in.py,clock_out.py]
       LINES::564
       REFACTORING::clock_in_refactored_for_ADR_0007[no_worktrees,direct_.hestai]
 
     shared_utilities_port:
       STATUS::DONE
-      SOURCE::/Volumes/HestAI-Projects/hestai-core/src/hestai_core/mcp/shared/
-      TARGET::/Volumes/HestAI-MCP/src/hestai_mcp/mcp/tools/shared/
       FILES::[compression.py,context_extraction.py,learnings_index.py,path_resolution.py,security.py,verification.py]
       LINES::1078
 
     jsonl_lens_port:
       STATUS::DONE
-      SOURCE::/Volumes/HestAI-Projects/hestai-core/src/hestai_core/events/jsonl_lens.py
-      TARGET::/Volumes/HestAI-MCP/src/hestai_mcp/events/jsonl_lens.py
       LINES::313
 
     schemas_port:
       STATUS::DONE
-      SOURCE::/Volumes/HestAI-Projects/hestai-core/src/hestai_core/schemas/
-      TARGET::/Volumes/HestAI-MCP/src/hestai_mcp/schemas/
-      FILES::[schemas.py]
       LINES::73
 
     tests_port:
-      STATUS::PARTIAL
-      SOURCE::/Volumes/HestAI-Projects/hestai-core/tests/
-      TARGET::/Volumes/HestAI-MCP/tests/
-      FILES::[test_imports.py]
-      LINES::40
-      NOTE::"5 smoke tests passing, comprehensive tests pending"
+      STATUS::DONE
+      NOTE::"511 tests passing as of 2026-01-03"
 
 PHASE_2_MCP_SERVER:
   STATUS::COMPLETE
   TASKS:
-    server_creation::DONE[server.py_181_lines]
-    tool_registration::DONE[clock_in,clock_out]
+    server_creation::DONE[server.py]
+    tool_registration::DONE[clock_in,clock_out,odyssean_anchor]
     hestai_sys_stub::DONE[inject_system_governance_function]
     document_submit_placeholder::DONE[TODO_Phase_3_marker]
 
+PHASE_2.5_ODYSSEAN_ANCHOR:
+  STATUS::COMPLETE[2026-01-02]
+  TASKS:
+    odyssean_anchor_tool:
+      STATUS::DONE
+      IMPLEMENTATION::src/hestai_mcp/mcp/tools/odyssean_anchor.py[949_lines]
+      TESTS::54_passing
+      ADR::ADR-0036[Odyssean_Anchor_Binding]
+      ISSUE::#11
+    gating_module:
+      STATUS::DONE
+      IMPLEMENTATION::src/hestai_mcp/mcp/tools/shared/gating.py
+      TESTS::22_passing
+      FEATURES::[has_valid_anchor,zombie_state_fix]
+    server_integration:
+      STATUS::DONE
+      TESTS::5_integration_tests
+    bind_command:
+      STATUS::DONE
+      LOCATION::docs/commands/bind.md
+      VERSION::v4.0
+      USAGE::"Copy to ~/.claude/commands/bind.md"
+
 QUALITY_GATES:
-  pytest::PASSING[5/5_smoke_tests]
-  mypy::NOT_RUN[configured_in_pyproject]
-  ruff::2_ERRORS[B904_in_jsonl_lens.py:185,SIM117_in_security.py:111]
-  black::PASSING[formatted]
-  freshness_check::PENDING[I4_immutable_validation_required]
+  pytest::PASSING[511_tests]
+  mypy::PASSING[0_errors]
+  ruff::PASSING[0_errors]
+  black::PASSING[54_files_formatted]
+  coverage::94%_overall
+  freshness_check::UPDATED[2026-01-03]
 
-QUALITY_GATE_DETAILS:
-  ruff_errors:
-    B904:
-      FILE::src/hestai_mcp/events/jsonl_lens.py:185
-      ISSUE::"raise without from inside except"
-      SEVERITY::minor
-    SIM117:
-      FILE::src/hestai_mcp/mcp/tools/shared/security.py:111
-      ISSUE::"nested with statements should be combined"
-      SEVERITY::minor
+COVERAGE_DETAILS:
+  OVERALL::94%
+  HIGH_COVERAGE::[
+    ai/client.py::100%,
+    ai/config.py::100%,
+    mcp/tools/clock_in.py::95%,
+    mcp/tools/odyssean_anchor.py::99%,
+    mcp/tools/shared/security.py::100%
+  ]
+  IMPROVEMENT_TARGETS::[
+    schemas/schemas.py::87%,
+    mcp/tools/shared/verification.py::89%,
+    mcp/tools/shared/learnings_index.py::94%
+  ]
 
-COMMIT_HISTORY:
-  453a1d8::"docs: update PROJECT-CONTEXT with Phase 0-2 completion"
-  9d3f0db::"feat: add MCP server, tests, and quality gate fixes"
-  c58209d::"feat: port core modules from hestai-core"
-  19b350f::"chore: initialize HestAI-MCP fresh start project"
+ADRS_CREATED::[
+  ADR-0031::GitHub_Issue_Based_Document_Numbering,
+  ADR-0033::Dual_Layer_Context_Architecture,
+  ADR-0034::Orchestra_Map_Architecture,
+  ADR-0035::Living_Artifacts_Auto_Refresh,
+  ADR-0036::Odyssean_Anchor_Binding,
+  TOTAL::13_ADRs
+]
 
 VERIFICATION_COMPLETE:
   ADR_0007_COMPLIANCE::VERIFIED:
@@ -104,47 +121,62 @@ VERIFICATION_COMPLETE:
     gitignore_hestai_sys::CONFIRMED[.hestai-sys/]
     gitignore_active_sessions::CONFIRMED[.hestai/sessions/active/]
 
-  CODE_PORTING::VERIFIED:
-    total_files::22
-    total_lines::2541
-    modules::[ai,mcp/tools,mcp/tools/shared,events,schemas]
-    worktree_logic_excluded::CONFIRMED
+  CODE_METRICS::VERIFIED:
+    total_source_lines::28227
+    modules::[ai,mcp/tools,mcp/tools/shared,events,schemas,integrations]
+    total_tests::511
 
-  TESTS::VERIFIED:
-    import_tests::5/5_passing
-    package_installation::editable_mode_working
+  IMMUTABLES_STATUS::[
+    I1::PENDING[implementation-lead@B1],
+    I2::PROVEN[architectural_mandate],
+    I3::PROVEN[ADR-0033],
+    I4::PENDING[freshness_check_updated_this_session],
+    I5::PROVEN[Issue_#11_ADR-0036_odyssean_anchor+bind_command],
+    I6::PENDING[multi-repo_testing]
+  ]
 
 NEXT_ACTIONS:
-  IMMEDIATE_B1::[
-    fix_2_ruff_errors[B904_jsonl_lens.py:185,SIM117_security.py:111],
-    run_mypy_typecheck[all_modules],
-    port_comprehensive_tests_for_ported_modules[AI_client,clock_tools,shared]
+  STREAM_1_FRESHNESS[I4_COMPLIANCE]::[
+    ✅::update_PROJECT-CHECKLIST[this_update],
+    update_PROJECT-ROADMAP[pending],
+    verify_PROJECT-CONTEXT_current[pending]
   ]
 
-  PHASE_2.5_SEMANTIC_SPIKE::[
-    validate_Orchestra_Map_Anchor_Pattern_Inversion[Basic_Memory_PoC],
-    implement_concept_spec_coherence_patterns[ADR-0002],
-    integrate_staleness_detection_logic,
-    design_co-change_analysis_queries
+  STREAM_2_DOCUMENTATION[Phase_6_UNBLOCKED]::[
+    document_octave-mcp_setup_guide,
+    document_debate-hall-mcp_setup_guide,
+    complete_README_user_documentation
   ]
 
-  PHASE_3_SINGLE_WRITER_MCP::[
+  STREAM_3_SINGLE_WRITER_MCP[Phase_3]::[
     implement_document_submit_tool[context_routing_system],
     implement_context_update_tool[conflict_resolution],
     implement_OCTAVE_validation[semantic_compliance],
-    implement_conflict_detection[git_aware_merging]
+    implement_SS-I4_pre-commit_hook[block_direct_.hestai_writes]
   ]
 
-  PHASE_4_GOVERNANCE_DELIVERY::[
-    implement_hestai_sys_governance_injection[read_only_delivery],
-    implement_HESTAI_HUB_ROOT_environment_handling[universal_scope],
-    integrate_Layer_3_Basic_Memory[semantic_oracle],
-    create_pre_commit_hook_blocking_direct_.hestai_writes
+  STREAM_4_COVERAGE[TECHNICAL_DEBT]::[
+    increase_schemas.py_coverage[87%->90%],
+    increase_verification.py_coverage[89%->90%]
   ]
 
-EXCLUSIONS::DO_NOT_PORT:
-  anchor_manager::"Worktree-specific logic - replaced by direct .hestai/"
-  worktree_logic::"Replaced by direct .hestai/ directory"
-  symlink_management::"No longer needed in ADR-0007 architecture"
+  STREAM_5_SEMANTIC_SPIKE[Phase_2.5_BLOCKED]::[
+    validate_Basic_Memory_MCP_PoC,
+    implement_concept_spec_coherence_patterns,
+    design_co-change_analysis_queries
+  ]
+
+SYSTEM_STEWARD_GUIDANCE::[
+  CONTEXT_FRESHNESS::"All context docs must be updated when project state changes significantly",
+  UPDATE_TRIGGERS::[
+    "Quality gate status changes",
+    "Test count changes (>10% delta)",
+    "Phase completion or major milestone",
+    "ADR creation or amendment",
+    "Immutable status changes (PENDING->PROVEN)"
+  ],
+  FRESHNESS_VALIDATION::"Compare LAST_UPDATE timestamps against git log --oneline -5",
+  OCTAVE_COMPLIANCE::"All context files must use .oct.md extension and OCTAVE format"
+]
 
 ===END===

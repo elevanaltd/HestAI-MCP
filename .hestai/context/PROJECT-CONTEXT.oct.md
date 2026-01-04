@@ -4,10 +4,10 @@
 META:
   TYPE::"PROJECT_CONTEXT"
   NAME::"HestAI Context Management MCP Server"
-  VERSION::"0.4.0"
+  VERSION::"0.5.0"
   PHASE::B1_FOUNDATION_INFRASTRUCTURE
   STATUS::active_development
-  LAST_UPDATED::"2026-01-02"
+  LAST_UPDATED::"2026-01-03"
   PYTHON_VERSION::">=3.11"
   CI_MATRIX::[3.11,3.12]
 
@@ -38,11 +38,12 @@ PHASE_STATUS::[
 ]
 
 QUALITY_GATES::[
-  pytest::PASSING[397_tests],
+  pytest::PASSING[511_tests],
   mypy::PASSING[0_errors],
   ruff::PASSING[0_errors],
-  black::PASSING[code_formatted],
-  freshness_check::PENDING[I4_validation_required]
+  black::PASSING[54_files_formatted],
+  coverage::94%[overall],
+  freshness_check::UPDATED[2026-01-03]
 ]
 
 IMMUTABLES_ACTIVE::[
@@ -72,16 +73,27 @@ BLOCKERS::[
   Layer_3_validation::blocked_on_Basic_Memory_MCP_PoC
 ]
 
+RESOLVED_2026-01-03::[
+  CONTEXT_FRESHNESS_UPDATE::I4_COMPLIANCE[holistic-orchestrator]::[
+    PROJECT-CHECKLIST::updated_to_v0.5.0[was_15_days_stale],
+    PROJECT-ROADMAP::updated_to_v0.5.0[was_6_days_stale],
+    PROJECT-CONTEXT::updated_to_v0.5.0,
+    SYSTEM_STEWARD_GUIDANCE::added_to_all_context_docs,
+    TEST_COUNT::511_passing[was_showing_397],
+    COVERAGE::94%_overall
+  ]
+]
+
 RESOLVED_2026-01-02::[
   ODYSSEAN_ANCHOR_IMPLEMENTATION::ALL_PHASES_COMPLETE[Issue_#11]::[
     Phase_1::PR_#126_merged[odyssean_anchor_tool_949_lines+54_tests],
     Phase_2::gating.py[has_valid_anchor+22_tests+zombie_state_fix],
     Phase_3::server.py[MCP_tool_exposed+5_integration_tests],
-    Phase_4::docs/commands/bind.md[v4.0_ceremony_reference],
-    TOTAL_TESTS::397_passing,
+    Phase_4::hub/library/commands/bind.md[v4.1_ceremony_reference],
+    TOTAL_TESTS::511_passing,
     I5_STATUS::PROVEN[odyssean_anchor_MCP+bind_command_reference],
     QUALITY_GATES::[CRS_Codex_APPROVE,CE_Gemini_GO],
-    USAGE::"Copy docs/commands/bind.md to ~/.claude/commands/bind.md"
+    USAGE::"Copy hub/library/commands/bind.md to ~/.claude/commands/bind.md"
   ]
 ]
 
@@ -164,23 +176,31 @@ CLOCK_IN_STATUS::[
 ]
 
 NEXT_ACTIONS::[
-  // Updated 2026-01-02
+  // Updated 2026-01-03 - See PROJECT-CHECKLIST for detailed stream breakdown
   1::PHASE_6_DOCUMENTATION[now_unblocked]::[
     1a::document_setup_guides_for_octave-mcp,
     1b::document_setup_guides_for_debate-hall-mcp,
     1c::complete_README_and_user_documentation
   ],
   2::IMPLEMENT_SS-I4[single_writer_pre-commit_hook_blocking_direct_.hestai_writes],
-  3::IMPLEMENT_LAYER_3_SEMANTIC_SPIKE[Basic_Memory_MCP_PoC],
-  4::IMPLEMENT_DOCUMENT_SUBMIT_TOOL[Phase_3_MCP_tool],
-  5::IMPLEMENT_CONTEXT_UPDATE_TOOL[Phase_3_MCP_tool],
-  6::ADDRESS_COVERAGE_GAPS[clock_out.py_60%_base.py_87%_schemas.py_87%]
+  3::IMPLEMENT_DOCUMENT_SUBMIT_TOOL[Phase_3_MCP_tool],
+  4::IMPLEMENT_CONTEXT_UPDATE_TOOL[Phase_3_MCP_tool],
+  5::IMPLEMENT_LAYER_3_SEMANTIC_SPIKE[Basic_Memory_MCP_PoC_blocked],
+  6::ADDRESS_COVERAGE_GAPS[schemas.py_87%_verification.py_89%]
+]
+
+SYSTEM_STEWARD_GUIDANCE::[
+  CONTEXT_DOCUMENT_ROLE::"PROJECT-CONTEXT is the primary operational dashboard - always update first",
+  UPDATE_PROTOCOL::"Update all three context docs together when state changes significantly",
+  VERSION_SYNC::"Keep VERSION aligned across PROJECT-CONTEXT, PROJECT-CHECKLIST, PROJECT-ROADMAP",
+  FRESHNESS_EVIDENCE::"Record context updates in RESOLVED_YYYY-MM-DD section with evidence",
+  CROSS_REFERENCE::"Use PROJECT-CHECKLIST for detailed task breakdown, PROJECT-ROADMAP for phase planning"
 ]
 
 COMPLETED_ACTIONS::[
   CI_PYTHON_MATRIX::DONE[3.11+3.12_in_CI_matrix],
   ODYSSEAN_ANCHOR::DONE[I5_PROVEN_Issue_#11_ADR-0036],
-  BIND_COMMAND::DONE[docs/commands/bind.md_with_odyssean_anchor_MCP]
+  BIND_COMMAND::DONE[hub/library/commands/bind.md_with_odyssean_anchor_MCP]
 ]
 
 GOVERNANCE_ACTIONS_COMPLETED::[

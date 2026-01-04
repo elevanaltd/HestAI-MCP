@@ -72,7 +72,10 @@ def odyssean_anchor(
 
 ### 3. The Anchor Schema (RAPH Vector)
 
-Agents must generate and submit this exact structure. The tool validates every field.
+> **⚠️ SUPERSEDED**: The 6-section schema below is historical. See **Amendment 01** for the current 4-section v4.0 schema.
+
+<details>
+<summary>Original 6-Section Schema (SUPERSEDED by Amendment 01)</summary>
 
 ```octave
 ===ODYSSEAN_ANCHOR===
@@ -101,15 +104,17 @@ COMMIT::[{action}]→[{artifact}]→[{validation_gate}]
 ===END_ODYSSEAN_ANCHOR===
 ```
 
+</details>
+
 ---
 
 ## Technical Specification
 
-### Validation Logic
+### Validation Logic (Updated for v4.0)
 
 The MCP tool enforces strict rules. If any rule fails, it returns a formatted error message to the agent.
 
-1.  **Structure**: Must have all headers (BIND, ARM, FLUKE, TENSION, HAZARD, COMMIT).
+1.  **Structure**: Must have all headers (BIND, ARM, TENSION, COMMIT) per v4.0 schema.
 2.  **No Placeholders**: `FILES::0[]` is rejected if git status shows changes. `PHASE::TODO` is rejected.
 3.  **Citations**: TENSIONs must cite actual files (`CTX:src/main.py:10-15`).
 4.  **Commitment**: COMMIT must name a concrete artifact (file, test), not "response" or "thoughts".
@@ -190,7 +195,9 @@ def odyssean_anchor(
 ## BIND (Identity Lock)
 ROLE::{agent_name}
 COGNITION::{type}::{archetype}
-AUTHORITY::{RESPONSIBLE|DELEGATED[parent_session]}
+AUTHORITY::RESPONSIBLE[{scope_description}]
+// OR: AUTHORITY::DELEGATED[{parent_session_id}]
+// NOTE: Brackets with scope/session are REQUIRED
 
 ## ARM (Context Proof - SERVER INJECTED)
 PHASE::{current_phase}
@@ -199,7 +206,10 @@ FILES::{count}[{top_modified}]
 FOCUS::{focus_topic}
 
 ## TENSION (Cognitive Proof - AGENT GENERATED)
-L{N}::[{constraint}]↔CTX:{path}[{state}]->TRIGGER[{action}]
+L{N}::[{constraint}]⇌CTX:{path}[{state}]→TRIGGER[{action}]
+// Uses OCTAVE operators per octave-5-llm-core.oct.md:
+// ⇌ = tension (binary opposition), → = flow (progression)
+// ASCII aliases (<-> and ->) accepted for input
 
 ## COMMIT (Falsifiable Contract)
 ARTIFACT::{file_path}
@@ -207,19 +217,24 @@ GATE::{validation_method}
 ===END_RAPH_VECTOR===
 ```
 
+**Syntax Notes**:
+- AUTHORITY requires brackets: `RESPONSIBLE[scope]` or `DELEGATED[parent_session]`
+- TENSION uses OCTAVE operators: `⇌` (tension) and `→` (flow) per octave-5-llm-core.oct.md
+- ASCII aliases (`<->` and `->`) accepted for input, normalized to Unicode canonical form
+
 **Implementation Phases**:
 - Phase 0: This amendment (schema freeze) - COMPLETE
 - Phase 1: Implement odyssean_anchor tool with v4.0 + ARM injection - COMPLETE (PR #126)
 - Phase 2: Implement OA-I6 tool gating - COMPLETE (gating.py, has_valid_anchor)
-- Phase 3: Update /bind command - COMPLETE (docs/reference/commands/bind.md)
-- Phase 4: Documentation alignment - COMPLETE (2026-01-02)
+- Phase 3: Update /bind command - COMPLETE (hub/library/commands/bind.md)
+- Phase 4: Documentation alignment - COMPLETE (2026-01-03)
 
 **Implementation Evidence** (Issue #11):
 - MCP Tool: src/hestai_mcp/mcp/tools/odyssean_anchor.py (949 lines)
-- Gating: src/hestai_mcp/mcp/tools/gating.py (has_valid_anchor)
+- Gating: src/hestai_mcp/mcp/tools/shared/gating.py (has_valid_anchor)
 - Server: src/hestai_mcp/mcp/server.py (odyssean_anchor exposed)
-- Command: docs/commands/bind.md (v4.0 ceremony reference)
-- Tests: 397 passing (51 anchor + 22 gating + 5 integration)
+- Command: hub/library/commands/bind.md (v4.0 ceremony reference)
+- Tests: 511 passing (as of 2026-01-03)
 - Quality Gates: CRS (Codex) APPROVE, CE (Gemini) GO
 
 ---

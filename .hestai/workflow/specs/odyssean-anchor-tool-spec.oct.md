@@ -3,19 +3,19 @@
 META:
   TYPE::"IMPLEMENTATION_SPEC"
   ID::"odyssean-anchor-mcp-tool"
-  VERSION::"1.1"
+  VERSION::"1.2"
   STATUS::IMPLEMENTED
   PRIORITY::COMPLETE
   GITHUB_ISSUE::#11
   CREATED::"2025-12-27"
-  UPDATED::"2026-01-02"
+  UPDATED::"2026-01-03"
   AUTHOR::"holistic-orchestrator"
-  DEBATE_SOURCE::"docs/debates/2025-12-27-load-command-architecture.oct.md"
+  DEBATE_SOURCE::"debates/2025-12-27-load-command-architecture.oct.md"
   IMPLEMENTATION_EVIDENCE::[
     Phase_1::PR_#126_merged[odyssean_anchor_tool_949_lines],
     Phase_2::gating.py[has_valid_anchor_for_OA-I6],
     Phase_3::server.py[MCP_tool_exposed],
-    Tests::397_passing[51_anchor+22_gating+5_integration]
+    Tests::511_passing[as_of_2026-01-03]
   ]
 
 ## PURPOSE
@@ -79,7 +79,7 @@ SCHEMA_VALIDATION::[
 BIND_VALIDATION::[
   has_role::"ROLE:: field present",
   has_cognition::"COGNITION:: field present",
-  has_authority::"AUTHORITY:: field present (RESPONSIBLE or DELEGATED[session])"
+  has_authority::"AUTHORITY:: field present with scope (RESPONSIBLE[scope] or DELEGATED[parent_session])"
 ]
 
 ARM_VALIDATION::[
@@ -176,8 +176,32 @@ PERFORMANCE::[
 ## REFERENCES
 
 ADR_0036::"docs/adr/adr-0036-odyssean-anchor-binding.md"
-DEBATE_RECORD::"docs/debates/2025-12-27-load-command-architecture.oct.md"
-BIND_COMMAND_REFERENCE::"docs/commands/bind.md"
+DEBATE_RECORD::"debates/2025-12-27-load-command-architecture.oct.md"
+BIND_COMMAND_REFERENCE::"hub/library/commands/bind.md"
 NORTH_STAR_I5::"ODYSSEAN_IDENTITY_BINDING"
+
+## SYNTAX_NOTES
+
+RAPH_TENSION_SYNTAX::[
+  // RAPH Vector TENSION lines use OCTAVE operators per octave-5-llm-core.oct.md
+  FORMAT::"L{N}::[constraint]⇌CTX:{path}[state]→TRIGGER[action]"
+  OPERATORS::[
+    "⇌"::tension[binary_opposition_between_constraint_and_context],
+    "→"::flow[progression_to_trigger_action]
+  ]
+  ASCII_ALIASES::[
+    "<->"::accepted_normalized_to_⇌,
+    "->"::accepted_normalized_to_→
+  ]
+  RECOMMENDATION::"Use Unicode (⇌, →) for canonical output; ASCII accepted for input"
+]
+
+AUTHORITY_FORMAT::[
+  // Brackets with scope description REQUIRED
+  RESPONSIBLE::"RESPONSIBLE[scope_description]",
+  DELEGATED::"DELEGATED[parent_session_id]",
+  EXAMPLE_RESPONSIBLE::"RESPONSIBLE[system_coherence_orchestration]",
+  EXAMPLE_DELEGATED::"DELEGATED[parent_abc123::review_task]"
+]
 
 ===END===

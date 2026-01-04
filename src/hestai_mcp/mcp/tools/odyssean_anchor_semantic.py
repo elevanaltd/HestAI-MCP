@@ -33,6 +33,12 @@ from pydantic import BaseModel, Field
 
 from hestai_mcp.ai.client import AIClient
 from hestai_mcp.ai.config import AITier, get_yaml_config_path
+from hestai_mcp.ai.prompts.protocols import (
+    ODYSSEAN_ANCHOR_COGNITION_CHECK_PROTOCOL,
+    ODYSSEAN_ANCHOR_COMMIT_CHECK_PROTOCOL,
+    ODYSSEAN_ANCHOR_TENSION_CHECK_PROTOCOL,
+    compose_prompt,
+)
 from hestai_mcp.ai.providers.base import CompletionRequest
 
 logger = logging.getLogger(__name__)
@@ -417,18 +423,6 @@ async def check_cognition_appropriateness(
     Returns:
         CognitionAppropriatenessResult with appropriateness and concern
     """
-    system_prompt = """You are a semantic validator for agent identity binding.
-Your task is to assess if a cognition type is appropriate for an agent role.
-
-Cognition types and their typical associations:
-- LOGOS (The Door/Structure): architects, coordinators, technical leads, implementation leads
-- ETHOS (The Wall/Boundary): validators, guardians, reviewers, stewards, security specialists
-- PATHOS (The Wind/Possibility): ideators, explorers, researchers, creative roles
-
-Respond with JSON: {"appropriate": true/false, "reason": "explanation"}
-Be lenient - many roles can reasonably use different cognition types.
-Only flag clear mismatches (e.g., validator using PATHOS for exploration-focused work)."""
-
     user_prompt = f"""Assess if this cognition type is appropriate for this role:
 Role: {role}
 Cognition Type: {cognition_type}
@@ -438,7 +432,7 @@ Respond with JSON only."""
     async with AIClient() as client:
         response = await client.complete_text(
             CompletionRequest(
-                system_prompt=system_prompt,
+                system_prompt=compose_prompt(ODYSSEAN_ANCHOR_COGNITION_CHECK_PROTOCOL),
                 user_prompt=user_prompt,
                 temperature=0.1,
             ),
@@ -486,16 +480,6 @@ async def check_tension_relevance(
     if not constraint_names:
         return TensionRelevanceResult(valid=True)
 
-    system_prompt = """You are a semantic validator checking if constraint names are real.
-Given a list of constraint names and a constitution text, determine which constraints
-appear to be real (mentioned or implied in the constitution) vs hallucinated.
-
-Common real constraint patterns: TDD_MANDATE, MINIMAL_INTERVENTION, MIP, LANE_ENFORCEMENT,
-QUALITY_GATES, HUMAN_PRIMACY, I1-I6 immutables, PHASE_GATED, etc.
-
-Respond with JSON: {"all_valid": true/false, "invalid_constraints": ["list", "of", "hallucinated"]}
-Be lenient - if a constraint could reasonably derive from the constitution, accept it."""
-
     user_prompt = f"""Check these constraints against the constitution:
 Constraints: {constraint_names}
 
@@ -507,7 +491,7 @@ Respond with JSON only."""
     async with AIClient() as client:
         response = await client.complete_text(
             CompletionRequest(
-                system_prompt=system_prompt,
+                system_prompt=compose_prompt(ODYSSEAN_ANCHOR_TENSION_CHECK_PROTOCOL),
                 user_prompt=user_prompt,
                 temperature=0.1,
             ),
@@ -544,22 +528,6 @@ async def check_commit_feasibility(
     Returns:
         CommitFeasibilityResult with feasibility and concern
     """
-    system_prompt = """You are a semantic validator checking if a commit artifact is achievable.
-An artifact is achievable if it's a concrete, specific output that could be produced in a session.
-
-Examples of achievable artifacts:
-- src/validators/semantic.py (specific file)
-- Updated test suite for anchor validation
-- PR #123 with implementation
-
-Examples of unrealistic artifacts:
-- Complete system rewrite
-- All bugs fixed
-- Perfect documentation
-
-Respond with JSON: {"feasible": true/false, "reason": "explanation"}
-Be lenient - most specific artifacts are achievable."""
-
     user_prompt = f"""Assess if this artifact is achievable:
 Artifact: {artifact}
 Focus: {focus}
@@ -569,7 +537,7 @@ Respond with JSON only."""
     async with AIClient() as client:
         response = await client.complete_text(
             CompletionRequest(
-                system_prompt=system_prompt,
+                system_prompt=compose_prompt(ODYSSEAN_ANCHOR_COMMIT_CHECK_PROTOCOL),
                 user_prompt=user_prompt,
                 temperature=0.1,
             ),

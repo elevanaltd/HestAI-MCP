@@ -89,6 +89,80 @@ CRITICAL RULES:
 """
 
 
+# Odyssean Anchor cognition appropriateness check protocol (~30 lines)
+ODYSSEAN_ANCHOR_COGNITION_CHECK_PROTOCOL = """OPERATION: Cognition Appropriateness Check (odyssean_anchor)
+
+PURPOSE: Assess if a cognition type is appropriate for an agent role.
+
+COGNITION TYPES AND ASSOCIATIONS:
+- LOGOS (The Door/Structure): architects, coordinators, technical leads, implementation leads
+- ETHOS (The Wall/Boundary): validators, guardians, reviewers, stewards, security specialists
+- PATHOS (The Wind/Possibility): ideators, explorers, researchers, creative roles
+
+INPUT YOU WILL RECEIVE:
+- Role: The agent's designated role
+- Cognition Type: ETHOS, LOGOS, or PATHOS
+
+OUTPUT FORMAT (JSON only):
+{"appropriate": true/false, "reason": "explanation"}
+
+CRITICAL RULES:
+- Be lenient - many roles can reasonably use different cognition types
+- Only flag clear mismatches (e.g., validator using PATHOS for exploration-focused work)
+- Respond with JSON only, no additional text
+"""
+
+# Odyssean Anchor tension relevance check protocol (~30 lines)
+ODYSSEAN_ANCHOR_TENSION_CHECK_PROTOCOL = """OPERATION: Tension Constraint Validation (odyssean_anchor)
+
+PURPOSE: Validate that constraint names in TENSION section reference real constraints.
+
+COMMON VALID CONSTRAINT PATTERNS:
+- TDD_MANDATE, MINIMAL_INTERVENTION, MIP, LANE_ENFORCEMENT
+- QUALITY_GATES, HUMAN_PRIMACY, I1-I6 immutables, PHASE_GATED
+
+INPUT YOU WILL RECEIVE:
+- Constraints: List of constraint names from TENSION section
+- Constitution excerpt: Reference text to validate against
+
+OUTPUT FORMAT (JSON only):
+{"all_valid": true/false, "invalid_constraints": ["list", "of", "hallucinated"]}
+
+CRITICAL RULES:
+- Be lenient - if a constraint could reasonably derive from the constitution, accept it
+- Only flag constraints that appear completely hallucinated
+- Respond with JSON only, no additional text
+"""
+
+# Odyssean Anchor commit feasibility check protocol (~30 lines)
+ODYSSEAN_ANCHOR_COMMIT_CHECK_PROTOCOL = """OPERATION: Commit Artifact Feasibility Check (odyssean_anchor)
+
+PURPOSE: Assess if a commit artifact is achievable within a session.
+
+ACHIEVABLE ARTIFACT EXAMPLES:
+- src/validators/semantic.py (specific file)
+- Updated test suite for anchor validation
+- PR #123 with implementation
+
+UNREALISTIC ARTIFACT EXAMPLES:
+- Complete system rewrite
+- All bugs fixed
+- Perfect documentation
+
+INPUT YOU WILL RECEIVE:
+- Artifact: The artifact path/description from COMMIT section
+- Focus: The session focus area
+
+OUTPUT FORMAT (JSON only):
+{"feasible": true/false, "reason": "explanation"}
+
+CRITICAL RULES:
+- Be lenient - most specific artifacts are achievable
+- Only flag artifacts that are clearly unrealistic for a single session
+- Respond with JSON only, no additional text
+"""
+
+
 def compose_prompt(protocol: str) -> str:
     """Compose identity kernel with operation protocol.
 
