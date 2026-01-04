@@ -23,6 +23,9 @@ The current agent binding process has several pain points:
 
 A multi-model debate using Wind/Wall/Door pattern with Claude Opus (Ideator), GPT-4o (Validator), and Gemini 3 Pro (Synthesizer) explored solutions while maintaining OA-I1 through OA-I7 immutable requirements.
 
+### Key Insight from Analysis
+RAPH Vector serves a valid **runtime validation** purpose (binding proof), distinct from the design-time agent constitution. It unnecessarily diverged from OCTAVE syntax but should be retained as an OCTAVE-compliant schema rather than eliminated.
+
 ## Decision
 
 We will create a **unified `bind` MCP tool** that:
