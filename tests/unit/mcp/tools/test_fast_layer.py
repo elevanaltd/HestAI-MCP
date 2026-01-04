@@ -130,8 +130,18 @@ def _init_git_repo(repo_path: Path, branch_name: str) -> None:
 
     CI environments (e.g., GitHub Actions) often lack global git user config,
     causing git commit to fail. This helper sets up local repo config.
+
+    Additionally, disables global hooks to ensure hermeticity - tests must pass
+    regardless of user's global git configuration (e.g., core.hooksPath policies).
     """
     subprocess.run(["git", "init"], cwd=str(repo_path), capture_output=True, check=True)
+    # Disable global hooks for test hermeticity (prevents global core.hooksPath interference)
+    subprocess.run(
+        ["git", "config", "core.hooksPath", ""],
+        cwd=str(repo_path),
+        capture_output=True,
+        check=True,
+    )
     # Set local user config (required for commits in CI where no global config exists)
     subprocess.run(
         ["git", "config", "user.email", "test@example.com"],
@@ -153,7 +163,7 @@ def _init_git_repo(repo_path: Path, branch_name: str) -> None:
     )
     # Create an empty commit so HEAD exists
     subprocess.run(
-        ["git", "commit", "--allow-empty", "-m", "initial"],
+        ["git", "commit", "--no-verify", "--allow-empty", "-m", "initial"],
         cwd=str(repo_path),
         capture_output=True,
         check=True,
@@ -455,21 +465,20 @@ class TestAISynthesisIntegration:
     async def test_synthesize_fast_layer_with_ai_success(self, tmp_path: Path):
         """
         AI synthesis returns structured FAST layer content on success.
+
+        AI response must contain all required OCTAVE fields to be accepted.
         """
         from unittest.mock import AsyncMock, MagicMock, patch
 
         from hestai_mcp.mcp.tools.shared.fast_layer import synthesize_fast_layer_with_ai
 
-        # Mock a successful AI response
-        mock_ai_response = """Based on the context, here are the key focus areas:
-
-FOCUS_SUMMARY: Implementing clock_in AI integration for Issue #56
-KEY_TASKS:
-- Wire AIClient into FAST layer synthesis
-- Add focus resolution from branch patterns
-- Ensure graceful fallback on AI failure
-BLOCKERS: None identified
-"""
+        # Mock a successful AI response with valid OCTAVE format (all required fields)
+        mock_ai_response = """CONTEXT_FILES::[@.hestai/context/PROJECT-CONTEXT.oct.md:L1-50]
+FOCUS::issue-56
+PHASE::B2
+BLOCKERS::[]
+TASKS::[Wire AIClient into FAST layer synthesis, Add focus resolution from branch patterns]
+FRESHNESS_WARNING::NONE"""
 
         # Patch at the import location inside the function
         with (
@@ -478,6 +487,8 @@ BLOCKERS: None identified
         ):
             # Mock config loading
             mock_load_config.return_value = MagicMock()
+            mock_config = mock_load_config.return_value
+            mock_config.get_operation_tier = MagicMock(return_value="fast")
 
             # Mock the async context manager and complete_text
             mock_client = AsyncMock()
@@ -596,3 +607,191 @@ BLOCKERS: None identified
             assert inspect.iscoroutine(coro)
             result = await coro
             assert result is not None
+
+    @pytest.mark.asyncio
+    async def test_fallback_synthesis_uses_octave_format(self, tmp_path: Path):
+        """
+        Fallback synthesis emits OCTAVE format matching AI output contract.
+
+        BLOCKING FIX: Fallback must use same structured format as AI synthesis
+        to maintain contract consistency. Legacy prose format (FOCUS_SUMMARY,
+        KEY_TASKS) breaks structured navigation.
+
+        Required OCTAVE fields per protocols.py:
+        - CONTEXT_FILES::
+        - FOCUS::
+        - PHASE::
+        - BLOCKERS::
+        - TASKS::
+        - FRESHNESS_WARNING::
+        """
+        from unittest.mock import AsyncMock, MagicMock, patch
+
+        from hestai_mcp.mcp.tools.shared.fast_layer import synthesize_fast_layer_with_ai
+
+        with (
+            patch("hestai_mcp.ai.client.AIClient") as mock_ai_client_cls,
+            patch("hestai_mcp.ai.config.load_config") as mock_load_config,
+        ):
+            mock_load_config.return_value = MagicMock()
+
+            # Force AI failure to trigger fallback
+            mock_client = AsyncMock()
+            mock_client.complete_text = AsyncMock(side_effect=Exception("AI unavailable"))
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            mock_ai_client_cls.return_value = mock_client
+
+            result = await synthesize_fast_layer_with_ai(
+                session_id="test-session-123",
+                role="implementation-lead",
+                focus="crs-blocking-fixes",
+                context_summary="Fixing CRS blocking issues",
+            )
+
+            synthesis = result["synthesis"]
+
+            # Must contain OCTAVE format fields
+            assert "CONTEXT_FILES::" in synthesis, "Fallback must include CONTEXT_FILES:: field"
+            assert "FOCUS::" in synthesis, "Fallback must include FOCUS:: field"
+            assert "PHASE::" in synthesis, "Fallback must include PHASE:: field"
+            assert "BLOCKERS::" in synthesis, "Fallback must include BLOCKERS:: field"
+            assert "TASKS::" in synthesis, "Fallback must include TASKS:: field"
+            assert "FRESHNESS_WARNING::" in synthesis, "Fallback must include FRESHNESS_WARNING::"
+
+            # Must NOT contain legacy prose format
+            assert "FOCUS_SUMMARY" not in synthesis, "Fallback must not use legacy FOCUS_SUMMARY"
+            assert "KEY_TASKS" not in synthesis, "Fallback must not use legacy KEY_TASKS"
+
+    @pytest.mark.asyncio
+    async def test_fallback_synthesis_includes_role_and_focus_values(self, tmp_path: Path):
+        """
+        Fallback synthesis correctly interpolates role and focus into OCTAVE fields.
+        """
+        from unittest.mock import patch
+
+        from hestai_mcp.mcp.tools.shared.fast_layer import synthesize_fast_layer_with_ai
+
+        # Trigger fallback via config load failure
+        with patch(
+            "hestai_mcp.ai.config.load_config",
+            side_effect=FileNotFoundError("No config"),
+        ):
+            result = await synthesize_fast_layer_with_ai(
+                session_id="test-session",
+                role="code-review-specialist",
+                focus="pr-review",
+                context_summary="Reviewing pull request",
+            )
+
+            synthesis = result["synthesis"]
+
+            # Focus value should appear in FOCUS:: field
+            assert "pr-review" in synthesis
+            # Role should appear somewhere in context (tasks or notes)
+            assert "code-review-specialist" in synthesis
+
+    @pytest.mark.asyncio
+    async def test_ai_response_missing_octave_fields_triggers_fallback(self, tmp_path: Path):
+        """
+        AI response missing required OCTAVE fields triggers fallback.
+
+        Anti-fragility: AI synthesis must contain all required OCTAVE fields.
+        If ANY field is missing, swap to validated fallback to guarantee output contract.
+
+        Required OCTAVE fields per protocols.py:
+        - CONTEXT_FILES::
+        - FOCUS::
+        - PHASE::
+        - BLOCKERS::
+        - TASKS::
+        - FRESHNESS_WARNING::
+        """
+        from unittest.mock import AsyncMock, MagicMock, patch
+
+        from hestai_mcp.mcp.tools.shared.fast_layer import synthesize_fast_layer_with_ai
+
+        # AI returns incomplete OCTAVE (missing BLOCKERS::, TASKS::, FRESHNESS_WARNING::)
+        incomplete_ai_response = """CONTEXT_FILES::[@.hestai/context/PROJECT-CONTEXT.oct.md]
+FOCUS::test-focus
+PHASE::B2
+This is an incomplete response that lacks required fields."""
+
+        with (
+            patch("hestai_mcp.ai.client.AIClient") as mock_ai_client_cls,
+            patch("hestai_mcp.ai.config.load_config") as mock_load_config,
+        ):
+            mock_load_config.return_value = MagicMock()
+            mock_config = mock_load_config.return_value
+            mock_config.get_operation_tier = MagicMock(return_value="fast")
+
+            mock_client = AsyncMock()
+            mock_client.complete_text = AsyncMock(return_value=incomplete_ai_response)
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            mock_ai_client_cls.return_value = mock_client
+
+            result = await synthesize_fast_layer_with_ai(
+                session_id="test-session-123",
+                role="implementation-lead",
+                focus="test-focus",
+                context_summary="Testing OCTAVE validation",
+            )
+
+            # Should use fallback due to missing fields
+            assert result["source"] == "fallback", "Incomplete AI response should trigger fallback"
+
+            synthesis = result["synthesis"]
+
+            # Fallback must have ALL required fields
+            assert "CONTEXT_FILES::" in synthesis
+            assert "FOCUS::" in synthesis
+            assert "PHASE::" in synthesis
+            assert "BLOCKERS::" in synthesis
+            assert "TASKS::" in synthesis
+            assert "FRESHNESS_WARNING::" in synthesis
+
+    @pytest.mark.asyncio
+    async def test_ai_response_with_all_octave_fields_succeeds(self, tmp_path: Path):
+        """
+        AI response with all required OCTAVE fields returns AI source.
+
+        When AI produces valid OCTAVE with all required fields,
+        the AI response should be returned as-is with source="ai".
+        """
+        from unittest.mock import AsyncMock, MagicMock, patch
+
+        from hestai_mcp.mcp.tools.shared.fast_layer import synthesize_fast_layer_with_ai
+
+        # AI returns complete OCTAVE with all required fields
+        complete_ai_response = """CONTEXT_FILES::[@.hestai/context/PROJECT-CONTEXT.oct.md]
+FOCUS::test-focus
+PHASE::B2
+BLOCKERS::[]
+TASKS::[Complete implementation, Run tests]
+FRESHNESS_WARNING::NONE"""
+
+        with (
+            patch("hestai_mcp.ai.client.AIClient") as mock_ai_client_cls,
+            patch("hestai_mcp.ai.config.load_config") as mock_load_config,
+        ):
+            mock_load_config.return_value = MagicMock()
+            mock_config = mock_load_config.return_value
+            mock_config.get_operation_tier = MagicMock(return_value="fast")
+
+            mock_client = AsyncMock()
+            mock_client.complete_text = AsyncMock(return_value=complete_ai_response)
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            mock_ai_client_cls.return_value = mock_client
+
+            result = await synthesize_fast_layer_with_ai(
+                session_id="test-session-123",
+                role="implementation-lead",
+                focus="test-focus",
+                context_summary="Testing OCTAVE validation",
+            )
+
+            # Should use AI response since all fields present
+            assert result["source"] == "ai", "Complete AI response should return source=ai"
+            assert result["synthesis"] == complete_ai_response

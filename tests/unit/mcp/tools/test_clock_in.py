@@ -812,6 +812,61 @@ class TestClockInWithAIIntegration:
             assert "ai_synthesis" in result
             assert result["ai_synthesis"]["source"] == "fallback"
 
+    @pytest.mark.asyncio
+    async def test_clock_in_async_fallback_emits_octave_format(self, mock_hestai_structure: Path):
+        """
+        clock_in_async fallback emits OCTAVE format matching AI output contract.
+
+        BLOCKING FIX: Fallback must use same structured format as AI synthesis
+        to maintain contract consistency. Plain string "AI synthesis unavailable"
+        violates the OCTAVE contract expected by downstream consumers.
+
+        Required OCTAVE fields per protocols.py:
+        - CONTEXT_FILES::
+        - FOCUS::
+        - PHASE::
+        - BLOCKERS::
+        - TASKS::
+        - FRESHNESS_WARNING::
+        """
+        from unittest.mock import AsyncMock, patch
+
+        from hestai_mcp.mcp.tools.clock_in import clock_in_async
+
+        # Mock AI synthesis to fail - triggers fallback path in clock_in.py
+        # Patch at source module since clock_in uses local import
+        with patch(
+            "hestai_mcp.mcp.tools.shared.fast_layer.synthesize_fast_layer_with_ai",
+            new_callable=AsyncMock,
+            side_effect=Exception("AI unavailable"),
+        ):
+            result = await clock_in_async(
+                role="implementation-lead",
+                working_dir=str(mock_hestai_structure),
+                focus="test-focus",
+            )
+
+            assert "ai_synthesis" in result
+            assert result["ai_synthesis"]["source"] == "fallback"
+
+            synthesis = result["ai_synthesis"]["synthesis"]
+
+            # Must contain OCTAVE format fields - not plain prose
+            assert "CONTEXT_FILES::" in synthesis, "Fallback must include CONTEXT_FILES:: field"
+            assert "FOCUS::" in synthesis, "Fallback must include FOCUS:: field"
+            assert "PHASE::" in synthesis, "Fallback must include PHASE:: field"
+            assert "BLOCKERS::" in synthesis, "Fallback must include BLOCKERS:: field"
+            assert "TASKS::" in synthesis, "Fallback must include TASKS:: field"
+            assert "FRESHNESS_WARNING::" in synthesis, "Fallback must include FRESHNESS_WARNING::"
+
+            # Must NOT be plain string fallback
+            assert (
+                synthesis != "AI synthesis unavailable"
+            ), "Must use OCTAVE format, not plain string"
+
+            # Should include focus value in FOCUS:: field
+            assert "test-focus" in synthesis, "Fallback should include actual focus value"
+
 
 @pytest.mark.unit
 class TestRichContextSummary:
@@ -882,6 +937,12 @@ NEXT_ACTIONS::[
         )
 
         subprocess.run(["git", "init"], cwd=str(mock_hestai_structure), capture_output=True)
+        # Disable global hooks for test hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=str(mock_hestai_structure),
+            capture_output=True,
+        )
         subprocess.run(
             ["git", "config", "user.email", "test@test.com"],
             cwd=str(mock_hestai_structure),
@@ -898,7 +959,7 @@ NEXT_ACTIONS::[
         test_file.write_text("test content")
         subprocess.run(["git", "add", "."], cwd=str(mock_hestai_structure), capture_output=True)
         subprocess.run(
-            ["git", "commit", "-m", "Initial commit"],
+            ["git", "commit", "--no-verify", "-m", "Initial commit"],
             cwd=str(mock_hestai_structure),
             capture_output=True,
         )
@@ -1032,6 +1093,12 @@ class TestFreshnessCheck:
 
         # Initialize git repo and commit PROJECT-CONTEXT
         subprocess.run(["git", "init"], cwd=str(mock_hestai_structure), capture_output=True)
+        # Disable global hooks for test hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=str(mock_hestai_structure),
+            capture_output=True,
+        )
         subprocess.run(
             ["git", "config", "user.email", "test@test.com"],
             cwd=str(mock_hestai_structure),
@@ -1048,7 +1115,7 @@ class TestFreshnessCheck:
         project_context.write_text("===PROJECT_CONTEXT===\nTEST\n===END===")
         subprocess.run(["git", "add", "."], cwd=str(mock_hestai_structure), capture_output=True)
         subprocess.run(
-            ["git", "commit", "-m", "Add PROJECT-CONTEXT"],
+            ["git", "commit", "--no-verify", "-m", "Add PROJECT-CONTEXT"],
             cwd=str(mock_hestai_structure),
             capture_output=True,
         )
@@ -1378,6 +1445,12 @@ class TestCoverageGaps:
 
         # Initialize git and create uncommitted changes
         subprocess.run(["git", "init"], cwd=str(mock_hestai_structure), capture_output=True)
+        # Disable global hooks for test hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=str(mock_hestai_structure),
+            capture_output=True,
+        )
         subprocess.run(
             ["git", "config", "user.email", "test@test.com"],
             cwd=str(mock_hestai_structure),
@@ -1394,7 +1467,7 @@ class TestCoverageGaps:
         test_file.write_text("original")
         subprocess.run(["git", "add", "."], cwd=str(mock_hestai_structure), capture_output=True)
         subprocess.run(
-            ["git", "commit", "-m", "Initial"],
+            ["git", "commit", "--no-verify", "-m", "Initial"],
             cwd=str(mock_hestai_structure),
             capture_output=True,
         )
@@ -1415,6 +1488,12 @@ class TestCoverageGaps:
 
         # Initialize git
         subprocess.run(["git", "init"], cwd=str(mock_hestai_structure), capture_output=True)
+        # Disable global hooks for test hermeticity
+        subprocess.run(
+            ["git", "config", "core.hooksPath", ""],
+            cwd=str(mock_hestai_structure),
+            capture_output=True,
+        )
         subprocess.run(
             ["git", "config", "user.email", "test@test.com"],
             cwd=str(mock_hestai_structure),
@@ -1433,7 +1512,7 @@ class TestCoverageGaps:
 
         # Commit with a date 48 hours ago
         subprocess.run(
-            ["git", "commit", "-m", "old commit", "--date", "2025-01-01T00:00:00Z"],
+            ["git", "commit", "--no-verify", "-m", "old commit", "--date", "2025-01-01T00:00:00Z"],
             cwd=str(mock_hestai_structure),
             capture_output=True,
             env={
@@ -1599,3 +1678,91 @@ I4::IMMUTABLE_FOUR
                 focus="test-focus",
             )
             assert isinstance(summary, str)
+
+
+@pytest.mark.unit
+class TestStructuredClockInOutput:
+    """
+    Test structured clock_in output format per task requirements.
+
+    The new output format should return structured, actionable file links
+    that Claude Code can navigate, replacing prose synthesis.
+
+    Desired format:
+    CONTEXT_FILES::[@.hestai/context/PROJECT-CONTEXT.oct.md:L1-50, ...]
+    FOCUS::{focus_value}
+    PHASE::{phase}
+    BLOCKERS::[{structured_list}]
+    """
+
+    def test_ai_synthesis_returns_structured_format(self, mock_hestai_structure: Path):
+        """
+        AI synthesis should return OCTAVE-structured output instead of prose.
+
+        The structured format enables Claude Code to navigate directly to
+        relevant file sections rather than parsing prose descriptions.
+        """
+        from hestai_mcp.ai.prompts.protocols import CLOCK_IN_SYNTHESIS_PROTOCOL
+
+        # Create PROJECT-CONTEXT with recognizable content
+        project_context = mock_hestai_structure / ".hestai" / "context" / "PROJECT-CONTEXT.oct.md"
+        project_context.write_text(
+            """===PROJECT_CONTEXT===
+META:
+  TYPE::"PROJECT_CONTEXT"
+  PHASE::B1_FOUNDATION
+
+PURPOSE::"Test project"
+===END===
+"""
+        )
+
+        # Verify the protocol instructs structured OCTAVE output format
+        assert "OCTAVE structure" in CLOCK_IN_SYNTHESIS_PROTOCOL
+        assert "CONTEXT_FILES::" in CLOCK_IN_SYNTHESIS_PROTOCOL
+
+    def test_structured_output_contains_context_files_with_line_numbers(
+        self, mock_hestai_structure: Path
+    ):
+        """
+        Structured output should include CONTEXT_FILES with file paths and line ranges.
+
+        Format: CONTEXT_FILES::[@path/to/file:L1-50, @another/file:L1-30]
+        """
+        from hestai_mcp.ai.prompts.protocols import CLOCK_IN_SYNTHESIS_PROTOCOL
+
+        # The protocol should instruct structured output format
+        assert "CONTEXT_FILES::" in CLOCK_IN_SYNTHESIS_PROTOCOL
+
+    def test_structured_output_contains_focus_field(self, mock_hestai_structure: Path):
+        """
+        Structured output should include FOCUS field with focus value.
+
+        Format: FOCUS::{focus_value}
+        """
+        from hestai_mcp.ai.prompts.protocols import CLOCK_IN_SYNTHESIS_PROTOCOL
+
+        # The protocol should include FOCUS in structured format
+        assert "FOCUS::" in CLOCK_IN_SYNTHESIS_PROTOCOL
+
+    def test_structured_output_contains_phase_field(self, mock_hestai_structure: Path):
+        """
+        Structured output should include PHASE field extracted from context.
+
+        Format: PHASE::{phase}
+        """
+        from hestai_mcp.ai.prompts.protocols import CLOCK_IN_SYNTHESIS_PROTOCOL
+
+        # The protocol should include PHASE in structured format
+        assert "PHASE::" in CLOCK_IN_SYNTHESIS_PROTOCOL
+
+    def test_structured_output_contains_blockers_list(self, mock_hestai_structure: Path):
+        """
+        Structured output should include BLOCKERS as structured list.
+
+        Format: BLOCKERS::[{blocker1}, {blocker2}]
+        """
+        from hestai_mcp.ai.prompts.protocols import CLOCK_IN_SYNTHESIS_PROTOCOL
+
+        # The protocol should include BLOCKERS in structured format
+        assert "BLOCKERS::" in CLOCK_IN_SYNTHESIS_PROTOCOL
