@@ -42,12 +42,12 @@ readonly VENV_PATH=".venv"
 # ----------------------------------------------------------------------------
 # HESTAI_HUB_SKILLS_PATH: Hub-level skills library path
 # This enables the Virtual Skill Overlay system where skills are loaded
-# from a centralized hub location rather than per-project .claude/skills/
+# from a centralized hub location rather than per-project directories.
 #
 # Precedence (in skill-activation hooks):
 # 1. HESTAI_HUB_SKILLS_PATH (hub-level, set here)
 # 2. HESTAI_SKILLS_PATH (explicit override)
-# 3. Local .claude/skills/ fallback
+# 3. Local hub/library/skills/ fallback (project-relative)
 # ----------------------------------------------------------------------------
 
 get_hub_skills_path() {

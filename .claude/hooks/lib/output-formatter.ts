@@ -11,19 +11,38 @@ import { SKILL_FILE_EXTENSION } from './constants.js';
 import { validateSkillName, validatePathContainment } from './security.js';
 
 /**
+ * Result of skill injection operation
+ */
+export interface SkillInjectionResult {
+  /** Formatted output with skill content */
+  output: string;
+  /** Names of skills that were actually loaded successfully */
+  loadedSkills: string[];
+}
+
+/**
  * Inject skill content into system context
  *
  * Reads skill files and formats them with XML tags for Claude to process.
- * Returns formatted string with banner and skill content.
+ * Returns formatted string with banner and skill content, plus the list of
+ * skills that were actually loaded (for accurate state tracking).
  *
  * Security: Validates skill names and path containment before reading files.
  *
  * @param skillNames - Names of skills to inject
  * @param skillsBase - Base directory for skills (hub/library/skills)
- * @returns Formatted skill injection output
+ * @returns Object with formatted output and list of actually loaded skills
  */
-export function injectSkillContent(skillNames: string[], skillsBase: string): string {
-  if (skillNames.length === 0) return '';
+export function injectSkillContent(
+  skillNames: string[],
+  skillsBase: string
+): SkillInjectionResult {
+  const result: SkillInjectionResult = {
+    output: '',
+    loadedSkills: [],
+  };
+
+  if (skillNames.length === 0) return result;
 
   let output = '\n';
   output += '===========================================\n';
@@ -52,6 +71,9 @@ export function injectSkillContent(skillNames: string[], skillsBase: string): st
         output += `<skill name="${skillName}">\n`;
         output += skillContent;
         output += `\n</skill>\n\n`;
+
+        // Track successful load
+        result.loadedSkills.push(skillName);
       } catch (err) {
         console.error(`Failed to load skill ${skillName}:`, err);
       }
@@ -61,10 +83,12 @@ export function injectSkillContent(skillNames: string[], skillsBase: string): st
   }
 
   output += '===========================================\n';
-  output += `Loaded ${skillNames.length} skill(s): ${skillNames.join(', ')}\n`;
+  // Report ACTUAL loaded count, not requested count
+  output += `Loaded ${result.loadedSkills.length} skill(s): ${result.loadedSkills.join(', ')}\n`;
   output += '===========================================\n';
 
-  return output;
+  result.output = output;
+  return result;
 }
 
 /**

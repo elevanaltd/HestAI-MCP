@@ -4,6 +4,9 @@
 # This hook is executed by Claude Code on every user prompt submission.
 # It analyzes the prompt and injects relevant skills into the conversation context.
 #
+# IMPORTANT: This hook MUST exit 0 even on errors to avoid aborting the prompt flow.
+# All errors are logged to stderr but do not prevent conversation from proceeding.
+#
 # Security validations implemented:
 # - Skill name allowlist: ^[a-z0-9][a-z0-9_-]*$
 # - Path containment: resolved paths must start with skillsBase
@@ -13,7 +16,8 @@
 # - CLAUDE_PROJECT_DIR: Project root (provided by Claude Code)
 # - HESTAI_SKILLS_PATH: Exported path to skills library (if valid)
 
-set -e
+# NOTE: We intentionally do NOT use 'set -e' because hook failures
+# must not abort the prompt flow. All errors are handled gracefully.
 
 # Determine project directory
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
@@ -150,8 +154,18 @@ fi
 setup_skills_path
 
 # Change to hooks directory for TypeScript execution
-cd "${HOOKS_DIR}"
+cd "${HOOKS_DIR}" || exit 0
+
+# Check for required dependencies before execution
+if ! command -v npx >/dev/null 2>&1; then
+    echo "Warning: npx not found, skill activation skipped" >&2
+    exit 0
+fi
 
 # Execute the TypeScript skill activation prompt
 # stdin is piped through to the TypeScript module
-cat | npx tsx skill-activation-prompt.ts
+# CRITICAL: Always exit 0 to avoid aborting prompt flow
+cat | npx tsx skill-activation-prompt.ts || {
+    echo "Warning: Skill activation hook encountered an error, continuing without skill injection" >&2
+    exit 0
+}

@@ -135,22 +135,23 @@ async function main(): Promise<void> {
       debugLog(`  Affinity skills found: ${JSON.stringify(affinitySkills)}`);
 
       // Resolve dependencies and inject skills
-      let injectedSkills: string[] = [];
       const allSkillsToInject = [...filtration.toInject, ...affinitySkills];
+      // Track only skills that were ACTUALLY loaded successfully (not just attempted)
+      const successfullyInjected: string[] = [];
 
       // DEBUG: Log combined skills before dependency resolution
       debugLog('Combined Skills (before dependency resolution):');
       debugLog(`  All skills to inject: ${JSON.stringify(allSkillsToInject)}`);
 
       if (allSkillsToInject.length > 0) {
-        injectedSkills = resolveSkillDependencies(allSkillsToInject, rules.skills);
+        const resolvedSkills = resolveSkillDependencies(allSkillsToInject, rules.skills);
 
         // DEBUG: Log final injected skills
         debugLog('Final Injection:');
-        debugLog(`  After dependency resolution: ${JSON.stringify(injectedSkills)}`);
+        debugLog(`  After dependency resolution: ${JSON.stringify(resolvedSkills)}`);
 
         // Inject skills individually (one console.log per skill)
-        for (const skillName of injectedSkills) {
+        for (const skillName of resolvedSkills) {
           // Security: Validate skill name and path containment
           if (!validateSkillName(skillName)) {
             debugLog(`  Security: Skipping invalid skill name: ${skillName}`);
@@ -167,15 +168,20 @@ async function main(): Promise<void> {
 
           debugLog(`  Injecting skill: ${skillName} from ${skillPath}`);
 
-          const injectionOutput = injectSkillContent([skillName], skillsBase);
-          if (injectionOutput) {
-            console.log(injectionOutput);
-            debugLog(`  Injected ${skillName} (${injectionOutput.length} chars)`);
+          const injectionResult = injectSkillContent([skillName], skillsBase);
+          if (injectionResult.output && injectionResult.loadedSkills.length > 0) {
+            console.log(injectionResult.output);
+            // Track ONLY successfully loaded skills for state
+            successfullyInjected.push(...injectionResult.loadedSkills);
+            debugLog(`  Injected ${skillName} (${injectionResult.output.length} chars)`);
           } else {
             debugLog(`  Failed to inject ${skillName} - no output generated`);
           }
         }
       }
+
+      // Use successfullyInjected for all subsequent operations
+      const injectedSkills = successfullyInjected;
 
       // Show just-injected skills in banner
       if (injectedSkills.length > 0) {

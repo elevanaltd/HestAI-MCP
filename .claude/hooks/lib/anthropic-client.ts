@@ -6,21 +6,68 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import type { IntentAnalysis, SkillRule } from './types.js';
 
-// Load intent analysis prompt template
-const INTENT_PROMPT_TEMPLATE = readFileSync(
-  join(
+// Lazy-loaded intent analysis prompt template
+// Loaded on first use inside callAnthropicAPI() to avoid import-time crashes
+let _intentPromptTemplate: string | null = null;
+
+/**
+ * Default fallback prompt template when file is missing
+ * Provides basic intent analysis without full prompt capabilities
+ */
+const DEFAULT_INTENT_PROMPT = `Analyze the following user prompt and determine which skills are most relevant.
+
+User prompt: {{USER_PROMPT}}
+
+Available skills:
+{{SKILL_DESCRIPTIONS}}
+
+Respond with JSON containing:
+- primary_intent: Brief description of what the user wants
+- required: Array of skill names that are critical (confidence >= 0.65)
+- suggested: Array of skill names that may help (confidence 0.50-0.65)
+- scores: Object mapping skill names to confidence scores (0.0-1.0)
+
+Only include skills with confidence >= 0.50.`;
+
+/**
+ * Load intent analysis prompt template lazily
+ *
+ * Attempts to load from config file, falls back to default prompt if missing.
+ * Caches result for subsequent calls.
+ *
+ * @returns Prompt template string (from file or fallback)
+ */
+function getIntentPromptTemplate(): string {
+  if (_intentPromptTemplate !== null) {
+    return _intentPromptTemplate;
+  }
+
+  const promptPath = join(
     process.env.CLAUDE_PROJECT_DIR || process.cwd(),
     '.claude',
     'hooks',
     'config',
     'intent-analysis-prompt.txt'
-  ),
-  'utf-8'
-);
+  );
+
+  if (existsSync(promptPath)) {
+    try {
+      _intentPromptTemplate = readFileSync(promptPath, 'utf-8');
+    } catch (err) {
+      console.warn(`Warning: Could not read intent prompt file: ${promptPath}, using fallback`);
+      _intentPromptTemplate = DEFAULT_INTENT_PROMPT;
+    }
+  } else {
+    console.warn(`Warning: Intent prompt file not found: ${promptPath}, using fallback`);
+    _intentPromptTemplate = DEFAULT_INTENT_PROMPT;
+  }
+
+  return _intentPromptTemplate;
+}
 
 /**
  * Call Anthropic API for AI-powered intent analysis
@@ -70,11 +117,11 @@ export async function callAnthropicAPI(
     .map(([name, config]) => `- ${name}: ${config.description || 'No description'}`)
     .join('\n');
 
-  // Apply template substitutions
-  const analysisPrompt = INTENT_PROMPT_TEMPLATE.replace('{{USER_PROMPT}}', prompt).replace(
-    '{{SKILL_DESCRIPTIONS}}',
-    skillDescriptions
-  );
+  // Load template lazily (with fallback) and apply substitutions
+  const template = getIntentPromptTemplate();
+  const analysisPrompt = template
+    .replace('{{USER_PROMPT}}', prompt)
+    .replace('{{SKILL_DESCRIPTIONS}}', skillDescriptions);
 
   // Call Claude API (model configurable via CLAUDE_SKILLS_MODEL env var)
   const model = process.env.CLAUDE_SKILLS_MODEL || 'claude-haiku-4-5';
