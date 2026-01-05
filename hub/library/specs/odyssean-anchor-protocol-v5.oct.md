@@ -18,10 +18,10 @@ CONCEPT::[
 DECISIONS::[
   TOOL_SURFACE::"Single staged tool: anchor(stage=...) (may be implemented as odyssean_anchor internally; avoid competing contracts)",
   CANONICAL_KNOBS::[
-    mode::[full|lite|untracked],
+    mode::[full|express|lite|untracked],
     strictness::[quick|default|deep]
   ],
-  PERSISTENCE_RULE::"For mode in [full,lite], Stage 1 MUST persist pending handshake state under .hestai/sessions/ (restart-safe).",
+  PERSISTENCE_RULE::"For mode in [full,express,lite], Stage 1 MUST persist pending handshake state under .hestai/sessions/ (restart-safe).",
   PROMOTION_RULE::"Stage 3 promotes by atomic rename/move: pending/{token} → active/{token} (no half-active sessions).",
   UNTRACKED_RULE::"mode=untracked MUST NOT write session state and MUST NOT unlock write tools."
 ]
@@ -72,7 +72,7 @@ PROTOCOL_FLOW::[
     TOOL_LOGIC::[
       "Ensure .hestai-sys governance is injected/available for {working_dir}",
       "Load role constitution from .hestai-sys/agents/{role}.oct.md",
-      "If mode in [full,lite]: create .hestai/sessions/pending/{token}/handshake.json",
+      "If mode in [full,express,lite]: create .hestai/sessions/pending/{token}/handshake.json",
       "Return: session_token + constitution_path (+ optional excerpt) + template for next payload"
     ]
     TRANSITION::LOBBY → IDENTITY
