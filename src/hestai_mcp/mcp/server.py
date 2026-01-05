@@ -226,15 +226,30 @@ def bootstrap_system_governance(project_root: Path | None) -> dict[str, Any]:
     Returns:
         Status dict with injection results
     """
+    used_cwd_fallback = False
+
     if project_root is None:
         # Try env var first (for explicit control)
         raw = os.environ.get("HESTAI_PROJECT_ROOT")
         # User explicitly set a path: use it. Otherwise: CWD (debate-hall pattern)
-        project_root = validate_working_dir(raw) if raw else Path.cwd()
+        if raw:
+            project_root = validate_working_dir(raw)
+        else:
+            used_cwd_fallback = True
+            project_root = Path.cwd()
     else:
         _validate_project_root(project_root)
 
-    _validate_project_identity(project_root)
+    try:
+        _validate_project_identity(project_root)
+    except RuntimeError as e:
+        # Provide actionable guidance when implicit CWD fallback isn't a project root.
+        if used_cwd_fallback:
+            raise RuntimeError(
+                "HESTAI_PROJECT_ROOT is not set and the current working directory is not a project root. "
+                "Either run the server from a project root (with .git/.hestai present) or set HESTAI_PROJECT_ROOT."
+            ) from e
+        raise
 
     return ensure_system_governance(project_root)
 

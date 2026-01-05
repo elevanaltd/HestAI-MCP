@@ -348,10 +348,33 @@ class TestStartupBootstrap:
         mock_ensure.assert_called_once_with(project_root)
         assert result == {"status": "ok"}
 
-    def test_bootstrap_raises_when_env_missing(self, tmp_path: Path, monkeypatch):
+    def test_bootstrap_uses_cwd_when_env_missing_and_cwd_is_project_root(
+        self, tmp_path: Path, monkeypatch
+    ):
+        from hestai_mcp.mcp import server
+
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+        (project_root / ".git").mkdir()
+
+        monkeypatch.delenv("HESTAI_PROJECT_ROOT", raising=False)
+        monkeypatch.chdir(project_root)
+
+        with patch.object(
+            server, "ensure_system_governance", return_value={"status": "ok"}
+        ) as mock_ensure:
+            result = server.bootstrap_system_governance(None)
+
+        mock_ensure.assert_called_once_with(project_root)
+        assert result == {"status": "ok"}
+
+    def test_bootstrap_raises_when_env_missing_and_cwd_not_project_root(
+        self, tmp_path: Path, monkeypatch
+    ):
         from hestai_mcp.mcp import server
 
         monkeypatch.delenv("HESTAI_PROJECT_ROOT", raising=False)
+        monkeypatch.chdir(tmp_path)
 
         with pytest.raises(RuntimeError, match="HESTAI_PROJECT_ROOT"):
             server.bootstrap_system_governance(None)
