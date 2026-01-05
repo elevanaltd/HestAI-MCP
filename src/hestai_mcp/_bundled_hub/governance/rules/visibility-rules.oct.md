@@ -1,0 +1,419 @@
+===VISIBILITY_RULES===
+
+META:
+  TYPE::STANDARD
+  ID::visibility-rules
+  VERSION::"1.4"
+  STATUS::ACTIVE
+  PURPOSE::"Placement and lifecycle rules for artifacts to ensure discoverability"
+  DOMAIN::governance
+  OWNERS::[system-steward]
+  CREATED::2025-12-09
+  UPDATED::2025-12-27
+  CANONICAL::hub/governance/rules/visibility-rules.oct.md
+  TAGS::[placement, visibility, documentation, lifecycle, hub, hestai-sys]
+
+===CORE_PRINCIPLE===
+
+LOCATION=VISIBILITY+PERMANENCE
+
+PLACEMENT_LOGIC::[
+  developer_docs→git_visibility[committed],
+  coordination_artifacts→ephemeral[gitignored],
+  placement→determines_audience+lifecycle
+]
+
+===PLACEMENT_RULES===
+
+RULE_0::SYSTEM_GOVERNANCE→hub/::[
+  AUDIENCE::all_HestAI_products+agents,
+  LIFECYCLE::committed+read_only_when_injected,
+  TRACKING::git_history+MCP_injection_as_.hestai-sys/,
+
+  WHAT_GOES_HERE::[
+    system_north_star[universal_immutables],
+    agent_constitution_templates[.oct.md],
+    governance_rules[naming+visibility+test_standards],
+    project_templates[north_star_templates],
+    reference_libraries[octave_pointers+guides],
+    system_tools[validators+checkers]
+  ],
+
+  STRUCTURE::[
+    hub/governance/workflow/→[000-SYSTEM-HESTAI-NORTH-STAR.md],
+    hub/governance/rules/→[naming-standard.oct.md|visibility-rules.oct.md],
+    hub/agents/→[agent_constitution_templates],
+    hub/templates/→[project_templates],
+    hub/library/→[reference_materials],
+    hub/tools/→[system_utilities]
+  ],
+
+  WHY_hub::[
+    universal_governance≠product_specific,
+    injected_as_.hestai-sys/[read_only],
+    agents_cannot_modify_their_own_rules,
+    single_source_of_truth_across_products,
+    I3_DUAL_LAYER_AUTHORITY_enforcement
+  ],
+
+  INJECTION_MECHANISM::[
+    MCP_server→copies_hub/→.hestai-sys/[runtime],
+    .hestai-sys/→gitignored[not_committed_per_product],
+    agents→read_.hestai-sys/[cannot_write]
+  ]
+]
+
+RULE_1::PERMANENT_ARCHITECTURAL→docs/::[
+  AUDIENCE::developers[via_git+GitHub+IDEs],
+  LIFECYCLE::committed+reviewed+permanent,
+  TRACKING::git_history_provides_versioning,
+
+  WHAT_GOES_HERE::[
+    architecture_decision_records[ADRs],
+    system_design_documents,
+    API_documentation,
+    database_schema_documentation,
+    deployment_guides,
+    development_setup_guides,
+    technical_reference_material
+  ],
+
+  STRUCTURE::[
+    docs/architecture-decisions/→[001-monorepo-structure.md|002-authentication-pattern.md],
+    docs/development/→SETUP.md,
+    docs/deployment/→DEPLOYMENT.md
+  ],
+
+  WHY_docs::[
+    visible_in_git_diffs+pull_requests,
+    searchable_in_GitHub_IDEs,
+    appears_in_repository_browsing,
+    versioned_alongside_code,
+    part_of_code_review_process
+  ]
+]
+
+RULE_2::OPERATIONAL_STATE→.hestai/context/::[
+  AUDIENCE::AI_agents+human_coordination,
+  LIFECYCLE::living_documents+high_churn,
+  TRACKING::git_committed[agent_context_awareness],
+
+  WHAT_GOES_HERE::[
+    PROJECT-CONTEXT.md[system_dashboard],
+    PROJECT-CHECKLIST.md[high_level_tasks],
+    PROJECT-HISTORY.md[significant_events],
+    app_specific_contexts[APP-CONTEXT.md|APP-CHECKLIST.md|APP-HISTORY.md]
+  ],
+
+  STRUCTURE::[
+    .hestai/context/→[PROJECT-CONTEXT.md|PROJECT-CHECKLIST.md|PROJECT-HISTORY.md],
+    .hestai/context/apps/{app}/→[APP-CONTEXT.md|APP-CHECKLIST.md|APP-HISTORY.md],
+    .hestai/context/.archive/→gitignored[deprecated_docs]
+  ],
+
+  WHY_.hestai_context::[
+    agents_need_fresh_context_per_invocation,
+    dashboard_pattern[PROJECT→APP_details],
+    high_update_frequency→would_pollute_commits,
+    git_tracking→enables_agent_awareness,
+    separate_from_developer_docs
+  ]
+]
+
+RULE_3::SESSION_ARTIFACTS→.hestai/sessions/::[
+  AUDIENCE::session_continuity+audit_trail,
+  LIFECYCLE::active→archived,
+  TRACKING::split_policy[active_ignored|archive_committed],
+
+  WHAT_GOES_HERE::[
+    active_session_working_state[in_progress],
+    archived_session_transcripts[durable],
+    derived_artifacts[durable]
+  ],
+
+  STRUCTURE::[
+    .hestai/sessions/active/{session_id}/→gitignored[session.json|anchor.json],
+    .hestai/sessions/archive/→committed[
+      YYYY-MM-DD-{focus}-{id}-raw.jsonl,
+      YYYY-MM-DD-{focus}-{id}-octave.oct.md,
+      YYYY-MM-DD-{focus}-{id}.verification.json
+    ]
+  ],
+
+  WHY_split_tracking::[
+    active→high_churn+partial_inconsistent_state,
+    archive→durable_record[continuity+auditability],
+    prevents_commit_noise→keeps_immutable_trail
+  ]
+]
+
+RULE_4::WORKFLOW_METHODOLOGY→.hestai/workflow/::[
+  AUDIENCE::AI_agents+system_governance,
+  LIFECYCLE::committed+stable_patterns,
+  TRACKING::git_history_tracks_methodology_evolution,
+
+  WHAT_GOES_HERE::[
+    north_star_documents[immutable_requirements],
+    workflow_phase_definitions,
+    DECISIONS.md[architectural_rationale_tokens],
+    test_infrastructure_standards,
+    binding_patterns_protocols
+  ],
+
+  STRUCTURE::[
+    .hestai/workflow/→000-{PROJECT}-NORTH-STAR.md,
+    .hestai/workflow/decisions/→DECISIONS.md,
+    .hestai/workflow/test-context/→[RULES.md|EXTRACTION-TESTING-POLICY.md|SUPABASE-HARNESS.md]
+  ],
+
+  WHY_.hestai_workflow::[
+    methodology_governance≠implementation_docs,
+    binding_patterns→agents_must_follow,
+    stable_enough_for_git_tracking,
+    cross_project_patterns_standards
+  ]
+]
+
+RULE_5::CLAUDE_CODE_CONFIG→.claude/::[
+  AUDIENCE::Claude_Code_CLI_infrastructure,
+  LIFECYCLE::committed+synchronized_across_projects,
+  TRACKING::git+sync_commands[cfg-config-sync],
+
+  WHAT_GOES_HERE::[
+    agent_constitutions[.oct.md_files],
+    slash_commands[/activate|/role],
+    skills[operational_knowledge_modules],
+    hooks[git_workflow_automation]
+  ],
+
+  STRUCTURE::[
+    .claude/agents/→[implementation-lead.oct.md|critical-engineer.oct.md],
+    .claude/commands/→activate.md,
+    .claude/skills/build-execution/,
+    .claude/hooks/→pre-commit
+  ],
+
+  WHY_.claude::[
+    Claude_Code_CLI_convention,
+    isolated_per_project[or_global_~/.claude/],
+    synchronized_via_cfg-config-sync,
+    infrastructure≠documentation
+  ]
+]
+
+RULE_6::REPORTS→.hestai/reports/::[
+  AUDIENCE::humans+reviewers+governance,
+  LIFECYCLE::durable+time_scoped_evidence,
+  TRACKING::committed[optional_gitignored_scratch_subdir],
+
+  WHAT_GOES_HERE::[
+    audit_reports[anchor_audits|gate_failures|integrity_checks],
+    security_scan_outputs[redaction_summaries|findings],
+    operational_diagnostics["why_clock_out_failed"],
+    quality_gate_evidence[retained_beyond_single_session]
+  ],
+
+  STRUCTURE::[
+    .hestai/reports/→[
+      YYYY-MM-DD-anchor-audit-clockout-clean-on-success.md,
+      YYYY-MM-DD-jsonl-secrets-scan-findings.json
+    ],
+    .hestai/reports/scratch/→gitignored[local_experiments]
+  ],
+
+  WHY_.hestai_reports::[
+    evidence_discoverable≠polluting_docs,
+    separates_durable_evidence≠living_dashboard[.hestai/context/],
+    stable_location["what_happened_and_why"]
+  ]
+]
+
+===DECISION_MATRIX===
+
+// KEY DISTINCTION: hub/ vs .hestai/
+//   hub/     = SYSTEM governance (universal, injected as read-only .hestai-sys/)
+//   .hestai/ = PRODUCT context (specific to this repo, mutable within rules)
+
+PLACEMENT_TABLE::[
+  // SYSTEM GOVERNANCE (hub/ → .hestai-sys/)
+  system_north_star→hub/governance/workflow/[committed|all_products|read_only_injection],
+  governance_rules→hub/governance/rules/[committed|all_products|read_only_injection],
+  agent_templates→hub/agents/[committed|all_products|read_only_injection],
+  project_templates→hub/templates/[committed|all_products|read_only_injection],
+  reference_libraries→hub/library/[committed|all_products|read_only_injection],
+  system_tools→hub/tools/[committed|all_products|read_only_injection],
+
+  // DEVELOPER DOCUMENTATION (docs/)
+  ADRs→docs/architecture-decisions/[committed|developers|permanent],
+  API_docs→docs/api/[committed|developers|permanent],
+  setup_guides→docs/development/[committed|developers|permanent],
+
+  // PRODUCT CONTEXT (.hestai/)
+  PROJECT-CONTEXT→.hestai/context/[committed|agents+human|living],
+  APP-CONTEXT→.hestai/context/apps/{app}/[committed|agents+human|living],
+  session_notes→.hestai/sessions/active/[ignored|session_only|ephemeral],
+  product_north_star→.hestai/workflow/[committed|governance|stable],
+  product_methodology→.hestai/workflow/[committed|governance|stable],
+  DECISIONS.md→.hestai/workflow/decisions/[committed|governance|stable],
+  test_standards→.hestai/workflow/test-context/[committed|governance|stable],
+  reports→.hestai/reports/[committed|humans+governance|durable_evidence],
+
+  // DEBATE ARTIFACTS (debates/)
+  debate_transcripts→debates/[split_tracking:json_ignored|octave_committed|cognitive_evidence|durable],
+
+  // CLAUDE CODE INFRASTRUCTURE (.claude/)
+  agent_constitutions→.claude/agents/[committed|Claude_Code|infrastructure],
+  skills→.claude/skills/[committed|Claude_Code|infrastructure]
+]
+
+===ANTI_PATTERNS===
+
+AVOID::[
+  DUPLICATE_CONTENT::[
+    problem::ADR_in_both_docs_and_.hestai,
+    fix::ADRs_ONLY_in_docs/architecture-decisions/
+  ],
+
+  MIX_ABSTRACTION_LEVELS::[
+    problem::implementation_details_in_PROJECT-CONTEXT,
+    fix::dashboard[PROJECT]→guides_to→detail[APP]
+  ],
+
+  COMMIT_EPHEMERAL::[
+    problem::session_handoffs_cluttering_git_history,
+    fix::.hestai/sessions/active/→gitignored
+  ],
+
+  DEVELOPER_DOCS_IN_HESTAI::[
+    problem::developers_wont_find_setup_guides_in_.hestai,
+    fix::developer_facing_docs→docs/
+  ]
+]
+
+===TIMELINE_TEST===
+
+QUESTION::"Was_this_needed_BEFORE_code_existed_or_discovered_AFTER?"
+
+TIMELINE_LOGIC::[
+  BEFORE_code::design_decisions+architecture→docs/|.hestai/workflow/,
+  AFTER_code::operational_state+progress_tracking→.hestai/context/,
+  DURING_session::handoffs+resumption→.hestai/sessions/[gitignored]
+]
+
+===MIGRATION_GUIDANCE===
+
+FROM_.hestai→TO_NEW_STRUCTURE::[
+  ADRs::.hestai/architecture-decisions/→docs/architecture-decisions/,
+  contexts::.hestai/PROJECT-CONTEXT.md→.hestai/context/PROJECT-CONTEXT.md,
+  workflow::.hestai/workflow-docs/→.hestai/workflow/,
+  decisions::.hestai/DECISIONS.md→.hestai/workflow/decisions/DECISIONS.md,
+  sessions::.hestai/sessions/→.hestai/sessions/[keep_gitignored],
+  reports::.hestai/reports/→.hestai/reports/
+]
+
+===FORMAT_RULES===
+
+// When to use OCTAVE (.oct.md) vs Markdown (.md)
+
+OCTAVE_FORMAT[.oct.md]::[
+  agent_constitutions,
+  governance_rules,
+  north_stars,
+  methodology_docs,
+  context_files[PROJECT-CONTEXT_etc],
+  session_archives
+]
+
+MARKDOWN_FORMAT[.md]::[
+  developer_guides[setup_deployment],
+  ADRs[architecture_decisions],
+  READMEs[navigation_pointers],
+  human_first_documentation
+]
+
+FORMAT_DECISION_TREE::[
+  "Primary audience AI agents?"→YES→.oct.md,
+  "Governance/methodology/constitution?"→YES→.oct.md,
+  "Primary audience human developers?"→YES→.md,
+  "ADR or setup guide?"→YES→.md
+]
+
+===FILE_RETENTION_POLICY===
+
+// Ratified by ADR-0060: JSON ephemeral, OCTAVE permanent
+// See: docs/adr/adr-0060-rfc-adr-alignment.md
+
+CORE_PRINCIPLE::"Raw machine formats are ephemeral; semantic compressions are permanent"
+
+RETENTION_TABLE::[
+  FORMAT                  | GIT_STATUS  | RATIONALE
+  ------------------------|-------------|------------------------------------------
+  .json/.jsonl[raw]       | GITIGNORED  | Machine_format+large+reconstructible
+  .oct.md[compressed]     | COMMITTED   | Semantic_density+human_readable+audit_trail
+]
+
+SESSION_ARCHIVES::[
+  LOCATION::.hestai/sessions/archive/,
+  GITIGNORED::[
+    *-raw.jsonl[full_transcript_machine_format],
+    *.verification.json[validation_metadata]
+  ],
+  COMMITTED::[
+    *-octave.oct.md[compressed_semantic_transcript]
+  ],
+  WHY::raw_transcripts_are_large+reconstructible_from_octave_if_needed
+]
+
+DEBATE_TRANSCRIPTS::[
+  LOCATION::debates/,
+  GITIGNORED::[
+    *.json[full_debate_machine_format]
+  ],
+  COMMITTED::[
+    *.oct.md[compressed_debate_synthesis]
+  ],
+  WHY::debate_json_is_working_state+synthesis_captures_decision_value
+]
+
+RETENTION_DECISION_TREE::[
+  "Is it raw machine format (.json/.jsonl)?"→YES→GITIGNORE,
+  "Is it semantic compression (.oct.md)?"→YES→COMMIT,
+  "Is it human-authored documentation?"→YES→COMMIT,
+  "Is it active session state?"→YES→GITIGNORE
+]
+
+FUTURE_EVOLUTION::[
+  EXTERNAL_ARTIFACT_STORE::Issue_#65[planned],
+  RATIONALE::large_artifacts_may_move_to_cloud_storage,
+  INTERIM_PATTERN::gitignore_now+external_store_later
+]
+
+===COMPATIBILITY===
+
+WITH_NAMING_STANDARD::[
+  VISIBILITY_RULES.md→answers["WHERE does artifact belong?"],
+  NAMING_STANDARD.md→answers["HOW to name once placed?"]
+]
+
+WITH_HUB_AUTHORING_RULES::[
+  VISIBILITY_RULES.md→answers["WHERE in PRODUCT?"],
+  HUB_AUTHORING_RULES.md→answers["WHERE in SYSTEM (hub/)?""]
+]
+
+===AUTHORITY===
+
+SOURCE::holistic-orchestrator_decision[2025-12-09]
+RATIONALE::separate_developer_docs[git_visible]≠coordination_artifacts[agent_focused]
+PATTERN::follows_HestAI_three_tier[ADMIN|DESIGN|BUILD_separation]
+COMPANION::naming-standard.md[naming+frontmatter_logic]
+
+===CHANGELOG===
+
+v1.4::2025-12-27→added_FILE_RETENTION_POLICY_section[ADR-0060_ratification]
+v1.3::2025-12-23→added_FORMAT_RULES_section+linked_HUB_AUTHORING_RULES
+v1.2::2025-12-23→added_RULE_0_hub/_system_governance+clarified_hub_vs_.hestai_distinction
+v1.1::2025-12-19→bundled_in_HestAI_MCP_Hub+OCTAVE_format_conversion
+v1.1::2025-12-18→added_frontmatter+linked_companion_NAMING-STANDARD
+v1.0::2025-12-09→initial_visibility_rules
+
+===END===

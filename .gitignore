@@ -11,7 +11,8 @@
 # System Governance (Delivered by MCP, NOT committed)
 .hestai-sys/
 
-# Active Sessions (Ephemeral)
+# Active/Pending Sessions (Ephemeral)
+.hestai/sessions/pending/
 .hestai/sessions/active/
 
 # Operational timestamps (session-specific state)

@@ -571,6 +571,11 @@ def ensure_hestai_structure(working_dir: Path) -> str:
     Creates direct .hestai/ directory with required subdirectories.
     No symlinks or worktrees - just plain directory structure.
 
+    Sessions are split into lifecycle directories:
+    - .hestai/sessions/pending/  (handshake in progress; gitignored)
+    - .hestai/sessions/active/   (activated sessions; gitignored)
+    - .hestai/sessions/archive/  (durable archives; committed)
+
     Args:
         working_dir: Project root directory
 
@@ -581,6 +586,7 @@ def ensure_hestai_structure(working_dir: Path) -> str:
 
     if hestai_dir.exists() and hestai_dir.is_dir():
         # Already exists - ensure subdirectories
+        (hestai_dir / "sessions" / "pending").mkdir(parents=True, exist_ok=True)
         (hestai_dir / "sessions" / "active").mkdir(parents=True, exist_ok=True)
         (hestai_dir / "sessions" / "archive").mkdir(parents=True, exist_ok=True)
         (hestai_dir / "context").mkdir(parents=True, exist_ok=True)
@@ -590,6 +596,7 @@ def ensure_hestai_structure(working_dir: Path) -> str:
 
     # Create new structure
     hestai_dir.mkdir(parents=True, exist_ok=True)
+    (hestai_dir / "sessions" / "pending").mkdir(parents=True, exist_ok=True)
     (hestai_dir / "sessions" / "active").mkdir(parents=True, exist_ok=True)
     (hestai_dir / "sessions" / "archive").mkdir(parents=True, exist_ok=True)
     (hestai_dir / "context").mkdir(parents=True, exist_ok=True)
