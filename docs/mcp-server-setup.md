@@ -82,6 +82,27 @@ Run `./setup-mcp.sh --show-config` to get copy/paste configuration for your setu
 
 After configuring, restart your AI client to apply changes.
 
+#### Server Lifecycle (Important)
+
+**When does the server start?**
+- The MCP server starts **when your AI client loads**, not when tools are called
+- Each new session/terminal creates a separate server instance
+- `bootstrap_system_governance()` runs at startup, creating `.hestai-sys/` immediately
+
+**When is `.hestai-sys` created?**
+- At server startup (before any tool calls)
+- Each tool call re-validates via `ensure_system_governance()` (idempotent)
+- Multiple server instances are safe - atomic operations prevent conflicts
+
+**Process architecture:**
+```
+AI Client Starts → Launch server.py → bootstrap_system_governance()
+                                     ↓
+                              .hestai-sys/ created
+                                     ↓
+                              stdio_server() waits for tool calls
+```
+
 ## Available Tools
 
 ### Currently Implemented
