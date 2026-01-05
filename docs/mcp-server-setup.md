@@ -32,9 +32,26 @@ See `./setup-mcp.sh --help` for all options.
 
 ### Manual Configuration
 
+#### Step 1: Configure Environment (Required)
+
+**Recommended:** Set `HESTAI_PROJECT_ROOT` in your `.env` file:
+
+```bash
+# .env file in your project root
+HESTAI_PROJECT_ROOT=/path/to/your/project
+```
+
+Copy `.env.example` to `.env` and update the path. The MCP server automatically loads `.env` files.
+
+**Alternative:** Set via MCP client configuration (see Step 2 example with `"env"` section).
+
+> **Why .env?** Simpler setup, version-controlled (when appropriate), and familiar to developers.
+
+#### Step 2: Configure MCP Client
+
 Run `./setup-mcp.sh --show-config` to get copy/paste configuration for your setup.
 
-Example configuration for Claude Desktop / Claude Code CLI:
+**With .env file** (recommended - simpler):
 
 ```json
 {
@@ -42,6 +59,22 @@ Example configuration for Claude Desktop / Claude Code CLI:
     "hestai": {
       "command": "/path/to/HestAI-MCP/.venv/bin/python",
       "args": ["/path/to/HestAI-MCP/src/hestai_mcp/mcp/server.py"]
+    }
+  }
+}
+```
+
+**Without .env file** (requires env in client config):
+
+```json
+{
+  "mcpServers": {
+    "hestai": {
+      "command": "/path/to/HestAI-MCP/.venv/bin/python",
+      "args": ["/path/to/HestAI-MCP/src/hestai_mcp/mcp/server.py"],
+      "env": {
+        "HESTAI_PROJECT_ROOT": "/path/to/your/project"
+      }
     }
   }
 }
@@ -131,4 +164,4 @@ After configuring Claude Desktop and restarting, the tools will be available as:
 - Hub injection is planned for Phase 4 (currently commented out)
 
 ---
-*Last updated: 2026-01-04*
+*Last updated: 2026-01-05*
