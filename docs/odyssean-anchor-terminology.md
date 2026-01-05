@@ -3,117 +3,131 @@
 > **Trademark Notice**: "Odyssean Anchor" is a registered trademark of Shaun Buswell (UK00004198373). See [trademarks.md](trademarks.md) for usage guidelines.
 
 **Status**: AUTHORITATIVE
-**Date**: 2026-01-01
-**Source**: debates/2026-01-01-identity-vs-binding-terminology.oct.md
+**Date**: 2026-01-05
+**Source**: debates/2026-01-05-oa5-terminology (debate synthesis)
 
 ---
 
-## Overview
+## What this document standardizes
 
-The Odyssean Anchor system uses terminology at **two distinct abstraction layers**. Understanding this stratification prevents confusion when reading documentation or building agents.
+This document defines two things, and **keeps them separate**:
+
+1. **Nautical anatomy** (SHANK / ARMS / FLUKES) as a *human mnemonic* for thinking about composition.
+2. The **canonical runtime proof artifact** validated by tooling.
+
+### The rule
+
+- Nautical terms are allowed in explanations.
+- Nautical terms **MUST NOT** be used as *runtime schema headers*.
 
 ---
 
-## The Two Layers
+## Canonical runtime artifact (OA5): Odyssean Anchor Proof
 
-### Layer 1: Identity Composition (Design-Time)
+The **Odyssean Anchor Proof** is the canonical structured submission intended to be validated server-side by the `odyssean_anchor` tool.
 
-**Purpose**: Describes HOW TO BUILD agent constitutions
+It has three top-level sections:
 
-**Metaphor**: A nautical anchor's physical anatomy
+- **IDENTITY** — who the agent is (agent-declared)
+- **CONTEXT** — where/when the agent is (authoritative; MCP-enriched)
+- **PROOF** — how the agent demonstrates it actually perceived context (agent-generated)
+  - **TENSIONS** — 1..N cognitive proof lines (keystone)
+  - **COMMIT** — falsifiable contract (artifact + gate)
+
+### Minimal template
 
 ```
-ODYSSEAN ANCHOR (The Artifact)
-       │
-   [SHANK]          ← WHO: Core identity (cognition + archetype)
-       │
-   [ARM]            ← WHERE/WHEN: Phase context (operational environment)
-       │
-   [FLUKE]          ← WHAT: Capabilities (skills, patterns, authority)
+===ODYSSEAN_ANCHOR_PROOF::v5.0===
+
+IDENTITY::
+  ROLE::...
+  COGNITION::...
+  AUTHORITY::RESPONSIBLE[scope_description]  # or DELEGATED[parent_session_id]
+
+CONTEXT::  # MCP-enriched (canonical output is authoritative; candidate values are checked for hallucination)
+  PHASE::...
+  BRANCH::...
+  FILES::...
+
+PROOF::
+  TENSIONS::[
+    L1::[constraint]⇌CTX:{path}[state]→TRIGGER[action]
+  ]
+  COMMIT::
+    ARTIFACT::...
+    GATE::...
+
+===END_ODYSSEAN_ANCHOR_PROOF===
 ```
 
-**Use this when**: Designing agent prompts, composing agent identities, discussing agent architecture.
+### Cognitive proof (keystone)
 
-### Layer 2: Runtime Binding (Validation)
+`L{N}::[constraint]⇌CTX:{path}[state]→TRIGGER[action]` is required because it forces a binding between:
 
-**Purpose**: Describes HOW TO VALIDATE agents absorbed context correctly
+- a *specific constitutional line* (`L{N}`),
+- a *falsifiable piece of runtime context* (`CTX:{path}[state]`), and
+- a concrete *action trigger* (`TRIGGER[...]`).
 
-**Schema**: RAPH Vector v4.0
-
-```
-RAPH VECTOR (The Proof)
-├── BIND      ← Identity lock (role + authority declaration)
-├── ARM       ← Context proof (server-injected git state, phase, files)
-├── TENSION   ← Cognitive proof (agent reasoning with citations)
-└── COMMIT    ← Falsifiable contract (artifact + validation gate)
-```
-
-**Use this when**: Implementing binding validation, working with odyssean_anchor tool, debugging binding failures.
+This is the anti-theater mechanism: it’s hard to fake consistently and easy to challenge.
 
 ---
 
-## Why ARM Appears in Both Layers
+## Nautical anatomy (mnemonic only)
 
-ARM is not a collision—it's the **same semantic concept** at different abstraction levels.
+Correct terms:
 
-**Nautical meaning**: The arm (or "scope") is the cable connecting the anchor to the ship—the reach into reality.
+- **SHANK** — the main long part of an anchor.
+- **ARMS** — the parts that extend out from the bottom of the shank.
+- **FLUKES** — the curved ends of the arms that dig into the seabed.
 
-| Layer | ARM Represents |
-|-------|----------------|
-| Identity Composition | The agent's contextual awareness capability |
-| Runtime Binding | Proof of that contextual awareness (actual git state, phase, files) |
+Optional (available for future alignment if needed):
 
-The runtime ARM is the **embodiment** of the identity ARM. One describes the capability; the other proves its use.
+- **HEAD** — the top attachment point (where the chain/rope connects).
+- **CROWN** — the lower junction where the shank and arms meet.
 
----
+### Mnemonic mapping (conceptual)
 
-## Terminology Glossary
+- SHANK ↔ IDENTITY (static identity shaft)
+- ARMS ↔ CONTEXT (reach into reality)
+- FLUKES ↔ PROOF (the “bite”: tensions + commitment)
 
-### Identity Composition Terms (SHANK/ARM/FLUKE)
+This framing can be useful as a teaching aid:
 
-| Term | Meaning | Example |
-|------|---------|---------|
-| **Odyssean Anchor** | Complete agent identity architecture | SHANK + ARM + FLUKE |
-| **SHANK** | WHO the agent is | COGNITION::LOGOS, ARCHETYPE::HEPHAESTUS |
-| **ARM** | WHERE/WHEN the agent operates | BUILD phase, code-focused context |
-| **FLUKE** | WHAT the agent can do | Skills: TDD, security-analysis; Authority: RESPONSIBLE |
-
-### Runtime Binding Terms (RAPH Vector v4.0)
-
-| Term | Meaning | Example |
-|------|---------|---------|
-| **RAPH Vector** | Binding proof artifact | 4-section structured submission |
-| **BIND** | Identity assertion (encompasses SHANK + FLUKE) | `ROLE::implementation-lead` |
-| **ARM** | Context proof (server-injected, authoritative) | `BRANCH::feat/auth[2↑0↓]` |
-| **TENSION** | Cognitive reasoning proof (agent-generated) | `[TDD_FIRST]↔CTX:tests/[empty]→TRIGGER[write_test]` |
-| **COMMIT** | Falsifiable contract | `ARTIFACT::src/auth/service.ts` |
+> SHANK (static identity) + ARMS (dynamic context reach) ⇒ FLUKES (holding power / commitment)
 
 ---
 
-## Relationship Mapping
+## RAPH: keep as a process, not an artifact
 
-| Identity (Design) | Runtime (Binding) | Relationship |
-|-------------------|-------------------|--------------|
-| SHANK | BIND | BIND encompasses SHANK's identity declaration |
-| ARM | ARM | Same semantic: contextual reach into reality |
-| FLUKE | BIND.AUTHORITY | FLUKE's authority concept absorbed into BIND |
-| *(none)* | TENSION | New in runtime: agent reasoning proof |
-| *(none)* | COMMIT | New in runtime: falsifiable contract |
+**RAPH** (Read–Absorb–Perceive–Harmonise) is a sequential processing directive (a *workflow*).
+
+- RAPH may be used as an optional thinking protocol for complex / high-risk work.
+- RAPH must **not** be used to name or label the runtime proof artifact.
+
+The artifact is the **Odyssean Anchor Proof**; RAPH is a way an agent may process inputs before producing it.
 
 ---
 
-## Quick Reference
+## Deprecated terms (OA4)
 
-**Building an agent prompt?** Think SHANK (who) + ARM (where/when) + FLUKE (what).
+The following terms are deprecated and should not appear in new examples:
 
-**Validating agent binding?** Check BIND + ARM + TENSION + COMMIT in RAPH Vector.
+- "RAPH Vector v4.0" (rename to **Odyssean Anchor Proof**)
+- runtime schema headers: **BIND / ARM / TENSION / COMMIT**
+  - use **IDENTITY / CONTEXT / PROOF** (TENSIONS + COMMIT)
 
-**Confused about ARM?** Same concept, different layers. Identity ARM = capability. Runtime ARM = proof.
+Note: `ARM` is intentionally removed from runtime headers to avoid collision with nautical ARM.
+
+---
+
+## Quick reference
+
+- **Designing an agent prompt / identity composition?** Use the nautical mnemonic.
+- **Implementing or validating binding?** Use the OA5 Odyssean Anchor Proof schema.
 
 ---
 
 ## References
 
 - ADR-0036: Odyssean Anchor Binding Architecture
-- debates/2026-01-01-identity-vs-binding-terminology.oct.md
-- debates/2026-01-01-agent-format-oa.oct.md (Amendment 01 context)
+- `.hestai/workflow/specs/odyssean-anchor-tool-spec.oct.md`
