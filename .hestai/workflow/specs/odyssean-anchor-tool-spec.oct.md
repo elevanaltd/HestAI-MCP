@@ -3,49 +3,47 @@
 META:
   TYPE::"IMPLEMENTATION_SPEC"
   ID::"odyssean-anchor-mcp-tool"
-  VERSION::"1.2"
-  STATUS::IMPLEMENTED
-  PRIORITY::COMPLETE
+  VERSION::"2.0"
+  STATUS::APPROVED
+  PRIORITY::NEXT
+  TARGET::"OA5"
   GITHUB_ISSUE::#11
   CREATED::"2025-12-27"
-  UPDATED::"2026-01-03"
+  UPDATED::"2026-01-05"
   AUTHOR::"holistic-orchestrator"
-  DEBATE_SOURCE::"debates/2025-12-27-load-command-architecture.oct.md"
-  IMPLEMENTATION_EVIDENCE::[
-    Phase_1::PR_#126_merged[odyssean_anchor_tool_949_lines],
-    Phase_2::gating.py[has_valid_anchor_for_OA-I6],
-    Phase_3::server.py[MCP_tool_exposed],
-    Tests::511_passing[as_of_2026-01-03]
-  ]
+  SUPERSEDES::"v1.2 (OA4: RAPH_VECTOR::v4.0)"
 
 ## PURPOSE
 
-Replace legacy `anchor_submit` with `odyssean_anchor` MCP tool that provides:
-- Server-side RAPH vector validation (not client-side)
+Define the `odyssean_anchor` MCP tool contract for validating the **Odyssean Anchor Proof (OA5)** server-side:
+- Strong schema validation (not client-side)
 - Retry guidance on failure (not silent acceptance)
 - Challenge-response validation layer
-- ARM context injection (authoritative, not agent-generated)
+- Authoritative CONTEXT enrichment (not agent-generated)
+
+## STATUS
+
+IMPLEMENTATION_STATUS::PENDING
+NOTE::"v1.2 described OA4 (RAPH_VECTOR::v4.0). OA5 is the canonical forward spec."
 
 ## CONTEXT
 
 CURRENT_STATE::[
-  anchor_submit::EXISTS[returns_enforcement_rules_no_vector_validation],
   clock_in::EXISTS[returns_session_id_context_paths],
   clock_out::EXISTS[archives_session]
 ]
 
 PROBLEM::[
-  "anchor_submit accepts any structure without validation",
-  "Agent can generate invalid/hallucinated ARM",
-  "No retry guidance on malformed vectors",
-  "Validation theater continues"
+  "Agents can fabricate or misread project state",
+  "No retry guidance when proof artifacts are malformed",
+  "Validation theater continues without falsifiable anchors"
 ]
 
-DEBATE_CONSENSUS::[
-  "odyssean_anchor MCP tool is essential (client-side validation insufficient)",
-  "MCP holds authoritative ARM state",
-  "TENSION is cognitive proof (agent interprets, not copies)",
-  "4-section schema: BIND, ARM, TENSION, COMMIT"
+DESIGN_CONSENSUS::[
+  "Anchor proof must separate artifact vs process (RAPH is a process, not the proof name)",
+  "MCP holds authoritative CONTEXT state",
+  "TENSIONS are the cognitive proof keystone",
+  "COMMIT is a falsifiable contract (artifact + gate)"
 ]
 
 ## SPECIFICATION
@@ -57,44 +55,62 @@ SIGNATURE::
   PARAMS::[
     session_id::str[Session_ID_from_clock_in],
     role::str[Agent_role_name],
-    vector_candidate::str[Raw_RAPH_VECTOR_block],
+    proof_candidate::str[Raw_ODYSSEAN_ANCHOR_PROOF_block],
     tier::str[quick|default|deep]
   ]
   RETURNS::OdysseanAnchorResult[
     validated::bool,
-    canonical_anchor::str,
+    canonical_proof::str,
     errors::list[str],
     guidance::str,
     enforcement::dict
   ]
 
+### Canonical Proof Format (OA5)
+
+MARKERS::[
+  START::"===ODYSSEAN_ANCHOR_PROOF::v5.0===",
+  END::"===END_ODYSSEAN_ANCHOR_PROOF==="
+]
+
+SECTIONS::[
+  TOP_LEVEL::[IDENTITY, CONTEXT, PROOF],
+  PROOF_CONTAINS::[TENSIONS, COMMIT]
+]
+
 ### Validation Logic
 
 SCHEMA_VALIDATION::[
-  has_markers::"===RAPH_VECTOR::v4.0===" and "===END_RAPH_VECTOR===",
-  has_sections::[BIND, ARM, TENSION, COMMIT],
-  no_extra_sections::"SOURCES, HAZARD, FLUKE rejected as separate sections"
+  has_markers::"OA5 START/END markers present",
+  has_sections::[IDENTITY, CONTEXT, PROOF],
+  proof_has_sections::[TENSIONS, COMMIT],
+  no_unknown_top_level_sections::"Reject unknown top-level sections"
 ]
 
-BIND_VALIDATION::[
+IDENTITY_VALIDATION::[
   has_role::"ROLE:: field present",
   has_cognition::"COGNITION:: field present",
   has_authority::"AUTHORITY:: field present with scope (RESPONSIBLE[scope] or DELEGATED[parent_session])"
 ]
 
-ARM_VALIDATION::[
-  // ARM is MCP-ENRICHED, not agent-generated
-  // Tool compares agent-submitted ARM against authoritative state
+CONTEXT_VALIDATION::[
+  // CONTEXT is MCP-ENRICHED, not agent-authored truth
+  // Tool compares candidate CONTEXT against authoritative state and emits canonical CONTEXT
   phase_matches_context::"PHASE matches PROJECT-CONTEXT.oct.md",
   branch_matches_git::"BRANCH matches current git branch",
   files_plausible::"FILES count within reasonable range of git status"
+]
+
+PROOF_VALIDATION::[
+  tensions_valid::TENSION_VALIDATION,
+  commit_valid::COMMIT_VALIDATION
 ]
 
 TENSION_VALIDATION::[
   count_meets_tier::"QUICK>=1, DEFAULT>=2, DEEP>=3",
   has_line_citation::"Each tension includes L{N}",
   has_ctx_citation::"Each tension includes CTX:{path}",
-  ctx_is_falsifiable::"CTX path exists or refers to known context"
+  ctx_is_falsifiable::"CTX path exists or refers to allowed external context"
 ]
 
 COMMIT_VALIDATION::[
@@ -112,18 +128,19 @@ RETRY_PROTOCOL::[
 ]
 
 GUIDANCE_EXAMPLES::[
-  arm_mismatch::"ARM shows PHASE::B2 but PROJECT-CONTEXT.oct.md shows B1. Update PHASE to match context.",
+  context_mismatch::"CONTEXT shows PHASE::B2 but PROJECT-CONTEXT.oct.md shows B1. Update PHASE to match context.",
   tension_missing_ctx::"TENSION 1 has L315 but no CTX citation. Add CTX:{path}[{state}] to prove context awareness.",
   commit_abstract::"COMMIT artifact is 'my response'. Name a concrete file (e.g., src/main.py) or tool output.",
   tension_count::"TIER_DEFAULT requires 2 tensions, found 1. Add another tension."
 ]
 
-### ARM Injection
+### CONTEXT Enrichment
 
-ARM_INJECTION::[
+CONTEXT_ENRICHMENT::[
   SOURCE::"clock_in session + git state + PROJECT-CONTEXT.oct.md",
-  AUTHORITATIVE::"MCP-generated ARM is truth, not agent-submitted",
-  COMPARISON::"Agent ARM vs MCP ARM - warn on mismatch, fail on gross hallucination"
+  AUTHORITATIVE::"MCP-enriched CONTEXT is truth; candidate CONTEXT is compared against it for mismatch detection only",
+  OUTPUT_RULE::"Canonical output MUST use authoritative CONTEXT (never candidate CONTEXT)",
+  COMPARISON::"Candidate CONTEXT vs authoritative CONTEXT - warn on mismatch, fail on gross hallucination"
 ]
 
 ## IMPLEMENTATION
@@ -136,36 +153,14 @@ DEPENDENCIES::[
   git::"For branch/files verification"
 ]
 
-INTEGRATION_POINT::[
-  ID::"odyssean_anchor",
-  STAGE::"NOW (implemented 2026-01-02)",
-  REFERENCE_TOKEN::"INTEGRATION_POINT::odyssean_anchor",
-  CONTRACT_TEST::"tests/contracts/odyssean_anchor/test_*.py",
-  INTEGRATION_TEST::"tests/integration/odyssean_anchor/test_*.py[5_tests_passing]"
-]
-
-## MIGRATION
-
-FROM_ANCHOR_SUBMIT::[
-  STEP_1::"Build odyssean_anchor with validation logic",
-  STEP_2::"Update /bind command to call odyssean_anchor",
-  STEP_3::"Deprecate anchor_submit (keep for backwards compat)",
-  STEP_4::"Update subagent protocols to use odyssean_anchor"
-]
-
-BACKWARDS_COMPAT::[
-  anchor_submit::"Keep working for existing integrations",
-  enforcement::"odyssean_anchor returns same enforcement fields"
-]
-
 ## SUCCESS_CRITERIA
 
 VALIDATION::[
-  "Rejects vectors with missing sections",
+  "Rejects proofs with missing sections",
   "Rejects tensions without CTX citations",
   "Rejects abstract COMMIT artifacts",
   "Provides specific retry guidance",
-  "Detects ARM hallucination vs git reality"
+  "Detects CONTEXT hallucination vs git reality"
 ]
 
 PERFORMANCE::[
@@ -176,14 +171,14 @@ PERFORMANCE::[
 ## REFERENCES
 
 ADR_0036::"docs/adr/adr-0036-odyssean-anchor-binding.md"
-DEBATE_RECORD::"debates/2025-12-27-load-command-architecture.oct.md"
+TERMINOLOGY::"docs/odyssean-anchor-terminology.md"
 BIND_COMMAND_REFERENCE::"hub/library/commands/bind.md"
 NORTH_STAR_I5::"ODYSSEAN_IDENTITY_BINDING"
 
 ## SYNTAX_NOTES
 
-RAPH_TENSION_SYNTAX::[
-  // RAPH Vector TENSION lines use OCTAVE operators per octave-5-llm-core.oct.md
+TENSION_SYNTAX::[
+  // OA5 TENSION lines use OCTAVE operators per octave-5-llm-core.oct.md
   FORMAT::"L{N}::[constraint]⇌CTX:{path}[state]→TRIGGER[action]"
   OPERATORS::[
     "⇌"::tension[binary_opposition_between_constraint_and_context],
@@ -202,6 +197,13 @@ AUTHORITY_FORMAT::[
   DELEGATED::"DELEGATED[parent_session_id]",
   EXAMPLE_RESPONSIBLE::"RESPONSIBLE[system_coherence_orchestration]",
   EXAMPLE_DELEGATED::"DELEGATED[parent_abc123::review_task]"
+]
+
+## DEPRECATIONS
+
+OA4_DEPRECATED::[
+  "RAPH Vector v4.0 is a deprecated name (RAPH is a process, not an artifact)",
+  "BIND/ARM/TENSION/COMMIT headers are deprecated in favor of IDENTITY/CONTEXT/PROOF"
 ]
 
 ===END===
