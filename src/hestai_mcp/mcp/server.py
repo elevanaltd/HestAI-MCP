@@ -19,6 +19,7 @@ import shutil
 from pathlib import Path
 from typing import Any
 
+from dotenv import load_dotenv
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
@@ -26,6 +27,10 @@ from mcp.types import TextContent, Tool
 from hestai_mcp.mcp.tools.clock_in import clock_in_async, validate_working_dir
 from hestai_mcp.mcp.tools.clock_out import clock_out
 from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+
+# Load .env file for HESTAI_PROJECT_ROOT and other configuration
+# This must happen BEFORE bootstrap_system_governance() is called
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
