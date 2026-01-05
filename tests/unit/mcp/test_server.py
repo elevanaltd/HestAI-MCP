@@ -30,35 +30,32 @@ class TestGetHubPath:
     """Test hub path discovery from bundled package."""
 
     def test_returns_hub_path_when_exists(self, tmp_path: Path):
-        """Returns path to hub directory when it exists."""
+        """Returns path to bundled hub directory when it exists."""
         from hestai_mcp.mcp import server
 
-        # Create a mock hub directory
-        fake_hub = tmp_path / "hub"
-        fake_hub.mkdir()
+        # Layout:
+        #   tmp_path/src/hestai_mcp/mcp/server.py
+        #   tmp_path/src/hestai_mcp/_bundled_hub/
+        bundled_hub = tmp_path / "src" / "hestai_mcp" / "_bundled_hub"
+        bundled_hub.mkdir(parents=True)
 
-        # Mock __file__ to point to our test directory
         fake_server_file = tmp_path / "src" / "hestai_mcp" / "mcp" / "server.py"
         fake_server_file.parent.mkdir(parents=True)
         fake_server_file.touch()
 
         with patch.object(server, "__file__", str(fake_server_file)):
-            # Now the hub path will be:
-            # fake_server_file.parent.parent.parent.parent / "hub"
-            # = tmp_path / "hub"
             result = server.get_hub_path()
 
-        assert result == fake_hub
+        assert result == bundled_hub
 
     def test_raises_file_not_found_when_hub_missing(self, tmp_path: Path):
-        """Raises FileNotFoundError when hub directory doesn't exist."""
+        """Raises FileNotFoundError when bundled hub directory doesn't exist."""
         from hestai_mcp.mcp import server
 
-        # Mock __file__ to point to a location without hub
+        # Mock __file__ to point to a location without _bundled_hub
         fake_server_file = tmp_path / "src" / "hestai_mcp" / "mcp" / "server.py"
         fake_server_file.parent.mkdir(parents=True)
         fake_server_file.touch()
-        # Note: We don't create the hub directory
 
         with (
             patch.object(server, "__file__", str(fake_server_file)),
@@ -91,18 +88,19 @@ class TestGetHubVersion:
 
         assert result == "1.2.3"
 
-    def test_returns_unknown_when_version_file_missing(self, tmp_path: Path):
-        """Returns 'unknown' when VERSION file doesn't exist."""
+    def test_raises_when_version_file_missing(self, tmp_path: Path):
+        """Raises FileNotFoundError when VERSION file doesn't exist (fail-closed)."""
         from hestai_mcp.mcp import server
 
         # Create hub without VERSION file
         fake_hub = tmp_path / "hub"
         fake_hub.mkdir()
 
-        with patch.object(server, "get_hub_path", return_value=fake_hub):
-            result = server.get_hub_version()
-
-        assert result == "unknown"
+        with (
+            patch.object(server, "get_hub_path", return_value=fake_hub),
+            pytest.raises(FileNotFoundError, match="VERSION"),
+        ):
+            server.get_hub_version()
 
 
 # =============================================================================
@@ -120,11 +118,14 @@ class TestInjectSystemGovernance:
 
         project_root = tmp_path / "project"
         project_root.mkdir()
+        (project_root / ".git").mkdir()
 
         # Create minimal hub structure
         fake_hub = tmp_path / "hub"
         fake_hub.mkdir()
         (fake_hub / "VERSION").write_text("1.0.0")
+        for dir_name in ["governance", "agents", "library", "templates"]:
+            (fake_hub / dir_name).mkdir()
 
         with patch.object(server, "get_hub_path", return_value=fake_hub):
             server.inject_system_governance(project_root)
@@ -138,6 +139,7 @@ class TestInjectSystemGovernance:
 
         project_root = tmp_path / "project"
         project_root.mkdir()
+        (project_root / ".git").mkdir()
 
         # Create hub with governance directories
         fake_hub = tmp_path / "hub"
@@ -165,10 +167,13 @@ class TestInjectSystemGovernance:
 
         project_root = tmp_path / "project"
         project_root.mkdir()
+        (project_root / ".git").mkdir()
 
         fake_hub = tmp_path / "hub"
         fake_hub.mkdir()
         (fake_hub / "VERSION").write_text("2.0.0")
+        for dir_name in ["governance", "agents", "library", "templates"]:
+            (fake_hub / dir_name).mkdir()
 
         with patch.object(server, "get_hub_path", return_value=fake_hub):
             server.inject_system_governance(project_root)
@@ -183,6 +188,7 @@ class TestInjectSystemGovernance:
 
         project_root = tmp_path / "project"
         project_root.mkdir()
+        (project_root / ".git").mkdir()
 
         # Pre-create .hestai-sys with old content
         hestai_sys = project_root / ".hestai-sys"
@@ -194,8 +200,9 @@ class TestInjectSystemGovernance:
         fake_hub = tmp_path / "hub"
         fake_hub.mkdir()
         (fake_hub / "VERSION").write_text("1.0.0")
+        for dir_name in ["governance", "agents", "library", "templates"]:
+            (fake_hub / dir_name).mkdir(exist_ok=True)
         new_agents = fake_hub / "agents"
-        new_agents.mkdir()
         (new_agents / "new-agent.md").write_text("New content")
 
         with patch.object(server, "get_hub_path", return_value=fake_hub):
@@ -204,6 +211,150 @@ class TestInjectSystemGovernance:
         # Old file should be gone, new file should exist
         assert not (hestai_sys / "agents" / "old-agent.md").exists()
         assert (hestai_sys / "agents" / "new-agent.md").exists()
+
+
+# =============================================================================
+# PHASE 2: ensure_system_governance tests
+# =============================================================================
+
+
+@pytest.mark.unit
+class TestEnsureSystemGovernance:
+    """Test idempotent system governance materialization into .hestai-sys/."""
+
+    def test_injects_when_hestai_sys_missing(self, tmp_path: Path):
+        """Injects hub into .hestai-sys when missing."""
+        from hestai_mcp.mcp import server
+
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+        (project_root / ".git").mkdir()
+
+        # Create minimal hub structure
+        fake_hub = tmp_path / "hub"
+        fake_hub.mkdir()
+        (fake_hub / "VERSION").write_text("1.0.0")
+        for dir_name in ["governance", "agents", "library", "templates"]:
+            (fake_hub / dir_name).mkdir()
+
+        with patch.object(server, "get_hub_path", return_value=fake_hub):
+            result = server.ensure_system_governance(project_root)
+
+        assert result["status"] in {"injected", "updated"}
+        assert (project_root / ".hestai-sys" / ".version").read_text() == "1.0.0"
+
+    def test_noop_when_version_matches(self, tmp_path: Path):
+        """Does nothing when .hestai-sys version matches hub version and required dirs exist."""
+        from hestai_mcp.mcp import server
+
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+        (project_root / ".git").mkdir()
+        hestai_sys = project_root / ".hestai-sys"
+        hestai_sys.mkdir()
+        (hestai_sys / ".version").write_text("1.0.0")
+        for dir_name in ["governance", "agents", "library", "templates"]:
+            (hestai_sys / dir_name).mkdir()
+
+        with (
+            patch.object(server, "get_hub_version", return_value="1.0.0"),
+            patch.object(server, "inject_system_governance") as mock_inject,
+        ):
+            result = server.ensure_system_governance(project_root)
+
+        mock_inject.assert_not_called()
+        assert result["status"] == "up_to_date"
+
+    def test_reinjects_when_required_dirs_missing_even_if_version_matches(self, tmp_path: Path):
+        """Re-injects if required subdirectories are missing (fail-closed integrity)."""
+        from hestai_mcp.mcp import server
+
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+        (project_root / ".git").mkdir()
+        hestai_sys = project_root / ".hestai-sys"
+        hestai_sys.mkdir()
+        (hestai_sys / ".version").write_text("1.0.0")
+        # Intentionally do NOT create governance/agents/library/templates
+
+        with (
+            patch.object(server, "get_hub_version", return_value="1.0.0"),
+            patch.object(server, "inject_system_governance") as mock_inject,
+        ):
+            result = server.ensure_system_governance(project_root)
+
+        mock_inject.assert_called_once_with(project_root)
+        assert result["status"] == "updated"
+
+    def test_reinjects_when_version_mismatched(self, tmp_path: Path):
+        """Re-injects when hub version changes."""
+        from hestai_mcp.mcp import server
+
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+        (project_root / ".git").mkdir()
+        hestai_sys = project_root / ".hestai-sys"
+        hestai_sys.mkdir()
+        (hestai_sys / ".version").write_text("0.9.0")
+
+        fake_hub = tmp_path / "hub"
+        fake_hub.mkdir()
+        (fake_hub / "VERSION").write_text("1.0.0")
+        for dir_name in ["governance", "agents", "library", "templates"]:
+            (fake_hub / dir_name).mkdir()
+
+        with patch.object(server, "get_hub_path", return_value=fake_hub):
+            result = server.ensure_system_governance(project_root)
+
+        assert result["status"] == "updated"
+        assert (project_root / ".hestai-sys" / ".version").read_text() == "1.0.0"
+
+
+# =============================================================================
+# PHASE 2: startup bootstrap tests
+# =============================================================================
+
+
+@pytest.mark.unit
+class TestStartupBootstrap:
+    def test_bootstrap_uses_explicit_project_root(self, tmp_path: Path):
+        from hestai_mcp.mcp import server
+
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+        (project_root / ".git").mkdir()
+
+        with patch.object(
+            server, "ensure_system_governance", return_value={"status": "ok"}
+        ) as mock_ensure:
+            result = server.bootstrap_system_governance(project_root)
+
+        mock_ensure.assert_called_once_with(project_root)
+        assert result == {"status": "ok"}
+
+    def test_bootstrap_uses_env_when_project_root_not_provided(self, tmp_path: Path, monkeypatch):
+        from hestai_mcp.mcp import server
+
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+        (project_root / ".git").mkdir()
+        monkeypatch.setenv("HESTAI_PROJECT_ROOT", str(project_root))
+
+        with patch.object(
+            server, "ensure_system_governance", return_value={"status": "ok"}
+        ) as mock_ensure:
+            result = server.bootstrap_system_governance(None)
+
+        mock_ensure.assert_called_once_with(project_root)
+        assert result == {"status": "ok"}
+
+    def test_bootstrap_raises_when_env_missing(self, tmp_path: Path, monkeypatch):
+        from hestai_mcp.mcp import server
+
+        monkeypatch.delenv("HESTAI_PROJECT_ROOT", raising=False)
+
+        with pytest.raises(RuntimeError, match="HESTAI_PROJECT_ROOT"):
+            server.bootstrap_system_governance(None)
 
 
 # =============================================================================
@@ -283,6 +434,7 @@ class TestCallTool:
         # Create minimal hestai structure
         project = tmp_path / "project"
         project.mkdir()
+        (project / ".git").mkdir()
         (project / ".hestai" / "sessions" / "active").mkdir(parents=True)
         (project / ".hestai" / "context").mkdir(parents=True)
 
@@ -292,7 +444,14 @@ class TestCallTool:
             "focus": "test-focus",
         }
 
-        result = await call_tool("clock_in", arguments)
+        from hestai_mcp.mcp import server
+
+        with patch.object(
+            server, "ensure_system_governance", return_value={"status": "up_to_date"}
+        ) as mock_ensure:
+            result = await call_tool("clock_in", arguments)
+
+        mock_ensure.assert_called_once_with(project)
 
         assert len(result) == 1
         assert result[0].type == "text"
@@ -310,6 +469,7 @@ class TestCallTool:
         # First create a session using clock_in
         project = tmp_path / "project"
         project.mkdir()
+        (project / ".git").mkdir()
         (project / ".hestai" / "sessions" / "active").mkdir(parents=True)
         (project / ".hestai" / "sessions" / "archive").mkdir(parents=True)
         (project / ".hestai" / "context" / "state").mkdir(parents=True)

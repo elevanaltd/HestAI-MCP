@@ -19,6 +19,9 @@ RE_WHITELIST = re.compile(
 ALLOWED_ROOTS = ("docs/", "hub/", ".hestai/", ".claude/", "debates/")
 FORBIDDEN_FOLDERS = {".archive", ".sources", "_legacy", "legacy"}
 
+# Packaged hub payload lives under src/ and must not be validated as repo documentation.
+EXCLUDED_PREFIXES = ("src/hestai_mcp/_bundled_hub/",)
+
 
 def _run_git(args: list[str]) -> str:
     res = subprocess.run(
@@ -87,7 +90,7 @@ def main(argv: list[str]) -> int:
     if args.staged:
         paths = _staged_files()
 
-    docs = [p for p in paths if _is_doc(p)]
+    docs = [p for p in paths if _is_doc(p) and not p.startswith(EXCLUDED_PREFIXES)]
     if not docs:
         print("SKIP naming/visibility (no relevant docs)")
         return 0

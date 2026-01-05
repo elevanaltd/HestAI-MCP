@@ -14,6 +14,7 @@ Architecture:
 """
 
 import logging
+import os
 import shutil
 from pathlib import Path
 from typing import Any
@@ -22,91 +23,216 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
 
-from hestai_mcp.mcp.tools.clock_in import clock_in_async
+from hestai_mcp.mcp.tools.clock_in import clock_in_async, validate_working_dir
 from hestai_mcp.mcp.tools.clock_out import clock_out
 from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
 
 logger = logging.getLogger(__name__)
+
+# Critical-Engineer: consulted for Governance injection target validation + clock_out target hardening
+
+
+def _validate_project_root(project_root: Path) -> None:
+    """Validate project root before writing any governance artifacts.
+
+    Fail-closed: project_root must exist and be a directory.
+    """
+    if not project_root.exists():
+        raise FileNotFoundError(f"Project root not found: {project_root}")
+    if not project_root.is_dir():
+        raise NotADirectoryError(f"Project root is not a directory: {project_root}")
+
+
+def _validate_project_identity(project_root: Path) -> None:
+    """Validate the target directory is a real project root.
+
+    Fail-closed: prevent governance injection into arbitrary directories.
+
+    Accepted markers (any-of):
+    - .git (directory or file, to support worktrees)
+    - .hestai (directory)
+    """
+    git_marker = project_root / ".git"
+    hestai_marker = project_root / ".hestai"
+
+    if git_marker.exists():
+        return
+
+    if hestai_marker.exists() and hestai_marker.is_dir():
+        return
+
+    raise RuntimeError(
+        f"Refusing governance injection: target is not a project root (missing .git/.hestai): {project_root}"
+    )
+
 
 # Create server instance
 app = Server("hestai-mcp")
 
 
 def get_hub_path() -> Path:
-    """
-    Get the bundled hub path.
+    """Get the bundled hub path.
 
-    The Hub is bundled with the MCP server package itself,
-    eliminating external dependencies like HESTAI_HUB_ROOT.
+    The hub is shipped inside the Python package as `_bundled_hub/` so that
+    discovery works in both editable (repo) installs and installed wheels.
 
     Returns:
         Path to bundled hub directory
 
     Raises:
-        FileNotFoundError: If hub directory doesn't exist
+        FileNotFoundError: If bundled hub directory doesn't exist
     """
-    # Hub is bundled at package_root/hub/
-    # This file is at: src/hestai_mcp/mcp/server.py
-    # Package root is 3 levels up: ../../../
-    hub_path = Path(__file__).parent.parent.parent.parent / "hub"
+    # server.py lives at: hestai_mcp/mcp/server.py
+    # Bundled hub lives at: hestai_mcp/_bundled_hub/
+    hub_path = Path(__file__).resolve().parent.parent / "_bundled_hub"
 
     if not hub_path.exists():
         raise FileNotFoundError(
             f"Bundled hub not found at {hub_path}. "
-            "The hub should be included in the MCP server package."
+            "The hub must be packaged inside hestai_mcp/_bundled_hub/."
         )
 
     return hub_path
 
 
 def get_hub_version() -> str:
-    """
-    Read hub version from bundled VERSION file.
+    """Read hub version from bundled VERSION file.
+
+    Fail-closed: VERSION must exist. If it doesn't, packaging is broken and
+    governance cannot be trusted.
 
     Returns:
         Version string (e.g., "1.0.0")
+
+    Raises:
+        FileNotFoundError: If VERSION file is missing
     """
     version_file = get_hub_path() / "VERSION"
-    if version_file.exists():
-        return version_file.read_text().strip()
-    return "unknown"
+    if not version_file.exists():
+        raise FileNotFoundError(f"Bundled hub VERSION file missing: {version_file}")
+    return version_file.read_text().strip()
 
 
 def inject_system_governance(project_root: Path) -> None:
-    """
-    Inject system governance files into .hestai-sys/.
+    """Inject system governance files into .hestai-sys/.
 
-    ADR-0007: System governance is delivered by MCP server at startup,
-    not committed to git. This provides agents, rules, and templates.
+    This operation is performed as an atomic swap:
+    1) build a complete new tree in a temp dir
+    2) rename temp -> .hestai-sys
 
-    The Hub is now bundled with the MCP server package, eliminating
-    the need for external HESTAI_HUB_ROOT environment variable.
+    This avoids partially-injected states if the process is interrupted.
 
     Args:
         project_root: Project root directory
+
+    Raises:
+        FileNotFoundError: If required hub content is missing
     """
-    hestai_sys_dir = project_root / ".hestai-sys"
+    _validate_project_root(project_root)
+    _validate_project_identity(project_root)
+
     hub_path = get_hub_path()
 
-    # Create .hestai-sys directory if it doesn't exist
-    hestai_sys_dir.mkdir(parents=True, exist_ok=True)
+    required_dirs = ["governance", "agents", "library", "templates"]
+    for d in required_dirs:
+        if not (hub_path / d).exists():
+            raise FileNotFoundError(f"Bundled hub missing required directory: {hub_path / d}")
 
-    # Copy governance files from bundled hub
-    for source_dir in ["governance", "agents", "library", "templates"]:
+    hestai_sys_dir = project_root / ".hestai-sys"
+    tmp_dir = project_root / ".hestai-sys.__tmp__"
+    old_dir = project_root / ".hestai-sys.__old__"
+
+    if tmp_dir.exists():
+        shutil.rmtree(tmp_dir)
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+
+    # Copy governance files from bundled hub into tmp tree
+    for source_dir in required_dirs:
         source = hub_path / source_dir
-        dest = hestai_sys_dir / source_dir
+        dest = tmp_dir / source_dir
+        shutil.copytree(source, dest)
 
-        if source.exists():
-            # Remove existing destination to ensure clean copy
-            if dest.exists():
-                shutil.rmtree(dest)
-            shutil.copytree(source, dest)
-            logger.info(f"Copied {source_dir} from bundled hub to {dest}")
+    # Write version marker into tmp tree
+    (tmp_dir / ".version").write_text(get_hub_version())
 
-    # Write version marker
-    version_file = hestai_sys_dir / ".version"
-    version_file.write_text(get_hub_version())
+    # Swap in the new tree
+    if hestai_sys_dir.exists():
+        if old_dir.exists():
+            shutil.rmtree(old_dir)
+        hestai_sys_dir.rename(old_dir)
+
+    tmp_dir.rename(hestai_sys_dir)
+
+    if old_dir.exists():
+        shutil.rmtree(old_dir)
+
     logger.info(f"Injected system governance v{get_hub_version()} to {hestai_sys_dir}")
+
+
+def ensure_system_governance(project_root: Path) -> dict[str, Any]:
+    """Ensure .hestai-sys exists and matches the bundled Hub version.
+
+    Idempotent behavior:
+    - If .hestai-sys/.version matches the hub VERSION *and* required subdirs are
+      present, do nothing.
+    - Otherwise, (re)inject from the bundled hub.
+
+    Returns a structured status dict for diagnostics.
+
+    Raises:
+        FileNotFoundError: if the bundled hub cannot be located/validated
+    """
+    _validate_project_root(project_root)
+    _validate_project_identity(project_root)
+
+    required_dirs = ["governance", "agents", "library", "templates"]
+
+    hestai_sys_dir = project_root / ".hestai-sys"
+    version_path = hestai_sys_dir / ".version"
+
+    desired = get_hub_version()
+    current = version_path.read_text().strip() if version_path.exists() else None
+
+    has_required_tree = hestai_sys_dir.exists() and all(
+        (hestai_sys_dir / d).exists() for d in required_dirs
+    )
+
+    if current == desired and has_required_tree:
+        return {"status": "up_to_date", "current": current, "desired": desired}
+
+    inject_system_governance(project_root)
+    return {
+        "status": "injected" if current is None else "updated",
+        "previous": current,
+        "desired": desired,
+    }
+
+
+def bootstrap_system_governance(project_root: Path | None) -> dict[str, Any]:
+    """Bootstrap governance before any agent/tool interactions.
+
+    Fail-closed: if project_root is not provided, HESTAI_PROJECT_ROOT must be set.
+    This prevents writing .hestai-sys into an arbitrary current working directory.
+
+    Args:
+        project_root: explicit project root. If None, reads HESTAI_PROJECT_ROOT
+            from the environment.
+
+    Raises:
+        RuntimeError: If project_root is None and HESTAI_PROJECT_ROOT is not set
+    """
+    if project_root is None:
+        raw = os.environ.get("HESTAI_PROJECT_ROOT")
+        if not raw:
+            raise RuntimeError("HESTAI_PROJECT_ROOT must be set to bootstrap system governance")
+        # Reuse working_dir validation logic (existence, directory, traversal checks).
+        project_root = validate_working_dir(raw)
+    else:
+        _validate_project_root(project_root)
+
+    _validate_project_identity(project_root)
+
+    return ensure_system_governance(project_root)
 
 
 @app.list_tools()
@@ -234,6 +360,13 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         ValueError: If tool name is unknown
     """
     if name == "clock_in":
+        # Validate working_dir before any governance writes (fail-closed).
+        working_dir_path = validate_working_dir(arguments["working_dir"])
+        _validate_project_identity(working_dir_path)
+
+        # Ensure governance is present in the target working directory.
+        ensure_system_governance(working_dir_path)
+
         # Use async path with AI synthesis capability (Issue #56 fix)
         result = await clock_in_async(
             role=arguments["role"],
@@ -279,7 +412,8 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
 
         # Load session data to get the actual working_dir
         session_data = json.loads(session_file.read_text())
-        actual_project_root = Path(session_data["working_dir"])
+        actual_project_root = validate_working_dir(session_data["working_dir"])
+        _validate_project_identity(actual_project_root)
 
         result = await clock_out(
             session_id=session_id,
@@ -291,6 +425,13 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
 
     elif name == "odyssean_anchor":
         import json
+
+        # Validate working_dir before any governance writes (fail-closed).
+        working_dir_path = validate_working_dir(arguments["working_dir"])
+        _validate_project_identity(working_dir_path)
+
+        # Ensure governance is present in the target working directory.
+        ensure_system_governance(working_dir_path)
 
         anchor_result = odyssean_anchor(
             role=arguments["role"],
@@ -318,14 +459,14 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
 
 
 async def main() -> None:
-    """
-    Start HestAI MCP server.
+    """Start HestAI MCP server.
 
     Entry point for MCP server using stdio transport.
+
+    Governance MUST be available before agents can do work.
     """
-    # TODO Phase 4: Inject system governance on startup
-    # project_root = Path.cwd()  # Or from environment variable
-    # inject_system_governance(project_root)
+    # Fail-closed bootstrap: materialize .hestai-sys from bundled hub if needed.
+    bootstrap_system_governance(None)
 
     async with stdio_server() as (read_stream, write_stream):
         await app.run(read_stream, write_stream, app.create_initialization_options())

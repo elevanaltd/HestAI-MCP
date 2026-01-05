@@ -52,6 +52,10 @@ package-dir = {"" = "src"}
 where = ["src"]
 include = ["hestai_mcp*"]
 
+[tool.setuptools.package-data]
+# Ship hub payload so governance injection works from installed wheels.
+hestai_mcp = ["_bundled_hub/**"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
