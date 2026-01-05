@@ -54,8 +54,8 @@ jobs:
           echo "BASE_SHA=$BASE_SHA" >> "$GITHUB_OUTPUT"
           git diff --name-only "$BASE_SHA"...${{ github.sha }} > changed_files.txt
 
-          grep -E '(^docs/|^hub/|^\.hestai/|^\.claude/).*(\\.oct\\.md)$' changed_files.txt > changed_octave.txt || true
-          grep -E '(^docs/|^hub/|^\.hestai/|^\.claude/).*(\\.md|\\.oct\\.md)$' changed_files.txt > changed_docs.txt || true
+          grep -E '(^docs/|^src/hestai_mcp/_bundled_hub/|^\.hestai/|^\.claude/).*(\\.oct\\.md)$' changed_files.txt > changed_octave.txt || true
+          grep -E '(^docs/|^src/hestai_mcp/_bundled_hub/|^\.hestai/|^\.claude/).*(\\.md|\\.oct\\.md)$' changed_files.txt > changed_docs.txt || true
 
           echo "changed_octave_count=$(wc -l < changed_octave.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
           echo "changed_docs_count=$(wc -l < changed_docs.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
@@ -69,7 +69,7 @@ jobs:
             exit 0
           fi
           while IFS= read -r f; do
-            python hub/tools/octave-validator.py --profile protocol "$f"
+            python src/hestai_mcp/_bundled_hub/tools/octave-validator.py --profile protocol "$f"
           done < changed_octave.txt
 
       - name: Validate naming/visibility for changed docs

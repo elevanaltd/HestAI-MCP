@@ -121,7 +121,7 @@ validate_directory_exists() {
 # Precedence:
 # 1. HESTAI_HUB_SKILLS_PATH (hub-level, set by setup-mcp.sh)
 # 2. HESTAI_SKILLS_PATH (explicit override, already set)
-# 3. Local project hub/library/skills/ fallback
+# 3. Local project src/hestai_mcp/_bundled_hub/library/skills/ fallback
 setup_skills_path() {
     # If HESTAI_HUB_SKILLS_PATH is already set and valid, use it
     if [[ -n "${HESTAI_HUB_SKILLS_PATH:-}" ]]; then
@@ -140,7 +140,7 @@ setup_skills_path() {
     fi
 
     # Fallback to local project skills directory
-    local skills_base="${PROJECT_DIR}/hub/library/skills"
+    local skills_base="${PROJECT_DIR}/src/hestai_mcp/_bundled_hub/library/skills"
     if validate_directory_exists "$skills_base"; then
         export HESTAI_SKILLS_PATH="$skills_base"
     fi

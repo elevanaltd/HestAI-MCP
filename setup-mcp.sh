@@ -47,12 +47,12 @@ readonly VENV_PATH=".venv"
 # Precedence (in skill-activation hooks):
 # 1. HESTAI_HUB_SKILLS_PATH (hub-level, set here)
 # 2. HESTAI_SKILLS_PATH (explicit override)
-# 3. Local hub/library/skills/ fallback (project-relative)
+# 3. Local src/hestai_mcp/_bundled_hub/library/skills/ fallback (project-relative)
 # ----------------------------------------------------------------------------
 
 get_hub_skills_path() {
     local script_dir=$(get_script_dir)
-    echo "$script_dir/hub/library/skills"
+    echo "$script_dir/src/hestai_mcp/_bundled_hub/library/skills"
 }
 
 export_hub_skills_path() {

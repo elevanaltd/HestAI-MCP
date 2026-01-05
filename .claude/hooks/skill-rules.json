@@ -124,7 +124,7 @@
     },
     "ho-orchestrate": {
       "type": "domain",
-      "description": "HO work orchestration protocol with enforced quality gates and debate-hall escalation. Ensures IL uses build-execution+TDD, quality gates via CRS+CE",
+      "description": "HO work orchestration protocol with enforced quality gates and debate-hall escalation. Loads ho-mode, ensures IL uses build-execution+TDD, quality gates via CRS(Gemini)+CE(Codex), debate-hall for complex decisions (Claude\u2192Wind, Codex\u2192Wall, Gemini\u2192Door per M019/M021). NEVER implements directly. Use when orchestrating implementation work.",
       "autoInject": false,
       "injectionOrder": 50,
       "promptTriggers": {
@@ -137,7 +137,9 @@
           "CE review",
           "debate escalation",
           "orchestration protocol",
-          "implementation orchestration"
+          "implementation orchestration",
+          "subagent delegation",
+          "Task with binding"
         ]
       }
     },
