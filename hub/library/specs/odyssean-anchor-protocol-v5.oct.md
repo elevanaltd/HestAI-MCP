@@ -4,110 +4,136 @@ META:
   TYPE::PROTOCOL_SPEC
   STATUS::DRAFT
   AUTHOR::holistic-orchestrator
-  DATE::2026-01-04
-  PURPOSE::"Define the interactive binding protocol for agent identity and session initiation"
+  DATE::2026-01-05
+  PURPOSE::"Define the staged (multi-turn) binding handshake for agent identity, governance injection, and tool gating"
 
 CONCEPT::[
-  "The Odyssean Anchor is not just a validation tool; it is the **State Transition Protocol**.",
-  "It guides an agent from the LOBBY (unbound) to BOUND state through an interactive dialogue.",
-  "It removes reliance on platform-specific command files (~/.claude/commands) by embedding the protocol in the tool itself."
+  "Odyssean Anchor is a **state transition protocol** (LOBBY→BOUND), not a single-shot validator.",
+  "Agents are treated as stateless; continuity is enforced by **server-persisted state + a session_token**.",
+  "Governance + role constitution must be loaded **before** any privileged work permit is granted.",
+  "Tool gating is enforced by on-disk state: pending has no permit; active with anchor.json has permit.",
+  "session_token is the session identifier: session_id == token == directory_name"
 ]
 
-TIERS::[
-  FULL::[
+DECISIONS::[
+  TOOL_SURFACE::"Single staged tool: anchor(stage=...) (may be implemented as odyssean_anchor internally; avoid competing contracts)",
+  CANONICAL_KNOBS::[
+    mode::[full|express|lite|untracked],
+    strictness::[quick|default|deep]
+  ],
+  PERSISTENCE_RULE::"For mode in [full,express,lite], Stage 1 MUST persist pending handshake state under .hestai/sessions/ (restart-safe).",
+  PROMOTION_RULE::"Stage 3 promotes by atomic rename/move: pending/{token} → active/{token} (no half-active sessions).",
+  UNTRACKED_RULE::"mode=untracked MUST NOT write session state and MUST NOT unlock write tools."
+]
+
+MODELS::[
+  full::[
     PURPOSE::"Production work, critical changes, architectural decisions",
-    REQ::[Strict_Constitution_Read, Full_Session_Creation, Deep_Context_Injection, Tension_Validation],
-    STATE::"Persisted Session + Git Tracking"
+    SESSION::"Persisted: pending→active promotion",
+    GIT_TRACKING::true,
+    WRITE_TOOLS::unlockable,
+    FLOW::"3-stage: identity→context→proof (agent provides tensions)"
   ],
-  LITE::[
-    PURPOSE::"Quick queries, minor tasks, status checks",
-    REQ::[Streamlined_Identity, Fast_Session_Creation, Lite_Context, Minimal_Validation],
-    STATE::"Persisted Session + Git Tracking"
+  express::[
+    PURPOSE::"Fast tracked binding when role defaults suffice",
+    SESSION::"Persisted: pending→active promotion",
+    GIT_TRACKING::true,
+    WRITE_TOOLS::unlockable,
+    FLOW::"2-stage: identity→auto-proof (server generates tensions from role defaults)"
   ],
-  UNTRACKED::[
-    PURPOSE::"One-off questions, dry-runs, capability checks",
-    REQ::[Identity_Check, No_Session_Disk_Write, No_Git_Tracking],
-    STATE::"Ephemeral (Memory Only)"
+  lite::[
+    PURPOSE::"Quick queries and minor work (still tracked)",
+    SESSION::"Persisted: pending→active promotion",
+    GIT_TRACKING::true,
+    WRITE_TOOLS::unlockable,
+    FLOW::"3-stage with quick strictness"
+  ],
+  untracked::[
+    PURPOSE::"One-off questions and capability checks",
+    SESSION::"No disk session",
+    GIT_TRACKING::false,
+    WRITE_TOOLS::locked,
+    FLOW::"No stages - read-only context access only"
   ]
 ]
 
+STRICTNESS::[
+  quick::"Minimum tensions = 1",
+  default::"Minimum tensions = 2",
+  deep::"Minimum tensions = 3 (and CTX line ranges required)"
+]
+
 PROTOCOL_FLOW::[
-  STATE_MACHINE::[LOBBY → IDENTIFYING → CONTEXTUALIZING → BOUND],
+  STATE_MACHINE::[LOBBY → IDENTITY → CONTEXT → BOUND],
 
-  STEP_1_INITIATION::[
+  STAGE_1_IDENTITY::[
     ACTOR::Agent (or User via Proxy)
-    ACTION::`odyssean_anchor(stage="init", role="{role}", tier="{tier}", topic="{topic}")`
-    TOOL_RESPONSE::[
-      "Retrieves constitution from .hestai-sys/agents/{role}.oct.md",
-      "Returns: CONSTITUTION_TEXT + INSTRUCTION('Extract Core Identity')"
+    ACTION::`anchor(stage="identity", role="{role}", working_dir="{cwd}", mode="{mode}", strictness="{strictness}", topic="{topic}")`
+    TOOL_LOGIC::[
+      "Ensure .hestai-sys governance is injected/available for {working_dir}",
+      "Load role constitution from .hestai-sys/agents/{role}.oct.md",
+      "If mode in [full,express,lite]: create .hestai/sessions/pending/{token}/handshake.json",
+      "Return: session_token + constitution_path (+ optional excerpt) + template for next payload"
     ]
-    TRANSITION::LOBBY → IDENTIFYING
+    TRANSITION::LOBBY → IDENTITY
   ],
 
-  STEP_2_IDENTITY_COMMIT::[
+  STAGE_2_CONTEXT::[
     ACTOR::Agent
-    ACTION::`odyssean_anchor(stage="commit_identity", payload="{PARTIAL_IDENTITY_BLOCK}")`
-    PAYLOAD_FORMAT::[
-      "===IDENTITY===",
-      "BIND:",
-      "  ROLE::{role}",
-      "  COGNITION::{cognition}",
-      "  ARCHETYPES::{archetypes}",
-      "  AUTHORITY::{authority}",
-      "===END==="
-    ]
+    ACTION::`anchor(stage="context", token="{token}", working_dir="{cwd}", payload="{PARTIAL_IDENTITY_BLOCK}")`
     TOOL_LOGIC::[
-      "Validates BIND section against schema",
-      "Creates Session (Clock In) [if FULL/LITE]",
-      "Computes Context (ARM) [if FULL/LITE]",
-      "Returns: ARM_CONTEXT + INSTRUCTION('Bind Identity to Context')"
+      "Validate token exists (tracked modes) and handshake.stage==IDENTITY",
+      "Validate BIND section against schema (agent proves it read constitution)",
+      "Compute server-authoritative ARM (phase/branch/files/focus/context_hash)",
+      "Persist ARM into pending/{token}/handshake.json and advance handshake.stage=CONTEXT",
+      "Return: SERVER_ARM + template for proof payload"
     ]
-    TRANSITION::IDENTIFYING → CONTEXTUALIZING
+    TRANSITION::IDENTITY → CONTEXT
   ],
 
-  STEP_3_BINDING_PROOF::[
+  STAGE_3_PROOF::[
     ACTOR::Agent
-    ACTION::`odyssean_anchor(stage="bind", payload="{FULL_IDENTITY_BLOCK}")`
-    PAYLOAD_FORMAT::[
-      "===IDENTITY===",
-      "BIND::{...}",
-      "ARM::{injected_by_server}",
-      "TENSIONS::{...}",
-      "COMMIT::{...}",
-      "===END==="
-    ]
+    ACTION::`anchor(stage="proof", token="{token}", working_dir="{cwd}", payload="{PROOF_BLOCK}")`
     TOOL_LOGIC::[
-      "Validates full schema (BIND+ARM+TENSIONS+COMMIT)",
-      "Validates Tensions against ARM Context",
-      "Validates Commit contract",
-      "Persists Anchor State [if FULL/LITE]",
-      "Returns: SUCCESS + WORK_PERMIT"
+      "Validate token exists and handshake.stage==CONTEXT (tracked modes)",
+      "Validate proof: TENSIONS (strictness) + COMMIT (artifact+gate) against server ARM",
+      "Write anchor.json under pending/{token}, then promote via atomic rename: pending/{token} → active/{token}",
+      "Return: canonical anchor + WORK_PERMIT"
     ]
-    TRANSITION::CONTEXTUALIZING → BOUND
+    TRANSITION::CONTEXT → BOUND
   ]
 ]
 
 DATA_STRUCTURES::[
+  SESSION_TOKEN::[
+    "Opaque identifier returned by Stage 1.",
+    "For tracked modes, token is the session_id and the directory name: .hestai/sessions/{pending|active}/{token}/"
+  ],
+  HANDSHAKE_FILE::[
+    "Path: .hestai/sessions/pending/{token}/handshake.json",
+    "Contains: role, working_dir, mode, strictness, topic, stage, timestamps, constitution_path, server_arm"
+  ],
   PARTIAL_IDENTITY_BLOCK::[
-    "Standard OCTAVE block containing only BIND section.",
-    "Proves agent read the constitution and extracted identity."
+    "Standard OCTAVE identity block containing only BIND section.",
+    "Proves agent extracted identity from the constitution."
   ],
-  ARM_CONTEXT::[
-    "Server-injected reality (OCTAVE ARM section).",
-    "FULL: Phase + Branch + Files + Hash + Skills + Blockers",
-    "LITE: Phase + Branch + Files",
-    "UNTRACKED: Phase only"
-  ],
-  FULL_IDENTITY_BLOCK::[
-    "The final cryptographic identity structure (Identity Schema v5.0).",
-    "Combines Agent Identity (BIND) + Server Reality (ARM) + Cognitive Tensions."
+  PROOF_BLOCK::[
+    "Standard OCTAVE identity block containing TENSIONS + COMMIT.",
+    "ARM is server-authoritative; agent must not fabricate it."
   ]
 ]
 
+TOOL_GATING::[
+  RULE::"Privileged work tools must remain locked until anchor.json exists under .hestai/sessions/active/{token}/.",
+  PENDING::"Stages 1/2 create pending state only; no active/{token}/anchor.json ⇒ locked.",
+  ACTIVE::"Stage 3 promotion creates active/{token}/ with anchor.json ⇒ unlocked.",
+  ATOMICITY::"Promotion is an atomic move to prevent half-written active sessions."
+]
+
 UX_IMPROVEMENTS::[
-  "Self-Guiding": "Tool returns next_step instructions in every response.",
-  "Platform Agnostic": "Works in any CLI that supports tool use.",
-  "No Pre-Knowledge": "Agent doesn't need to know the schema beforehand; tool provides templates."
+  "Self-Guiding": "Tool returns next_step instructions + templates in every response.",
+  "Platform Agnostic": "Works in any CLI that supports MCP tool use.",
+  "No Pre-Knowledge": "Agent doesn't need to know schema; tool provides canonical templates."
 ]
 
 ===END===

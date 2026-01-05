@@ -2,48 +2,44 @@
 
 META:
   TYPE::"IMPLEMENTATION_SPEC"
-  ID::"odyssean-anchor-mcp-tool"
-  VERSION::"2.0"
-  STATUS::APPROVED
-  PRIORITY::NEXT
-  TARGET::"OA5"
-  GITHUB_ISSUE::#11
-  CREATED::"2025-12-27"
+  ID::"odyssean-anchor-handshake-tool"
+  VERSION::"5.0"
+  STATUS::DRAFT
+  PRIORITY::NOW
+  CREATED::"2026-01-05"
   UPDATED::"2026-01-05"
   AUTHOR::"holistic-orchestrator"
-  SUPERSEDES::"v1.2 (OA4: RAPH_VECTOR::v4.0)"
+  PARENT_PROTOCOL::"hub/library/specs/odyssean-anchor-protocol-v5.oct.md"
+  SCOPE::"Greenfield: canonical contract only (no backwards-compat requirements)"
 
 ## PURPOSE
 
-Define the `odyssean_anchor` MCP tool contract for validating the **Odyssean Anchor Proof (OA5)** server-side:
-- Strong schema validation (not client-side)
-- Retry guidance on failure (not silent acceptance)
-- Challenge-response validation layer
-- Authoritative CONTEXT enrichment (not agent-generated)
+Implement the Odyssean Anchor v5.0 staged handshake as a single MCP tool.
 
-## STATUS
+Goals:
+- Stage-based binding: identity → context → proof
+- Governance injection + role constitution returned before binding progresses
+- Server-authoritative ARM
+- Durable multi-turn continuity (restart-safe) via on-disk pending state
+- session_id == token (single identifier, directory name)
+- Tool gating unlocked only after anchor.json exists under active/{token}
 
-IMPLEMENTATION_STATUS::PENDING
-NOTE::"v1.2 described OA4 (RAPH_VECTOR::v4.0). OA5 is the canonical forward spec."
+## DECISIONS
 
-## CONTEXT
-
-CURRENT_STATE::[
-  clock_in::EXISTS[returns_session_id_context_paths],
-  clock_out::EXISTS[archives_session]
+CANONICAL_TOOL::[
+  NAME::"anchor",
+  NOTE::"If implementation is initially exposed as 'odyssean_anchor', treat it as an alias and keep the staged handshake contract identical."
 ]
 
-PROBLEM::[
-  "Agents can fabricate or misread project state",
-  "No retry guidance when proof artifacts are malformed",
-  "Validation theater continues without falsifiable anchors"
+CANONICAL_KNOBS::[
+  mode::[full|lite|untracked],
+  strictness::[quick|default|deep]
 ]
 
-DESIGN_CONSENSUS::[
-  "Anchor proof must separate artifact vs process (RAPH is a process, not the proof name)",
-  "MCP holds authoritative CONTEXT state",
-  "TENSIONS are the cognitive proof keystone",
-  "COMMIT is a falsifiable contract (artifact + gate)"
+STATE_PERSISTENCE::[
+  RULE::"For mode in [full,lite], Stage 1 MUST write pending state under .hestai/sessions/ (no in-memory-only continuity).",
+  RULE::"Promotion MUST be atomic (rename/move) to prevent half-written active sessions.",
+  RULE::"mode=untracked MUST NOT write session state and MUST NOT unlock write tools."
 ]
 
 ## SPECIFICATION
@@ -51,159 +47,128 @@ DESIGN_CONSENSUS::[
 ### Tool Signature
 
 SIGNATURE::
-  FUNCTION::odyssean_anchor
+  FUNCTION::anchor
   PARAMS::[
-    session_id::str[Session_ID_from_clock_in],
-    role::str[Agent_role_name],
-    proof_candidate::str[Raw_ODYSSEAN_ANCHOR_PROOF_block],
-    tier::str[quick|default|deep]
+    stage::str[identity|context|proof],
+    working_dir::str[Project_root_required_for_governance+git+context],
+    role::str[required_for_stage_identity],
+    mode::str[full|lite|untracked],
+    strictness::str[quick|default|deep],
+    topic::str[optional],
+    token::str[required_for_stage_context_and_stage_proof_in_tracked_modes],
+    payload::str[OCTAVE_blocks_for_identity_and_proof]
   ]
-  RETURNS::OdysseanAnchorResult[
-    validated::bool,
-    canonical_proof::str,
+  RETURNS::AnchorHandshakeResult[
+    success::bool,
+    stage::str,
+    token::str|null,
+    constitution_path::str|null,
+    constitution_excerpt::str|null,
+    server_arm::str|null,
+    anchor::str|null,
+    next_step::str,
+    template::str|null,
     errors::list[str],
     guidance::str,
-    enforcement::dict
+    terminal::bool
   ]
 
-### Canonical Proof Format (OA5)
+### On-Disk State Layout (Tracked Modes)
 
-MARKERS::[
-  START::"===ODYSSEAN_ANCHOR_PROOF::v5.0===",
-  END::"===END_ODYSSEAN_ANCHOR_PROOF==="
+SESSION_LAYOUT::[
+  PENDING_ROOT::".hestai/sessions/pending/{token}/",
+  PENDING_HANDSHAKE_FILE::".hestai/sessions/pending/{token}/handshake.json",
+  ACTIVE_ROOT::".hestai/sessions/active/{token}/",
+  ACTIVE_ANCHOR_FILE::".hestai/sessions/active/{token}/anchor.json"
 ]
 
-SECTIONS::[
-  TOP_LEVEL::[IDENTITY, CONTEXT, PROOF],
-  PROOF_CONTAINS::[TENSIONS, COMMIT]
+IDENTIFIER_RULE::[
+  "token is the session_id.",
+  "Directory name is the token.",
+  "No token→session_id mapping table is permitted."
 ]
 
-### Validation Logic
-
-SCHEMA_VALIDATION::[
-  has_markers::"OA5 START/END markers present",
-  has_sections::[IDENTITY, CONTEXT, PROOF],
-  proof_has_sections::[TENSIONS, COMMIT],
-  no_unknown_top_level_sections::"Reject unknown top-level sections"
+PROMOTION_RULE::[
+  "Stage proof success promotes by atomic rename/move: .hestai/sessions/pending/{token}/ → .hestai/sessions/active/{token}/",
+  "Atomic move prevents half-written active sessions."
 ]
 
-IDENTITY_VALIDATION::[
-  has_role::"ROLE:: field present",
-  has_cognition::"COGNITION:: field present",
-  has_authority::"AUTHORITY:: field present with scope (RESPONSIBLE[scope] or DELEGATED[parent_session])"
+PENDING_HANDSHAKE_SCHEMA::[
+  token::uuid,
+  stage::[IDENTITY|CONTEXT|BOUND],
+  role::string,
+  working_dir::string,
+  mode::string,
+  strictness::string,
+  topic::string|null,
+  constitution_path::string,
+  created_at::timestamp,
+  expires_at::timestamp,
+  server_arm::string|null
 ]
 
-CONTEXT_VALIDATION::[
-  // CONTEXT is MCP-ENRICHED, not agent-authored truth
-  // Tool compares candidate CONTEXT against authoritative state and emits canonical CONTEXT
-  phase_matches_context::"PHASE matches PROJECT-CONTEXT.oct.md",
-  branch_matches_git::"BRANCH matches current git branch",
-  files_plausible::"FILES count within reasonable range of git status"
+### Stage Semantics
+
+STAGE_IDENTITY::[
+  INPUT::[stage,working_dir,role,mode,strictness,topic],
+  DO::[
+    "Ensure .hestai-sys injection is present for working_dir",
+    "Load constitution from .hestai-sys/agents/{role}.oct.md",
+    "If mode in [full,lite]: create pending/{token}/handshake.json with stage=IDENTITY",
+    "Return: token + constitution_path (+ optional excerpt) + template for BIND-only payload"
+  ],
+  OUTPUT_TEMPLATE::"PARTIAL_IDENTITY_BLOCK (BIND-only)"
 ]
 
-PROOF_VALIDATION::[
-  tensions_valid::TENSION_VALIDATION,
-  commit_valid::COMMIT_VALIDATION
+STAGE_CONTEXT::[
+  INPUT::[stage,working_dir,token,payload=BIND_only],
+  DO::[
+    "Validate token exists and handshake.stage==IDENTITY (tracked modes)",
+    "Validate BIND section against schema (proves agent extracted identity)",
+    "Compute server-authoritative ARM (phase/branch/files/focus/context_hash)",
+    "Persist ARM into handshake.json and advance stage=CONTEXT",
+    "Return: server_arm + template for proof payload (tensions+commit)"
+  ]
 ]
 
-TENSION_VALIDATION::[
-  count_meets_tier::"QUICK>=1, DEFAULT>=2, DEEP>=3",
-  has_line_citation::"Each tension includes L{N}",
-  has_ctx_citation::"Each tension includes CTX:{path}",
-  ctx_is_falsifiable::"CTX path exists or refers to allowed external context"
+STAGE_PROOF::[
+  INPUT::[stage,working_dir,token,payload=proof],
+  DO::[
+    "Validate token exists and handshake.stage==CONTEXT (tracked modes)",
+    "Validate: TENSIONS meet strictness; COMMIT has concrete artifact+gate; CTX citations are falsifiable",
+    "Write anchor.json under pending/{token}, then promote via atomic rename to active/{token}",
+    "Return: canonical anchor + WORK_PERMIT"
+  ]
 ]
 
-COMMIT_VALIDATION::[
-  artifact_is_concrete::"Not 'response', 'thoughts', or abstract",
-  gate_is_specified::"Validation method present"
+### Strictness Rules
+
+STRICTNESS_RULES::[
+  quick::"min_tensions=1",
+  default::"min_tensions=2",
+  deep::"min_tensions=3 AND CTX citations require line ranges"
 ]
 
-### Retry Behavior
+### Retry / Failure Model
 
 RETRY_PROTOCOL::[
-  MAX_RETRIES::2,
-  ON_FAIL::"Return specific errors with guidance",
-  GUIDANCE_FORMAT::"VALIDATION FAILED: [Error1, Error2]. RETRY: [Specific fix instructions]",
-  HARD_FAIL::"After 2 retries, block further action (human intervention required)"
+  MAX_RETRIES::2[per_stage_context_and_stage_proof],
+  ON_FAIL::"Return specific errors + guidance + template for corrected payload",
+  HARD_FAIL::"After max retries, return terminal=true and keep tools locked"
 ]
 
-GUIDANCE_EXAMPLES::[
-  context_mismatch::"CONTEXT shows PHASE::B2 but PROJECT-CONTEXT.oct.md shows B1. Update PHASE to match context.",
-  tension_missing_ctx::"TENSION 1 has L315 but no CTX citation. Add CTX:{path}[{state}] to prove context awareness.",
-  commit_abstract::"COMMIT artifact is 'my response'. Name a concrete file (e.g., src/main.py) or tool output.",
-  tension_count::"TIER_DEFAULT requires 2 tensions, found 1. Add another tension."
-]
+### Tool Gating Integration
 
-### CONTEXT Enrichment
-
-CONTEXT_ENRICHMENT::[
-  SOURCE::"clock_in session + git state + PROJECT-CONTEXT.oct.md",
-  AUTHORITATIVE::"MCP-enriched CONTEXT is truth; candidate CONTEXT is compared against it for mismatch detection only",
-  OUTPUT_RULE::"Canonical output MUST use authoritative CONTEXT (never candidate CONTEXT)",
-  COMPARISON::"Candidate CONTEXT vs authoritative CONTEXT - warn on mismatch, fail on gross hallucination"
-]
-
-## IMPLEMENTATION
-
-FILE_LOCATION::"src/hestai_mcp/mcp/tools/odyssean_anchor.py"
-
-DEPENDENCIES::[
-  clock_in::"Session must exist",
-  PROJECT-CONTEXT::"For phase verification",
-  git::"For branch/files verification"
-]
-
-## SUCCESS_CRITERIA
-
-VALIDATION::[
-  "Rejects proofs with missing sections",
-  "Rejects tensions without CTX citations",
-  "Rejects abstract COMMIT artifacts",
-  "Provides specific retry guidance",
-  "Detects CONTEXT hallucination vs git reality"
-]
-
-PERFORMANCE::[
-  latency_target::"<500ms validation",
-  retry_total::"<2s for full retry cycle"
+GATING_MODEL::[
+  LOCK_RULE::"No anchor.json under .hestai/sessions/active/{token} ⇒ privileged tools locked",
+  UNLOCK_RULE::"anchor.json validated=true under active/{token} ⇒ privileged tools unlocked",
+  UNTRACKED::"mode=untracked never unlocks write tools"
 ]
 
 ## REFERENCES
 
-ADR_0036::"docs/adr/adr-0036-odyssean-anchor-binding.md"
+PROTOCOL::"hub/library/specs/odyssean-anchor-protocol-v5.oct.md"
+SCHEMA::"hub/library/schemas/identity.oct.schema"
 TERMINOLOGY::"docs/odyssean-anchor-terminology.md"
-BIND_COMMAND_REFERENCE::"hub/library/commands/bind.md"
-NORTH_STAR_I5::"ODYSSEAN_IDENTITY_BINDING"
-
-## SYNTAX_NOTES
-
-TENSION_SYNTAX::[
-  // OA5 TENSION lines use OCTAVE operators per octave-5-llm-core.oct.md
-  FORMAT::"L{N}::[constraint]⇌CTX:{path}[state]→TRIGGER[action]"
-  OPERATORS::[
-    "⇌"::tension[binary_opposition_between_constraint_and_context],
-    "→"::flow[progression_to_trigger_action]
-  ]
-  ASCII_ALIASES::[
-    "<->"::accepted_normalized_to_⇌,
-    "->"::accepted_normalized_to_→
-  ]
-  RECOMMENDATION::"Use Unicode (⇌, →) for canonical output; ASCII accepted for input"
-]
-
-AUTHORITY_FORMAT::[
-  // Brackets with scope description REQUIRED
-  RESPONSIBLE::"RESPONSIBLE[scope_description]",
-  DELEGATED::"DELEGATED[parent_session_id]",
-  EXAMPLE_RESPONSIBLE::"RESPONSIBLE[system_coherence_orchestration]",
-  EXAMPLE_DELEGATED::"DELEGATED[parent_abc123::review_task]"
-]
-
-## DEPRECATIONS
-
-OA4_DEPRECATED::[
-  "RAPH Vector v4.0 is a deprecated name (RAPH is a process, not an artifact)",
-  "BIND/ARM/TENSION/COMMIT headers are deprecated in favor of IDENTITY/CONTEXT/PROOF"
-]
 
 ===END===
