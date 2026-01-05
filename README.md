@@ -23,6 +23,7 @@ HestAI-MCP treats system governance as **installed software**:
 ```
 YOUR PROJECT (using HestAI)
 ├── .hestai-sys/              # SYSTEM (read-only, injected by MCP)
+│   ├── README.md            # ← Agents: Read this for governance access!
 │   ├── governance/           # Rules, North Stars
 │   ├── agents/               # Agent templates
 │   └── library/              # Reference materials (OCTAVE guide, etc)
@@ -36,6 +37,10 @@ YOUR PROJECT (using HestAI)
 ├── docs/                     # Developer documentation (ADRs, guides)
 └── src/                      # Your code
 ```
+
+**Note for AI Agents:** Even though `.hestai-sys/` is gitignored, you can still read it! Use:
+- `Read .hestai-sys/README.md` - Start here for governance overview
+- `Glob .hestai-sys/**/*.md` - Discover all governance files
 
 ### Key Principle: Single Writer
 
