@@ -103,6 +103,15 @@ ruff check . && mypy src/ && black --check .
 
 ### MCP Configuration
 
+**Recommended:** Configure via `.env` file (automatically loaded):
+
+```bash
+# .env file in your project root
+HESTAI_PROJECT_ROOT=/path/to/your/project
+```
+
+**Alternative:** Configure via MCP client settings (e.g., Claude Desktop):
+
 ```json
 {
   "mcpServers": {
@@ -116,6 +125,8 @@ ruff check . && mypy src/ && black --check .
   }
 }
 ```
+
+> **Note:** `.env` configuration is simpler and version-controlled. MCP client config is useful for multi-project setups.
 
 ## Governance Rules
 
