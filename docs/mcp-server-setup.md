@@ -32,26 +32,24 @@ See `./setup-mcp.sh --help` for all options.
 
 ### Manual Configuration
 
-#### Step 1: Configure Environment (Required)
+#### Step 1: Configure Environment (Optional)
 
-**Recommended:** Set `HESTAI_PROJECT_ROOT` in your `.env` file:
+**Default behavior:** `.hestai-sys` is created in the current working directory (CWD) where the server runs. No configuration needed!
+
+**Optional override:** To control the location, set `HESTAI_PROJECT_ROOT`:
 
 ```bash
-# .env file in your project root
-HESTAI_PROJECT_ROOT=/path/to/your/project
+# .env file (optional - only if you want a custom location)
+HESTAI_PROJECT_ROOT=/path/to/shared/location
 ```
 
-Copy `.env.example` to `.env` and update the path. The MCP server automatically loads `.env` files.
-
-**Alternative:** Set via MCP client configuration (see Step 2 example with `"env"` section).
-
-> **Why .env?** Simpler setup, version-controlled (when appropriate), and familiar to developers.
+> **Design Philosophy:** Following the debate-hall pattern, governance is created locally by default. Each project/worktree gets its own `.hestai-sys` for independence.
 
 #### Step 2: Configure MCP Client
 
 Run `./setup-mcp.sh --show-config` to get copy/paste configuration for your setup.
 
-**With .env file** (recommended - simpler):
+**Default configuration (simplest):**
 
 ```json
 {
@@ -64,7 +62,9 @@ Run `./setup-mcp.sh --show-config` to get copy/paste configuration for your setu
 }
 ```
 
-**Without .env file** (requires env in client config):
+This creates `.hestai-sys` in the directory where the MCP client runs the server (CWD).
+
+**With explicit path override (optional):**
 
 ```json
 {
@@ -73,7 +73,7 @@ Run `./setup-mcp.sh --show-config` to get copy/paste configuration for your setu
       "command": "/path/to/HestAI-MCP/.venv/bin/python",
       "args": ["/path/to/HestAI-MCP/src/hestai_mcp/mcp/server.py"],
       "env": {
-        "HESTAI_PROJECT_ROOT": "/path/to/your/project"
+        "HESTAI_PROJECT_ROOT": "/path/to/shared/location"
       }
     }
   }
@@ -89,10 +89,10 @@ After configuring, restart your AI client to apply changes.
 - Each new session/terminal creates a separate server instance
 - `bootstrap_system_governance()` runs at startup, creating `.hestai-sys/` immediately
 
-**When is `.hestai-sys` created?**
-- At server startup (before any tool calls)
-- Each tool call re-validates via `ensure_system_governance()` (idempotent)
-- Multiple server instances are safe - atomic operations prevent conflicts
+**Where is `.hestai-sys` created?**
+- Default: Current working directory (CWD) where server runs
+- Override: Set `HESTAI_PROJECT_ROOT` env var for explicit control
+- Each project/worktree can have its own `.hestai-sys` (like debate-hall's `./debates/`)
 
 **Process architecture:**
 ```

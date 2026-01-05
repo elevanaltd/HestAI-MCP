@@ -103,30 +103,27 @@ ruff check . && mypy src/ && black --check .
 
 ### MCP Configuration
 
-**Recommended:** Configure via `.env` file (automatically loaded):
-
-```bash
-# .env file in your project root
-HESTAI_PROJECT_ROOT=/path/to/your/project
-```
-
-**Alternative:** Configure via MCP client settings (e.g., Claude Desktop):
+**Default behavior (simplest):** `.hestai-sys` is created in the current working directory where the server runs:
 
 ```json
 {
   "mcpServers": {
     "hestai": {
       "command": "python",
-      "args": ["-m", "hestai_mcp.mcp.server"],
-      "env": {
-        "HESTAI_PROJECT_ROOT": "/path/to/your/project"
-      }
+      "args": ["-m", "hestai_mcp.mcp.server"]
     }
   }
 }
 ```
 
-> **Note:** `.env` configuration is simpler and version-controlled. MCP client config is useful for multi-project setups.
+**Optional override:** Control location via `HESTAI_PROJECT_ROOT` env var:
+
+```bash
+# .env file (optional - only if you want a custom location)
+HESTAI_PROJECT_ROOT=/path/to/shared/location
+```
+
+> **Design:** Follows the debate-hall pattern - creates governance in CWD by default, just like `./debates/`. Each project/worktree gets its own `.hestai-sys` unless explicitly configured otherwise.
 
 ## Governance Rules
 
