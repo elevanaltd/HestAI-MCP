@@ -41,8 +41,8 @@ class OctaveValidator:
         self.version = version
         self.profile = profile  # protocol, hestai-agent, hestai-skill
         self.unknown_policy = unknown_policy  # ignore | warn | strict
-        self.errors = []
-        self.warnings = []
+        self.errors: list[str] = []
+        self.warnings: list[str] = []
 
     def validate_octave_document(self, document: str) -> tuple[bool, list[str]]:
         """Validate an OCTAVE document against the specification."""

@@ -32,9 +32,24 @@ See `./setup-mcp.sh --help` for all options.
 
 ### Manual Configuration
 
+#### Step 1: Configure Environment (Optional)
+
+**Default behavior:** `.hestai-sys` is created in the current working directory (CWD) where the server runs. No configuration needed!
+
+**Optional override:** To control the location, set `HESTAI_PROJECT_ROOT`:
+
+```bash
+# .env file (optional - only if you want a custom location)
+HESTAI_PROJECT_ROOT=/path/to/shared/location
+```
+
+> **Design Philosophy:** Following the debate-hall pattern, governance is created locally by default. Each project/worktree gets its own `.hestai-sys` for independence.
+
+#### Step 2: Configure MCP Client
+
 Run `./setup-mcp.sh --show-config` to get copy/paste configuration for your setup.
 
-Example configuration for Claude Desktop / Claude Code CLI:
+**Default configuration (simplest):**
 
 ```json
 {
@@ -47,7 +62,46 @@ Example configuration for Claude Desktop / Claude Code CLI:
 }
 ```
 
+This creates `.hestai-sys` in the directory where the MCP client runs the server (CWD).
+
+**With explicit path override (optional):**
+
+```json
+{
+  "mcpServers": {
+    "hestai": {
+      "command": "/path/to/HestAI-MCP/.venv/bin/python",
+      "args": ["/path/to/HestAI-MCP/src/hestai_mcp/mcp/server.py"],
+      "env": {
+        "HESTAI_PROJECT_ROOT": "/path/to/shared/location"
+      }
+    }
+  }
+}
+```
+
 After configuring, restart your AI client to apply changes.
+
+#### Server Lifecycle (Important)
+
+**When does the server start?**
+- The MCP server starts **when your AI client loads**, not when tools are called
+- Each new session/terminal creates a separate server instance
+- `bootstrap_system_governance()` runs at startup, creating `.hestai-sys/` immediately
+
+**Where is `.hestai-sys` created?**
+- Default: Current working directory (CWD) where server runs
+- Override: Set `HESTAI_PROJECT_ROOT` env var for explicit control
+- Each project/worktree can have its own `.hestai-sys` (like debate-hall's `./debates/`)
+
+**Process architecture:**
+```
+AI Client Starts → Launch server.py → bootstrap_system_governance()
+                                     ↓
+                              .hestai-sys/ created
+                                     ↓
+                              stdio_server() waits for tool calls
+```
 
 ## Available Tools
 
@@ -131,4 +185,4 @@ After configuring Claude Desktop and restarting, the tools will be available as:
 - Hub injection is planned for Phase 4 (currently commented out)
 
 ---
-*Last updated: 2026-01-04*
+*Last updated: 2026-01-05*

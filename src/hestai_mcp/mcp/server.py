@@ -19,6 +19,7 @@ import shutil
 from pathlib import Path
 from typing import Any
 
+from dotenv import load_dotenv
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
@@ -26,6 +27,10 @@ from mcp.types import TextContent, Tool
 from hestai_mcp.mcp.tools.clock_in import clock_in_async, validate_working_dir
 from hestai_mcp.mcp.tools.clock_out import clock_out
 from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+
+# Load .env file for HESTAI_PROJECT_ROOT and other configuration
+# This must happen BEFORE bootstrap_system_governance() is called
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -211,26 +216,40 @@ def ensure_system_governance(project_root: Path) -> dict[str, Any]:
 def bootstrap_system_governance(project_root: Path | None) -> dict[str, Any]:
     """Bootstrap governance before any agent/tool interactions.
 
-    Fail-closed: if project_root is not provided, HESTAI_PROJECT_ROOT must be set.
-    This prevents writing .hestai-sys into an arbitrary current working directory.
+    Creates .hestai-sys in the specified project root, or uses a smart default.
 
     Args:
-        project_root: explicit project root. If None, reads HESTAI_PROJECT_ROOT
-            from the environment.
+        project_root: explicit project root. If None, uses:
+            1. HESTAI_PROJECT_ROOT env var if set
+            2. Current working directory (CWD) as fallback
 
-    Raises:
-        RuntimeError: If project_root is None and HESTAI_PROJECT_ROOT is not set
+    Returns:
+        Status dict with injection results
     """
+    used_cwd_fallback = False
+
     if project_root is None:
+        # Try env var first (for explicit control)
         raw = os.environ.get("HESTAI_PROJECT_ROOT")
-        if not raw:
-            raise RuntimeError("HESTAI_PROJECT_ROOT must be set to bootstrap system governance")
-        # Reuse working_dir validation logic (existence, directory, traversal checks).
-        project_root = validate_working_dir(raw)
+        # User explicitly set a path: use it. Otherwise: CWD (debate-hall pattern)
+        if raw:
+            project_root = validate_working_dir(raw)
+        else:
+            used_cwd_fallback = True
+            project_root = Path.cwd()
     else:
         _validate_project_root(project_root)
 
-    _validate_project_identity(project_root)
+    try:
+        _validate_project_identity(project_root)
+    except RuntimeError as e:
+        # Provide actionable guidance when implicit CWD fallback isn't a project root.
+        if used_cwd_fallback:
+            raise RuntimeError(
+                "HESTAI_PROJECT_ROOT is not set and the current working directory is not a project root. "
+                "Either run the server from a project root (with .git/.hestai present) or set HESTAI_PROJECT_ROOT."
+            ) from e
+        raise
 
     return ensure_system_governance(project_root)
 

@@ -56,12 +56,12 @@ async function main(): Promise<void> {
     // Precedence:
     // 1. HESTAI_HUB_SKILLS_PATH (hub-level, set by setup-mcp.sh)
     // 2. HESTAI_SKILLS_PATH (explicit override or set by hook.sh)
-    // 3. Local project hub/library/skills/ fallback
+    // 3. Local project src/hestai_mcp/_bundled_hub/library/skills/ fallback
     const projectDir = data.cwd || process.env.CLAUDE_PROJECT_DIR || process.cwd();
     const skillsBase =
       process.env.HESTAI_HUB_SKILLS_PATH ||
       process.env.HESTAI_SKILLS_PATH ||
-      join(projectDir, 'hub', 'library', 'skills');
+      join(projectDir, 'src', 'hestai_mcp', '_bundled_hub', 'library', 'skills');
 
     // Load skill rules
     const rulesPath = join(projectDir, '.claude', 'hooks', 'skill-rules.json');

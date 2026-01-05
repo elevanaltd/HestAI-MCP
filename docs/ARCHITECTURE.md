@@ -186,7 +186,42 @@ See: `docs/workflow/ci-progressive-testing.oct.md:1`
 
 ---
 
-## 5. Directory Structure
+## 5. Hub Architecture (System Governance)
+
+### Hub Content Flow
+
+The hub content (system governance) is maintained in a single location and flows to consumer projects:
+
+```
+src/hestai_mcp/_bundled_hub/ (SINGLE SOURCE OF TRUTH - EDIT HERE)
+  ↓
+Python package build (includes _bundled_hub/**)
+  ↓
+pip install hestai-mcp
+  ↓
+MCP server starts (bootstrap_system_governance)
+  ↓
+.hestai-sys/ (read-only in consumer project)
+```
+
+### Critical Points
+
+1. **`src/hestai_mcp/_bundled_hub/` is the single source of truth** - All governance edits go here
+2. **No sync needed** - Single location eliminates drift and sync complexity
+3. **Development in worktrees** - Changes are made in worktrees before merging to main
+4. **`_bundled_hub/README.md` is agent-facing** - Documents the bundled hub structure
+
+### What Goes in Hub?
+
+Per `src/hestai_mcp/_bundled_hub/governance/rules/hub-authoring-rules.oct.md`:
+- **System governance** - Rules that apply to ALL HestAI consumers
+- **Agent constitutions** - Templates for agent roles
+- **Reusable components** - Commands, skills, patterns
+- **NOT project-specific content** - That goes in `.hestai/`
+
+---
+
+## 6. Directory Structure
 
 ```
 your-project/

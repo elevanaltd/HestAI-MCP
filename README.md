@@ -23,6 +23,7 @@ HestAI-MCP treats system governance as **installed software**:
 ```
 YOUR PROJECT (using HestAI)
 ├── .hestai-sys/              # SYSTEM (read-only, injected by MCP)
+│   ├── README.md            # ← Agents: Read this for governance access!
 │   ├── governance/           # Rules, North Stars
 │   ├── agents/               # Agent templates
 │   └── library/              # Reference materials (OCTAVE guide, etc)
@@ -36,6 +37,10 @@ YOUR PROJECT (using HestAI)
 ├── docs/                     # Developer documentation (ADRs, guides)
 └── src/                      # Your code
 ```
+
+**Note for AI Agents:** Even though `.hestai-sys/` is gitignored, you can still read it! Use:
+- `Read .hestai-sys/README.md` - Start here for governance overview
+- `Glob .hestai-sys/**/*.md` - Discover all governance files
 
 ### Key Principle: Single Writer
 
@@ -103,19 +108,27 @@ ruff check . && mypy src/ && black --check .
 
 ### MCP Configuration
 
+**Default behavior (simplest):** `.hestai-sys` is created in the current working directory where the server runs:
+
 ```json
 {
   "mcpServers": {
     "hestai": {
       "command": "python",
-      "args": ["-m", "hestai_mcp.mcp.server"],
-      "env": {
-        "HESTAI_PROJECT_ROOT": "/path/to/your/project"
-      }
+      "args": ["-m", "hestai_mcp.mcp.server"]
     }
   }
 }
 ```
+
+**Optional override:** Control location via `HESTAI_PROJECT_ROOT` env var:
+
+```bash
+# .env file (optional - only if you want a custom location)
+HESTAI_PROJECT_ROOT=/path/to/shared/location
+```
+
+> **Design:** Follows the debate-hall pattern - creates governance in CWD by default, just like `./debates/`. Each project/worktree gets its own `.hestai-sys` unless explicitly configured otherwise.
 
 ## Governance Rules
 

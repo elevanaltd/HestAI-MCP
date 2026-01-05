@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Generate skill-rules.json from SKILL.md files in hub/library/skills/
+Generate skill-rules.json from SKILL.md files in src/hestai_mcp/_bundled_hub/library/skills/
 
 This script:
-1. Scans hub/library/skills/ for SKILL.md files
+1. Scans src/hestai_mcp/_bundled_hub/library/skills/ for SKILL.md files
 2. Parses YAML frontmatter to extract metadata
 3. Generates .claude/hooks/skill-rules.json with proper structure
 """
@@ -111,7 +111,7 @@ def main() -> None:
     """Main entry point."""
     # Determine paths
     repo_root = Path(__file__).parent.parent
-    skills_dir = repo_root / "hub" / "library" / "skills"
+    skills_dir = repo_root / "src" / "hestai_mcp" / "_bundled_hub" / "library" / "skills"
     output_path = repo_root / ".claude" / "hooks" / "skill-rules.json"
 
     if not skills_dir.exists():
