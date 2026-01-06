@@ -21,7 +21,7 @@ This pattern is **NOT a violation** but an **intentional design decision** docum
 
 ### Evidence 1: naming-standard.oct.md
 
-**Authority**: `hub/governance/rules/naming-standard.oct.md`
+**Authority**: `src/hestai_mcp/_bundled_hub/governance/rules/naming-standard.oct.md` (injected as `.hestai-sys/governance/rules/naming-standard.oct.md`)
 
 ```
 NORTH_STAR_PATTERN::[
@@ -41,7 +41,7 @@ REGEX_NORTH_STAR::"^000-[A-Z0-9-]+-NORTH-STAR(-SUMMARY)?(\.oct)?\.md$"
 
 ### Evidence 2: hub-authoring-rules.oct.md
 
-**Authority**: `hub/governance/rules/hub-authoring-rules.oct.md`
+**Authority**: `src/hestai_mcp/_bundled_hub/governance/rules/hub-authoring-rules.oct.md` (injected as `.hestai-sys/governance/rules/hub-authoring-rules.oct.md`)
 
 Section §4 (FORMAT_RULES) lists "north_stars" under both:
 - OCTAVE_FORMAT (for -SUMMARY.oct.md variants)
@@ -63,7 +63,7 @@ FEDERATED_NORTH_STAR::[
 ]
 
 NORTH_STAR_REFERENCES::[
-  SYSTEM::"hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md"[...],
+  SYSTEM::".hestai-sys/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md"[...],
   PRODUCT_MCP::".hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md"[...]
 ]
 ```
@@ -112,10 +112,10 @@ Follows immutables:
 
 All following correct design:
 
-✅ `hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md` (primary .md)
-✅ `hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR-SUMMARY.oct.md` (optional .oct.md)
-✅ `hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.md` (primary .md)
-✅ `hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR-SUMMARY.oct.md` (optional .oct.md)
+✅ `src/hestai_mcp/_bundled_hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md` (primary .md)
+✅ `src/hestai_mcp/_bundled_hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR-SUMMARY.oct.md` (optional .oct.md)
+✅ `src/hestai_mcp/_bundled_hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.md` (primary .md)
+✅ `src/hestai_mcp/_bundled_hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR-SUMMARY.oct.md` (optional .oct.md)
 ✅ `.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md` (primary .md)
 ✅ `.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR-SUMMARY.oct.md` (optional .oct.md)
 

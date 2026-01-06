@@ -6,7 +6,7 @@ META:
   VERSION::"1.0-OCTAVE-SUMMARY"
   STATUS::DRAFT
   PURPOSE::"Operational decision-logic for [PROJECT_NAME]"
-  INHERITS::"hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md"
+  INHERITS::".hestai-sys/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md"
 
 ## IMMUTABLES (5-9 Total)
 

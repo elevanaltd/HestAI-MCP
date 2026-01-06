@@ -94,10 +94,10 @@ NAMING_CONVENTION (per naming-standard.oct.md):
 
 All existing North Star files now pass hook validation:
 
-✅ `hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md`
-✅ `hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR-SUMMARY.oct.md`
-✅ `hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.md`
-✅ `hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR-SUMMARY.oct.md`
+✅ `src/hestai_mcp/_bundled_hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md`
+✅ `src/hestai_mcp/_bundled_hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR-SUMMARY.oct.md`
+✅ `src/hestai_mcp/_bundled_hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.md`
+✅ `src/hestai_mcp/_bundled_hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR-SUMMARY.oct.md`
 ✅ `.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md`
 ✅ `.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR-SUMMARY.oct.md`
 ✅ `.hestai/workflow/000-REPORTS-D1-NORTH-STAR.md` (also compliant)
@@ -136,7 +136,7 @@ All existing North Star files now pass hook validation:
 
 ### Examples: Still Rejected
 - `docs/workflow/000-PROJECT-NORTH-STAR.md` ❌ (wrong location)
-- `hub/000-PROJECT-NORTH-STAR.md` ❌ (wrong location)
+- `src/hestai_mcp/_bundled_hub/000-PROJECT-NORTH-STAR.md` ❌ (wrong location)
 - `north-star.md` ❌ (missing 000- prefix)
 - `PROJECT-NORTH-STAR.md` ❌ (missing 000- prefix)
 

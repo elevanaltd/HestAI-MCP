@@ -5,12 +5,13 @@ META:
   ID::hub-authoring-rules
   VERSION::"1.0"
   STATUS::ACTIVE
-  PURPOSE::"Rules for authoring hub/ content (system governance that becomes .hestai-sys/)"
+  PURPOSE::"Rules for authoring system governance payload (injected as .hestai-sys/)"
   DOMAIN::governance
   OWNERS::[system-steward]
   CREATED::2025-12-23
-  CANONICAL::hub/governance/rules/hub-authoring-rules.oct.md
-  TAGS::[hub, hestai-sys, system, authoring]
+  CANONICAL::.hestai-sys/governance/rules/hub-authoring-rules.oct.md
+  SOURCE::src/hestai_mcp/_bundled_hub/governance/rules/hub-authoring-rules.oct.md
+  TAGS::[hestai-sys, system, authoring, bundled-hub]
 
 ---
 
@@ -22,22 +23,26 @@ META:
 
 SITUATION::[
   HestAI-MCP_is_BOTH_system_AND_project,
-  hub/_content_authored_here→delivered_as_.hestai-sys/_to_consumers,
-  consumers_never_see_hub/→only_.hestai-sys/[read_only]
+  source_payload::src/hestai_mcp/_bundled_hub/→injected_as::.hestai-sys/,
+  consumers_never_see_source_payload→only_.hestai-sys/[read_only]
 ]
 
 ---
 
 §2::DIRECTORY_PURPOSE
 
-hub/::[
+// NOTE: Governance is authored in the bundled hub source tree and injected into consumer projects.
+// Source (maintainers): src/hestai_mcp/_bundled_hub/
+// Injected (agents/consumers): .hestai-sys/
+
+.hestai-sys/::[
   PURPOSE::"System governance content delivered to all HestAI consumers",
-  BECOMES::.hestai-sys/[via_MCP_injection],
+  SOURCE::src/hestai_mcp/_bundled_hub/,
   AUDIENCE::all_products_using_HestAI,
-  LIFECYCLE::committed_here→read_only_for_consumers
+  LIFECYCLE::injected_read_only_for_consumers
 ]
 
-hub/governance/::[
+.hestai-sys/governance/::[
   PURPOSE::"Constitutional rules and North Stars",
   CONTENT::[
     workflow/→system_north_star[000-SYSTEM-HESTAI-NORTH-STAR.md],
@@ -45,13 +50,13 @@ hub/governance/::[
   ]
 ]
 
-hub/agents/::[
+.hestai-sys/agents/::[
   PURPOSE::"Agent constitution templates",
   CONTENT::agent_definitions[.oct.md_format],
   NOTE::"Templates that consumers can use/extend"
 ]
 
-hub/templates/::[
+.hestai-sys/templates/::[
   PURPOSE::"Project scaffolding templates",
   CONTENT::[
     north_star_templates,
@@ -59,7 +64,7 @@ hub/templates/::[
   ]
 ]
 
-hub/library/::[
+.hestai-sys/library/::[
   PURPOSE::"Reference materials and guides",
   CONTENT::[
     octave/→OCTAVE_usage_guide_for_consumers,
@@ -67,7 +72,7 @@ hub/library/::[
   ]
 ]
 
-hub/tools/::[
+.hestai-sys/tools/::[
   PURPOSE::"System utility scripts",
   CONTENT::[validators, checkers, helpers]
 ]
@@ -77,9 +82,10 @@ hub/tools/::[
 §3::PLACEMENT_RULES
 
 RULE_1::CONSUMER_FACING_ONLY::[
-  WHAT::only_content_useful_to_consumers_goes_in_hub/,
-  WHY::hub/_becomes_.hestai-sys/_which_is_read_only_for_consumers,
-  TEST::"Would a project using HestAI need this?"→YES→hub/|NO→.hestai/_or_docs/
+  WHAT::only_content_useful_to_consumers_goes_in_.hestai-sys/,
+  WHY::.hestai-sys/_is_read_only_for_consumers_and_agents,
+  SOURCE::authored_in_src/hestai_mcp/_bundled_hub/_and_injected_as_.hestai-sys/,
+  TEST::"Would a project using HestAI need this?"→YES→.hestai-sys/|NO→.hestai/_or_docs/
 ]
 
 RULE_2::INTERNAL_PROJECT_DOCS::[
@@ -93,7 +99,7 @@ RULE_2::INTERNAL_PROJECT_DOCS::[
 ]
 
 RULE_3::NO_DUPLICATION::[
-  WHAT::never_duplicate_between_hub/_and_.hestai/,
+  WHAT::never_duplicate_between_.hestai-sys/_and_.hestai/,
   WHY::single_source_of_truth,
   PATTERN::reference_canonical_source_instead
 ]
@@ -144,10 +150,10 @@ DECISION_TREE::[
 §5::EXAMPLES
 
 CORRECT_PLACEMENT::[
-  "System North Star"→hub/governance/workflow/[consumer_needs_it],
-  "Visibility Rules"→hub/governance/rules/[consumer_needs_it],
-  "Agent Templates"→hub/agents/[consumer_needs_it],
-  "OCTAVE Usage Guide"→hub/library/octave/[consumer_needs_it],
+  "System North Star"→.hestai-sys/governance/workflow/[consumer_needs_it],
+  "Visibility Rules"→.hestai-sys/governance/rules/[consumer_needs_it],
+  "Agent Templates"→.hestai-sys/agents/[consumer_needs_it],
+  "OCTAVE Usage Guide"→.hestai-sys/library/octave/[consumer_needs_it],
   "HestAI-MCP Product North Star"→.hestai/workflow/[internal_only],
   "HestAI-MCP Build Phase Tracking"→.hestai/context/[internal_only],
   "HestAI-MCP ADRs"→docs/adr/[internal_architecture_decisions],
@@ -155,9 +161,9 @@ CORRECT_PLACEMENT::[
 ]
 
 INCORRECT_PLACEMENT::[
-  "HestAI-MCP specific roadmap"→hub/[WRONG→.hestai/workflow/],
-  "Internal assumption tracking"→hub/[WRONG→.hestai/workflow/],
-  "System North Star"→.hestai/[WRONG→hub/governance/]
+  "HestAI-MCP specific roadmap"→.hestai-sys/[WRONG→.hestai/workflow/],
+  "Internal assumption tracking"→.hestai-sys/[WRONG→.hestai/workflow/],
+  "System North Star"→.hestai/[WRONG→.hestai-sys/governance/]
 ]
 
 ---
@@ -167,7 +173,7 @@ INCORRECT_PLACEMENT::[
 // What a consumer project sees after HestAI setup:
 
 CONSUMER_DIRECTORY_STRUCTURE::[
-  ".hestai-sys/[read_only_injected_from_hub/]"::[
+  ".hestai-sys/[read_only_injected_from_src/hestai_mcp/_bundled_hub/]"::[
     governance/workflow/→system_north_star,
     governance/rules/→naming+visibility+test_standards,
     agents/→agent_templates,
@@ -192,9 +198,9 @@ CONSUMER_DIRECTORY_STRUCTURE::[
 §7::COMPANION_DOCS
 
 RELATED::[
-  visibility-rules.oct.md→product_placement_rules[what_consumers_follow],
-  naming-standard.oct.md→file_naming_conventions,
-  test-structure-standard.oct.md→test_organization
+  .hestai-sys/governance/rules/visibility-rules.oct.md→product_placement_rules[what_consumers_follow],
+  .hestai-sys/governance/rules/naming-standard.oct.md→file_naming_conventions,
+  .hestai-sys/governance/rules/test-structure-standard.oct.md→test_organization
 ]
 
 ---

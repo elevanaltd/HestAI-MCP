@@ -64,17 +64,17 @@ Two template types:
 **Status**: COMPLETE
 
 **Evidence**:
-- All agents in `hub/governance/agents/` use this methodology
+- All bundled agents in `src/hestai_mcp/_bundled_hub/agents/` use this methodology (injected to `.hestai-sys/agents/`)
 - Empirical validation through C035/C036/C038/C039 testing
 - Constitutional foundation provides +39% performance for governance roles
 
-**Location**: `hub/governance/agents/` (agent definitions follow this pattern)
+**Location**: `src/hestai_mcp/_bundled_hub/agents/` (injected to `.hestai-sys/agents/`; agent definitions follow this pattern)
 
 ## Related Documents
 
 - [ADR-0040: Agent Patterns Library](./adr-0040-agent-patterns-library.md)
 - [GitHub Issue #39](https://github.com/elevanaltd/HestAI-MCP/issues/39)
-- Hub governance agents: `hub/governance/agents/*.oct.md`
+- Bundled agents: `src/hestai_mcp/_bundled_hub/agents/*.oct.md` (runtime: `.hestai-sys/agents/*.oct.md`)
 
 ---
 

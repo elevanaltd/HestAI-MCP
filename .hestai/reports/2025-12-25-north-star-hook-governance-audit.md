@@ -63,7 +63,7 @@ REGEX_NORTH_STAR::"^000-[A-Z0-9-]+-NORTH-STAR(-SUMMARY)?(\.oct)?\.md$"
 ### hub-authoring-rules.oct.md § DIRECTORY_PURPOSE
 
 ```octave
-hub/governance/::[\
+.hestai-sys/governance/::[\
   PURPOSE::"Constitutional rules and North Stars",
   CONTENT::[\
     workflow/→system_north_star[000-SYSTEM-HESTAI-NORTH-STAR.md],
@@ -81,13 +81,13 @@ hub/governance/::[\
 
 ### Files that PASS governance rules but FAIL hook validation
 
-1. **hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md**
+1. **src/hestai_mcp/_bundled_hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md**
    - ✅ Matches: `naming-standard.oct.md` regex
    - ✅ In correct location per `visibility-rules.oct.md`
    - ❌ Hook would reject: Missing `D1` marker
    - ❌ Would suggest: `.hestai/workflow/000-SYSTEM-HESTAI-D1-NORTH-STAR.md`
 
-2. **hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.md**
+2. **src/hestai_mcp/_bundled_hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.md**
    - ✅ Matches: `naming-standard.oct.md` regex
    - ✅ Follows: `hub-authoring-rules.oct.md` structure
    - ❌ Hook would reject: Missing `D1` marker
@@ -180,8 +180,8 @@ CANONICAL_LOCATION (preferred): .hestai/workflow/000-MCP-PRODUCT-D1-NORTH-STAR.m
 3. Update `hub-authoring-rules.oct.md` system North Star reference
 
 **Files to Rename**:
-- `hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md` → `000-SYSTEM-HESTAI-D1-NORTH-STAR.md`
-- `hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.md` → `000-PROJECT-TEMPLATE-D1-NORTH-STAR.md`
+- `src/hestai_mcp/_bundled_hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md` → `000-SYSTEM-HESTAI-D1-NORTH-STAR.md`
+- `src/hestai_mcp/_bundled_hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.md` → `000-PROJECT-TEMPLATE-D1-NORTH-STAR.md`
 - `.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md` → `000-MCP-PRODUCT-D1-NORTH-STAR.md`
 
 ---
@@ -247,4 +247,4 @@ CANONICAL_LOCATION (preferred): .hestai/workflow/000-MCP-PRODUCT-D1-NORTH-STAR.m
 **End of Hook Audit**
 **Auditor**: system-steward
 **Finding Date**: 2025-12-25
-**Governance Authority**: naming-standard.oct.md, visibility-rules.oct.md, hub-authoring-rules.oct.md
+**Governance Authority**: naming-standard.oct.md, visibility-rules.oct.md, hub-authoring-rules.oct.md (injected as `.hestai-sys/governance/rules/hub-authoring-rules.oct.md`)

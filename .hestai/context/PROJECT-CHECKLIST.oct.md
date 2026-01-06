@@ -77,7 +77,7 @@ PHASE_2.5_ODYSSEAN_ANCHOR:
       TESTS::5_integration_tests
     bind_command:
       STATUS::DONE
-      LOCATION::hub/library/commands/bind.md
+      LOCATION::.hestai-sys/library/commands/bind.md
       VERSION::v4.0
       USAGE::"Copy to ~/.claude/commands/bind.md"
 

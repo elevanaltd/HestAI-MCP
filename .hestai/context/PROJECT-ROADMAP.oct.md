@@ -66,7 +66,7 @@ PHASES:
       ✅::odyssean_anchor_tool[949_lines+54_tests],
       ✅::gating_module[has_valid_anchor+22_tests],
       ✅::server_integration[5_integration_tests],
-      ✅::bind_command_v4.0[hub/library/commands/bind.md],
+      ✅::bind_command_v4.0[.hestai-sys/library/commands/bind.md],
       ✅::RAPH_Vector_v4.0_schema[BIND+ARM+TENSION+COMMIT]
     ]
     ISSUE::#11
@@ -105,7 +105,7 @@ PHASES:
     DELIVERABLES::[
       ✅::bundled_hub_architecture[no_external_dependency],
       hestai_sys_population_on_startup[inject_system_governance()],
-      ✅::version_tracking[hub/VERSION],
+      ✅::version_tracking[.hestai-sys/.version],
       governance_file_injection_to_projects[Layer_1_delivery],
       Layer_3_Basic_Memory_integration[semantic_oracle],
       pre_commit_hooks[block_direct_.hestai_writes],
@@ -173,7 +173,7 @@ KEY_ACHIEVEMENTS_2026::[
     PR_#126::odyssean_anchor_tool[949_lines+54_tests],
     PR_#127-130::gating+integration+docs,
     QUALITY_GATES::[CRS_Codex_APPROVE,CE_Gemini_GO],
-    USAGE::"Copy hub/library/commands/bind.md to ~/.claude/commands/bind.md"
+    USAGE::"Copy .hestai-sys/library/commands/bind.md to ~/.claude/commands/bind.md"
   ],
   2026-01-03::CONTEXT_FRESHNESS_UPDATE[I4_COMPLIANCE]::[
     PROJECT-CHECKLIST::updated_to_v0.5.0,

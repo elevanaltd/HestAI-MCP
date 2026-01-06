@@ -27,7 +27,7 @@ version: 1.2
 This document establishes the immutable requirements for the **Orchestra Map** component.
 
 **Inheritance Chain**:
-- System North Star (hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md) - Constitutional Authority
+- System North Star (.hestai-sys/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md) - Constitutional Authority
 - HestAI-MCP Product North Star (.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md) - Product Binding
 - This Component North Star - Subsystem Specifics
 

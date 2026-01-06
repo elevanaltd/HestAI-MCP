@@ -20,10 +20,10 @@
 
 ## PLACEMENT RULES REFERENCE
 
-### RULE_0: SYSTEM_GOVERNANCE (hub/)
+### RULE_0: SYSTEM_GOVERNANCE (src/hestai_mcp/_bundled_hub/ → .hestai-sys/)
 **Purpose**: Constitutional rules and governance delivered to all HestAI consumers
 **Audience**: All products using HestAI
-**Lifecycle**: Committed, read-only injection as .hestai-sys/
+**Lifecycle**: Committed (in source), read-only injection as .hestai-sys/
 **Contents**:
 - System North Star (000-SYSTEM-HESTAI-NORTH-STAR.md)
 - Governance rules (naming, visibility, test standards)
@@ -129,18 +129,18 @@
 - ✅ mcp-server-setup.md - Correct (setup guide)
 - ✅ workflow/ci-progressive-testing.oct.md - HYBRID (see findings below)
 
-#### hub/ (22 files) - RULE_0 MOSTLY COMPLIANT
-- ✅ hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md - Correct (system North Star)
-- ✅ hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR-SUMMARY.oct.md - Correct
-- ✅ hub/governance/rules/visibility-rules.oct.md - Correct (governance rules)
-- ✅ hub/governance/rules/hub-authoring-rules.oct.md - Correct (governance rules)
-- ✅ hub/governance/rules/naming-standard.oct.md - Correct (governance rules)
-- ✅ hub/governance/rules/test-structure-standard.oct.md - Correct (governance rules)
-- ✅ hub/agents/README.oct.md - Correct (reference)
-- ✅ hub/library/octave/octave-usage-guide.oct.md - Correct (reference library)
-- ✅ hub/templates/README.oct.md - Correct (templates)
-- ✅ hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.md - Correct (template)
-- ✅ hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR-SUMMARY.oct.md - Correct
+#### src/hestai_mcp/_bundled_hub/ (22 files) - RULE_0 MOSTLY COMPLIANT
+- ✅ src/hestai_mcp/_bundled_hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md - Correct (system North Star)
+- ✅ src/hestai_mcp/_bundled_hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR-SUMMARY.oct.md - Correct
+- ✅ src/hestai_mcp/_bundled_hub/governance/rules/visibility-rules.oct.md - Correct (governance rules)
+- ✅ src/hestai_mcp/_bundled_hub/governance/rules/hub-authoring-rules.oct.md - Correct (governance rules)
+- ✅ src/hestai_mcp/_bundled_hub/governance/rules/naming-standard.oct.md - Correct (governance rules)
+- ✅ src/hestai_mcp/_bundled_hub/governance/rules/test-structure-standard.oct.md - Correct (governance rules)
+- ✅ src/hestai_mcp/_bundled_hub/agents/README.oct.md - Correct (reference)
+- ✅ src/hestai_mcp/_bundled_hub/library/octave/octave-usage-guide.oct.md - Correct (reference library)
+- ✅ src/hestai_mcp/_bundled_hub/templates/README.oct.md - Correct (templates)
+- ✅ src/hestai_mcp/_bundled_hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.md - Correct (template)
+- ✅ src/hestai_mcp/_bundled_hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR-SUMMARY.oct.md - Correct
 
 #### .claude/ (49 files) - RULE_5 COMPLIANT
 - ✅ All skill definitions, command definitions, hooks, configuration files in correct locations
@@ -219,7 +219,7 @@
 **Current**: .md
 **Action**: RENAME to clockin-readiness-assessment.oct.md
 
-#### 3. hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md
+#### 3. src/hestai_mcp/_bundled_hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md
 **Issue**: System North Star (governance rule) uses .md format
 **Format Rule**: hub-authoring-rules.oct.md § FORMAT_RULES
 **Expected**: .oct.md (governance rules should be .oct.md)
@@ -227,7 +227,7 @@
 **Audience**: System governance (machine-parsed by agents)
 **Action**: RENAME to 000-SYSTEM-HESTAI-NORTH-STAR.oct.md
 
-#### 4. hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.md
+#### 4. src/hestai_mcp/_bundled_hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.md
 **Issue**: Template North Star uses .md format
 **Format Rule**: hub-authoring-rules.oct.md § FORMAT_RULES
 **Expected**: .oct.md (templates for governance should be .oct.md)
@@ -244,8 +244,8 @@
 3. **RENAME** .hestai/reports/clockin-readiness-assessment.md → .oct.md
 
 #### SHOULD FIX (Format Consistency)
-4. **RENAME** hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md → .oct.md
-5. **RENAME** hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.md → .oct.md
+4. **RENAME** src/hestai_mcp/_bundled_hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md → .oct.md
+5. **RENAME** src/hestai_mcp/_bundled_hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.md → .oct.md
 
 #### OPTIONAL (Design Decision)
 - rfcs/ directory: Keep as is (specialized convention, not a compliance issue)
@@ -262,7 +262,7 @@
 | .hestai/reports/ | 4 | 2 | 2 FORMAT | 50% |
 | .hestai/workflow/ | 12 | 12 | 0 | 100% |
 | docs/ | 12 | 11 | 1 PLACEMENT | 92% |
-| hub/ | 22 | 20 | 2 FORMAT | 91% |
+| src/hestai_mcp/_bundled_hub/ | 22 | 20 | 2 FORMAT | 91% |
 | .claude/ | 49 | 49 | 0 | 100% |
 | rfcs/ | 6 | 6 | 0 DESIGN | 100% |
 | Root + other | 45 | 44 | 0 | 98% |
@@ -287,7 +287,7 @@
 
 | Rule | Category | Status | Notes |
 |------|----------|--------|-------|
-| RULE_0 | hub/ (system governance) | ✅ PASS | 20/22 compliant; 2 format issues |
+| RULE_0 | src/hestai_mcp/_bundled_hub/ (system governance) | ✅ PASS | 20/22 compliant; 2 format issues |
 | RULE_1 | docs/ (architectural) | ⚠️ MOSTLY PASS | 11/12 compliant; 1 misplaced file |
 | RULE_2 | .hestai/context/ (operational) | ✅ PASS | 4/4 compliant |
 | RULE_3 | .hestai/sessions/ | N/A | Active sessions gitignored (verified) |
@@ -299,9 +299,9 @@
 
 | Rule | Status | Notes |
 |------|--------|-------|
-| RULE_1 (consumer-facing only) | ✅ PASS | hub/ contains only consumer-consumable content |
+| RULE_1 (consumer-facing only) | ✅ PASS | src/hestai_mcp/_bundled_hub/ contains only consumer-consumable content |
 | RULE_2 (internal project docs) | ✅ PASS | .hestai/ and docs/ correctly separate internal content |
-| RULE_3 (no duplication) | ✅ PASS | No duplicate content between hub/ and .hestai/ |
+| RULE_3 (no duplication) | ✅ PASS | No duplicate content between src/hestai_mcp/_bundled_hub/ and .hestai/ |
 | FORMAT (oct.md vs md) | ⚠️ MOSTLY PASS | 2 governance files use .md instead of .oct.md |
 
 ---

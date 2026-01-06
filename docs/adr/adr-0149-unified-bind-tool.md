@@ -94,8 +94,8 @@ async def bind(identity_block: str) -> dict:
 - **Use octave-mcp operators**: The library handles ⇌, →, ⊕ correctly without custom parsing
 
 ### 4. Universal Discovery
-- Agents read constitutions from `hub/agents/{role}.oct.md` (future: `.hestai-sys/agents/`)
-- Schema documented at `hub/library/schemas/identity.oct.schema`
+- Agents read constitutions from `.hestai-sys/agents/{role}.oct.md` (source: `src/hestai_mcp/_bundled_hub/agents/{role}.oct.md`)
+- Schema documented at `src/hestai_mcp/_bundled_hub/library/schemas/identity.oct.schema` (runtime: `.hestai-sys/library/schemas/identity.oct.schema`)
 - **octave-mcp handles operators**: No need to worry about ASCII vs Unicode - the library manages it
 
 ## Consequences
@@ -138,8 +138,8 @@ async def bind(identity_block: str) -> dict:
    - Test operator parsing (⇌, →, ⊕) works correctly
 
 2. **Phase 1: Schema Definition** (2 days)
-   - Create `hub/library/schemas/identity.oct.schema`
-   - Document schema at `hub/library/schemas/identity.md`
+   - Create `src/hestai_mcp/_bundled_hub/library/schemas/identity.oct.schema` (runtime: `.hestai-sys/library/schemas/identity.oct.schema`)
+   - Document schema at `src/hestai_mcp/_bundled_hub/library/schemas/identity.md`
    - Define validation rules for IDENTITY blocks using octave-mcp
 
 3. **Phase 2: Tool Implementation** (3 days)
@@ -156,7 +156,7 @@ async def bind(identity_block: str) -> dict:
    - Remove legacy regex parsing code
 
 5. **Phase 4: Documentation** (1 day)
-   - Update bind command at `hub/library/commands/bind.md`
+   - Update bind command at `src/hestai_mcp/_bundled_hub/library/commands/bind.md` (runtime: `.hestai-sys/library/commands/bind.md`)
    - Document that octave-mcp handles all operators
    - Update agent constitutions with new format
 

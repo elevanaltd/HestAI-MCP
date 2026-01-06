@@ -10,8 +10,9 @@ META:
   OWNERS::[system-steward]
   CREATED::2025-12-09
   UPDATED::2025-12-27
-  CANONICAL::hub/governance/rules/visibility-rules.oct.md
-  TAGS::[placement, visibility, documentation, lifecycle, hub, hestai-sys]
+  CANONICAL::.hestai-sys/governance/rules/visibility-rules.oct.md
+  SOURCE::src/hestai_mcp/_bundled_hub/governance/rules/visibility-rules.oct.md
+  TAGS::[placement, visibility, documentation, lifecycle, hestai-sys, bundled-hub]
 
 ===CORE_PRINCIPLE===
 
@@ -25,9 +26,9 @@ PLACEMENT_LOGIC::[
 
 ===PLACEMENT_RULES===
 
-RULE_0::SYSTEM_GOVERNANCE→hub/::[
+RULE_0::SYSTEM_GOVERNANCE→.hestai-sys/::[
   AUDIENCE::all_HestAI_products+agents,
-  LIFECYCLE::committed+read_only_when_injected,
+  LIFECYCLE::committed_in_source+read_only_when_injected,
   TRACKING::git_history+MCP_injection_as_.hestai-sys/,
 
   WHAT_GOES_HERE::[
@@ -40,24 +41,24 @@ RULE_0::SYSTEM_GOVERNANCE→hub/::[
   ],
 
   STRUCTURE::[
-    hub/governance/workflow/→[000-SYSTEM-HESTAI-NORTH-STAR.md],
-    hub/governance/rules/→[naming-standard.oct.md|visibility-rules.oct.md],
-    hub/agents/→[agent_constitution_templates],
-    hub/templates/→[project_templates],
-    hub/library/→[reference_materials],
-    hub/tools/→[system_utilities]
+    .hestai-sys/governance/workflow/→[000-SYSTEM-HESTAI-NORTH-STAR.md],
+    .hestai-sys/governance/rules/→[naming-standard.oct.md|visibility-rules.oct.md],
+    .hestai-sys/agents/→[agent_constitution_templates],
+    .hestai-sys/templates/→[project_templates],
+    .hestai-sys/library/→[reference_materials],
+    .hestai-sys/tools/→[system_utilities]
   ],
 
-  WHY_hub::[
+  WHY_system_governance_layer::[
     universal_governance≠product_specific,
-    injected_as_.hestai-sys/[read_only],
+    authored_in_src/hestai_mcp/_bundled_hub/_and_injected_as_.hestai-sys/[read_only],
     agents_cannot_modify_their_own_rules,
     single_source_of_truth_across_products,
     I3_DUAL_LAYER_AUTHORITY_enforcement
   ],
 
   INJECTION_MECHANISM::[
-    MCP_server→copies_hub/→.hestai-sys/[runtime],
+    MCP_server→copies_src/hestai_mcp/_bundled_hub/→.hestai-sys/[runtime],
     .hestai-sys/→gitignored[not_committed_per_product],
     agents→read_.hestai-sys/[cannot_write]
   ]
@@ -230,18 +231,19 @@ RULE_6::REPORTS→.hestai/reports/::[
 
 ===DECISION_MATRIX===
 
-// KEY DISTINCTION: hub/ vs .hestai/
-//   hub/     = SYSTEM governance (universal, injected as read-only .hestai-sys/)
-//   .hestai/ = PRODUCT context (specific to this repo, mutable within rules)
+// KEY DISTINCTION: .hestai-sys/ vs .hestai/
+//   .hestai-sys/ = SYSTEM governance (universal, injected as read-only)
+//   .hestai/     = PRODUCT context (specific to this repo, mutable within rules)
+// Source (maintainers): src/hestai_mcp/_bundled_hub/ is injected to .hestai-sys/
 
 PLACEMENT_TABLE::[
-  // SYSTEM GOVERNANCE (hub/ → .hestai-sys/)
-  system_north_star→hub/governance/workflow/[committed|all_products|read_only_injection],
-  governance_rules→hub/governance/rules/[committed|all_products|read_only_injection],
-  agent_templates→hub/agents/[committed|all_products|read_only_injection],
-  project_templates→hub/templates/[committed|all_products|read_only_injection],
-  reference_libraries→hub/library/[committed|all_products|read_only_injection],
-  system_tools→hub/tools/[committed|all_products|read_only_injection],
+  // SYSTEM GOVERNANCE (.hestai-sys/)
+  system_north_star→.hestai-sys/governance/workflow/[committed_in_source|all_products|read_only_injection],
+  governance_rules→.hestai-sys/governance/rules/[committed_in_source|all_products|read_only_injection],
+  agent_templates→.hestai-sys/agents/[committed_in_source|all_products|read_only_injection],
+  project_templates→.hestai-sys/templates/[committed_in_source|all_products|read_only_injection],
+  reference_libraries→.hestai-sys/library/[committed_in_source|all_products|read_only_injection],
+  system_tools→.hestai-sys/tools/[committed_in_source|all_products|read_only_injection],
 
   // DEVELOPER DOCUMENTATION (docs/)
   ADRs→docs/architecture-decisions/[committed|developers|permanent],
@@ -391,13 +393,13 @@ FUTURE_EVOLUTION::[
 ===COMPATIBILITY===
 
 WITH_NAMING_STANDARD::[
-  VISIBILITY_RULES.md→answers["WHERE does artifact belong?"],
-  NAMING_STANDARD.md→answers["HOW to name once placed?"]
+  .hestai-sys/governance/rules/visibility-rules.oct.md→answers["WHERE does artifact belong?"],
+  .hestai-sys/governance/rules/naming-standard.oct.md→answers["HOW to name once placed?"]
 ]
 
 WITH_HUB_AUTHORING_RULES::[
-  VISIBILITY_RULES.md→answers["WHERE in PRODUCT?"],
-  HUB_AUTHORING_RULES.md→answers["WHERE in SYSTEM (hub/)?""]
+  .hestai-sys/governance/rules/visibility-rules.oct.md→answers["WHERE in PRODUCT?"],
+  .hestai-sys/governance/rules/hub-authoring-rules.oct.md→answers["WHERE in SYSTEM governance payload?" ]
 ]
 
 ===AUTHORITY===

@@ -16,9 +16,9 @@ META:
 This debate addressed the complex question of canonical agent constitution format and Odyssean Anchor validation for HestAI-MCP. Key tensions included:
 
 - SHANK vs BIND terminology confusion
-- Schema drift: ADR-0036 (6 sections) vs v4.0 (4 sections) vs North Star (FLUKE references)
-- Command naming: /oa-load (per OA-I1) vs /bind (in current use)
-- Governance location: hub/agents/ vs OCTAVE spec vs scattered files
+- Schema drift: ADR-0036 (6 sections) versus v4.0 (4 sections); conflicts with North Star (FLUKE references)
+- Command naming: /oa-load (per OA-I1) versus /bind (in current use)
+- Governance location: src/hestai_mcp/_bundled_hub/agents/ (source) and .hestai-sys/agents/ (injected); OCTAVE spec references scattered across files
 
 ---
 
@@ -134,7 +134,7 @@ CANONICAL_SCHEMA::4_SECTION_RAPH_VECTOR_v4.0::[
 
 COMMAND::/oa-load[OA-I1_compliant|not_/bind]
 TOOL::odyssean_anchor[MCP_tool]
-LOCATION::[hub/agents/->templates_for_distribution->validated_at_runtime]
+LOCATION::[src/hestai_mcp/_bundled_hub/agents/->injected_as_.hestai-sys/agents/->validated_at_runtime]
 
 ---
 
@@ -191,7 +191,7 @@ RESOLVED::[
   TERMINOLOGY::SHANK/BIND_FLUKE_6_vs_4_sections->unified_4_section_v4.0,
   COMMAND_NAMING::/oa-load_vs_/bind->/oa-load[OA-I1_compliant],
   SCHEMA_DRIFT::ADR-0036_vs_v4.0_vs_NorthStar->single_canonical_v4.0,
-  GOVERNANCE::hub/agents_templates+runtime_validation,
+  GOVERNANCE::src/hestai_mcp/_bundled_hub/agents_templates+injected_.hestai-sys/agents+runtime_validation,
   SECURITY_THEATER::tool_gating_makes_minimal_prompts_viable
 ]
 

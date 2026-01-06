@@ -9,7 +9,7 @@ META:
   CREATED::"2026-01-05"
   UPDATED::"2026-01-05"
   AUTHOR::"holistic-orchestrator"
-  PARENT_PROTOCOL::"hub/library/specs/odyssean-anchor-protocol-v5.oct.md"
+  PARENT_PROTOCOL::".hestai-sys/library/specs/odyssean-anchor-protocol-v5.oct.md"
   SCOPE::"Greenfield: canonical contract only (no backwards-compat requirements)"
 
 ## PURPOSE
@@ -167,8 +167,8 @@ GATING_MODEL::[
 
 ## REFERENCES
 
-PROTOCOL::"hub/library/specs/odyssean-anchor-protocol-v5.oct.md"
-SCHEMA::"hub/library/schemas/identity.oct.schema"
+PROTOCOL::".hestai-sys/library/specs/odyssean-anchor-protocol-v5.oct.md"
+SCHEMA::".hestai-sys/library/schemas/identity.oct.schema"
 TERMINOLOGY::"docs/odyssean-anchor-terminology.md"
 
 ===END===

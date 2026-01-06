@@ -6,7 +6,7 @@ META:
   VERSION::"1.0-OCTAVE-SUMMARY"
   STATUS::ACTIVE
   PURPOSE::"Operational decision-logic for HestAI-MCP product development"
-  INHERITS::"hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md"
+  INHERITS::".hestai-sys/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md"
 
 ## IMMUTABLES (6 Total)
 

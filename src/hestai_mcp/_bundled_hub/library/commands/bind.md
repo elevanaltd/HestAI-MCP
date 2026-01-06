@@ -1,7 +1,7 @@
 ===BIND===
 // /bind {role} ["topic"] [--quick|--deep]
 // Odyssean Anchor binding v4.0 - MCP server-side validation
-// INSTALL: cp hub/library/commands/bind.md ~/.claude/commands/bind.md
+// INSTALL: cp .hestai-sys/library/commands/bind.md ~/.claude/commands/bind.md
 
 META:
   VERSION::"4.1"
