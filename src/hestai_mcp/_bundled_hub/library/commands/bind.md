@@ -19,7 +19,7 @@ CRITICAL::[TodoWrite_FIRST,NO_PROSE_between_steps,TENSION_interprets_not_copies]
 
 FLOW::
   T0::TodoWrite(TODOS)→mark_complete
-  T1::CONSTITUTION→Read(".claude/agents/{role}.oct.md")→EXTRACT[COGNITION,ARCHETYPES,MUST[2],NEVER[2]]→SET_AUTHORITY[main→RESPONSIBLE[scope]|sub→DELEGATED[parent_session]]→EMIT
+  T1::CONSTITUTION→Read(".hestai-sys/agents/{role}.oct.md")→EXTRACT[COGNITION,ARCHETYPES,MUST[2],NEVER[2]]→SET_AUTHORITY[main→RESPONSIBLE[scope]|sub→DELEGATED[parent_session]]→EMIT
   T2::CLOCK_IN→mcp__hestai__clock_in(role,focus,working_dir)→CAPTURE[SESSION_ID,CONTEXT_PATHS]→IF[FAIL]→STOP
   T2b::ARM_CONTEXT→Read(project_context)→Bash(git_log+status+branch+ahead_behind)→EXTRACT[PHASE,BRANCH,FILES]→EMIT
   T3::TENSION→GENERATE[L{N}::[constraint]⇌CTX:{path}[state]→TRIGGER[action]]→MIN_COUNT_PER_TIER→mark_complete
