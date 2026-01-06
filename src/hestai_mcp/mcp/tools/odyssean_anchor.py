@@ -901,19 +901,6 @@ def odyssean_anchor(
     all_errors: list[str] = []
     guidance_parts: list[str] = []
 
-    # Check if max retries exhausted
-    if retry_count >= MAX_RETRIES:
-        return OdysseanAnchorResult(
-            success=False,
-            anchor=None,
-            errors=["Max retries (2) exhausted. Agent binding failed."],
-            guidance="VECTOR VALIDATION FAILED (max retries exhausted)\n"
-            "Agent cannot proceed without valid anchor.\n"
-            "Escalate to manual review.",
-            retry_count=retry_count,
-            terminal=True,
-        )
-
     # 1. Validate BIND section
     bind_result = validate_bind_section(vector_candidate)
     if not bind_result.valid:
@@ -1041,6 +1028,24 @@ def odyssean_anchor(
 
     # If any errors, return failure with guidance
     if all_errors:
+        # Check if max retries exhausted AFTER validation
+        # This ensures agents see validation errors even on final attempt
+        if retry_count >= MAX_RETRIES:
+            return OdysseanAnchorResult(
+                success=False,
+                anchor=None,
+                errors=all_errors,
+                guidance="VECTOR VALIDATION FAILED (max retries exhausted)\n"
+                "---\n\n"
+                "FINAL ATTEMPT FAILURES:\n"
+                + "\n".join(f"{i}. {error}" for i, error in enumerate(all_errors, 1))
+                + "\n\n---\n\n"
+                "Agent cannot proceed without valid anchor.\n"
+                "Escalate to manual review or fix the errors above.",
+                retry_count=retry_count,
+                terminal=True,
+            )
+
         # Remove duplicate guidance entries
         unique_guidance = list(dict.fromkeys(guidance_parts))
         guidance = (
