@@ -854,6 +854,95 @@ def _run_semantic_validation(
 
 
 # =============================================================================
+# Format Guidance Builder
+# =============================================================================
+
+
+def _build_format_guide(
+    bind_errors: list[str],
+    tension_errors: list[str],
+    commit_errors: list[str],
+    tier: str = "default",
+) -> str:
+    """
+    Build comprehensive format guidance with concrete examples.
+
+    This addresses the usability issue where agents receive validation errors
+    but no clear examples of the correct format. Provides section-by-section
+    guidance with actual working examples.
+
+    Args:
+        bind_errors: List of BIND section validation errors
+        tension_errors: List of TENSION section validation errors
+        commit_errors: List of COMMIT section validation errors
+        tier: Validation tier for tension-specific guidance
+
+    Returns:
+        Formatted guidance string with concrete examples
+    """
+    guide_parts = ["REQUIRED FORMAT (copy and modify this template):"]
+
+    # BIND section guidance
+    if bind_errors:
+        guide_parts.append(
+            "\n## BIND\n"
+            "ROLE::your-agent-role\n"
+            "COGNITION::LOGOS::ATLAS\n"
+            "  # Or multi-archetype: COGNITION::LOGOS::ATLAS⊕PROMETHEUS⊕HEPHAESTUS\n"
+            "  # Valid types: ETHOS, LOGOS, PATHOS\n"
+            f"  # Valid archetypes: {', '.join(sorted(list(VALID_ARCHETYPES)[:5]))}...\n"
+            "AUTHORITY::RESPONSIBLE[your_domain+specific_scope]\n"
+            "  # Or: AUTHORITY::DELEGATED[parent_session]"
+        )
+
+    # TENSION section guidance
+    if tension_errors:
+        min_tensions = TIER_TENSION_REQUIREMENTS.get(tier, 2)
+        if tier == "deep":
+            guide_parts.append(
+                f"\n## TENSION (minimum {min_tensions} required for tier '{tier}')\n"
+                "L1::[SPECIFIC_CONSTRAINT]⇌CTX:path/to/file.md:10-20[state_description]→TRIGGER[action]\n"
+                "L2::[ANOTHER_CONSTRAINT]⇌CTX:src/module.py:45-67[relevant_state]→TRIGGER[handle_violation]\n"
+                "L3::[THIRD_CONSTRAINT]⇌CTX:docs/architecture.md:100-150[arch_state]→TRIGGER[escalate]\n"
+                "  # Deep tier REQUIRES line ranges (e.g., :10-20) in CTX citations\n"
+                "  # Format: CTX:filename:start-end[state] (line range BEFORE brackets)"
+            )
+        elif tier == "default":
+            guide_parts.append(
+                f"\n## TENSION (minimum {min_tensions} required for tier '{tier}')\n"
+                "L1::[SPECIFIC_CONSTRAINT]⇌CTX:path/to/file.md[state_description]→TRIGGER[action]\n"
+                "L2::[ANOTHER_CONSTRAINT]⇌CTX:src/module.py[relevant_state]→TRIGGER[handle_violation]\n"
+                "  # Use ⇌ (or <-> as ASCII alias) for tension operator\n"
+                "  # Use → (or -> as ASCII alias) for flow operator\n"
+                "  # Constraint names must be SPECIFIC (not 'CONSTRAINT', 'RULE', 'TODO')"
+            )
+        else:  # quick
+            guide_parts.append(
+                f"\n## TENSION (minimum {min_tensions} required for tier '{tier}')\n"
+                "L1::[SPECIFIC_CONSTRAINT]⇌CTX:path/to/file.md[state]→TRIGGER[action]\n"
+                "  # Even 'quick' tier requires proper CTX citation and TRIGGER"
+            )
+
+    # COMMIT section guidance
+    if commit_errors:
+        guide_parts.append(
+            "\n## COMMIT\n"
+            "ARTIFACT::path/to/output.py[function_name+module_changes]\n"
+            "  # Use concrete paths, not 'response', 'output', 'result'\n"
+            "GATE::pytest[test_file.py]\n"
+            "  # Or: GATE::manual_review[specific_criteria]\n"
+            "  # Or: GATE::build[npm_run_typecheck]"
+        )
+
+    # Add reference to full documentation
+    guide_parts.append(
+        "\n\nREFERENCE: See .hestai-sys/library/commands/bind.md for full ceremony documentation"
+    )
+
+    return "\n".join(guide_parts)
+
+
+# =============================================================================
 # Main Odyssean Anchor Tool
 # =============================================================================
 
@@ -1028,6 +1117,14 @@ def odyssean_anchor(
 
     # If any errors, return failure with guidance
     if all_errors:
+        # Build comprehensive format guidance with concrete examples
+        format_guide = _build_format_guide(
+            bind_errors=[e for e in all_errors if "BIND" in e],
+            tension_errors=[e for e in all_errors if "TENSION" in e],
+            commit_errors=[e for e in all_errors if "COMMIT" in e],
+            tier=tier,
+        )
+
         # Check if max retries exhausted AFTER validation
         # This ensures agents see validation errors even on final attempt
         if retry_count >= MAX_RETRIES:
@@ -1039,6 +1136,8 @@ def odyssean_anchor(
                 "---\n\n"
                 "FINAL ATTEMPT FAILURES:\n"
                 + "\n".join(f"{i}. {error}" for i, error in enumerate(all_errors, 1))
+                + "\n\n---\n\n"
+                + format_guide
                 + "\n\n---\n\n"
                 "Agent cannot proceed without valid anchor.\n"
                 "Escalate to manual review or fix the errors above.",
@@ -1053,6 +1152,8 @@ def odyssean_anchor(
             "---\n\n"
             "FAILURES:\n"
             + "\n".join(f"{i}. {error}" for i, error in enumerate(all_errors, 1))
+            + "\n\n---\n\n"
+            + format_guide
             + "\n\n---\n\n"
             "RETRY GUIDANCE:\n"
             + "\n".join(unique_guidance)
