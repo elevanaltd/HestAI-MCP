@@ -72,6 +72,66 @@ def _validate_project_identity(project_root: Path) -> None:
     )
 
 
+def _check_governance_opt_in(project_root: Path) -> bool:
+    """Check if project has opted in to governance injection.
+
+    Projects opt in by having HESTAI_GOVERNANCE_ENABLED in .env or
+    by having a .hestai directory already present.
+
+    Returns:
+        True if project has opted in, False otherwise
+    """
+    # Check if .hestai directory exists (already using HestAI)
+    if (project_root / ".hestai").exists():
+        return True
+
+    # Check for .env file with HESTAI_GOVERNANCE_ENABLED
+    env_file = project_root / ".env"
+    if env_file.exists():
+        try:
+            content = env_file.read_text()
+            # Look for HESTAI_GOVERNANCE_ENABLED=true or =1
+            import re
+
+            pattern = r"^\s*HESTAI_GOVERNANCE_ENABLED\s*=\s*(true|1|yes)\s*$"
+            if re.search(pattern, content, re.MULTILINE | re.IGNORECASE):
+                return True
+        except Exception:
+            pass
+
+    return False
+
+
+def _ensure_gitignore_entry(project_root: Path) -> None:
+    """Ensure .hestai-sys/ is in .gitignore.
+
+    Creates .gitignore if it doesn't exist, or appends the entry if missing.
+    """
+    gitignore_path = project_root / ".gitignore"
+    entry = ".hestai-sys/"
+
+    # Check if entry already exists
+    if gitignore_path.exists():
+        content = gitignore_path.read_text()
+        # Check for exact entry or with leading slash
+        if entry in content or f"/{entry}" in content:
+            return
+        # Append to existing file
+        with gitignore_path.open("a") as f:
+            # Add newline if file doesn't end with one
+            if not content.endswith("\n"):
+                f.write("\n")
+            f.write("\n# HestAI system governance (auto-added, not committed)\n")
+            f.write(f"{entry}\n")
+    else:
+        # Create new .gitignore
+        with gitignore_path.open("w") as f:
+            f.write("# HestAI system governance (auto-added, not committed)\n")
+            f.write(f"{entry}\n")
+
+    logger.info(f"Added {entry} to .gitignore")
+
+
 # Create server instance
 app = Server("hestai-mcp")
 
@@ -136,6 +196,9 @@ def inject_system_governance(project_root: Path) -> None:
     """
     _validate_project_root(project_root)
     _validate_project_identity(project_root)
+
+    # Ensure .hestai-sys is in .gitignore before creating it
+    _ensure_gitignore_entry(project_root)
 
     hub_path = get_hub_path()
 
@@ -218,6 +281,9 @@ def bootstrap_system_governance(project_root: Path | None) -> dict[str, Any]:
     """Bootstrap governance before any agent/tool interactions.
 
     Creates .hestai-sys in the specified project root, or uses a smart default.
+    Only injects governance if the project has opted in via:
+    - HESTAI_GOVERNANCE_ENABLED=true in .env
+    - Existing .hestai directory
 
     Args:
         project_root: explicit project root. If None, uses:
@@ -243,14 +309,21 @@ def bootstrap_system_governance(project_root: Path | None) -> dict[str, Any]:
 
     try:
         _validate_project_identity(project_root)
-    except RuntimeError as e:
+    except RuntimeError:
         # Provide actionable guidance when implicit CWD fallback isn't a project root.
         if used_cwd_fallback:
-            raise RuntimeError(
-                "HESTAI_PROJECT_ROOT is not set and the current working directory is not a project root. "
-                "Either run the server from a project root (with .git/.hestai present) or set HESTAI_PROJECT_ROOT."
-            ) from e
+            # Not a project root, skip governance injection silently
+            logger.debug(f"Skipping governance: {project_root} is not a project root")
+            return {"status": "skipped", "reason": "not_a_project_root"}
         raise
+
+    # Check if project has opted in to governance
+    if not _check_governance_opt_in(project_root):
+        logger.info(
+            f"Skipping governance injection for {project_root}. "
+            "To enable, add HESTAI_GOVERNANCE_ENABLED=true to .env"
+        )
+        return {"status": "skipped", "reason": "opt_in_required"}
 
     return ensure_system_governance(project_root)
 
