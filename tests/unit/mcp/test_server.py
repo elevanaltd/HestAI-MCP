@@ -229,6 +229,8 @@ class TestEnsureSystemGovernance:
         project_root = tmp_path / "project"
         project_root.mkdir()
         (project_root / ".git").mkdir()
+        # Add opt-in for test
+        (project_root / ".hestai").mkdir()
 
         # Create minimal hub structure
         fake_hub = tmp_path / "hub"
@@ -250,6 +252,8 @@ class TestEnsureSystemGovernance:
         project_root = tmp_path / "project"
         project_root.mkdir()
         (project_root / ".git").mkdir()
+        # Add opt-in for test
+        (project_root / ".hestai").mkdir()
         hestai_sys = project_root / ".hestai-sys"
         hestai_sys.mkdir()
         (hestai_sys / ".version").write_text("1.0.0")
@@ -272,6 +276,8 @@ class TestEnsureSystemGovernance:
         project_root = tmp_path / "project"
         project_root.mkdir()
         (project_root / ".git").mkdir()
+        # Add opt-in for test
+        (project_root / ".hestai").mkdir()
         hestai_sys = project_root / ".hestai-sys"
         hestai_sys.mkdir()
         (hestai_sys / ".version").write_text("1.0.0")
@@ -293,6 +299,8 @@ class TestEnsureSystemGovernance:
         project_root = tmp_path / "project"
         project_root.mkdir()
         (project_root / ".git").mkdir()
+        # Add opt-in for test
+        (project_root / ".hestai").mkdir()
         hestai_sys = project_root / ".hestai-sys"
         hestai_sys.mkdir()
         (hestai_sys / ".version").write_text("0.9.0")
@@ -323,6 +331,8 @@ class TestStartupBootstrap:
         project_root = tmp_path / "project"
         project_root.mkdir()
         (project_root / ".git").mkdir()
+        # Add opt-in via .hestai directory
+        (project_root / ".hestai").mkdir()
 
         with patch.object(
             server, "ensure_system_governance", return_value={"status": "ok"}
@@ -338,6 +348,8 @@ class TestStartupBootstrap:
         project_root = tmp_path / "project"
         project_root.mkdir()
         (project_root / ".git").mkdir()
+        # Add opt-in via .hestai directory
+        (project_root / ".hestai").mkdir()
         monkeypatch.setenv("HESTAI_PROJECT_ROOT", str(project_root))
 
         with patch.object(
@@ -356,6 +368,8 @@ class TestStartupBootstrap:
         project_root = tmp_path / "project"
         project_root.mkdir()
         (project_root / ".git").mkdir()
+        # Add opt-in via .hestai directory
+        (project_root / ".hestai").mkdir()
 
         monkeypatch.delenv("HESTAI_PROJECT_ROOT", raising=False)
         monkeypatch.chdir(project_root)
@@ -368,7 +382,7 @@ class TestStartupBootstrap:
         mock_ensure.assert_called_once_with(project_root)
         assert result == {"status": "ok"}
 
-    def test_bootstrap_raises_when_env_missing_and_cwd_not_project_root(
+    def test_bootstrap_skips_when_env_missing_and_cwd_not_project_root(
         self, tmp_path: Path, monkeypatch
     ):
         from hestai_mcp.mcp import server
@@ -376,8 +390,37 @@ class TestStartupBootstrap:
         monkeypatch.delenv("HESTAI_PROJECT_ROOT", raising=False)
         monkeypatch.chdir(tmp_path)
 
-        with pytest.raises(RuntimeError, match="HESTAI_PROJECT_ROOT"):
-            server.bootstrap_system_governance(None)
+        # Now it returns a skip status instead of raising
+        result = server.bootstrap_system_governance(None)
+        assert result == {"status": "skipped", "reason": "not_a_project_root"}
+
+    def test_bootstrap_skips_without_opt_in(self, tmp_path: Path):
+        from hestai_mcp.mcp import server
+
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+        (project_root / ".git").mkdir()
+        # No .hestai directory or .env opt-in
+
+        result = server.bootstrap_system_governance(project_root)
+        assert result == {"status": "skipped", "reason": "opt_in_required"}
+
+    def test_bootstrap_with_env_opt_in(self, tmp_path: Path):
+        from hestai_mcp.mcp import server
+
+        project_root = tmp_path / "project"
+        project_root.mkdir()
+        (project_root / ".git").mkdir()
+        # Add opt-in via .env
+        (project_root / ".env").write_text("HESTAI_GOVERNANCE_ENABLED=true\n")
+
+        with patch.object(
+            server, "ensure_system_governance", return_value={"status": "ok"}
+        ) as mock_ensure:
+            result = server.bootstrap_system_governance(project_root)
+
+        mock_ensure.assert_called_once_with(project_root)
+        assert result == {"status": "ok"}
 
 
 # =============================================================================
