@@ -229,7 +229,6 @@ anchor_lock(
   commit_template?: string    // Format guide
 }
 ```
-```
 
 #### `anchor_commit` (Step e)
 ```typescript
@@ -343,7 +342,7 @@ flukes:
   - id: "architecture-review"
     source: "file://flukes/arch-review.oct.md"
   - id: "tdd-workflow"
-    source: "file://flukes/tdd-workflow.oct.md
+    source: "file://flukes/tdd-workflow.oct.md"
 
 # Permission configuration for commit validation
 gates:
