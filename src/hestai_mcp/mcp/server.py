@@ -24,6 +24,7 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
 
+from hestai_mcp.mcp.tools.bind import bind
 from hestai_mcp.mcp.tools.clock_in import clock_in_async, validate_working_dir
 from hestai_mcp.mcp.tools.clock_out import clock_out
 from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
@@ -360,6 +361,34 @@ async def list_tools() -> list[Tool]:
                 "required": ["role", "vector_candidate", "session_id", "working_dir"],
             },
         ),
+        Tool(
+            name="bind",
+            description=(
+                "Bootstrap agent binding with low token usage. "
+                "Creates .hestai-sys structure if missing and enables two-tier agent discovery. "
+                "Replaces bind.md command for bootstrapping."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "role": {
+                        "type": "string",
+                        "description": "Agent role name (e.g., 'implementation-lead')",
+                    },
+                    "topic": {
+                        "type": "string",
+                        "description": "Work focus area",
+                        "default": "general",
+                    },
+                    "tier": {
+                        "type": "string",
+                        "description": "Binding tier: quick, standard, or deep",
+                        "default": "standard",
+                    },
+                },
+                "required": ["role"],
+            },
+        ),
     ]
 
 
@@ -472,6 +501,17 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         }
 
         return [TextContent(type="text", text=json.dumps(result_dict, indent=2))]
+
+    elif name == "bind":
+        import json
+
+        bind_result = bind(
+            role=arguments["role"],
+            topic=arguments.get("topic", "general"),
+            tier=arguments.get("tier", "standard"),
+        )
+
+        return [TextContent(type="text", text=json.dumps(bind_result, indent=2))]
 
     else:
         raise ValueError(f"Unknown tool: {name}")
