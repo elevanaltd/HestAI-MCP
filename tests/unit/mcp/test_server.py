@@ -429,15 +429,81 @@ class TestListTools:
         assert "session_id" in schema["required"]
 
     @pytest.mark.asyncio
-    async def test_returns_three_tools(self):
-        """Returns exactly three tools (clock_in, clock_out, odyssean_anchor)."""
+    async def test_returns_bind_tool_schema(self):
+        """Returns bind tool with correct schema."""
         from hestai_mcp.mcp.server import list_tools
 
         tools = await list_tools()
 
-        assert len(tools) == 3
+        # Find bind tool
+        bind_tool = next((t for t in tools if t.name == "bind"), None)
+        assert bind_tool is not None
+
+        # Verify schema properties
+        schema = bind_tool.inputSchema
+        assert schema["type"] == "object"
+        assert "role" in schema["properties"]
+        assert "topic" in schema["properties"]
+        assert "tier" in schema["properties"]
+        assert "working_dir" in schema["properties"]
+        assert "role" in schema["required"]
+        assert "topic" not in schema["required"]  # Optional with default
+        assert "tier" not in schema["required"]  # Optional with default
+        assert "working_dir" not in schema["required"]  # Optional
+
+    @pytest.mark.asyncio
+    async def test_bind_tool_validates_working_dir(self, tmp_path: Path):
+        """Test that bind tool validates working_dir when provided."""
+        from hestai_mcp.mcp.server import call_tool
+
+        # Create minimal hestai structure
+        project = tmp_path / "project"
+        project.mkdir()
+        (project / ".git").mkdir()
+        (project / ".hestai" / "sessions" / "active").mkdir(parents=True)
+        (project / ".hestai" / "context").mkdir(parents=True)
+
+        # Bind without working_dir should work
+        arguments = {
+            "role": "technical-architect",
+        }
+
+        from hestai_mcp.mcp import server
+
+        with patch.object(
+            server, "ensure_system_governance", return_value={"status": "up_to_date"}
+        ) as mock_ensure:
+            result = await call_tool("bind", arguments)
+
+        mock_ensure.assert_not_called()  # Should not be called without working_dir
+        assert len(result) == 1
+        assert result[0].type == "text"
+
+        # Parse response
+        response_data = json.loads(result[0].text)
+        assert "success" in response_data
+
+        # Bind with working_dir should call validate functions
+        arguments_with_dir = {
+            "role": "technical-architect",
+            "working_dir": str(project),
+        }
+
+        with patch.object(server, "_validate_project_identity", return_value=None) as mock_validate:
+            await call_tool("bind", arguments_with_dir)
+
+        mock_validate.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_returns_four_tools(self):
+        """Returns exactly four tools (clock_in, clock_out, odyssean_anchor, bind)."""
+        from hestai_mcp.mcp.server import list_tools
+
+        tools = await list_tools()
+
+        assert len(tools) == 4
         tool_names = {t.name for t in tools}
-        assert tool_names == {"clock_in", "clock_out", "odyssean_anchor"}
+        assert tool_names == {"clock_in", "clock_out", "odyssean_anchor", "bind"}
 
 
 # =============================================================================

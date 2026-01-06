@@ -1,32 +1,34 @@
 #!/usr/bin/env python3
 """
-Simple MCP bind tool that replaces bind command and creates .hestai-sys directory.
-Low token implementation for bootstrapping.
+Simple MCP bind tool that replaces bind command and enables agent discovery.
+
+Critical-Engineer: Consulted for path validation, resource limits, and security hardening.
+.hestai-sys creation is delegated to the MCP server's ensure_system_governance() function
+to maintain governance integrity per docs/hestai-sys-security-model.md.
 """
 
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
 
 
-def ensure_hestai_sys_exists() -> bool:
-    """Create minimal .hestai-sys structure if it doesn't exist."""
-    hestai_sys = Path.cwd() / ".hestai-sys"
+def _validate_role(role: str | None) -> bool:
+    """
+    Validate role to prevent path traversal attacks.
+    Rejects: path separators, leading /, drive letters, .., relative paths.
+    """
+    if not role:
+        return False
 
-    if not hestai_sys.exists():
-        # Create basic structure
-        directories = ["library/commands", "library/specs", "agents", "skills"]
+    # Whitelist: alphanumeric, hyphens, underscores only
+    # Max 128 chars (reasonable limit for role names)
+    if not re.match(r"^[a-zA-Z0-9_-]{1,128}$", role):
+        return False
 
-        for dir_path in directories:
-            (hestai_sys / dir_path).mkdir(parents=True, exist_ok=True)
-
-        # Create minimal README
-        readme_content = "# HESTAI System Structure\n\ndirectory is read-only after initialization"
-        (hestai_sys / "README.md").write_text(readme_content)
-
-        return True
-    return False
+    # Double-check: reject any path-like patterns
+    return not ("/" in role or "\\" in role or role.startswith("-") or ".." in role)
 
 
 def discover_agent_file(role: str) -> str | None:
@@ -34,16 +36,26 @@ def discover_agent_file(role: str) -> str | None:
     Two-tier discovery:
     1. Check .hestai-sys/agents/{role}.oct.md
     2. Fall back to .claude/agents/{role}.oct.md
-    """
-    # First try .hestai-sys
-    hestai_agent = Path.cwd() / ".hestai-sys" / "agents" / f"{role}.oct.md"
-    if hestai_agent.exists():
-        return str(hestai_agent)
 
-    # Fall back to .claude
-    claude_agent = Path.home() / ".claude" / "agents" / f"{role}.oct.md"
-    if claude_agent.exists():
-        return str(claude_agent)
+    Validates role to prevent path traversal before discovery.
+    """
+    # Security: Validate role first
+    if not _validate_role(role):
+        return None
+
+    try:
+        # First try .hestai-sys
+        hestai_agent = Path.cwd() / ".hestai-sys" / "agents" / f"{role}.oct.md"
+        if hestai_agent.exists() and ".hestai-sys/agents" in str(hestai_agent.resolve()):
+            return str(hestai_agent)
+
+        # Fall back to .claude
+        claude_agent = Path.home() / ".claude" / "agents" / f"{role}.oct.md"
+        if claude_agent.exists() and ".claude/agents" in str(claude_agent.resolve()):
+            return str(claude_agent)
+    except (OSError, RuntimeError):
+        # Path resolution errors - return None
+        return None
 
     return None
 
@@ -95,10 +107,23 @@ def parse_arguments(args: list[str]) -> dict[str, Any]:
     return result
 
 
-def execute_bind(role: str, topic: str = "general", tier: str = "standard") -> dict[str, Any]:
-    """Execute bind process minimally."""
-    # Ensure .hestai-sys exists
-    created = ensure_hestai_sys_exists()
+def execute_bind(
+    role: str, topic: str = "general", tier: str = "standard", working_dir: str | None = None
+) -> dict[str, Any]:
+    """Execute bind process with security hardening.
+
+    Note: .hestai-sys creation/management is delegated to ensure_system_governance()
+    in the MCP server for proper governance integrity.
+    """
+    # Validate role first (before any file operations)
+    if not _validate_role(role):
+        return {
+            "success": False,
+            "error": "Invalid role format (must be alphanumeric, hyphens, underscores only)",
+        }
+
+    # Resolve working directory path if provided
+    working_dir_path = Path(working_dir).resolve() if working_dir else Path.cwd()
 
     # Discover agent file
     agent_file = discover_agent_file(role)
@@ -106,17 +131,22 @@ def execute_bind(role: str, topic: str = "general", tier: str = "standard") -> d
         return {
             "success": False,
             "error": f"Agent file not found for role: {role}",
-            "attempted_paths": [
-                str(Path.cwd() / ".hestai-sys" / "agents" / f"{role}.oct.md"),
-                str(Path.home() / ".claude" / "agents" / f"{role}.oct.md"),
-            ],
         }
 
-    # Read agent constitution minimally
+    # Read agent constitution with resource limits
+    # Cap file size to 1MB to prevent resource exhaustion
+    max_file_size = 1024 * 1024
     try:
-        agent_content = Path(agent_file).read_text()
+        agent_path = Path(agent_file)
+        file_size = agent_path.stat().st_size
+        if file_size > max_file_size:
+            return {
+                "success": False,
+                "error": f"Agent file too large ({file_size} > {max_file_size} bytes)",
+            }
+        agent_content = agent_path.read_text()
     except Exception as e:
-        return {"success": False, "error": f"Failed to read agent file: {e}"}
+        return {"success": False, "error": f"Failed to read agent file: {str(e)}"}
 
     # Extract key sections (minimal token extraction)
     lines = agent_content.split("\n")
@@ -141,15 +171,14 @@ def execute_bind(role: str, topic: str = "general", tier: str = "standard") -> d
     # Minimal dashboard response
     response = {
         "success": True,
-        "hestai_sys_created": created,
         "role": role,
         "topic": topic,
         "tier": tier,
         "cognition": cognition,
         "archetypes": archetypes,
-        "session_id": f"session-{role}-{Path.cwd().name}",
+        "session_id": f"session-{role}-{working_dir_path.name}",
         "agent_file": agent_file,
-        "hestai_sys_path": str(Path.cwd() / ".hestai-sys"),
+        "working_dir": str(working_dir_path),
     }
 
     return response
@@ -157,8 +186,6 @@ def execute_bind(role: str, topic: str = "general", tier: str = "standard") -> d
 
 def main() -> int:
     """Main entry point for MCP tool."""
-    import sys
-
     # Parse arguments
     args = sys.argv[1:] if len(sys.argv) > 1 else []
     parsed = parse_arguments(args)
@@ -176,6 +203,8 @@ if __name__ == "__main__":
 
 
 # Export bind function for MCP server
-def bind(role: str, topic: str = "general", tier: str = "standard") -> dict[str, Any]:
+def bind(
+    role: str, topic: str = "general", tier: str = "standard", working_dir: str | None = None
+) -> dict[str, Any]:
     """Bind function for MCP server."""
-    return execute_bind(role, topic, tier)
+    return execute_bind(role, topic, tier, working_dir)

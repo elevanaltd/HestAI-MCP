@@ -365,8 +365,9 @@ async def list_tools() -> list[Tool]:
             name="bind",
             description=(
                 "Bootstrap agent binding with low token usage. "
-                "Creates .hestai-sys structure if missing and enables two-tier agent discovery. "
-                "Replaces bind.md command for bootstrapping."
+                "Enables two-tier agent discovery (.hestai-sys/agents → .claude/agents). "
+                "Relies on server's ensure_system_governance() for .hestai-sys management. "
+                "Security hardening: path validation, resource limits, and error handling."
             ),
             inputSchema={
                 "type": "object",
@@ -384,6 +385,10 @@ async def list_tools() -> list[Tool]:
                         "type": "string",
                         "description": "Binding tier: quick, standard, or deep",
                         "default": "standard",
+                    },
+                    "working_dir": {
+                        "type": "string",
+                        "description": "Project working directory path",
                     },
                 },
                 "required": ["role"],
@@ -505,10 +510,17 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     elif name == "bind":
         import json
 
+        # Ensure governance is present in the target directory if working_dir provided
+        if "working_dir" in arguments and arguments["working_dir"]:
+            working_dir_path = validate_working_dir(arguments["working_dir"])
+            _validate_project_identity(working_dir_path)
+            ensure_system_governance(working_dir_path)
+
         bind_result = bind(
             role=arguments["role"],
             topic=arguments.get("topic", "general"),
             tier=arguments.get("tier", "standard"),
+            working_dir=arguments.get("working_dir"),
         )
 
         return [TextContent(type="text", text=json.dumps(bind_result, indent=2))]
