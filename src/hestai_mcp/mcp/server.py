@@ -24,6 +24,7 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
 
+from hestai_mcp.mcp.tools.bind import bind
 from hestai_mcp.mcp.tools.clock_in import clock_in_async, validate_working_dir
 from hestai_mcp.mcp.tools.clock_out import clock_out
 from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
@@ -360,6 +361,39 @@ async def list_tools() -> list[Tool]:
                 "required": ["role", "vector_candidate", "session_id", "working_dir"],
             },
         ),
+        Tool(
+            name="bind",
+            description=(
+                "Bootstrap agent binding with low token usage. "
+                "Enables two-tier agent discovery (.hestai-sys/agents → .claude/agents). "
+                "Relies on server's ensure_system_governance() for .hestai-sys management. "
+                "Security hardening: path validation, resource limits, and error handling."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "role": {
+                        "type": "string",
+                        "description": "Agent role name (e.g., 'implementation-lead')",
+                    },
+                    "topic": {
+                        "type": "string",
+                        "description": "Work focus area",
+                        "default": "general",
+                    },
+                    "tier": {
+                        "type": "string",
+                        "description": "Binding tier: quick, standard, or deep",
+                        "default": "standard",
+                    },
+                    "working_dir": {
+                        "type": "string",
+                        "description": "Project working directory path",
+                    },
+                },
+                "required": ["role"],
+            },
+        ),
     ]
 
 
@@ -472,6 +506,24 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         }
 
         return [TextContent(type="text", text=json.dumps(result_dict, indent=2))]
+
+    elif name == "bind":
+        import json
+
+        # Ensure governance is present in the target directory if working_dir provided
+        if "working_dir" in arguments and arguments["working_dir"]:
+            working_dir_path = validate_working_dir(arguments["working_dir"])
+            _validate_project_identity(working_dir_path)
+            ensure_system_governance(working_dir_path)
+
+        bind_result = bind(
+            role=arguments["role"],
+            topic=arguments.get("topic", "general"),
+            tier=arguments.get("tier", "standard"),
+            working_dir=arguments.get("working_dir"),
+        )
+
+        return [TextContent(type="text", text=json.dumps(bind_result, indent=2))]
 
     else:
         raise ValueError(f"Unknown tool: {name}")
