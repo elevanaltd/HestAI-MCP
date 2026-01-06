@@ -107,6 +107,75 @@ def parse_arguments(args: list[str]) -> dict[str, Any]:
     return result
 
 
+def _normalize_tier_for_anchor(tier: str) -> str:
+    """Normalize bind tier to Odyssean Anchor tier names.
+
+    bind tool historically used: quick | standard | deep
+    odyssean_anchor expects:      quick | default  | deep
+    """
+    if tier == "standard":
+        return "default"
+    if tier in {"quick", "deep", "default"}:
+        return tier
+    # Fail-closed to default semantics if unknown
+    return "default"
+
+
+def _bind_todos() -> list[dict[str, str]]:
+    """Return the canonical 7-step bind TODO list.
+
+    This mirrors src/hestai_mcp/_bundled_hub/library/commands/bind.md.
+    """
+    return [
+        {"content": "T0: TodoWrite", "status": "in_progress", "activeForm": "Sequencing"},
+        {"content": "T1: Constitution", "status": "pending", "activeForm": "Identity"},
+        {"content": "T2: clock_in + ARM", "status": "pending", "activeForm": "Context"},
+        {"content": "T3: TENSION", "status": "pending", "activeForm": "Cognitive proof"},
+        {"content": "T4: COMMIT", "status": "pending", "activeForm": "Contract"},
+        {"content": "T5: Odyssean Anchor", "status": "pending", "activeForm": "MCP validation"},
+        {"content": "T6: Dashboard", "status": "pending", "activeForm": "Summary"},
+    ]
+
+
+def _build_command_steps(
+    *,
+    role: str,
+    focus: str,
+    working_dir: str,
+    tier: str,
+) -> str:
+    """Build a command-style step sequence for agents to follow.
+
+    Intentionally minimal: no prose between steps.
+    """
+    anchor_tier = _normalize_tier_for_anchor(tier)
+
+    todos_lines = ["TODOS::["]
+    for i, t in enumerate(_bind_todos()):
+        comma = "," if i < 6 else ""
+        todos_lines.append(
+            f"  {{content:\"{t['content']}\",status:\"{t['status']}\",activeForm:\"{t['activeForm']}\"}}{comma}"
+        )
+    todos_lines.append("]")
+
+    # Keep placeholders in-step (agent-authored steps: T3/T4)
+    return "\n".join(
+        todos_lines
+        + [
+            "",
+            "T0::TodoWrite(TODOS)→mark_complete",
+            f'T1::CONSTITUTION→Read(".hestai-sys/agents/{role}.oct.md")→EXTRACT[COGNITION,ARCHETYPES,MUST[2],NEVER[2]]→SET_AUTHORITY[main→RESPONSIBLE[scope]|sub→DELEGATED[parent_session]]→EMIT',
+            f'T2::CLOCK_IN→mcp__hestai__clock_in(role:"{role}",working_dir:"{working_dir}",focus:"{focus}")→CAPTURE[SESSION_ID,CONTEXT_PATHS]→IF[FAIL]→STOP',
+            "T2b::ARM_CONTEXT→Read(project_context)→Bash(git_log+status+branch+ahead_behind)→EXTRACT[PHASE,BRANCH,FILES]→EMIT",
+            "T3::TENSION→GENERATE[L{N}::[constraint]⇌CTX:{path}[state]→TRIGGER[action]]→MIN_COUNT_PER_TIER→mark_complete",
+            "T4::COMMIT→DECLARE[ARTIFACT::concrete_path,GATE::validation_method]→mark_complete",
+            "T5::ANCHOR→BUILD_VECTOR[BIND+TENSION+COMMIT]→mcp__hestai__odyssean_anchor(role,vector,session_id,working_dir,tier)→HANDLE_RESULT",
+            f'T5_ARGS::role="{role}" tier="{anchor_tier}" working_dir="{working_dir}"',
+            "T6::DASHBOARD→EMIT[VECTOR_BLOCK+DASHBOARD_BLOCK]→mark_complete",
+        ]
+    )
+
+
 def execute_bind(
     role: str, topic: str = "general", tier: str = "standard", working_dir: str | None = None
 ) -> dict[str, Any]:
@@ -168,17 +237,32 @@ def execute_bind(
             )
             break  # Stop after finding both for efficiency
 
-    # Minimal dashboard response
+    working_dir_str = str(working_dir_path)
+
+    # Command-style sequence output (mirrors bind.md intent; agent follows steps)
+    todos = _bind_todos()
+    command_steps = _build_command_steps(
+        role=role,
+        focus=topic,
+        working_dir=working_dir_str,
+        tier=tier,
+    )
+
+    # Minimal dashboard response + command steps
     response = {
         "success": True,
         "role": role,
         "topic": topic,
         "tier": tier,
+        "anchor_tier": _normalize_tier_for_anchor(tier),
         "cognition": cognition,
         "archetypes": archetypes,
+        # Note: this is a lightweight stub; real session_id comes from clock_in.
         "session_id": f"session-{role}-{working_dir_path.name}",
         "agent_file": agent_file,
-        "working_dir": str(working_dir_path),
+        "working_dir": working_dir_str,
+        "todos": todos,
+        "command_steps": command_steps,
     }
 
     return response
