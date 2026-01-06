@@ -17,4 +17,4 @@ This is a placeholder directory that will contain agent constitution templates.
 
 Consumers can use templates from this directory to create project-specific agent constitutions.
 
-See `hub/library/octave/octave-usage-guide.oct.md` for OCTAVE format reference.
+See `.hestai-sys/library/octave/octave-usage-guide.oct.md` for OCTAVE format reference.

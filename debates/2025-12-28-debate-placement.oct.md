@@ -34,7 +34,7 @@ WIND_POSITION::[
   EDGE_QUESTIONS::[
     "If debate results in NO change, is that failure or valuable negative result?",
     "Are we conflating Debate (transient act) with Rationale (permanent justification)?",
-    "What if debate spans multiple repos? Does hub/ need hub/debates/?"
+    "What if debate spans multiple repos? Does the system governance payload need debates injected to .hestai-sys/debates/?"
   ]
 ]
 

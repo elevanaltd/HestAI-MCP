@@ -9,7 +9,8 @@ META:
   DOMAIN::library
   OWNERS::[system-steward]
   CREATED::2025-12-23
-  CANONICAL::hub/library/octave/octave-usage-guide.oct.md
+  CANONICAL::.hestai-sys/library/octave/octave-usage-guide.oct.md
+  SOURCE::src/hestai_mcp/_bundled_hub/library/octave/octave-usage-guide.oct.md
   TAGS::[octave, mcp-tools, skills, guide]
 
 ---

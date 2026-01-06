@@ -5,7 +5,7 @@ META:
   STATUS::APPROVED
   AUTHOR::holistic-orchestrator
   DATE::2026-01-05
-  SPEC_REF::"hub/library/specs/odyssean-anchor-protocol-v5.oct.md"
+  SPEC_REF::".hestai-sys/library/specs/odyssean-anchor-protocol-v5.oct.md"
   DEBATE_REF::"debates/2026-01-05-oa-v5-protocol-design"
 
 ## Overview
@@ -84,7 +84,7 @@ Single `anchor(stage=...)` tool with:
 
 ### Phase 4: Command and Documentation
 
-**4.1 Update `hub/library/commands/bind.md`**
+**4.1 Update `.hestai-sys/library/commands/bind.md`**
 - Simplify to kickoff wrapper calling `anchor(stage="identity")`
 - Remove 7-step TODO sequence (tool is self-guiding)
 

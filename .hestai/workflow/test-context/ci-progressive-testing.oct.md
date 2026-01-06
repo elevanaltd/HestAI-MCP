@@ -13,11 +13,11 @@ META:
 FOUNDATION::[
   NORTH_STAR::docs/workflow/000-MCP-PRODUCT-NORTH-STAR.md
   ARCHITECTURE::docs/ARCHITECTURE.md
-  STANDARD_TEST_STRUCTURE::hub/governance/rules/test-structure-standard.oct.md
-  STANDARD_NAMING::hub/governance/rules/naming-standard.oct.md
-  STANDARD_VISIBILITY::hub/governance/rules/visibility-rules.oct.md
-  OCTAVE_SPEC::hub/library/octave/octave-spec.oct.md
-  OCTAVE_VALIDATOR::hub/tools/octave-validator.py[vendored_from:/Volumes/OCTAVE/octave/tools/]
+  STANDARD_TEST_STRUCTURE::.hestai-sys/governance/rules/test-structure-standard.oct.md
+  STANDARD_NAMING::.hestai-sys/governance/rules/naming-standard.oct.md
+  STANDARD_VISIBILITY::.hestai-sys/governance/rules/visibility-rules.oct.md
+  OCTAVE_GUIDE::.hestai-sys/library/octave/octave-usage-guide.oct.md
+  OCTAVE_VALIDATOR::src/hestai_mcp/_bundled_hub/tools/octave-validator.py[vendored_from:/Volumes/OCTAVE/octave/tools/]
   OCTAVE_CANONICAL::/Volumes/OCTAVE/octave/[specs,tools,mcp]
 ]
 
@@ -56,7 +56,7 @@ JOBS::[
   docs_validate::[
     PURPOSE::"Validate doc naming/visibility + OCTAVE v5.1.0 protocol for changed .oct.md"
     EXECUTES::[
-      python hub/tools/octave-validator.py --profile protocol {changed}.oct.md
+      python src/hestai_mcp/_bundled_hub/tools/octave-validator.py --profile protocol {changed}.oct.md
       python scripts/ci/validate_naming_visibility.py {changed_docs}
     ]
   ]

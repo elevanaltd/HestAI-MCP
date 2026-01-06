@@ -13,7 +13,8 @@ METADATA::[
   created::2025-12-19
   updated::2025-12-20
   id::test-structure-standard
-  canonical::hub/governance/rules/test-structure-standard.oct.md
+  canonical::.hestai-sys/governance/rules/test-structure-standard.oct.md
+  source::src/hestai_mcp/_bundled_hub/governance/rules/test-structure-standard.oct.md
   format::octave
   tags::[testing|structure|tdd|packaging|validation_theater]
 ]

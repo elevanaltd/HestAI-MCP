@@ -76,7 +76,7 @@ project-root/
 │
 ├── .hestai-sys/                # GITIGNORED - MCP-injected governance
 │
-├── hub/                        # SOURCE for .hestai-sys (this project only)
+├── src/hestai_mcp/_bundled_hub/ # SOURCE for .hestai-sys (this project only)
 │   ├── governance/
 │   │   ├── workflow/           # System North Star
 │   │   └── rules/              # visibility-rules, naming-standard, etc.
@@ -103,7 +103,7 @@ project-root/
 
 ### Phase 1: Policy Finalization
 - [ ] Create ADR-0060 from Issue 60 synthesis
-- [ ] Update `hub/governance/rules/visibility-rules.oct.md` with file retention policy
+- [ ] Update `src/hestai_mcp/_bundled_hub/governance/rules/visibility-rules.oct.md` with file retention policy
 - [ ] Add debates/ handling to visibility-rules
 
 ### Phase 2: RFC Deprecation
@@ -156,7 +156,7 @@ project-root/
 1. **No `rfcs/` folder** - All proposals are Issues, all decisions are ADRs
 2. **Clean .gitignore** - Raw JSON excluded, OCTAVE committed
 3. **Visibility-rules compliance** - Every file in correct location
-4. **hub/ complete** - All governance artifacts present and consistent
+4. **src/hestai_mcp/_bundled_hub/ complete** - All governance artifacts present and consistent
 5. **Setup guide exists** - New projects can follow documented process
 
 ---

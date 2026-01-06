@@ -59,7 +59,7 @@ This prevents:
 
 | Layer | Location | Delivery | Mutability |
 |-------|----------|----------|------------|
-| **System** | `hub/` → `.hestai-sys/` | MCP injection | Read-only |
+| **System** | `src/hestai_mcp/_bundled_hub/` → `.hestai-sys/` | MCP injection | Read-only |
 | **Product** | `.hestai/` | Direct files | Via MCP tools only |
 
 For detailed architecture, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
@@ -132,12 +132,12 @@ HESTAI_PROJECT_ROOT=/path/to/shared/location
 
 ## Governance Rules
 
-Documentation placement is governed by rules in `hub/governance/rules/`:
+Documentation placement is governed by rules injected to `.hestai-sys/governance/rules/` (source: `src/hestai_mcp/_bundled_hub/governance/rules/`):
 
 | Rule | Document | Purpose |
 |------|----------|---------|
 | **Visibility** | `visibility-rules.oct.md` | Where docs belong (product placement) |
-| **Hub Authoring** | `hub-authoring-rules.oct.md` | What goes in system (hub/) |
+| **Hub Authoring** | `hub-authoring-rules.oct.md` | What goes in system governance (`.hestai-sys/`) |
 | **Naming** | `naming-standard.oct.md` | How to name files |
 | **Format** | In visibility-rules | When to use OCTAVE vs Markdown |
 

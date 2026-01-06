@@ -31,7 +31,7 @@ BINDING_SUCCESS::first_attempt[no_retries_required]
 ### 1.1 Clear OCTAVE Command Structure
 
 ```
-LOCATION::hub/library/commands/bind.md
+LOCATION::.hestai-sys/library/commands/bind.md (source: src/hestai_mcp/_bundled_hub/library/commands/bind.md)
 EVIDENCE::[
   FLOW_CLARITY::T0→T1→T2→T2b→T3→T4→T5→T6[sequential_progression],
   TODOS_TEMPLATE::included_in_command[copy-paste_ready],

@@ -4,7 +4,7 @@ META:
   TYPE::RULE
   NAME::"Naming Standard"
   VERSION::"1.0"
-  PURPOSE::"Conventions for file naming and discoverability in the hub"
+  PURPOSE::"Conventions for file naming and discoverability in system governance (.hestai-sys)"
 
 METADATA::[
   type::standard,
@@ -14,7 +14,8 @@ METADATA::[
   created::2025-12-18,
   updated::2025-12-19,
   id::naming-standard,
-  canonical::hub/governance/rules/naming-standard.oct.md,
+  canonical::.hestai-sys/governance/rules/naming-standard.oct.md,
+  source::src/hestai_mcp/_bundled_hub/governance/rules/naming-standard.oct.md,
   format::octave
 ]
 
@@ -213,9 +214,10 @@ EXAMPLES::[
 PRINCIPLE::folders_carry_semantic_context→DO_NOT_repeat_in_filenames
 
 STANDARD_STRUCTURE::[
+  .hestai-sys/governance/rules/→visibility-rules.oct.md+naming-standard.oct.md,
+  .hestai-sys/governance/workflow/→000-SYSTEM-HESTAI-NORTH-STAR.md,
   .hestai/context/→PROJECT-CONTEXT.md+PROJECT-CHECKLIST.md,
   .hestai/workflow/→north-star.md+decisions/DECISIONS.md,
-  .hestai/governance/rules/→VISIBILITY-RULES.md+NAMING-STANDARD.md,
   .hestai/sessions/active/→gitignored,
   .hestai/sessions/archive/→committed,
   .hestai/reports/→temporal_or_indexed_reports
@@ -257,7 +259,7 @@ HESTAI_SYSTEM_FILES::[
   current_state.oct.md[underscore_for_MCP_compatibility]
 ]
 
-GOVERNANCE_RULES_DIRECTORY::ALL_files_in[.hestai/governance/rules/]→whitelisted_CAPS[system_level_governance]
+GOVERNANCE_RULES_DIRECTORY::ALL_files_in[.hestai-sys/governance/rules/]→whitelisted_CAPS[system_level_governance]
 
 NORTH_STAR_PATTERN::[
   format::000-{PROJECT}-NORTH-STAR.md,

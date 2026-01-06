@@ -16,11 +16,16 @@ RE_WHITELIST = re.compile(
 )
 
 
-ALLOWED_ROOTS = ("docs/", "hub/", ".hestai/", ".claude/", "debates/")
+ALLOWED_ROOTS = (
+    "docs/",
+    "src/hestai_mcp/_bundled_hub/",
+    ".hestai/",
+    ".claude/",
+    "debates/",
+)
 FORBIDDEN_FOLDERS = {".archive", ".sources", "_legacy", "legacy"}
 
-# Packaged hub payload lives under src/ and must not be validated as repo documentation.
-EXCLUDED_PREFIXES = ("src/hestai_mcp/_bundled_hub/",)
+EXCLUDED_PREFIXES: tuple[str, ...] = ()
 
 
 def _run_git(args: list[str]) -> str:
@@ -102,7 +107,7 @@ def main(argv: list[str]) -> int:
             if not RE_WHITELIST.match(name):
                 raise SystemExit(
                     f"ERROR visibility-rules: Root-level doc '{p}' not allowed. "
-                    f"Move to docs/, .hestai/, .claude/, or hub/ per visibility-rules.oct.md"
+                    f"Move to docs/, .hestai/, .claude/, debates/, or src/hestai_mcp/_bundled_hub/ per .hestai-sys/governance/rules/visibility-rules.oct.md"
                 )
             # Whitelisted root files pass without further validation
             continue

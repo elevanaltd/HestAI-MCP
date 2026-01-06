@@ -80,7 +80,7 @@ Critical failures that produce unreliable agents, including:
 - C039: 96%+ token efficiency with RAPH processing
 - C035: Fake modularity underperforms by 7-10%
 
-**Location**: Patterns applied via `hub/governance/agents/` agent definitions
+**Location**: Patterns applied via bundled agent definitions at `src/hestai_mcp/_bundled_hub/agents/` (runtime: `.hestai-sys/agents/`)
 
 ## Related Documents
 

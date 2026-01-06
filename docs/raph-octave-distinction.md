@@ -9,7 +9,7 @@ After comprehensive analysis, we've identified that RAPH Vector and OCTAVE agent
 
 ### Layer 1: Design-Time (Agent Constitutions)
 - **Format**: Standard OCTAVE agent documents (8 sections)
-- **Location**: `hub/agents/{role}.oct.md`
+- **Location**: `.hestai-sys/agents/{role}.oct.md` (source: `src/hestai_mcp/_bundled_hub/agents/{role}.oct.md`)
 - **Purpose**: Define HOW TO BUILD agents
 - **Content**: Full constitution with behavioral mandates, archetypes, etc.
 

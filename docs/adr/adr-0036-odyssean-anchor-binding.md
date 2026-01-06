@@ -150,7 +150,7 @@ The MCP tool enforces strict rules. If any rule fails, it returns a formatted er
 ## Migration Guide
 
 1.  **Agents**: Update `system-steward`, `implementation-lead`, etc., to use `odyssean_anchor` tool instead of `anchor_submit`.
-2.  **Commands**: Update `/bind` command to use `odyssean_anchor` MCP tool (see hub/library/commands/bind.md).
+2.  **Commands**: Update `/bind` command to use `odyssean_anchor` MCP tool (see `src/hestai_mcp/_bundled_hub/library/commands/bind.md`, injected to `.hestai-sys/library/commands/bind.md`).
 3.  **Subagents**: Update `Task()` prompt wrapper to instruct subagents to call `odyssean_anchor` first.
 
 ---
@@ -226,14 +226,14 @@ GATE::{validation_method}
 - Phase 0: This amendment (schema freeze) - COMPLETE
 - Phase 1: Implement odyssean_anchor tool with v4.0 + ARM injection - COMPLETE (PR #126)
 - Phase 2: Implement OA-I6 tool gating - COMPLETE (gating.py, has_valid_anchor)
-- Phase 3: Update /bind command - COMPLETE (hub/library/commands/bind.md)
+- Phase 3: Update /bind command - COMPLETE (`src/hestai_mcp/_bundled_hub/library/commands/bind.md`)
 - Phase 4: Documentation alignment - COMPLETE (2026-01-03)
 
 **Implementation Evidence** (Issue #11):
 - MCP Tool: src/hestai_mcp/mcp/tools/odyssean_anchor.py (949 lines)
 - Gating: src/hestai_mcp/mcp/tools/shared/gating.py (has_valid_anchor)
 - Server: src/hestai_mcp/mcp/server.py (odyssean_anchor exposed)
-- Command: hub/library/commands/bind.md (v4.0 ceremony reference)
+- Command: `src/hestai_mcp/_bundled_hub/library/commands/bind.md` (v4.0 ceremony reference; injected to `.hestai-sys/library/commands/bind.md`)
 - Tests: 511 passing (as of 2026-01-03)
 - Quality Gates: CRS (Codex) APPROVE, CE (Gemini) GO
 

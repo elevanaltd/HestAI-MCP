@@ -47,28 +47,28 @@ Priority: CRITICAL (affects workflow methodology placement)
 #### 1. System North Star - Wrong Extension
 **Original Issue**:
 ```
-File: hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md
+File: src/hestai_mcp/_bundled_hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md
 Issue: Uses .md format instead of .oct.md
 Authority: hub-authoring-rules.oct.md § FORMAT_RULES
 Rationale: Governance rules should be .oct.md for machine parsing
 ```
 
 **Current Status**: ❌ **NOT FIXED**
-- File: `hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md` (.md)
-- Summary exists as: `hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR-SUMMARY.oct.md` (.oct.md)
+- File: `src/hestai_mcp/_bundled_hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md` (.md)
+- Summary exists as: `src/hestai_mcp/_bundled_hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR-SUMMARY.oct.md` (.oct.md)
 - Action: Rename .md → .oct.md
 
 #### 2. Template North Star - Wrong Extension
 **Original Issue**:
 ```
-File: hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.md
+File: src/hestai_mcp/_bundled_hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.md
 Issue: Uses .md format instead of .oct.md
 Authority: hub-authoring-rules.oct.md § FORMAT_RULES
 ```
 
 **Current Status**: ❌ **NOT FIXED**
-- File: `hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.md` (.md)
-- Summary exists as: `hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR-SUMMARY.oct.md` (.oct.md)
+- File: `src/hestai_mcp/_bundled_hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.md` (.md)
+- Summary exists as: `src/hestai_mcp/_bundled_hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR-SUMMARY.oct.md` (.oct.md)
 - Action: Rename .md → .oct.md
 
 #### 3. Test Structure Validation Report
@@ -245,14 +245,14 @@ ls -la .hestai/workflow/test-context/ci-progressive-testing.oct.md
 
 **Task 2.1: Rename System North Star**
 ```bash
-mv hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md \
-   hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.oct.md
+mv src/hestai_mcp/_bundled_hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md \
+   src/hestai_mcp/_bundled_hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.oct.md
 ```
 
 **Task 2.2: Rename Template North Star**
 ```bash
-mv hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.md \
-   hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.oct.md
+mv src/hestai_mcp/_bundled_hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.md \
+   src/hestai_mcp/_bundled_hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.oct.md
 ```
 
 **Task 2.3: Rename Clock-in Assessment**
@@ -275,13 +275,13 @@ After executing Phase 1-2, verify:
 find . -name "ci-progressive-testing.oct.md"
 
 # Check format consistency
-ls -la hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.oct.md
-ls -la hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.oct.md
+ls -la src/hestai_mcp/_bundled_hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.oct.md
+ls -la src/hestai_mcp/_bundled_hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR.oct.md
 ls -la .hestai/reports/clockin-readiness-assessment.oct.md
 
 # Verify no orphans
-find . -name "*.md" -path "*/hub/governance/workflow/*NORTH-STAR*"
-find . -name "*.md" -path "*/hub/templates/*NORTH-STAR*"
+find . -name "*.md" -path "*/src/hestai_mcp/_bundled_hub/governance/workflow/*NORTH-STAR*"
+find . -name "*.md" -path "*/src/hestai_mcp/_bundled_hub/templates/*NORTH-STAR*"
 ```
 
 ---
