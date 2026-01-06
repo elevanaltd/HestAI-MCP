@@ -160,7 +160,13 @@ def _build_command_steps(
 
     # Keep placeholders in-step (agent-authored steps: T3/T4)
     return "\n".join(
-        todos_lines
+        [
+            "⚠️ AGENT INSTRUCTION: You must strictly follow this binding sequence.",
+            "1. Create these TODOs using 'create_todo_list'.",
+            "2. Execute T0-T6 sequentially.",
+            "",
+        ]
+        + todos_lines
         + [
             "",
             "T0::TodoWrite(TODOS)→mark_complete",
