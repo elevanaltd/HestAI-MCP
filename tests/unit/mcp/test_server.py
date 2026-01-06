@@ -229,6 +229,8 @@ class TestEnsureSystemGovernance:
         project_root = tmp_path / "project"
         project_root.mkdir()
         (project_root / ".git").mkdir()
+        # Add opt-in for test
+        (project_root / ".hestai").mkdir()
 
         # Create minimal hub structure
         fake_hub = tmp_path / "hub"
@@ -250,6 +252,8 @@ class TestEnsureSystemGovernance:
         project_root = tmp_path / "project"
         project_root.mkdir()
         (project_root / ".git").mkdir()
+        # Add opt-in for test
+        (project_root / ".hestai").mkdir()
         hestai_sys = project_root / ".hestai-sys"
         hestai_sys.mkdir()
         (hestai_sys / ".version").write_text("1.0.0")
@@ -272,6 +276,8 @@ class TestEnsureSystemGovernance:
         project_root = tmp_path / "project"
         project_root.mkdir()
         (project_root / ".git").mkdir()
+        # Add opt-in for test
+        (project_root / ".hestai").mkdir()
         hestai_sys = project_root / ".hestai-sys"
         hestai_sys.mkdir()
         (hestai_sys / ".version").write_text("1.0.0")
@@ -293,6 +299,8 @@ class TestEnsureSystemGovernance:
         project_root = tmp_path / "project"
         project_root.mkdir()
         (project_root / ".git").mkdir()
+        # Add opt-in for test
+        (project_root / ".hestai").mkdir()
         hestai_sys = project_root / ".hestai-sys"
         hestai_sys.mkdir()
         (hestai_sys / ".version").write_text("0.9.0")

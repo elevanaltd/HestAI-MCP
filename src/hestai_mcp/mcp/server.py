@@ -242,6 +242,7 @@ def ensure_system_governance(project_root: Path) -> dict[str, Any]:
     """Ensure .hestai-sys exists and matches the bundled Hub version.
 
     Idempotent behavior:
+    - If opt-in is not present, skip governance injection
     - If .hestai-sys/.version matches the hub VERSION *and* required subdirs are
       present, do nothing.
     - Otherwise, (re)inject from the bundled hub.
@@ -253,6 +254,11 @@ def ensure_system_governance(project_root: Path) -> dict[str, Any]:
     """
     _validate_project_root(project_root)
     _validate_project_identity(project_root)
+
+    # Check if project has opted in to governance
+    if not _check_governance_opt_in(project_root):
+        logger.debug(f"Skipping governance for {project_root}: opt-in not present")
+        return {"status": "skipped", "reason": "opt_in_required"}
 
     required_dirs = ["governance", "agents", "library", "templates"]
 
@@ -317,14 +323,7 @@ def bootstrap_system_governance(project_root: Path | None) -> dict[str, Any]:
             return {"status": "skipped", "reason": "not_a_project_root"}
         raise
 
-    # Check if project has opted in to governance
-    if not _check_governance_opt_in(project_root):
-        logger.info(
-            f"Skipping governance injection for {project_root}. "
-            "To enable, add HESTAI_GOVERNANCE_ENABLED=true to .env"
-        )
-        return {"status": "skipped", "reason": "opt_in_required"}
-
+    # Delegate to ensure_system_governance which handles opt-in checking
     return ensure_system_governance(project_root)
 
 
