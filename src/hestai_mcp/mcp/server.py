@@ -226,6 +226,17 @@ def inject_system_governance(project_root: Path) -> None:
         dest = tmp_dir / source_dir
         shutil.copytree(source, dest)
 
+    # Ensure agents directory for backwards compatibility
+    agents_dest = tmp_dir / "agents"
+    if not agents_dest.exists():
+        agents_dest.mkdir(parents=True, exist_ok=True)
+
+    # Copy agent files from library to agents directory
+    library_agents_source = hub_path / "library" / "agents"
+    if library_agents_source.exists():
+        for agent_file in library_agents_source.glob("*.oct.md"):
+            shutil.copy2(agent_file, agents_dest / agent_file.name)
+
     # Write version marker into tmp tree
     (tmp_dir / ".version").write_text(get_hub_version())
 
