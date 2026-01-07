@@ -202,10 +202,15 @@ def inject_system_governance(project_root: Path) -> None:
 
     hub_path = get_hub_path()
 
-    required_dirs = ["governance", "agents", "library", "templates"]
+    # TODO(library-migration): Agents are now part of library. This check is kept for backwards compatibility but will be removed in future versions.
+    required_dirs = ["governance", "library", "templates"]
     for d in required_dirs:
         if not (hub_path / d).exists():
             raise FileNotFoundError(f"Bundled hub missing required directory: {hub_path / d}")
+
+    # Soft check for agents in library to help with migration
+    if not (hub_path / "library" / "agents").exists():
+        logger.warning("No agents found in library directory. Migration may be incomplete.")
 
     hestai_sys_dir = project_root / ".hestai-sys"
     tmp_dir = project_root / ".hestai-sys.__tmp__"
@@ -260,7 +265,8 @@ def ensure_system_governance(project_root: Path) -> dict[str, Any]:
         logger.debug(f"Skipping governance for {project_root}: opt-in not present")
         return {"status": "skipped", "reason": "opt_in_required"}
 
-    required_dirs = ["governance", "agents", "library", "templates"]
+    # TODO(library-migration): Agents are now part of library. This check is kept for backwards compatibility but will be removed in future versions.
+    required_dirs = ["governance", "library", "templates"]
 
     hestai_sys_dir = project_root / ".hestai-sys"
     version_path = hestai_sys_dir / ".version"
@@ -268,9 +274,14 @@ def ensure_system_governance(project_root: Path) -> dict[str, Any]:
     desired = get_hub_version()
     current = version_path.read_text().strip() if version_path.exists() else None
 
+    # Check if required directories exist
     has_required_tree = hestai_sys_dir.exists() and all(
         (hestai_sys_dir / d).exists() for d in required_dirs
     )
+
+    # Soft check for agents in library to help with migration
+    if not (hestai_sys_dir / "library" / "agents").exists():
+        logger.warning("No agents found in library directory. Migration may be incomplete.")
 
     if current == desired and has_required_tree:
         return {"status": "up_to_date", "current": current, "desired": desired}
