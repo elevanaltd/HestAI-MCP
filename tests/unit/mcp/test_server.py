@@ -146,20 +146,32 @@ class TestInjectSystemGovernance:
         fake_hub.mkdir()
         (fake_hub / "VERSION").write_text("1.0.0")
 
-        for dir_name in ["governance", "agents", "library", "templates"]:
+        # Create governance, library, templates directories
+        for dir_name in ["governance", "library", "templates"]:
             source_dir = fake_hub / dir_name
             source_dir.mkdir()
             (source_dir / "test-file.md").write_text(f"Content from {dir_name}")
+
+        # Create agents inside library directory
+        library_agents = fake_hub / "library" / "agents"
+        library_agents.mkdir()
+        (library_agents / "test-file.md").write_text("Content from agents")
 
         with patch.object(server, "get_hub_path", return_value=fake_hub):
             server.inject_system_governance(project_root)
 
         # Verify directories were copied
-        for dir_name in ["governance", "agents", "library", "templates"]:
+        for dir_name in ["governance", "library", "templates"]:
             dest = project_root / ".hestai-sys" / dir_name
             assert dest.exists()
             assert (dest / "test-file.md").exists()
             assert (dest / "test-file.md").read_text() == f"Content from {dir_name}"
+
+        # Verify agents are in library/agents
+        agents_dest = project_root / ".hestai-sys" / "library" / "agents"
+        assert agents_dest.exists()
+        assert (agents_dest / "test-file.md").exists()
+        assert (agents_dest / "test-file.md").read_text() == "Content from agents"
 
     def test_writes_version_marker(self, tmp_path: Path):
         """Writes .version file with hub version."""
@@ -192,7 +204,7 @@ class TestInjectSystemGovernance:
 
         # Pre-create .hestai-sys with old content
         hestai_sys = project_root / ".hestai-sys"
-        old_agents = hestai_sys / "agents"
+        old_agents = hestai_sys / "library" / "agents"
         old_agents.mkdir(parents=True)
         (old_agents / "old-agent.md").write_text("Old content")
 
@@ -200,17 +212,20 @@ class TestInjectSystemGovernance:
         fake_hub = tmp_path / "hub"
         fake_hub.mkdir()
         (fake_hub / "VERSION").write_text("1.0.0")
-        for dir_name in ["governance", "agents", "library", "templates"]:
+        for dir_name in ["governance", "library", "templates"]:
             (fake_hub / dir_name).mkdir(exist_ok=True)
-        new_agents = fake_hub / "agents"
+
+        # Create agents in library directory
+        new_agents = fake_hub / "library" / "agents"
+        new_agents.mkdir()
         (new_agents / "new-agent.md").write_text("New content")
 
         with patch.object(server, "get_hub_path", return_value=fake_hub):
             server.inject_system_governance(project_root)
 
         # Old file should be gone, new file should exist
-        assert not (hestai_sys / "agents" / "old-agent.md").exists()
-        assert (hestai_sys / "agents" / "new-agent.md").exists()
+        assert not (hestai_sys / "library" / "agents" / "old-agent.md").exists()
+        assert (hestai_sys / "library" / "agents" / "new-agent.md").exists()
 
 
 # =============================================================================

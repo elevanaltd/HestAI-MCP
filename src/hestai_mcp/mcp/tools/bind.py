@@ -34,7 +34,7 @@ def _validate_role(role: str | None) -> bool:
 def discover_agent_file(role: str) -> str | None:
     """
     Two-tier discovery:
-    1. Check .hestai-sys/agents/{role}.oct.md
+    1. Check .hestai-sys/library/agents/{role}.oct.md
     2. Fall back to .claude/agents/{role}.oct.md
 
     Validates role to prevent path traversal before discovery.
@@ -44,9 +44,9 @@ def discover_agent_file(role: str) -> str | None:
         return None
 
     try:
-        # First try .hestai-sys
-        hestai_agent = Path.cwd() / ".hestai-sys" / "agents" / f"{role}.oct.md"
-        if hestai_agent.exists() and ".hestai-sys/agents" in str(hestai_agent.resolve()):
+        # First try .hestai-sys/library/agents
+        hestai_agent = Path.cwd() / ".hestai-sys" / "library" / "agents" / f"{role}.oct.md"
+        if hestai_agent.exists() and ".hestai-sys/library/agents" in str(hestai_agent.resolve()):
             return str(hestai_agent)
 
         # Fall back to .claude
@@ -170,7 +170,7 @@ def _build_command_steps(
         + [
             "",
             "T0::TodoWrite(TODOS)→mark_complete",
-            f'T1::CONSTITUTION→Read(".hestai-sys/agents/{role}.oct.md")→EXTRACT[COGNITION,ARCHETYPES,MUST[2],NEVER[2]]→SET_AUTHORITY[main→RESPONSIBLE[scope]|sub→DELEGATED[parent_session]]→EMIT',
+            f'T1::CONSTITUTION→Read(".hestai-sys/library/agents/{role}.oct.md")→EXTRACT[COGNITION,ARCHETYPES,MUST[2],NEVER[2]]→SET_AUTHORITY[main→RESPONSIBLE[scope]|sub→DELEGATED[parent_session]]→EMIT',
             f'T2::CLOCK_IN→mcp__hestai__clock_in(role:"{role}",working_dir:"{working_dir}",focus:"{focus}")→CAPTURE[SESSION_ID,CONTEXT_PATHS]→IF[FAIL]→STOP',
             "T2b::ARM_CONTEXT→Read(project_context)→Bash(git_log+status+branch+ahead_behind)→EXTRACT[PHASE,BRANCH,FILES]→EMIT",
             "T3::TENSION→GENERATE[L{N}::[constraint]⇌CTX:{path}[state]→TRIGGER[action]]→MIN_COUNT_PER_TIER→mark_complete",

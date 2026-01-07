@@ -202,7 +202,8 @@ def inject_system_governance(project_root: Path) -> None:
 
     hub_path = get_hub_path()
 
-    required_dirs = ["governance", "agents", "library", "templates"]
+    # Agents are now part of library directory
+    required_dirs = ["governance", "library", "templates"]
     for d in required_dirs:
         if not (hub_path / d).exists():
             raise FileNotFoundError(f"Bundled hub missing required directory: {hub_path / d}")
@@ -260,7 +261,8 @@ def ensure_system_governance(project_root: Path) -> dict[str, Any]:
         logger.debug(f"Skipping governance for {project_root}: opt-in not present")
         return {"status": "skipped", "reason": "opt_in_required"}
 
-    required_dirs = ["governance", "agents", "library", "templates"]
+    # Agents are now part of library directory
+    required_dirs = ["governance", "library", "templates"]
 
     hestai_sys_dir = project_root / ".hestai-sys"
     version_path = hestai_sys_dir / ".version"
@@ -268,6 +270,7 @@ def ensure_system_governance(project_root: Path) -> dict[str, Any]:
     desired = get_hub_version()
     current = version_path.read_text().strip() if version_path.exists() else None
 
+    # Check if required directories exist
     has_required_tree = hestai_sys_dir.exists() and all(
         (hestai_sys_dir / d).exists() for d in required_dirs
     )
@@ -437,7 +440,7 @@ async def list_tools() -> list[Tool]:
             name="bind",
             description=(
                 "Bootstrap agent binding with low token usage. "
-                "Enables two-tier agent discovery (.hestai-sys/agents → .claude/agents). "
+                "Enables two-tier agent discovery (.hestai-sys/library/agents → .claude/agents). "
                 "Relies on server's ensure_system_governance() for .hestai-sys management. "
                 "Security hardening: path validation, resource limits, and error handling."
             ),
