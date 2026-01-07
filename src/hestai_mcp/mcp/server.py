@@ -202,15 +202,11 @@ def inject_system_governance(project_root: Path) -> None:
 
     hub_path = get_hub_path()
 
-    # TODO(library-migration): Agents are now part of library. This check is kept for backwards compatibility but will be removed in future versions.
+    # Agents are now part of library directory
     required_dirs = ["governance", "library", "templates"]
     for d in required_dirs:
         if not (hub_path / d).exists():
             raise FileNotFoundError(f"Bundled hub missing required directory: {hub_path / d}")
-
-    # Soft check for agents in library to help with migration
-    if not (hub_path / "library" / "agents").exists():
-        logger.warning("No agents found in library directory. Migration may be incomplete.")
 
     hestai_sys_dir = project_root / ".hestai-sys"
     tmp_dir = project_root / ".hestai-sys.__tmp__"
@@ -225,17 +221,6 @@ def inject_system_governance(project_root: Path) -> None:
         source = hub_path / source_dir
         dest = tmp_dir / source_dir
         shutil.copytree(source, dest)
-
-    # Ensure agents directory for backwards compatibility
-    agents_dest = tmp_dir / "agents"
-    if not agents_dest.exists():
-        agents_dest.mkdir(parents=True, exist_ok=True)
-
-    # Copy agent files from library to agents directory
-    library_agents_source = hub_path / "library" / "agents"
-    if library_agents_source.exists():
-        for agent_file in library_agents_source.glob("*.oct.md"):
-            shutil.copy2(agent_file, agents_dest / agent_file.name)
 
     # Write version marker into tmp tree
     (tmp_dir / ".version").write_text(get_hub_version())
@@ -276,7 +261,7 @@ def ensure_system_governance(project_root: Path) -> dict[str, Any]:
         logger.debug(f"Skipping governance for {project_root}: opt-in not present")
         return {"status": "skipped", "reason": "opt_in_required"}
 
-    # TODO(library-migration): Agents are now part of library. This check is kept for backwards compatibility but will be removed in future versions.
+    # Agents are now part of library directory
     required_dirs = ["governance", "library", "templates"]
 
     hestai_sys_dir = project_root / ".hestai-sys"
@@ -289,10 +274,6 @@ def ensure_system_governance(project_root: Path) -> dict[str, Any]:
     has_required_tree = hestai_sys_dir.exists() and all(
         (hestai_sys_dir / d).exists() for d in required_dirs
     )
-
-    # Soft check for agents in library to help with migration
-    if not (hestai_sys_dir / "library" / "agents").exists():
-        logger.warning("No agents found in library directory. Migration may be incomplete.")
 
     if current == desired and has_required_tree:
         return {"status": "up_to_date", "current": current, "desired": desired}
@@ -459,7 +440,7 @@ async def list_tools() -> list[Tool]:
             name="bind",
             description=(
                 "Bootstrap agent binding with low token usage. "
-                "Enables two-tier agent discovery (.hestai-sys/agents → .claude/agents). "
+                "Enables two-tier agent discovery (.hestai-sys/library/agents → .claude/agents). "
                 "Relies on server's ensure_system_governance() for .hestai-sys management. "
                 "Security hardening: path validation, resource limits, and error handling."
             ),

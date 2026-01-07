@@ -6,7 +6,7 @@ def test_bind_emits_command_steps_and_todos(tmp_path, monkeypatch):
     """bind() should emit a command-style 7-step sequence for the agent to follow."""
     # Ensure discovery finds a local .hestai-sys agent file
     monkeypatch.chdir(tmp_path)
-    agents_dir = tmp_path / ".hestai-sys" / "agents"
+    agents_dir = tmp_path / ".hestai-sys" / "library" / "agents"
     agents_dir.mkdir(parents=True)
 
     (agents_dir / "technical-architect.oct.md").write_text(
