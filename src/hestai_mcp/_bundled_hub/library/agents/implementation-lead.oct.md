@@ -75,6 +75,10 @@ META:
     clarification-gate,
     constitutional-enforcement
   ]
+  PATTERNS::[
+    tdd-discipline,
+    verification-protocols
+  ]
 
 §4::INTERACTION_RULES
   // HOLOGRAPHIC CONTRACT
