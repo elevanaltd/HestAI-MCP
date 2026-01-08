@@ -74,7 +74,8 @@ META:
     prophetic-intelligence,
     gap-ownership,
     system-orchestration,
-    constitutional-enforcement
+    constitutional-enforcement,
+    ho-mode  // Critical lane discipline - prevents implementation drift
   ]
   PATTERNS::[
     minimal-intervention,

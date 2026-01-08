@@ -16,10 +16,10 @@ META:
 PURPOSE::"Orchestrate implementation work with enforced quality gates and intelligent debate escalation"
 
 §1::ACTIVATION
-
+// LOADING: Manual when orchestration needed (extends ho-mode which is auto-loaded)
 TRIGGER::[/ho-orchestrate,/orchestrate,manual::Skill(ho-orchestrate)]
 ON_ACTIVATE::[
-  STEP_1::Skill(ho-mode)->load_lane_discipline,
+  STEP_1::verify_ho-mode_loaded[from_anchor],
   STEP_2::CONFIRM::"HO Orchestrate Active: Quality gates mandatory, debate-hall for complex decisions"
 ]
 
@@ -28,9 +28,9 @@ ON_ACTIVATE::[
 IL_HANDOFF_MANDATE::[
   AGENT::Task(implementation-lead),
   REQUIRED_SKILLS::[
-    Skill(build-execution)->TDD_discipline+MIP,
-    Read("~/.claude/skills/build-execution/tdd-discipline.oct.md"),
-    Read("~/.claude/skills/build-execution/build-philosophy.oct.md")
+    // Skills dynamically provided via anchor ceremony
+    // IL receives: build-execution, clarification-gate, constitutional-enforcement
+    // Per .hestai-sys/library/agents/implementation-lead.oct.md §3::CAPABILITIES
   ],
   ENFORCE::[RED->GREEN->REFACTOR,test_before_code,minimal_intervention],
   CAPTURE::agent_id[for_resume_on_rework],
@@ -38,8 +38,8 @@ IL_HANDOFF_MANDATE::[
 ]
 
 SUBAGENT_SELF_BIND_PROTOCOL::[
-  // Critical: Subagents don't know they're subagents unless told
-  // They hit the same CLAUDE.md binding requirement for writes
+  // Uses odyssean-anchor MCP server for identity binding
+  // Same protocol as /anchor command - if it works for caller, works for subagent
   IF::task_requires[Edit∨Write∨NotebookEdit∨git_operations]
   THEN::include_in_prompt[
     "## BINDING PROTOCOL (FOR WRITE OPERATIONS)",
@@ -47,10 +47,13 @@ SUBAGENT_SELF_BIND_PROTOCOL::[
     "Parent session: {orchestrator_session_id}",
     "Working directory: {cwd}",
     "",
-    "Since this task requires write operations, you MUST self-bind:",
-    "1. mcp__hestai__clock_in(role:'{subagent_type}', working_dir:'{cwd}', focus:'{task_focus}')",
-    "2. Build RAPH vector with AUTHORITY::DELEGATED[parent:{orchestrator_session}]",
-    "3. mcp__hestai__odyssean_anchor(role, vector, session_id, working_dir, tier:'quick')",
+    "Since this task requires write operations, use anchor ceremony:",
+    "1. mcp__odyssean-anchor__anchor_request(role:'{subagent_type}', tier:'quick')",
+    "2. mcp__odyssean-anchor__anchor_lock(session_id, working_dir:'{cwd}', bind_validation)",
+    "3. mcp__odyssean-anchor__anchor_commit(session_id, tensions, commit)",
+    "",
+    "The anchor provides your available skills and patterns.",
+    "These are dynamically loaded from .hestai-sys/library/.",
     "",
     "If binding fails after 2 retries, continue in read-only mode."
   ]
@@ -61,18 +64,21 @@ HANDOFF_TEMPLATE:
   Task(implementation-lead):
     ## BINDING PROTOCOL (FOR WRITE OPERATIONS)
     You are a subagent invoked via Task(). Parent: {ho_session_id}
-    Since this task requires writing code, you MUST self-bind first:
-    1. mcp__hestai__clock_in(role:"implementation-lead", working_dir:"{cwd}", focus:"{task}")
-    2. Build RAPH with AUTHORITY::DELEGATED[ho:{ho_session_id}]
-    3. mcp__hestai__odyssean_anchor(role, vector, session_id, working_dir, tier:"quick")
+    Since this task requires writing code, you MUST use anchor ceremony:
+
+    1. mcp__odyssean-anchor__anchor_request(role:"implementation-lead", tier:"quick")
+    2. mcp__odyssean-anchor__anchor_lock(session_id, working_dir:"{cwd}", bind_validation)
+    3. mcp__odyssean-anchor__anchor_commit(session_id, tensions, commit)
+
+    The anchor will provide your available skills and patterns:
+    - build-execution (with TDD discipline)
+    - clarification-gate
+    - constitutional-enforcement
+    - tdd-discipline pattern
+    - verification-protocols pattern
 
     GOVERNANCE::TRACED[T+R+A+C+E+D]
     PHASE::{current_phase}
-    SKILLS::[
-      "Load: Skill(build-execution)",
-      "Read: ~/.claude/skills/build-execution/tdd-discipline.oct.md",
-      "Read: ~/.claude/skills/build-execution/build-philosophy.oct.md"
-    ]
     TDD_MANDATE::failing_test->BEFORE->implementation[NO_EXCEPTIONS]
     TASK::{detailed_task}
     SUCCESS::{criteria}
@@ -242,8 +248,9 @@ COMPLEX_DECISION_FLOW::[
 
 §7::INTEGRATION
 
-LOADS::[ho-mode,subagent-rules]
-USES::[mcp__pal__clink,mcp__debate-hall__*]
+// Skills dynamically provided via anchor ceremony
+// ho-mode loaded explicitly, other skills from agent definitions
+USES::[mcp__pal__clink,mcp__debate-hall__*,mcp__odyssean-anchor__*]
 DELEGATES_TO::[implementation-lead,code-review-specialist,critical-engineer]
 
 DONE_WHEN::[

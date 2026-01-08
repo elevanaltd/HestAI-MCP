@@ -3,17 +3,19 @@ name: octave-compression
 description: Specialized workflow for transforming verbose natural language into semantic OCTAVE structures. REQUIRES octave-literacy to be loaded first
 allowed-tools: ["Read", "Write", "Edit"]
 triggers: ["compress to octave", "semantic compression", "documentation refactoring", "octave compression", "compress documentation", "knowledge artifact", "semantic density", "OCTAVE format conversion"]
+version: "2.4.0"
 ---
 
 ===OCTAVE_COMPRESSION===
 META:
   TYPE::SKILL
-  VERSION::"2.2"
+  VERSION::"2.4.0"
   STATUS::ACTIVE
   PURPOSE::"Workflow for transforming prose into semantic density"
   REQUIRES::octave-literacy
   TIER::LOSSLESS
-  SPEC_REFERENCE::octave-5-llm-data.oct.md[§1b::COMPRESSION_TIERS]
+  SPEC_REFERENCE::octave-6-llm-data.oct.md[§1b::COMPRESSION_TIERS]
+  V6_FEATURES::"Loss accounting system, tier metadata tracking, fidelity guarantees"
 
 §1::COMPRESSION_MANDATE
   TARGET::"60-80% token reduction with 100% decision-logic fidelity"
@@ -21,7 +23,7 @@ META:
   TRUTH::"Dense ≠ Obscure. Preserve the causal chain."
 
   §1b::COMPRESSION_TIER_SELECTION
-    // Full tier definitions in octave-5-llm-data.oct.md §1b
+    // Full tier definitions in octave-6-llm-data.oct.md §1b
     LOSSLESS::[target:100%_fidelity,preserve:everything,drop:none]
       USE::[critical_reasoning,legal_documents,safety_analysis,audit_trails]
     CONSERVATIVE::[target:85-90%_compression,preserve:explanatory_depth,drop:redundancy]
@@ -35,6 +37,14 @@ META:
       LOSS::~50%[almost_all_explanatory_content,some_nuance,tradeoff_reasoning]
 
     TIER_METADATA::include_in_META_block[COMPRESSION_TIER,LOSS_PROFILE,NARRATIVE_DEPTH]
+
+    V6_LOSS_ACCOUNTING::[
+      PRINCIPLE::"OCTAVE-MCP is a loss accounting system for LLM communication",
+      TRACKING::"Every transformation must log what was preserved vs dropped",
+      METADATA::"Documents carry their compression tier and loss profile",
+      AUDIT::I4_TRANSFORM_AUDITABILITY[stable_ids,loss_receipts],
+      FIDELITY::I1_SYNTACTIC_FIDELITY[syntax_changes_ok,semantics_preserved]
+    ]
 
 §2::TRANSFORMATION_WORKFLOW
   PHASE_1_READ::[
