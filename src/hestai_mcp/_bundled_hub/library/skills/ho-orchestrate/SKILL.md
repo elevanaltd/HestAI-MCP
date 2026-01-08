@@ -38,8 +38,8 @@ IL_HANDOFF_MANDATE::[
 ]
 
 SUBAGENT_SELF_BIND_PROTOCOL::[
-  // Critical: Subagents must bind to obtain write permissions
-  // Uses single-call odyssean_anchor tool (not multi-stage protocol)
+  // Critical: Subagents receive skills/patterns from anchor ceremony
+  // Anchor loads from .hestai-sys/library/{skills,patterns}/ based on agent §3::CAPABILITIES
   IF::task_requires[Edit∨Write∨NotebookEdit∨git_operations]
   THEN::include_in_prompt[
     "## BINDING PROTOCOL (FOR WRITE OPERATIONS)",
@@ -47,13 +47,13 @@ SUBAGENT_SELF_BIND_PROTOCOL::[
     "Parent session: {orchestrator_session_id}",
     "Working directory: {cwd}",
     "",
-    "Since this task requires write operations, you MUST bind using:",
-    "1. clock_in(role:'{subagent_type}', working_dir:'{cwd}')",
-    "2. Build your BIND+TENSION+COMMIT vector",
-    "3. odyssean_anchor(role:'{subagent_type}', vector_candidate, session_id, working_dir:'{cwd}', tier:'quick')",
+    "Since this task requires write operations, you MUST use anchor tools:",
+    "1. mcp__odyssean-anchor__anchor_request(role:'{subagent_type}', tier:'quick')",
+    "2. mcp__odyssean-anchor__anchor_lock(session_id, working_dir:'{cwd}', bind_validation)",
+    "3. mcp__odyssean-anchor__anchor_commit(session_id, tensions, commit)",
     "",
-    "The anchor validates your identity and provides available skills/patterns.",
-    "Skills loaded from .hestai-sys/library/ based on your agent definition.",
+    "The anchor ceremony will provide your available skills and patterns.",
+    "These are dynamically loaded from .hestai-sys/library/ based on your agent definition.",
     "",
     "If binding fails after 2 retries, continue in read-only mode."
   ]
@@ -64,10 +64,10 @@ HANDOFF_TEMPLATE:
   Task(implementation-lead):
     ## BINDING PROTOCOL (FOR WRITE OPERATIONS)
     You are a subagent invoked via Task(). Parent: {ho_session_id}
-    Since this task requires writing code, you MUST bind first:
-    1. clock_in(role:"implementation-lead", working_dir:"{cwd}")
-    2. Build BIND+TENSION+COMMIT vector with AUTHORITY::DELEGATED[ho:{ho_session_id}]
-    3. odyssean_anchor(role:"implementation-lead", vector_candidate, session_id, working_dir:"{cwd}", tier:"quick")
+    Since this task requires writing code, you MUST use anchor ceremony:
+    1. mcp__odyssean-anchor__anchor_request(role:"implementation-lead", tier:"quick")
+    2. mcp__odyssean-anchor__anchor_lock(session_id, working_dir:"{cwd}", bind_validation)
+    3. mcp__odyssean-anchor__anchor_commit(session_id, tensions, commit)
 
     The anchor will provide your available skills and patterns including:
     - build-execution (with TDD discipline)
@@ -249,7 +249,7 @@ COMPLEX_DECISION_FLOW::[
 
 // Skills dynamically provided via anchor ceremony
 // ho-mode loaded explicitly, other skills from agent definitions
-USES::[mcp__pal__clink,mcp__debate-hall__*,clock_in,odyssean_anchor]
+USES::[mcp__pal__clink,mcp__debate-hall__*,mcp__odyssean-anchor__*]
 DELEGATES_TO::[implementation-lead,code-review-specialist,critical-engineer]
 
 DONE_WHEN::[
