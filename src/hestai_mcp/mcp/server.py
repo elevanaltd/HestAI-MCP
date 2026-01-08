@@ -216,11 +216,15 @@ def inject_system_governance(project_root: Path) -> None:
         shutil.rmtree(tmp_dir)
     tmp_dir.mkdir(parents=True, exist_ok=True)
 
-    # Copy governance files from bundled hub into tmp tree
-    for source_dir in required_dirs:
-        source = hub_path / source_dir
-        dest = tmp_dir / source_dir
-        shutil.copytree(source, dest)
+    # Copy all files from bundled hub into tmp tree
+    # This includes CONSTITUTION.md, README.md, and all subdirectories
+    # Exclude __pycache__ and other temporary artifacts
+    shutil.copytree(
+        hub_path,
+        tmp_dir,
+        dirs_exist_ok=True,
+        ignore=shutil.ignore_patterns("__pycache__", "*.pyc", ".DS_Store"),
+    )
 
     # Write version marker into tmp tree
     (tmp_dir / ".version").write_text(get_hub_version())
@@ -263,6 +267,7 @@ def ensure_system_governance(project_root: Path) -> dict[str, Any]:
 
     # Agents are now part of library directory
     required_dirs = ["governance", "library", "templates"]
+    required_files = ["CONSTITUTION.md", "README.md"]
 
     hestai_sys_dir = project_root / ".hestai-sys"
     version_path = hestai_sys_dir / ".version"
@@ -270,9 +275,11 @@ def ensure_system_governance(project_root: Path) -> dict[str, Any]:
     desired = get_hub_version()
     current = version_path.read_text().strip() if version_path.exists() else None
 
-    # Check if required directories exist
-    has_required_tree = hestai_sys_dir.exists() and all(
-        (hestai_sys_dir / d).exists() for d in required_dirs
+    # Check if required directories and files exist
+    has_required_tree = (
+        hestai_sys_dir.exists()
+        and all((hestai_sys_dir / d).exists() for d in required_dirs)
+        and all((hestai_sys_dir / f).exists() for f in required_files)
     )
 
     if current == desired and has_required_tree:
