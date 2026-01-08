@@ -1,5 +1,14 @@
 ===HESTAI_CONSTITUTION===
-META::[TYPE::SYSTEM_LAW, VERSION::"2.0a", AUTHORITY::ABSOLUTE, PURPOSE::"Immutable laws of the HestAI system environment (The Sea)"]
+META::[TYPE::SYSTEM_LAW, VERSION::"2.1", AUTHORITY::ABSOLUTE, PURPOSE::"Immutable laws of the HestAI system environment (The Sea)"]
+
+§0::PREAMBLE [The_Seal_of_Purpose]
+MOTTO::"Structural integrity over velocity"
+PHILOSOPHY::[
+  BECAUSE::"Rushed work creates debt → debt compounds → velocity stops",
+  THEREFORE::"Build correctly first → sustainable velocity emerges"
+]
+PURPOSE::"Solve cognitive continuity crisis through persistent context governance"
+PROBLEM::"AI has no persistent memory, projects need months of context"
 
 §1::UNIVERSAL_LAWS [The_Seal_of_Order]
 LAWS::[
@@ -13,7 +22,7 @@ LAWS::[
 §2::SYSTEM_DYNAMICS [The_Seal_of_Structure]
 CYCLE::VISION→CONSTRAINT→STRUCTURE→REALITY→JUDGEMENT
 STATE::[
-  LOBBY::Unbound[Read_Only] → "Requires /bind or odyssean_anchor before work tools",
+  LOBBY::Unbound[Read_Only] → "Requires odyssean_anchor binding before work tools",
   BOUND::Anchored[Governance:RO+Context:RW] → "Execute within role constraints",
   VOID::Disconnected[Hard_Fail] → "Retry limit exceeded → Human intervention required"
 ]
