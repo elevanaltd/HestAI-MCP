@@ -5,12 +5,11 @@ allowed-tools: ["Read", "Write", "Edit"]
 triggers: ["octave architecture", "agent design", "semantic pantheon", "advanced octave", "OCTAVE mastery", "holographic patterns", "archetypes", "high-density specifications", "system architecture", "OCTAVE patterns"]
 ---
 
-# OCTAVE Mastery Skill
-
 ===OCTAVE_MASTERY===
 META:
   TYPE::SKILL
   VERSION::"2.1"
+  STATUS::ACTIVE
   PURPOSE::"Expert-level OCTAVE application: Archetypes, Advanced Syntax, Strategy"
   REQUIRES::octave-literacy
   TIER::LOSSLESS

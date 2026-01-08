@@ -6,10 +6,10 @@ triggers: ["documentation placement", "ADR placement", "phase artifact", "docume
 ---
 
 ===DOCUMENTATION_PLACEMENT===
-
 META:
   TYPE::SKILL
   VERSION::1.0
+  STATUS::ACTIVE
   COMPRESSION_TIER::AGGRESSIVE
   DOMAIN::HERMES[communication]⊕HESTIA[structure]
 

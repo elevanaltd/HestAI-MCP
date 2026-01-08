@@ -5,12 +5,13 @@ allowed-tools: ["Read", "Bash", "Grep", "Glob"]
 triggers: ["placeholder audit", "stub detection", "find stubs", "unimplemented features", "code audit", "incomplete implementation", "dead code", "hidden placeholders", "TODO", "FIXME", "NotImplementedError"]
 ---
 
-===STUB_DETECTION_PROTOCOL===
-
-VERSION::1.0.0
-STATUS::ACTIVE
-PURPOSE::Systematic_detection_of_placeholder_implementations
-ORIGIN::Derived_from_OCTAVE_MCP_audit_discovering_9_hidden_stubs
+===STUB_DETECTION===
+META:
+  TYPE::SKILL
+  VERSION::"1.0.0"
+  STATUS::ACTIVE
+  PURPOSE::Systematic_detection_of_placeholder_implementations
+  ORIGIN::Derived_from_OCTAVE_MCP_audit_discovering_9_hidden_stubs
 
 CORE_PRINCIPLE::"Not all placeholders leave obvious traces -> Silent failures most dangerous"
 

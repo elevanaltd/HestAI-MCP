@@ -5,12 +5,11 @@ allowed-tools: ["Read", "Write", "Edit"]
 triggers: ["mythology", "archetype", "SISYPHEAN", "ICARIAN", "semantic compression", "evidence-based", "mythological domains", "OCTAVE mythology", "PROMETHEAN", "functional mythology", "compression patterns"]
 ---
 
-# OCTAVE Mythology Skill
-
 ===OCTAVE_MYTHOLOGY===
 META:
   TYPE::SKILL
   VERSION::"1.0"
+  STATUS::ACTIVE
   PURPOSE::"Functional mythological semantic compression for OCTAVE documents"
   PRINCIPLE::"Compression shorthand for LLM audiences, not ceremonial prose"
   EVIDENCE::[

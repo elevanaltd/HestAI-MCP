@@ -6,10 +6,10 @@ triggers: ["vitest setup", "test configuration", "test infrastructure setup", "t
 ---
 
 ===TEST_INFRASTRUCTURE===
-
 META:
   TYPE::SKILL
   VERSION::1.0
+  STATUS::ACTIVE
   COMPRESSION_TIER::AGGRESSIVE
   DOMAIN::ATHENA[quality]⊕HEPHAESTUS[craftsmanship]
 

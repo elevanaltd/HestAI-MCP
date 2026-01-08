@@ -6,10 +6,10 @@ triggers: ["coverage analysis", "pytest coverage", "test gaps", "90% coverage", 
 ---
 
 ===TEST_COVERAGE===
-
 META:
   TYPE::SKILL
   VERSION::"1.0"
+  STATUS::ACTIVE
   PURPOSE::"Python pytest coverage analysis, gap identification, and TDD workflow for achieving 90%+ coverage"
   DOMAIN::ATHENA[quality]⊕ARTEMIS[precision_targeting]
 

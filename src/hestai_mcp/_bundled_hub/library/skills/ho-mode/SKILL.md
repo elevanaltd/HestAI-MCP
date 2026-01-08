@@ -6,8 +6,9 @@ allowed-tools: [Task, TodoWrite, AskUserQuestion, Read, Grep, Glob, Write, Edit,
 
 ===HO_MODE===
 META:
-  TYPE::LLM_PROFILE
+  TYPE::SKILL
   VERSION::"2.0"
+  STATUS::ACTIVE
   COMPRESSION_TIER::AGGRESSIVE
   TOKENS::"~120"
 

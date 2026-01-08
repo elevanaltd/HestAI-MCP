@@ -5,12 +5,11 @@ allowed-tools: ["Read", "Write", "Edit"]
 triggers: ["compress to octave", "semantic compression", "documentation refactoring", "octave compression", "compress documentation", "knowledge artifact", "semantic density", "OCTAVE format conversion"]
 ---
 
-# OCTAVE Compression Skill
-
 ===OCTAVE_COMPRESSION===
 META:
   TYPE::SKILL
   VERSION::"2.2"
+  STATUS::ACTIVE
   PURPOSE::"Workflow for transforming prose into semantic density"
   REQUIRES::octave-literacy
   TIER::LOSSLESS
