@@ -12,6 +12,6 @@ CLEANUP_SEQUENCE::"INVOKE directory-curator → RECEIVE violations report → DE
 ENFORCEMENT::"BLOCK phase progression if violations exist after workspace-architect remediation"
 
 §3::REFERENCE
-PROTOCOL_REFERENCE::"/Users/shaunbuswell/.claude/protocols/DOCUMENT_PLACEMENT_AND_VISIBILITY.md"
+PROTOCOL_REFERENCE::".hestai-sys/governance/rules/visibility-rules.oct.md"
 
 ===END===
