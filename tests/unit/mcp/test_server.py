@@ -152,6 +152,10 @@ class TestInjectSystemGovernance:
             source_dir.mkdir()
             (source_dir / "test-file.md").write_text(f"Content from {dir_name}")
 
+        # Create root files
+        (fake_hub / "CONSTITUTION.md").write_text("Constitution Content")
+        (fake_hub / "README.md").write_text("Readme Content")
+
         # Create agents inside library directory
         library_agents = fake_hub / "library" / "agents"
         library_agents.mkdir()
@@ -166,6 +170,12 @@ class TestInjectSystemGovernance:
             assert dest.exists()
             assert (dest / "test-file.md").exists()
             assert (dest / "test-file.md").read_text() == f"Content from {dir_name}"
+
+        # Verify root files were copied
+        for file_name in ["CONSTITUTION.md", "README.md"]:
+            dest = project_root / ".hestai-sys" / file_name
+            assert dest.exists()
+            assert dest.read_text().endswith("Content")
 
         # Verify agents are in library/agents
         agents_dest = project_root / ".hestai-sys" / "library" / "agents"
@@ -274,6 +284,8 @@ class TestEnsureSystemGovernance:
         (hestai_sys / ".version").write_text("1.0.0")
         for dir_name in ["governance", "agents", "library", "templates"]:
             (hestai_sys / dir_name).mkdir()
+        for file_name in ["CONSTITUTION.md", "README.md"]:
+            (hestai_sys / file_name).write_text("content")
 
         with (
             patch.object(server, "get_hub_version", return_value="1.0.0"),
