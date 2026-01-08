@@ -6,10 +6,10 @@ triggers: ["MCP tool", "clock_in", "clock_out", "odyssean_anchor", "mcp server",
 ---
 
 ===MCP_TOOLS===
-
 META:
   TYPE::SKILL
   VERSION::"1.0"
+  STATUS::ACTIVE
   PURPOSE::"MCP tool implementation patterns for HestAI"
   DOMAIN::HEPHAESTUS[tool_crafting]⊕HERMES[communication]
 

@@ -6,10 +6,10 @@ triggers: ["CI configuration", "github actions testing", "CI pipeline", "turbore
 ---
 
 ===TEST_CI_PIPELINE===
-
 META:
   TYPE::SKILL
   VERSION::1.0
+  STATUS::ACTIVE
   COMPRESSION_TIER::AGGRESSIVE
   DOMAIN::HEPHAESTUS[tool_crafting]⊕HERMES[coordination]
 

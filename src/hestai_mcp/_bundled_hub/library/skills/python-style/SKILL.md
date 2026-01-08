@@ -6,10 +6,10 @@ triggers: ["python style", "type hints", "docstrings", "python imports", "ruff",
 ---
 
 ===PYTHON_STYLE===
-
 META:
   TYPE::SKILL
   VERSION::"1.0"
+  STATUS::ACTIVE
   PURPOSE::"Python code style guidelines for HestAI MCP development"
   DOMAIN::HEPHAESTUS[craftsmanship]⊕ATHENA[precision]
 

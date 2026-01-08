@@ -6,10 +6,10 @@ triggers: ["pytest", "test markers", "TDD", "test driven", "unit tests", "behavi
 ---
 
 ===TESTING===
-
 META:
   TYPE::SKILL
   VERSION::"1.0"
+  STATUS::ACTIVE
   PURPOSE::"Testing patterns and conventions for HestAI MCP"
   DOMAIN::ATHENA[quality]⊕HEPHAESTUS[craftsmanship]
 

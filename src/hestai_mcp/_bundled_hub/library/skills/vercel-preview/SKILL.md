@@ -6,10 +6,10 @@ triggers: ["vercel preview", "preview deployment", "automation bypass", "protect
 ---
 
 ===VERCEL_PREVIEW===
-
 META:
   TYPE::SKILL
   VERSION::1.0
+  STATUS::ACTIVE
   COMPRESSION_TIER::AGGRESSIVE
   DOMAIN::HEPHAESTUS[tool_crafting]⊕HERMES[automation]
 
