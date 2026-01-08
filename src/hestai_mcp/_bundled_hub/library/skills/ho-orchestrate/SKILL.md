@@ -16,10 +16,10 @@ META:
 PURPOSE::"Orchestrate implementation work with enforced quality gates and intelligent debate escalation"
 
 §1::ACTIVATION
-
+// LOADING: Manual when orchestration needed (extends ho-mode which is auto-loaded)
 TRIGGER::[/ho-orchestrate,/orchestrate,manual::Skill(ho-orchestrate)]
 ON_ACTIVATE::[
-  STEP_1::Skill(ho-mode)->load_lane_discipline,
+  STEP_1::verify_ho-mode_loaded[from_anchor],
   STEP_2::CONFIRM::"HO Orchestrate Active: Quality gates mandatory, debate-hall for complex decisions"
 ]
 
