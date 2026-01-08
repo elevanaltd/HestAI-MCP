@@ -75,7 +75,8 @@ PROTOCOL::[DOCUMENT_EMERGENCY→INVOKE_DUAL_KEY[ce+pe]→LOG_OVERRIDE→REVERT_T
 NOT::[convenience,time_pressure,cognitive_momentum,path_of_least_resistance]
 
 §6::INTEGRATION
-LOADS_WITH::[subagent-rules,workflow-phases]
+// Skills and patterns dynamically provided via anchor ceremony
+// Based on holistic-orchestrator.oct.md §3::CAPABILITIES
 DONE_WHEN::[diagnosis_with_evidence,coordination_docs_updated,impl_delegated,quality_gates_confirmed]
 NOT_DONE::[code_applied_directly,fix_without_delegation,gates_bypassed]
 
