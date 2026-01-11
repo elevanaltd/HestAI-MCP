@@ -7,7 +7,16 @@ META:
   VISIBILITY::PROJECT_INTERNAL
 
 ## Overview
-This document captures high-level ideas, potential features, and future directions for the HestAI MCP product.
+This document captures system-level architecture ideas and cross-cutting concerns for the **HestAI ecosystem**.
+
+**Scope**: System-wide frameworks, cross-project architecture, foundational patterns.
+
+**Related Documents**:
+- **Debate Hall Features**: `/Volumes/HestAI-Projects/debate-hall-mcp/.hestai/context/project-ideas.oct.md`
+  - RACI Mode implementation (validated)
+  - Decision Gravity routing integration
+  - Context Compiler
+- **Consolidation Strategy**: `/Volumes/HestAI-Projects/debate-hall-mcp/docs/ideas-consolidation-strategy.md`
 
 ## Product Vision
 [Add your high-level product vision here]
@@ -37,22 +46,24 @@ This document captures high-level ideas, potential features, and future directio
     - **Integration**:
       - Embed in `operational-workflow.oct.md`.
       - System Steward enforces: "High Gravity decision detected? Show me the Debate ID or Decision Record."
-- **Debate Hall: RACI Dialogue Mode**
+- **Debate Hall: RACI Dialogue Mode** ✅ IMPLEMENTED
+  - **Status**: Validated and implemented in debate-hall-mcp (2026-01-10)
+  - **Validation**: 550 tokens, 99.4% reduction vs full debate, <10 second duration
+  - **Cross-Reference**: `/Volumes/HestAI-Projects/debate-hall-mcp/.hestai/context/project-ideas.oct.md`
+  - **System Role**: Use as routing destination for Medium-High gravity decisions
   - **Problem**: "Workflow Theatre" vs. "Rogue Decisions". We need a middle ground between "Just doing it" and "Full Heavy Debate."
-  - **Solution**: A lightweight `RACI_ALIGNMENT` recipe for `debate-hall-mcp`.
-    - **Concept**: Treat a decision record like an email thread where R, A, C, and I are "CC'd".
-    - **Mapping**:
-      - **Responsible (R)** = **Wind** (Proposes the action/decision).
-      - **Consulted (C)** = **Wall** (Checks constraints/risks).
-      - **Accountable (A)** = **Door** (Ratifies and closes).
-      - **Informed (I)** = **Observer** (Receive the immutable transcript).
-    - **Mechanism**:
-      - A "Single Round" Debate (Speed Mode): R proposes, then C critiques/validates, then A decides.
-      - **Zero-Friction**: If C has no objections, they yield immediately.
-      - **Audit Trail**: The "Debate" ID becomes the "Decision Record" (e.g., `DECISION-2026-001`).
-  - **Value**: **Front-loaded Alignment**. While invoking agents feels like friction, it is actually "Parallel Processing" of concerns. It is infinitely cheaper to spend 30 seconds loading the "Consulted" agent now than to revert a decision 3 days later because a constraint was missed.
+  - **Solution**: A lightweight `RACI_ALIGNMENT` recipe implemented in `debate-hall-mcp`.
+    - **Mapping**: Wind (Responsible), Wall (Consulted), Door (Accountable), Observer (Informed)
+    - **Mechanism**: Single-round debate with zero-friction yield option
+    - **Audit Trail**: Debate ID becomes Decision Record (e.g., `DECISION-2026-001`)
+  - **Implementation Details**: See debate-hall-mcp project ideas document
 
-- **The Integrity Engine Pivot**
+- **The Integrity Engine Pivot** 🔗 RELATED TO SEPARATE PROJECT
+  - **Status**: Emergency bypass implementation validated in debate-hall-mcp
+  - **Strategic Decision**: Emergency bypass features being extracted to separate `integrity-engine-mcp` project
+  - **Cross-Reference**: `/Volumes/HestAI-Projects/debate-hall-mcp/.hestai/context/project-ideas.oct.md` (Integrity Engine section)
+  - **This Document**: Philosophical framework (Intent vs Reality coherence)
+  - **Implementation**: See integrity-engine-mcp (when created)
   - **Concept**: Move HestAI from "Governance Framework" (Rules) to "Integrity Engine" (Coherence).
   - **Core Mechanism**: **The Coherence Loop**.
     1.  **Intent**: Defined in `ADR` + `Spec` (Docs).
@@ -63,11 +74,9 @@ This document captures high-level ideas, potential features, and future directio
     - **New**: "Does your code match your spec?" (Integrity)
   - **Odyssean Anchor Update**: Becomes "Proof of Comprehension". You cannot bind if you are incoherent (e.g., your mental model contradicts the spec).
   - **Edge Handling ("Break Glass")**:
-    - **Problem**: Deadlocks (Circular Trap) where you can't fix code because it contradicts docs, and can't fix docs because CI blocks code.
-    - **Solution**: A `break_glass` flag for `check_consistency`.
-      - Allows bypass for emergency fixes.
-      - **Cost**: Creates a **Blocking Debt Item**. No new features can be merged until the consistency is restored.
-    - **Atomic Rule**: Consistency is validated against the *Staged Commit*, allowing simultaneous Doc+Code updates.
+    - **Implementation**: Emergency bypass debate mode (1,850 tokens, validated)
+    - **Concept**: "Debt Lock" - bypass allowed with mandatory repayment SLA
+    - **Details**: See debate-hall-mcp Integrity Engine design documents
 
 ## Implementation Order and Parallelization
 
