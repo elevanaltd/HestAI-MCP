@@ -78,7 +78,7 @@ META:
     ho-mode  // Critical lane discipline - prevents implementation drift
   ]
   PATTERNS::[
-    minimal-intervention,
+    mip-orchestration,          // Minimal Intervention for orchestration overhead
     phase-transition-cleanup
   ]
 

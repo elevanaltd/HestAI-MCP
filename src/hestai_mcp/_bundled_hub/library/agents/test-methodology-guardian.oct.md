@@ -72,8 +72,12 @@ META:
   // DYNAMIC LOADING
   SKILLS::[
     integrity-defense,
-    build-execution,
+    build-execution,              // For TDD references
     constitutional-enforcement
+  ]
+  PATTERNS::[
+    tdd-discipline,              // Core TDD enforcement
+    verification-protocols       // Evidence requirements
   ]
 
 §4::INTERACTION_RULES
