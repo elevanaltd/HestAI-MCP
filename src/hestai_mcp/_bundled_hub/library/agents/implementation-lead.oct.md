@@ -71,13 +71,16 @@ META:
 §3::CAPABILITIES
   // DYNAMIC LOADING
   SKILLS::[
-    build-execution,
-    clarification-gate,
-    constitutional-enforcement
+    build-execution,              // Orchestration and MCP tools
+    build-philosophy,            // System awareness and decision frameworks
+    build-anti-patterns,         // Detection and prevention
+    clarification-gate,          // Ambiguity resolution
+    constitutional-enforcement   // Phase gate compliance
   ]
   PATTERNS::[
-    tdd-discipline,
-    verification-protocols
+    tdd-discipline,             // Red-Green-Refactor
+    verification-protocols,     // Evidence requirements
+    mip-build                  // Minimal Intervention for code complexity
   ]
 
 §4::INTERACTION_RULES
