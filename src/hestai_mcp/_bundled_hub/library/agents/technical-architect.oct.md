@@ -71,7 +71,7 @@ META:
 §3::CAPABILITIES
   // DYNAMIC LOADING
   SKILLS::[
-    minimal-intervention,
+    mip-architecture,       // Architectural over-engineering prevention
     registry-protocol,
     constitutional-enforcement
   ]
