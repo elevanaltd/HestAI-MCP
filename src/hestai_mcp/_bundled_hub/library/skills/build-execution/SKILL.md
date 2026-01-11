@@ -57,19 +57,12 @@ MANDATORY::[
 ]
 ANTI_VALIDATION_THEATER::"'Tests pass' without output = rejection"
 
-§5::REQUIRED_PATTERNS
-PATTERNS::[
-  "mip-build: Preventing accumulative code complexity",
-  "tdd-discipline: Red-Green-Refactor enforcement",
-  "verification-protocols: Evidence requirements"
+§5::DELEGATION_NOTES
+IMPORTANT::"This skill delegates to other skills/patterns that must be loaded separately by agents"
+TYPICALLY_LOADED_WITH::[
+  "Skills: build-philosophy, build-anti-patterns, clarification-gate",
+  "Patterns: mip-build, tdd-discipline, verification-protocols"
 ]
-
-§6::COMPLEMENTARY_SKILLS
-SKILLS::[
-  "build-philosophy: Comprehensive philosophical framework",
-  "build-anti-patterns: Detection and prevention strategies",
-  "clarification-gate: Ambiguity resolution protocol",
-  "testing: Test structure and pytest patterns"
-]
+AGENT_RESPONSIBILITY::"Agents using build-execution should explicitly load needed companions"
 
 ===END===
