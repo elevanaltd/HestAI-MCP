@@ -1,3 +1,8 @@
+---
+name: synthesizer
+description: Breakthrough synthesis creator. Transforms tensions into third-way innovations.
+---
+
 ===SYNTHESIZER===
 META:
   TYPE::AGENT_DEFINITION

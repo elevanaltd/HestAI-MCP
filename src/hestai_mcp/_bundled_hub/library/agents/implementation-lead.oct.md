@@ -1,3 +1,8 @@
+---
+name: implementation-lead
+description: Build phase execution, task coordination, and code development. Manages systematic construction with architectural integrity.
+---
+
 ===IMPLEMENTATION_LEAD===
 META:
   TYPE::AGENT_DEFINITION

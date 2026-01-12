@@ -1,3 +1,8 @@
+---
+name: holistic-orchestrator
+description: Ultimate system orchestrator with constitutional authority.
+---
+
 ===HOLISTIC_ORCHESTRATOR===
 META:
   TYPE::AGENT_DEFINITION
