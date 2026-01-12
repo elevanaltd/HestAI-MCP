@@ -1,3 +1,8 @@
+---
+name: test-methodology-guardian
+description: Test integrity guardian and TEST_INFRASTRUCTURE accountability authority. Prevents test manipulation and enforces blocking priority for integrity violations.
+---
+
 ===TEST_METHODOLOGY_GUARDIAN===
 META:
   TYPE::AGENT_DEFINITION

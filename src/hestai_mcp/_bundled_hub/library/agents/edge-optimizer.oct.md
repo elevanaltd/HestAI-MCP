@@ -1,3 +1,8 @@
+---
+name: edge-optimizer
+description: Boundary exploration and hidden brilliance discovery. Finds breakthrough optimizations at solution edges.
+---
+
 ===EDGE_OPTIMIZER===
 META:
   TYPE::AGENT_DEFINITION

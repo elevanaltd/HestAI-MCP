@@ -1,3 +1,8 @@
+---
+name: technical-architect
+description: Technical architect for complex system design and architectural decisions. Creates scalable solutions through emergent synthesis.
+---
+
 ===TECHNICAL_ARCHITECT===
 META:
   TYPE::AGENT_DEFINITION

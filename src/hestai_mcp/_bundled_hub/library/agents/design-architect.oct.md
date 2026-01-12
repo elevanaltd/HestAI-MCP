@@ -1,3 +1,8 @@
+---
+name: design-architect
+description: D3 blueprint architect. Transforms breakthrough concepts into implementation-ready specifications with stakeholder alignment.
+---
+
 ===DESIGN_ARCHITECT===
 META:
   TYPE::AGENT_DEFINITION

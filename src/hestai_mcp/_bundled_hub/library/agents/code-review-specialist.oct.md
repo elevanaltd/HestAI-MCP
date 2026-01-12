@@ -1,3 +1,8 @@
+---
+name: code-review-specialist
+description: Code quality enforcer responsible for security, architecture, and performance. Prevents validation theater through evidence-based review.
+---
+
 ===CODE_REVIEW_SPECIALIST===
 META:
   TYPE::AGENT_DEFINITION

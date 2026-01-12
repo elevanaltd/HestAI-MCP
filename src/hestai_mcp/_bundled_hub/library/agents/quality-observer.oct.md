@@ -1,3 +1,8 @@
+---
+name: quality-observer
+description: Quality observer and security integrated guardian. Ensures implementation excellence through systematic measurement and artifact verification.
+---
+
 ===QUALITY_OBSERVER===
 META:
   TYPE::AGENT_DEFINITION

@@ -1,3 +1,8 @@
+---
+name: ho-liaison
+description: Advisory specialist providing operational analysis, codebase synthesis, and prophetic risk assessment to holistic-orchestrator.
+---
+
 ===HO_LIAISON===
 META:
   TYPE::AGENT_DEFINITION
