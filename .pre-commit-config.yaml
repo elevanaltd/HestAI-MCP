@@ -16,7 +16,7 @@ repos:
         always_run: true
 
       - id: octave-validate
-        name: Validate OCTAVE v5.1.0 for staged .oct.md
+        name: Validate OCTAVE for staged .oct.md
         entry: bash -c 'set -euo pipefail; files="$(git diff --cached --name-only --diff-filter=ACMR | grep -E "\\.oct\\.md$" | grep -v "^src/hestai_mcp/_bundled_hub/" || true)"; if [ -z "$files" ]; then echo "SKIP octave validator (no .oct.md staged)"; exit 0; fi; for f in $files; do python3 src/hestai_mcp/_bundled_hub/tools/octave-validator.py --profile protocol "$f"; done'
         language: system
         pass_filenames: false
