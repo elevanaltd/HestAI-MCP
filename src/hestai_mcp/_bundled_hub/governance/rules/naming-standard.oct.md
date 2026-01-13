@@ -262,6 +262,8 @@ HESTAI_SYSTEM_FILES::[
 
 GOVERNANCE_RULES_DIRECTORY::ALL_files_in[.hestai-sys/governance/rules/]→whitelisted_CAPS[system_level_governance]
 
+GOVERNANCE_WORKFLOW_DIRECTORY::ALL_files_in[.hestai-sys/governance/workflow/]→whitelisted_CAPS[system_level_governance+process_methodology]
+
 NORTH_STAR_PATTERN::[
   format::000-{PROJECT}-NORTH-STAR.md,
   reason::governance_file+CAPS_treatment+000_prefix_sorts_first,
@@ -323,10 +325,11 @@ EXAMPLE_NEW::"naming-standard.md"[with_type:standard_in_frontmatter]
 SOURCE::system_steward_analysis+LLM_first_research[2025-12-18]
 SUPERSEDES::101-DOC-STRUCTURE-AND-NAMING-STANDARDS.oct.md[for_new_artifacts]
 COMPANION::VISIBILITY-RULES.md[placement_logic]
-VERSION::1.2[issue_based_allocation+RFC_pattern+RFC-0031_implementation]
+VERSION::1.3[governance_workflow_directory_whitelist]
 
 ===CHANGELOG===
 
+v1.3::2026-01-13→added_GOVERNANCE_WORKFLOW_DIRECTORY_rule[whitelists_CAPS_in_.hestai-sys/governance/workflow/+fixes_naming_gap_for_process_methodology_docs]
 v1.2::2025-12-24→issue_based_document_numbering[RFC-0031]+RFC_pattern_added+grandfathering_legacy_docs
 v1.1::2025-12-19→bundled_in_HestAI_MCP_Hub+OCTAVE_format_conversion
 v1.1::2025-12-18→lifecycle_statuses+controlled_vocabulary+.oct.md_canonical+whitelist+stable_references+regex_patterns

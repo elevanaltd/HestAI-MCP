@@ -14,6 +14,7 @@ RE_NORTH_STAR = re.compile(r"^000-[A-Z0-9-]+-NORTH-STAR(-SUMMARY)?(\.oct)?\.md$"
 RE_WHITELIST = re.compile(
     r"^(README|LICENSE|CONTRIBUTING|CHANGELOG|SECURITY|CODE_OF_CONDUCT|CLAUDE|CODEOWNERS|ARCHITECTURE|PROJECT-CONTEXT|PROJECT-CHECKLIST|PROJECT-HISTORY|PROJECT-ROADMAP|APP-CONTEXT|APP-CHECKLIST|DECISIONS|VISIBILITY-RULES|NAMING-STANDARD|TEST-STRUCTURE-STANDARD|SKILL|CONSTITUTION|current_state)(\.(oct\.)?md)?$"
 )
+RE_GOVERNANCE_SYSTEM = re.compile(r"^[A-Z][A-Z0-9-]*(\.oct)?\.md$")
 
 
 ALLOWED_ROOTS = (
@@ -64,6 +65,13 @@ def _validate_one(path: str) -> None:
         raise SystemExit(f"ERROR naming-standard: underscores forbidden in filenames: {path}")
 
     if RE_WHITELIST.match(name) or RE_NORTH_STAR.match(name):
+        return
+
+    # Allow CAPS filenames in governance directories (system-level governance)
+    # Applies to: src/hestai_mcp/_bundled_hub/governance/* and .hestai/governance/*
+    if (
+        "src/hestai_mcp/_bundled_hub/governance/" in path or ".hestai/governance/" in path
+    ) and RE_GOVERNANCE_SYSTEM.match(name):
         return
 
     if not (
