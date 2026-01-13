@@ -238,6 +238,13 @@ class ContextSteward:
                 if isinstance(converted, str):
                     return converted
                 return str(converted)
+
+        # Handle simple assignment without children (real workflow structure)
+        if isinstance(section, Assignment) and hasattr(section, "value"):
+            converted = self._convert_value(section.value)
+            if isinstance(converted, (str, list)):
+                return converted
+
         return ""
 
     def _section_to_dict(self, section: Assignment | Section | Block) -> dict[str, Any]:
@@ -268,6 +275,10 @@ class ContextSteward:
         Returns:
             Converted Python value (str, list, dict, etc.)
         """
+        # Idempotency check: if already converted, return as-is
+        if isinstance(value, (str, list)):
+            return value
+
         # Handle different OCTAVE value types
         type_name = type(value).__name__
 

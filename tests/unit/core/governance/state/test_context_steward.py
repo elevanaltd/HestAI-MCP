@@ -164,8 +164,31 @@ class TestContextSteward:
         # Test synthesis with real file
         constraints = steward.synthesize_active_state(phase="B1")
         assert constraints.phase == "B1"
-        assert "HERMES" in constraints.purpose or "BUILD" in constraints.purpose
+        # Purpose in real workflow is "Validated architecture→actionable implementation plan"
+        assert "architecture" in constraints.purpose or "implementation" in constraints.purpose
 
         # Test multiple phases
         d0_constraints = steward.synthesize_active_state(phase="D0")
         assert d0_constraints.phase == "D0"
+
+    def test_top_level_assignment_values(self, tmp_path):
+        """Regression test: Ensure top-level assignments (Strategy 1) are captured."""
+        # Note: Strategy 1 is when phases are top-level headers, not inside WORKFLOW_PHASES
+        content = """===WORKFLOW===
+META:
+  TYPE::STANDARD
+B1_HERMES_COORDINATION::BUILD_EXECUTION_ROADMAP
+PURPOSE::"Top Level Purpose"
+RACI::"R[Nobody]"
+DELIVERABLES::["Item1"]
+B2_HEPHAESTUS_FORGE::CODE_CONSTRUCTION
+===END==="""
+        f = tmp_path / "test_strat1.oct.md"
+        f.write_text(content)
+
+        steward = ContextSteward(workflow_path=f)
+        constraints = steward.synthesize_active_state(phase="B1")
+
+        assert constraints.phase == "B1"
+        # Before fix: this returns empty string "" because _section_to_simple_value ignores non-block assignments
+        assert "Top Level Purpose" in constraints.purpose
