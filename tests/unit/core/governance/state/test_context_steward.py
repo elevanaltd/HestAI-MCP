@@ -147,30 +147,6 @@ class TestContextSteward:
         assert "purpose" in constraints_dict
         assert "deliverables" in constraints_dict
 
-    def test_real_workflow_document_integration(self):
-        """Integration test with actual OPERATIONAL-WORKFLOW.oct.md file."""
-        # Use the actual bundled workflow file
-        real_workflow = Path(
-            "/Volumes/HestAI-MCP/worktrees/rccafp-review"
-            "/src/hestai_mcp/_bundled_hub/governance/workflow"
-            "/OPERATIONAL-WORKFLOW.oct.md"
-        )
-
-        if not real_workflow.exists():
-            pytest.skip("Real workflow file not available")
-
-        steward = ContextSteward(workflow_path=real_workflow)
-
-        # Test synthesis with real file
-        constraints = steward.synthesize_active_state(phase="B1")
-        assert constraints.phase == "B1"
-        # Purpose in real workflow is "Validated architecture→actionable implementation plan"
-        assert "architecture" in constraints.purpose or "implementation" in constraints.purpose
-
-        # Test multiple phases
-        d0_constraints = steward.synthesize_active_state(phase="D0")
-        assert d0_constraints.phase == "D0"
-
     def test_top_level_assignment_values(self, tmp_path):
         """Regression test: Ensure top-level assignments (Strategy 1) are captured."""
         # Note: Strategy 1 is when phases are top-level headers, not inside WORKFLOW_PHASES
