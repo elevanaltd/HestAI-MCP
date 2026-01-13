@@ -9,14 +9,14 @@ from typing import Self
 
 import httpx
 
-from hestai_mcp.ai.config import (
+from hestai_mcp.modules.services.ai.config import (
     AITier,
     TieredAIConfig,
     async_resolve_api_key,
     load_config,
 )
-from hestai_mcp.ai.providers.base import BaseProvider, CompletionRequest
-from hestai_mcp.ai.providers.openai_compat import OpenAICompatProvider
+from hestai_mcp.modules.services.ai.providers.base import BaseProvider, CompletionRequest
+from hestai_mcp.modules.services.ai.providers.openai_compat import OpenAICompatProvider
 
 # // Critical-Engineer: consulted for async/sync boundary integrity and resource management
 

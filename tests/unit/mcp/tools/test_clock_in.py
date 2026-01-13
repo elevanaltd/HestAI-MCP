@@ -52,7 +52,7 @@ class TestSessionCreation:
 
     def test_creates_session_directory_and_metadata(self, mock_hestai_structure: Path):
         """Creates session directory with session.json metadata."""
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         result = clock_in(
             role="implementation-lead",
@@ -84,7 +84,7 @@ class TestSessionCreation:
 
     def test_uses_default_focus_when_not_provided(self, mock_hestai_structure: Path):
         """Defaults focus to 'general' when not specified."""
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         result = clock_in(
             role="implementation-lead",
@@ -101,7 +101,7 @@ class TestSessionCreation:
 
     def test_handles_none_model_parameter(self, mock_hestai_structure: Path):
         """Handles None model parameter correctly."""
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         result = clock_in(
             role="implementation-lead",
@@ -124,7 +124,7 @@ class TestContextPathResolution:
 
     def test_returns_context_paths_from_hestai_context(self, mock_hestai_structure: Path):
         """Returns context paths from .hestai/context/ directory."""
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         # Create some context files (.oct.md format)
         context_dir = mock_hestai_structure / ".hestai" / "context"
@@ -148,7 +148,7 @@ class TestContextPathResolution:
 
     def test_handles_empty_context_directory(self, mock_hestai_structure: Path):
         """Returns empty list when .hestai/context/ has no files."""
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         result = clock_in(
             role="implementation-lead",
@@ -166,7 +166,7 @@ class TestFocusConflictDetection:
 
     def test_detects_focus_conflict_with_active_session(self, mock_hestai_structure: Path):
         """Warns when another active session has the same focus."""
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         # Create first session with focus "b2-implementation"
         result1 = clock_in(
@@ -191,7 +191,7 @@ class TestFocusConflictDetection:
 
     def test_no_conflict_with_different_focus(self, mock_hestai_structure: Path):
         """No conflict when active sessions have different focus."""
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         # Create first session
         clock_in(
@@ -217,7 +217,7 @@ class TestSecurityValidation:
 
     def test_rejects_path_traversal_in_working_dir(self, mock_hestai_structure: Path):
         """Rejects working_dir with path traversal attempts."""
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         with pytest.raises(ValueError, match="[Pp]ath traversal|[Ii]nvalid"):
             clock_in(
@@ -227,7 +227,7 @@ class TestSecurityValidation:
 
     def test_rejects_invalid_role_format(self, mock_hestai_structure: Path):
         """Rejects role names containing path separators."""
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         with pytest.raises(ValueError, match="[Ii]nvalid.*role|path separator"):
             clock_in(
@@ -237,7 +237,7 @@ class TestSecurityValidation:
 
     def test_validates_working_dir_exists(self, tmp_path: Path):
         """Validates that working_dir exists."""
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         nonexistent_dir = tmp_path / "does_not_exist"
 
@@ -249,7 +249,7 @@ class TestSecurityValidation:
 
     def test_creates_sessions_directory_if_missing(self, tmp_path: Path):
         """Creates sessions directory if .hestai exists but sessions doesn't."""
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         project_root = tmp_path / "project"
         project_root.mkdir()
@@ -274,7 +274,7 @@ class TestResponseStructure:
 
     def test_returns_required_fields(self, mock_hestai_structure: Path):
         """Returns all required fields in response."""
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         result = clock_in(
             role="implementation-lead",
@@ -300,7 +300,7 @@ class TestRoleControlCharacterValidation:
 
     def test_rejects_role_with_newline(self, mock_hestai_structure: Path):
         """Rejects role containing newline character (log forging prevention)."""
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         with pytest.raises(ValueError, match="[Cc]ontrol.*character|[Ii]nvalid.*role"):
             clock_in(
@@ -310,7 +310,7 @@ class TestRoleControlCharacterValidation:
 
     def test_rejects_role_with_carriage_return(self, mock_hestai_structure: Path):
         """Rejects role containing carriage return."""
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         with pytest.raises(ValueError, match="[Cc]ontrol.*character|[Ii]nvalid.*role"):
             clock_in(
@@ -320,7 +320,7 @@ class TestRoleControlCharacterValidation:
 
     def test_rejects_role_with_tab(self, mock_hestai_structure: Path):
         """Rejects role containing tab character."""
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         with pytest.raises(ValueError, match="[Cc]ontrol.*character|[Ii]nvalid.*role"):
             clock_in(
@@ -345,7 +345,7 @@ class TestFASTLayerPopulation:
         ADR-0046: FAST layer is at .hestai/context/state/
         ADR-0056: clock_in must ensure this directory exists
         """
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         # Ensure state directory doesn't exist initially
         state_dir = mock_hestai_structure / ".hestai" / "context" / "state"
@@ -378,7 +378,7 @@ class TestFASTLayerPopulation:
           STARTED::"{timestamp}"
         ===END===
         """
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         result = clock_in(
             role="implementation-lead",
@@ -411,7 +411,7 @@ class TestFASTLayerPopulation:
 
         ADR-0056 format includes current task and carried forward items.
         """
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         result = clock_in(
             role="implementation-lead",
@@ -440,7 +440,7 @@ class TestFASTLayerPopulation:
 
         ADR-0056: Unresolved blockers should survive session transitions.
         """
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         # Create state directory with existing blocker
         state_dir = mock_hestai_structure / ".hestai" / "context" / "state"
@@ -480,7 +480,7 @@ ACTIVE:
         """
         clock_in creates blockers.oct.md if it doesn't exist.
         """
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         result = clock_in(
             role="implementation-lead",
@@ -502,7 +502,7 @@ ACTIVE:
 
         ADR-0056: Incomplete tasks should be preserved across sessions.
         """
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         # Create state directory with existing checklist containing incomplete items
         state_dir = mock_hestai_structure / ".hestai" / "context" / "state"
@@ -560,7 +560,7 @@ class TestFocusResolutionFromBranch:
 
         Branch: issues-56-completion -> focus: "issue-56"
         """
-        from hestai_mcp.mcp.tools.clock_in import resolve_focus_from_branch
+        from hestai_mcp.modules.tools.clock_in import resolve_focus_from_branch
 
         result = resolve_focus_from_branch("issues-56-completion")
         assert result is not None
@@ -573,7 +573,7 @@ class TestFocusResolutionFromBranch:
 
         Branch: issue-87-fix -> focus: "issue-87"
         """
-        from hestai_mcp.mcp.tools.clock_in import resolve_focus_from_branch
+        from hestai_mcp.modules.tools.clock_in import resolve_focus_from_branch
 
         result = resolve_focus_from_branch("issue-87-fix")
         assert result is not None
@@ -586,7 +586,7 @@ class TestFocusResolutionFromBranch:
 
         Branch: feat/add-clock-in -> focus: "feat: add-clock-in"
         """
-        from hestai_mcp.mcp.tools.clock_in import resolve_focus_from_branch
+        from hestai_mcp.modules.tools.clock_in import resolve_focus_from_branch
 
         result = resolve_focus_from_branch("feat/add-clock-in")
         assert result is not None
@@ -599,7 +599,7 @@ class TestFocusResolutionFromBranch:
 
         Branch: fix/broken-tests -> focus: "fix: broken-tests"
         """
-        from hestai_mcp.mcp.tools.clock_in import resolve_focus_from_branch
+        from hestai_mcp.modules.tools.clock_in import resolve_focus_from_branch
 
         result = resolve_focus_from_branch("fix/broken-tests")
         assert result is not None
@@ -612,7 +612,7 @@ class TestFocusResolutionFromBranch:
 
         Branch: main -> None (fallback to default will be handled elsewhere)
         """
-        from hestai_mcp.mcp.tools.clock_in import resolve_focus_from_branch
+        from hestai_mcp.modules.tools.clock_in import resolve_focus_from_branch
 
         result = resolve_focus_from_branch("main")
         assert result is None
@@ -626,7 +626,7 @@ class TestFocusResolutionFromBranch:
 
         Per North Star: explicit > GitHub issue > branch > default
         """
-        from hestai_mcp.mcp.tools.clock_in import resolve_focus
+        from hestai_mcp.modules.tools.clock_in import resolve_focus
 
         # When explicit focus is provided, it should take priority
         result = resolve_focus(explicit_focus="my-explicit-focus", branch="issues-56-completion")
@@ -639,7 +639,7 @@ class TestFocusResolutionFromBranch:
 
         Branch: feat/issue-56-impl -> focus: "issue-56" (not "feat: issue-56-impl")
         """
-        from hestai_mcp.mcp.tools.clock_in import resolve_focus_from_branch
+        from hestai_mcp.modules.tools.clock_in import resolve_focus_from_branch
 
         # Issue pattern in branch name should take priority
         result = resolve_focus_from_branch("feat/issue-56-impl")
@@ -653,7 +653,7 @@ class TestFocusResolutionFromBranch:
         """
         Returns default focus when no explicit and no branch pattern.
         """
-        from hestai_mcp.mcp.tools.clock_in import resolve_focus
+        from hestai_mcp.modules.tools.clock_in import resolve_focus
 
         result = resolve_focus(explicit_focus=None, branch="main")
         assert result["value"] == "general"
@@ -663,7 +663,7 @@ class TestFocusResolutionFromBranch:
         """
         Handles various issue number patterns in branch names.
         """
-        from hestai_mcp.mcp.tools.clock_in import resolve_focus_from_branch
+        from hestai_mcp.modules.tools.clock_in import resolve_focus_from_branch
 
         # Multiple number patterns - should extract first/primary
         test_cases = [
@@ -698,7 +698,7 @@ class TestClockInWithAIIntegration:
 
         Per North Star Section 4 output structure.
         """
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         result = clock_in(
             role="implementation-lead",
@@ -722,11 +722,11 @@ class TestClockInWithAIIntegration:
         """
         from unittest.mock import patch
 
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         # Mock get_current_branch to return a branch with issue pattern
         with patch(
-            "hestai_mcp.mcp.tools.shared.fast_layer.get_current_branch",
+            "hestai_mcp.modules.tools.shared.fast_layer.get_current_branch",
             return_value="issues-56-completion",
         ):
             result = clock_in(
@@ -747,11 +747,11 @@ class TestClockInWithAIIntegration:
         """
         from unittest.mock import patch
 
-        from hestai_mcp.mcp.tools.clock_in import clock_in
+        from hestai_mcp.modules.tools.clock_in import clock_in
 
         # Mock branch to return a non-descriptive name
         with patch(
-            "hestai_mcp.mcp.tools.shared.fast_layer.get_current_branch",
+            "hestai_mcp.modules.tools.shared.fast_layer.get_current_branch",
             return_value="main",
         ):
             result = clock_in(
@@ -771,7 +771,7 @@ class TestClockInWithAIIntegration:
 
         clock_in_async can be used when AI synthesis is desired.
         """
-        from hestai_mcp.mcp.tools.clock_in import clock_in_async
+        from hestai_mcp.modules.tools.clock_in import clock_in_async
 
         result = await clock_in_async(
             role="implementation-lead",
@@ -791,11 +791,11 @@ class TestClockInWithAIIntegration:
         """
         from unittest.mock import AsyncMock, patch
 
-        from hestai_mcp.mcp.tools.clock_in import clock_in_async
+        from hestai_mcp.modules.tools.clock_in import clock_in_async
 
         # Mock AI synthesis to fail - patch at the source module
         with patch(
-            "hestai_mcp.mcp.tools.shared.fast_layer.synthesize_fast_layer_with_ai",
+            "hestai_mcp.modules.tools.shared.fast_layer.synthesize_fast_layer_with_ai",
             new_callable=AsyncMock,
             side_effect=Exception("AI unavailable"),
         ):
@@ -831,12 +831,12 @@ class TestClockInWithAIIntegration:
         """
         from unittest.mock import AsyncMock, patch
 
-        from hestai_mcp.mcp.tools.clock_in import clock_in_async
+        from hestai_mcp.modules.tools.clock_in import clock_in_async
 
         # Mock AI synthesis to fail - triggers fallback path in clock_in.py
         # Patch at source module since clock_in uses local import
         with patch(
-            "hestai_mcp.mcp.tools.shared.fast_layer.synthesize_fast_layer_with_ai",
+            "hestai_mcp.modules.tools.shared.fast_layer.synthesize_fast_layer_with_ai",
             new_callable=AsyncMock,
             side_effect=Exception("AI unavailable"),
         ):
@@ -884,7 +884,7 @@ class TestRichContextSummary:
         This is critical for useful AI synthesis - the AI can only work with
         what we give it.
         """
-        from hestai_mcp.mcp.tools.clock_in import (
+        from hestai_mcp.modules.tools.clock_in import (
             build_rich_context_summary,
             resolve_context_paths,
         )
@@ -931,7 +931,7 @@ NEXT_ACTIONS::[
         # Initialize git repo
         import subprocess
 
-        from hestai_mcp.mcp.tools.clock_in import (
+        from hestai_mcp.modules.tools.clock_in import (
             build_rich_context_summary,
             resolve_context_paths,
         )
@@ -980,7 +980,7 @@ NEXT_ACTIONS::[
         """
         build_rich_context_summary includes active blockers if present.
         """
-        from hestai_mcp.mcp.tools.clock_in import (
+        from hestai_mcp.modules.tools.clock_in import (
             build_rich_context_summary,
             resolve_context_paths,
         )
@@ -1019,7 +1019,7 @@ ACTIVE:
         """
         build_rich_context_summary respects MAX_TOTAL_CONTEXT_CHARS limit.
         """
-        from hestai_mcp.mcp.tools.clock_in import (
+        from hestai_mcp.modules.tools.clock_in import (
             MAX_TOTAL_CONTEXT_CHARS,
             build_rich_context_summary,
             resolve_context_paths,
@@ -1062,7 +1062,7 @@ class TestFreshnessCheck:
 
         Stale = last git commit modifying file > 24 hours ago.
         """
-        from hestai_mcp.mcp.tools.clock_in import _check_context_freshness
+        from hestai_mcp.modules.tools.clock_in import _check_context_freshness
 
         # Create PROJECT-CONTEXT
         project_context = mock_hestai_structure / ".hestai" / "context" / "PROJECT-CONTEXT.oct.md"
@@ -1089,7 +1089,7 @@ class TestFreshnessCheck:
         """
         import subprocess
 
-        from hestai_mcp.mcp.tools.clock_in import _check_context_freshness
+        from hestai_mcp.modules.tools.clock_in import _check_context_freshness
 
         # Initialize git repo and commit PROJECT-CONTEXT
         subprocess.run(["git", "init"], cwd=str(mock_hestai_structure), capture_output=True)
@@ -1136,7 +1136,7 @@ class TestFreshnessCheck:
 
         Per I4: context_must_be_verified_as_current_before_use
         """
-        from hestai_mcp.mcp.tools.clock_in import (
+        from hestai_mcp.modules.tools.clock_in import (
             build_rich_context_summary,
             resolve_context_paths,
         )
@@ -1175,7 +1175,7 @@ class TestNorthStarConstraintsExtraction:
         """
         _extract_north_star_constraints extracts SCOPE_BOUNDARIES from North Star.
         """
-        from hestai_mcp.mcp.tools.clock_in import _extract_north_star_constraints
+        from hestai_mcp.modules.tools.clock_in import _extract_north_star_constraints
 
         # Create North Star with scope boundaries
         workflow_dir = mock_hestai_structure / ".hestai" / "workflow"
@@ -1203,7 +1203,7 @@ SCOPE_BOUNDARIES::[
 
         This helps prevent Issue #87 "system architecture blindness".
         """
-        from hestai_mcp.mcp.tools.clock_in import (
+        from hestai_mcp.modules.tools.clock_in import (
             build_rich_context_summary,
             resolve_context_paths,
         )
@@ -1263,14 +1263,14 @@ class TestCoverageGaps:
 
     def test_resolve_focus_from_branch_with_empty_string(self):
         """resolve_focus_from_branch returns None for empty string."""
-        from hestai_mcp.mcp.tools.clock_in import resolve_focus_from_branch
+        from hestai_mcp.modules.tools.clock_in import resolve_focus_from_branch
 
         result = resolve_focus_from_branch("")
         assert result is None
 
     def test_resolve_focus_from_branch_with_none(self):
         """resolve_focus_from_branch returns None for None input."""
-        from hestai_mcp.mcp.tools.clock_in import resolve_focus_from_branch
+        from hestai_mcp.modules.tools.clock_in import resolve_focus_from_branch
 
         # This exercises the implicit None case at line 59-60
         result = resolve_focus_from_branch(None)  # type: ignore[arg-type]
@@ -1278,21 +1278,21 @@ class TestCoverageGaps:
 
     def test_validate_role_format_with_empty_string(self):
         """validate_role_format raises ValueError for empty string."""
-        from hestai_mcp.mcp.tools.clock_in import validate_role_format
+        from hestai_mcp.modules.tools.clock_in import validate_role_format
 
         with pytest.raises(ValueError, match="[Rr]ole cannot be empty"):
             validate_role_format("")
 
     def test_validate_role_format_with_whitespace_only(self):
         """validate_role_format raises ValueError for whitespace-only string."""
-        from hestai_mcp.mcp.tools.clock_in import validate_role_format
+        from hestai_mcp.modules.tools.clock_in import validate_role_format
 
         with pytest.raises(ValueError, match="[Rr]ole cannot be empty"):
             validate_role_format("   ")
 
     def test_validate_working_dir_with_file_path(self, tmp_path: Path):
         """validate_working_dir raises ValueError when path is a file, not directory."""
-        from hestai_mcp.mcp.tools.clock_in import validate_working_dir
+        from hestai_mcp.modules.tools.clock_in import validate_working_dir
 
         # Create a file, not a directory
         file_path = tmp_path / "somefile.txt"
@@ -1303,7 +1303,7 @@ class TestCoverageGaps:
 
     def test_detect_focus_conflict_with_nonexistent_sessions_dir(self, tmp_path: Path):
         """detect_focus_conflict returns None when sessions dir doesn't exist."""
-        from hestai_mcp.mcp.tools.clock_in import detect_focus_conflict
+        from hestai_mcp.modules.tools.clock_in import detect_focus_conflict
 
         nonexistent_dir = tmp_path / "nonexistent"
 
@@ -1316,7 +1316,7 @@ class TestCoverageGaps:
 
     def test_detect_focus_conflict_skips_non_directories(self, tmp_path: Path):
         """detect_focus_conflict skips non-directory items in sessions dir."""
-        from hestai_mcp.mcp.tools.clock_in import detect_focus_conflict
+        from hestai_mcp.modules.tools.clock_in import detect_focus_conflict
 
         # Create sessions dir with a file (not directory)
         sessions_dir = tmp_path / "sessions"
@@ -1333,7 +1333,7 @@ class TestCoverageGaps:
 
     def test_detect_focus_conflict_skips_session_without_json(self, tmp_path: Path):
         """detect_focus_conflict skips sessions without session.json."""
-        from hestai_mcp.mcp.tools.clock_in import detect_focus_conflict
+        from hestai_mcp.modules.tools.clock_in import detect_focus_conflict
 
         # Create sessions dir with a session directory but no session.json
         sessions_dir = tmp_path / "sessions"
@@ -1350,7 +1350,7 @@ class TestCoverageGaps:
 
     def test_detect_focus_conflict_handles_invalid_json(self, tmp_path: Path):
         """detect_focus_conflict handles JSONDecodeError gracefully."""
-        from hestai_mcp.mcp.tools.clock_in import detect_focus_conflict
+        from hestai_mcp.modules.tools.clock_in import detect_focus_conflict
 
         # Create sessions dir with invalid JSON
         sessions_dir = tmp_path / "sessions"
@@ -1369,7 +1369,7 @@ class TestCoverageGaps:
 
     def test_find_north_star_file_fallback_to_md(self, tmp_path: Path):
         """_find_north_star_file falls back to .md when no .oct.md exists."""
-        from hestai_mcp.mcp.tools.clock_in import _find_north_star_file
+        from hestai_mcp.modules.tools.clock_in import _find_north_star_file
 
         # Create workflow dir with only .md file (no .oct.md)
         workflow_dir = tmp_path / ".hestai" / "workflow"
@@ -1383,7 +1383,7 @@ class TestCoverageGaps:
 
     def test_find_north_star_file_prefers_oct_md_over_md(self, tmp_path: Path):
         """_find_north_star_file prefers .oct.md over .md when both exist."""
-        from hestai_mcp.mcp.tools.clock_in import _find_north_star_file
+        from hestai_mcp.modules.tools.clock_in import _find_north_star_file
 
         # Create workflow dir with both .md and .oct.md files
         workflow_dir = tmp_path / ".hestai" / "workflow"
@@ -1397,7 +1397,7 @@ class TestCoverageGaps:
 
     def test_find_north_star_file_excludes_summary_files(self, tmp_path: Path):
         """_find_north_star_file excludes files with -SUMMARY in name."""
-        from hestai_mcp.mcp.tools.clock_in import _find_north_star_file
+        from hestai_mcp.modules.tools.clock_in import _find_north_star_file
 
         # Create workflow dir with only -SUMMARY file
         workflow_dir = tmp_path / ".hestai" / "workflow"
@@ -1410,14 +1410,14 @@ class TestCoverageGaps:
 
     def test_find_north_star_file_returns_none_when_no_workflow_dir(self, tmp_path: Path):
         """_find_north_star_file returns None when workflow dir doesn't exist."""
-        from hestai_mcp.mcp.tools.clock_in import _find_north_star_file
+        from hestai_mcp.modules.tools.clock_in import _find_north_star_file
 
         result = _find_north_star_file(tmp_path)
         assert result is None
 
     def test_find_north_star_file_returns_none_when_no_matching_files(self, tmp_path: Path):
         """_find_north_star_file returns None when no matching files exist."""
-        from hestai_mcp.mcp.tools.clock_in import _find_north_star_file
+        from hestai_mcp.modules.tools.clock_in import _find_north_star_file
 
         workflow_dir = tmp_path / ".hestai" / "workflow"
         workflow_dir.mkdir(parents=True)
@@ -1429,7 +1429,7 @@ class TestCoverageGaps:
 
     def test_get_git_state_returns_none_on_error(self, tmp_path: Path):
         """_get_git_state returns None when git is not available or fails."""
-        from hestai_mcp.mcp.tools.clock_in import _get_git_state
+        from hestai_mcp.modules.tools.clock_in import _get_git_state
 
         # Non-git directory should return None or handle gracefully
         result = _get_git_state(tmp_path)
@@ -1441,7 +1441,7 @@ class TestCoverageGaps:
         """_get_git_state includes modified files when present."""
         import subprocess
 
-        from hestai_mcp.mcp.tools.clock_in import _get_git_state
+        from hestai_mcp.modules.tools.clock_in import _get_git_state
 
         # Initialize git and create uncommitted changes
         subprocess.run(["git", "init"], cwd=str(mock_hestai_structure), capture_output=True)
@@ -1484,7 +1484,7 @@ class TestCoverageGaps:
         """_check_context_freshness returns warning for stale context."""
         import subprocess
 
-        from hestai_mcp.mcp.tools.clock_in import _check_context_freshness
+        from hestai_mcp.modules.tools.clock_in import _check_context_freshness
 
         # Initialize git
         subprocess.run(["git", "init"], cwd=str(mock_hestai_structure), capture_output=True)
@@ -1534,7 +1534,7 @@ class TestCoverageGaps:
 
     def test_check_context_freshness_handles_subprocess_error(self, tmp_path: Path):
         """_check_context_freshness handles subprocess errors gracefully."""
-        from hestai_mcp.mcp.tools.clock_in import _check_context_freshness
+        from hestai_mcp.modules.tools.clock_in import _check_context_freshness
 
         # Create a file in a non-git directory
         context_file = tmp_path / "PROJECT-CONTEXT.oct.md"
@@ -1551,7 +1551,7 @@ class TestCoverageGaps:
 
     def test_extract_north_star_constraints_handles_nonexistent_path(self, tmp_path: Path):
         """_extract_north_star_constraints returns None for nonexistent path."""
-        from hestai_mcp.mcp.tools.clock_in import _extract_north_star_constraints
+        from hestai_mcp.modules.tools.clock_in import _extract_north_star_constraints
 
         nonexistent = tmp_path / "does_not_exist.md"
         result = _extract_north_star_constraints(nonexistent)
@@ -1559,7 +1559,7 @@ class TestCoverageGaps:
 
     def test_extract_north_star_constraints_extracts_immutables(self, tmp_path: Path):
         """_extract_north_star_constraints extracts IMMUTABLES references."""
-        from hestai_mcp.mcp.tools.clock_in import _extract_north_star_constraints
+        from hestai_mcp.modules.tools.clock_in import _extract_north_star_constraints
 
         north_star = tmp_path / "north-star.md"
         north_star.write_text(
@@ -1579,7 +1579,7 @@ I4::IMMUTABLE_FOUR
 
     def test_extract_north_star_constraints_returns_none_when_no_content(self, tmp_path: Path):
         """_extract_north_star_constraints returns None when no matching content."""
-        from hestai_mcp.mcp.tools.clock_in import _extract_north_star_constraints
+        from hestai_mcp.modules.tools.clock_in import _extract_north_star_constraints
 
         north_star = tmp_path / "empty-north-star.md"
         north_star.write_text("Just some regular content without immutables or scope")
@@ -1589,7 +1589,7 @@ I4::IMMUTABLE_FOUR
 
     def test_ensure_hestai_structure_creates_new_directory(self, tmp_path: Path):
         """ensure_hestai_structure creates new .hestai directory when missing."""
-        from hestai_mcp.mcp.tools.clock_in import ensure_hestai_structure
+        from hestai_mcp.modules.tools.clock_in import ensure_hestai_structure
 
         project_root = tmp_path / "new_project"
         project_root.mkdir()
@@ -1610,7 +1610,7 @@ I4::IMMUTABLE_FOUR
 
     def test_ensure_hestai_structure_returns_present_when_exists(self, mock_hestai_structure: Path):
         """ensure_hestai_structure returns 'present' when .hestai already exists."""
-        from hestai_mcp.mcp.tools.clock_in import ensure_hestai_structure
+        from hestai_mcp.modules.tools.clock_in import ensure_hestai_structure
 
         # mock_hestai_structure already has .hestai
         result = ensure_hestai_structure(mock_hestai_structure)
@@ -1622,7 +1622,7 @@ I4::IMMUTABLE_FOUR
         """build_rich_context_summary handles OSError when reading PROJECT-CONTEXT."""
         from unittest.mock import patch
 
-        from hestai_mcp.mcp.tools.clock_in import (
+        from hestai_mcp.modules.tools.clock_in import (
             build_rich_context_summary,
             resolve_context_paths,
         )
@@ -1649,7 +1649,7 @@ I4::IMMUTABLE_FOUR
         """build_rich_context_summary handles OSError when reading blockers file."""
         from unittest.mock import patch
 
-        from hestai_mcp.mcp.tools.clock_in import (
+        from hestai_mcp.modules.tools.clock_in import (
             build_rich_context_summary,
             resolve_context_paths,
         )
@@ -1681,6 +1681,130 @@ I4::IMMUTABLE_FOUR
 
 
 @pytest.mark.unit
+class TestContextStewardIntegration:
+    """
+    Test clock_in integration with ContextSteward for governance constraints.
+
+    Per ADR-0184 Step 4: clock_in should:
+    1. Import ContextSteward from core.governance.state.context_steward
+    2. Derive phase from PROJECT-CONTEXT or default to B1
+    3. Call steward.synthesize_active_state(phase)
+    4. Write PhaseConstraints to .hestai/context/state/constraints.oct.md
+    5. Return constraints.oct.md in context_paths
+    """
+
+    def test_clock_in_creates_constraints_file(self, mock_hestai_structure: Path):
+        """
+        clock_in creates constraints.oct.md with phase-specific governance.
+
+        ADR-0184: Wiring the Brain (ContextSteward) to the Arm (clock_in).
+        """
+        from hestai_mcp.modules.tools.clock_in import clock_in
+
+        # Create mock OPERATIONAL-WORKFLOW.oct.md for ContextSteward
+        workflow_file = (
+            mock_hestai_structure
+            / ".hestai-sys"
+            / "governance"
+            / "workflow"
+            / "OPERATIONAL-WORKFLOW.oct.md"
+        )
+        workflow_file.parent.mkdir(parents=True, exist_ok=True)
+        workflow_file.write_text(
+            """===OPERATIONAL_WORKFLOW===
+META:
+  TYPE::STANDARD
+  STATUS::ACTIVE
+
+WORKFLOW_PHASES:
+  D0_DISCOVERY::IDEATION_SETUP
+  PURPOSE::"Discovery and ideation"
+  RACI::"R[wind-agent]"
+  DELIVERABLES::["discovery_notes.md"]
+  B1_FOUNDATION::BUILD_EXECUTION
+  PURPOSE::"Foundation and infrastructure"
+  RACI::"R[implementation-lead]→A[critical-engineer]"
+  DELIVERABLES::["BUILD_PLAN.md","test_infrastructure"]
+  ENTRY::[design_approved]
+  EXIT::[tests_passing,foundation_solid]
+  QUALITY_GATE_MANDATORY::"lint_passing && typecheck_passing && test_coverage_80"
+
+===END===
+"""
+        )
+
+        result = clock_in(
+            role="implementation-lead",
+            working_dir=str(mock_hestai_structure),
+            focus="b1-foundation",
+        )
+
+        # Verify constraints.oct.md was created
+        constraints_path = (
+            mock_hestai_structure / ".hestai" / "context" / "state" / "constraints.oct.md"
+        )
+        assert constraints_path.exists(), "constraints.oct.md should be created"
+
+        # Verify content structure
+        content = constraints_path.read_text()
+        assert "===PHASE_CONSTRAINTS===" in content
+        assert "B1" in content or "PURPOSE" in content
+        assert "foundation" in content.lower()
+
+        # Verify constraints.oct.md is in context_paths
+        context_paths = result["context_paths"]
+        assert any("constraints.oct.md" in path for path in context_paths)
+
+    def test_clock_in_defaults_to_b1_phase_when_no_project_context(
+        self, mock_hestai_structure: Path
+    ):
+        """
+        clock_in defaults to B1 phase when PROJECT-CONTEXT doesn't exist.
+
+        This is the placeholder phase until we implement full phase detection.
+        """
+        from hestai_mcp.modules.tools.clock_in import clock_in
+
+        # Create minimal OPERATIONAL-WORKFLOW for B1
+        workflow_file = (
+            mock_hestai_structure
+            / ".hestai-sys"
+            / "governance"
+            / "workflow"
+            / "OPERATIONAL-WORKFLOW.oct.md"
+        )
+        workflow_file.parent.mkdir(parents=True, exist_ok=True)
+        workflow_file.write_text(
+            """===OPERATIONAL_WORKFLOW===
+META:
+  TYPE::STANDARD
+  STATUS::ACTIVE
+
+WORKFLOW_PHASES:
+  B1_FOUNDATION::BUILD_EXECUTION
+  PURPOSE::"Foundation phase"
+  DELIVERABLES::["foundation"]
+
+===END===
+"""
+        )
+
+        clock_in(
+            role="implementation-lead",
+            working_dir=str(mock_hestai_structure),
+        )
+
+        # Should use B1 as default
+        constraints_path = (
+            mock_hestai_structure / ".hestai" / "context" / "state" / "constraints.oct.md"
+        )
+        assert constraints_path.exists()
+
+        content = constraints_path.read_text()
+        assert "B1" in content
+
+
+@pytest.mark.unit
 class TestStructuredClockInOutput:
     """
     Test structured clock_in output format per task requirements.
@@ -1702,7 +1826,7 @@ class TestStructuredClockInOutput:
         The structured format enables Claude Code to navigate directly to
         relevant file sections rather than parsing prose descriptions.
         """
-        from hestai_mcp.ai.prompts.protocols import CLOCK_IN_SYNTHESIS_PROTOCOL
+        from hestai_mcp.modules.services.ai.prompts.protocols import CLOCK_IN_SYNTHESIS_PROTOCOL
 
         # Create PROJECT-CONTEXT with recognizable content
         project_context = mock_hestai_structure / ".hestai" / "context" / "PROJECT-CONTEXT.oct.md"
@@ -1729,7 +1853,7 @@ PURPOSE::"Test project"
 
         Format: CONTEXT_FILES::[@path/to/file:L1-50, @another/file:L1-30]
         """
-        from hestai_mcp.ai.prompts.protocols import CLOCK_IN_SYNTHESIS_PROTOCOL
+        from hestai_mcp.modules.services.ai.prompts.protocols import CLOCK_IN_SYNTHESIS_PROTOCOL
 
         # The protocol should instruct structured output format
         assert "CONTEXT_FILES::" in CLOCK_IN_SYNTHESIS_PROTOCOL
@@ -1740,7 +1864,7 @@ PURPOSE::"Test project"
 
         Format: FOCUS::{focus_value}
         """
-        from hestai_mcp.ai.prompts.protocols import CLOCK_IN_SYNTHESIS_PROTOCOL
+        from hestai_mcp.modules.services.ai.prompts.protocols import CLOCK_IN_SYNTHESIS_PROTOCOL
 
         # The protocol should include FOCUS in structured format
         assert "FOCUS::" in CLOCK_IN_SYNTHESIS_PROTOCOL
@@ -1751,7 +1875,7 @@ PURPOSE::"Test project"
 
         Format: PHASE::{phase}
         """
-        from hestai_mcp.ai.prompts.protocols import CLOCK_IN_SYNTHESIS_PROTOCOL
+        from hestai_mcp.modules.services.ai.prompts.protocols import CLOCK_IN_SYNTHESIS_PROTOCOL
 
         # The protocol should include PHASE in structured format
         assert "PHASE::" in CLOCK_IN_SYNTHESIS_PROTOCOL
@@ -1762,7 +1886,7 @@ PURPOSE::"Test project"
 
         Format: BLOCKERS::[{blocker1}, {blocker2}]
         """
-        from hestai_mcp.ai.prompts.protocols import CLOCK_IN_SYNTHESIS_PROTOCOL
+        from hestai_mcp.modules.services.ai.prompts.protocols import CLOCK_IN_SYNTHESIS_PROTOCOL
 
         # The protocol should include BLOCKERS in structured format
         assert "BLOCKERS::" in CLOCK_IN_SYNTHESIS_PROTOCOL

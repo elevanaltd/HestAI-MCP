@@ -5,7 +5,7 @@ SS-I2 Compliance: All provider calls are async.
 
 import httpx
 
-from hestai_mcp.ai.providers.base import BaseProvider, CompletionRequest, ModelInfo
+from hestai_mcp.modules.services.ai.providers.base import BaseProvider, CompletionRequest, ModelInfo
 
 # Curated model lists for providers that require authentication to list
 OPENAI_CURATED_MODELS = [

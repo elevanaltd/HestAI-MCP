@@ -15,8 +15,8 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from hestai_mcp.ai.client import AIClient
-from hestai_mcp.ai.providers.base import CompletionRequest
+from hestai_mcp.modules.services.ai.client import AIClient
+from hestai_mcp.modules.services.ai.providers.base import CompletionRequest
 
 logger = logging.getLogger(__name__)
 

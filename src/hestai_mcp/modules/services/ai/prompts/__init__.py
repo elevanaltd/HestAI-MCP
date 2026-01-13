@@ -10,8 +10,8 @@ The organizing principle: IDENTITY ≠ OPERATION.
 Don't mix WHO (persistent) with WHAT (transient). Layer them, don't blend them.
 """
 
-from hestai_mcp.ai.prompts.identity_kernel import CONTEXT_STEWARD_IDENTITY
-from hestai_mcp.ai.prompts.protocols import (
+from hestai_mcp.modules.services.ai.prompts.identity_kernel import CONTEXT_STEWARD_IDENTITY
+from hestai_mcp.modules.services.ai.prompts.protocols import (
     CLOCK_IN_SYNTHESIS_PROTOCOL,
     CLOCK_OUT_COMPRESSION_PROTOCOL,
     compose_prompt,

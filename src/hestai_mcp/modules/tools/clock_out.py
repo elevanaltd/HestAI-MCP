@@ -168,7 +168,7 @@ async def clock_out(
     session_data = json.loads(session_file.read_text())
 
     # Get transcript path using TranscriptPathResolver (enforces path containment)
-    from hestai_mcp.mcp.tools.shared.path_resolution import TranscriptPathResolver
+    from hestai_mcp.modules.tools.shared.path_resolution import TranscriptPathResolver
 
     resolver = TranscriptPathResolver()
     jsonl_path = resolver.resolve(session_data, project_root)
@@ -195,7 +195,7 @@ async def clock_out(
     redacted_jsonl_path = archive_dir / redacted_jsonl_filename
 
     # Apply RedactionEngine to prevent credential leakage
-    from hestai_mcp.mcp.tools.shared.security import RedactionEngine
+    from hestai_mcp.modules.tools.shared.security import RedactionEngine
 
     try:
         RedactionEngine.copy_and_redact(jsonl_path, redacted_jsonl_path)
@@ -212,7 +212,7 @@ async def clock_out(
     compression_status = "skipped"
 
     try:
-        from hestai_mcp.mcp.tools.shared.compression import compress_to_octave
+        from hestai_mcp.modules.tools.shared.compression import compress_to_octave
 
         # Await async compression function (SS-I2 compliance)
         octave_content = await compress_to_octave(
@@ -230,13 +230,13 @@ async def clock_out(
             compression_status = "success"
 
             # Feature 4: Verify context claims before extraction
-            from hestai_mcp.mcp.tools.shared.verification import verify_context_claims
+            from hestai_mcp.modules.tools.shared.verification import verify_context_claims
 
             verification_result = verify_context_claims(octave_content, project_root)
 
             if verification_result["passed"]:
                 # Feature 3: Extract context for PROJECT-CONTEXT update
-                from hestai_mcp.mcp.tools.shared.context_extraction import (
+                from hestai_mcp.modules.tools.shared.context_extraction import (
                     extract_context_from_octave,
                 )
 
@@ -246,7 +246,7 @@ async def clock_out(
                     # Note: Actual PROJECT-CONTEXT update happens via separate context_update tool
 
                 # Feature 5: Append to learnings index
-                from hestai_mcp.mcp.tools.shared.learnings_index import (
+                from hestai_mcp.modules.tools.shared.learnings_index import (
                     append_to_learnings_index,
                     extract_learnings_keys,
                 )
@@ -267,7 +267,7 @@ async def clock_out(
         logger.warning(f"OCTAVE compression failed (non-blocking): {e}")
 
     # Update FAST layer (ADR-0046, ADR-0056)
-    from hestai_mcp.mcp.tools.shared.fast_layer import update_fast_layer_on_clock_out
+    from hestai_mcp.modules.tools.shared.fast_layer import update_fast_layer_on_clock_out
 
     update_fast_layer_on_clock_out(project_root, session_id)
 

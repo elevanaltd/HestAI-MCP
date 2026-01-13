@@ -31,15 +31,15 @@ from typing import Literal
 import yaml
 from pydantic import BaseModel, Field
 
-from hestai_mcp.ai.client import AIClient
-from hestai_mcp.ai.config import AITier, get_yaml_config_path
-from hestai_mcp.ai.prompts.protocols import (
+from hestai_mcp.modules.services.ai.client import AIClient
+from hestai_mcp.modules.services.ai.config import AITier, get_yaml_config_path
+from hestai_mcp.modules.services.ai.prompts.protocols import (
     ODYSSEAN_ANCHOR_COGNITION_CHECK_PROTOCOL,
     ODYSSEAN_ANCHOR_COMMIT_CHECK_PROTOCOL,
     ODYSSEAN_ANCHOR_TENSION_CHECK_PROTOCOL,
     compose_prompt,
 )
-from hestai_mcp.ai.providers.base import CompletionRequest
+from hestai_mcp.modules.services.ai.providers.base import CompletionRequest
 
 logger = logging.getLogger(__name__)
 

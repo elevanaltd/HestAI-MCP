@@ -27,7 +27,7 @@ from unittest.mock import patch
 
 import pytest
 
-from hestai_mcp.mcp.tools.shared.path_resolution import (
+from hestai_mcp.modules.tools.shared.path_resolution import (
     MAX_PROJECTS_SCAN,
     TEMPORAL_BEACON_MAX_AGE_HOURS,
     TranscriptPathResolver,

@@ -18,8 +18,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from hestai_mcp.ai.providers.base import CompletionRequest, ModelInfo
-from hestai_mcp.ai.providers.openai_compat import (
+from hestai_mcp.modules.services.ai.providers.base import CompletionRequest, ModelInfo
+from hestai_mcp.modules.services.ai.providers.openai_compat import (
     OPENAI_CURATED_MODELS,
     OpenAICompatProvider,
 )

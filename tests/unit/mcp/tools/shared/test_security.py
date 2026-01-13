@@ -23,7 +23,7 @@ class TestRedactionPatterns:
 
     def test_redacts_ai_api_keys(self):
         """Detects and redacts AI API keys (sk-... pattern)."""
-        from hestai_mcp.mcp.tools.shared.security import RedactionEngine
+        from hestai_mcp.modules.tools.shared.security import RedactionEngine
 
         text = "Using API key sk-1234567890abcdefghij for requests"
         redacted = RedactionEngine.redact_content(text)
@@ -33,7 +33,7 @@ class TestRedactionPatterns:
 
     def test_redacts_aws_access_keys(self):
         """Detects and redacts AWS access keys (AKIA/ASIA pattern)."""
-        from hestai_mcp.mcp.tools.shared.security import RedactionEngine
+        from hestai_mcp.modules.tools.shared.security import RedactionEngine
 
         text = "AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE"
         redacted = RedactionEngine.redact_content(text)
@@ -43,7 +43,7 @@ class TestRedactionPatterns:
 
     def test_redacts_private_keys(self):
         """Detects and redacts PEM private keys."""
-        from hestai_mcp.mcp.tools.shared.security import RedactionEngine
+        from hestai_mcp.modules.tools.shared.security import RedactionEngine
 
         text = """
         -----BEGIN RSA PRIVATE KEY-----
@@ -57,7 +57,7 @@ class TestRedactionPatterns:
 
     def test_redacts_bearer_tokens(self):
         """Detects and redacts Bearer tokens."""
-        from hestai_mcp.mcp.tools.shared.security import RedactionEngine
+        from hestai_mcp.modules.tools.shared.security import RedactionEngine
 
         text = "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
         redacted = RedactionEngine.redact_content(text)
@@ -67,7 +67,7 @@ class TestRedactionPatterns:
 
     def test_redacts_database_passwords(self):
         """Detects and redacts passwords in connection strings."""
-        from hestai_mcp.mcp.tools.shared.security import RedactionEngine
+        from hestai_mcp.modules.tools.shared.security import RedactionEngine
 
         text = "postgresql://user:secret_password@localhost:5432/db"
         redacted = RedactionEngine.redact_content(text)
@@ -79,7 +79,7 @@ class TestRedactionPatterns:
 
     def test_preserves_non_sensitive_content(self):
         """Normal content passes through unchanged."""
-        from hestai_mcp.mcp.tools.shared.security import RedactionEngine
+        from hestai_mcp.modules.tools.shared.security import RedactionEngine
 
         text = "This is normal log output with no secrets"
         redacted = RedactionEngine.redact_content(text)
@@ -93,7 +93,7 @@ class TestCopyAndRedact:
 
     def test_copies_file_with_redaction(self, tmp_path: Path):
         """Copies file line-by-line with secrets redacted."""
-        from hestai_mcp.mcp.tools.shared.security import RedactionEngine
+        from hestai_mcp.modules.tools.shared.security import RedactionEngine
 
         # Create source file with secrets (realistic API key length: 20+ chars)
         src = tmp_path / "source.jsonl"
@@ -115,7 +115,7 @@ class TestCopyAndRedact:
 
     def test_fails_closed_on_missing_source(self, tmp_path: Path):
         """Raises FileNotFoundError if source doesn't exist (fail-closed)."""
-        from hestai_mcp.mcp.tools.shared.security import RedactionEngine
+        from hestai_mcp.modules.tools.shared.security import RedactionEngine
 
         src = tmp_path / "nonexistent.jsonl"
         dst = tmp_path / "archive.jsonl"
@@ -130,7 +130,7 @@ class TestCopyAndRedact:
         """Removes partial output if redaction fails (fail-closed)."""
         from unittest.mock import patch
 
-        from hestai_mcp.mcp.tools.shared.security import RedactionEngine
+        from hestai_mcp.modules.tools.shared.security import RedactionEngine
 
         src = tmp_path / "source.jsonl"
         src.write_text("test content\n")
@@ -150,7 +150,7 @@ class TestCopyAndRedact:
 
     def test_handles_large_files_efficiently(self, tmp_path: Path):
         """Processes large files line-by-line (memory efficiency)."""
-        from hestai_mcp.mcp.tools.shared.security import RedactionEngine
+        from hestai_mcp.modules.tools.shared.security import RedactionEngine
 
         # Create large source file (1000 lines)
         src = tmp_path / "large.jsonl"

@@ -36,28 +36,28 @@ class TestOctaveScalarSanitization:
 
         Attack vector: focus='x"\nSESSION::NONE\n===END==='
         """
-        from hestai_mcp.mcp.tools.shared.fast_layer import sanitize_octave_scalar
+        from hestai_mcp.modules.tools.shared.fast_layer import sanitize_octave_scalar
 
         with pytest.raises(ValueError, match="[Cc]ontrol character|[Ii]nvalid"):
             sanitize_octave_scalar('x"\nSESSION::NONE')
 
     def test_sanitize_octave_scalar_rejects_carriage_return(self):
         """Rejects input containing carriage return."""
-        from hestai_mcp.mcp.tools.shared.fast_layer import sanitize_octave_scalar
+        from hestai_mcp.modules.tools.shared.fast_layer import sanitize_octave_scalar
 
         with pytest.raises(ValueError, match="[Cc]ontrol character|[Ii]nvalid"):
             sanitize_octave_scalar("value\rwith\rCR")
 
     def test_sanitize_octave_scalar_rejects_tab(self):
         """Rejects input containing tab character."""
-        from hestai_mcp.mcp.tools.shared.fast_layer import sanitize_octave_scalar
+        from hestai_mcp.modules.tools.shared.fast_layer import sanitize_octave_scalar
 
         with pytest.raises(ValueError, match="[Cc]ontrol character|[Ii]nvalid"):
             sanitize_octave_scalar("value\twith\ttab")
 
     def test_sanitize_octave_scalar_escapes_quotes(self):
         """Escapes double quotes in scalar values."""
-        from hestai_mcp.mcp.tools.shared.fast_layer import sanitize_octave_scalar
+        from hestai_mcp.modules.tools.shared.fast_layer import sanitize_octave_scalar
 
         # Input with quotes should be escaped
         result = sanitize_octave_scalar('value with "quotes"')
@@ -67,7 +67,7 @@ class TestOctaveScalarSanitization:
 
     def test_sanitize_octave_scalar_allows_safe_input(self):
         """Allows safe alphanumeric and hyphen input."""
-        from hestai_mcp.mcp.tools.shared.fast_layer import sanitize_octave_scalar
+        from hestai_mcp.modules.tools.shared.fast_layer import sanitize_octave_scalar
 
         # Normal role/focus names should pass through
         assert sanitize_octave_scalar("implementation-lead") == "implementation-lead"
@@ -77,7 +77,7 @@ class TestOctaveScalarSanitization:
 
     def test_sanitize_octave_scalar_handles_empty_string(self):
         """Handles empty string input."""
-        from hestai_mcp.mcp.tools.shared.fast_layer import sanitize_octave_scalar
+        from hestai_mcp.modules.tools.shared.fast_layer import sanitize_octave_scalar
 
         # Empty string should be allowed (or raise specific error, not crash)
         result = sanitize_octave_scalar("")
@@ -89,7 +89,7 @@ class TestOctaveScalarSanitization:
 
         Verifies that injection attempts are blocked when writing OCTAVE content.
         """
-        from hestai_mcp.mcp.tools.shared.fast_layer import (
+        from hestai_mcp.modules.tools.shared.fast_layer import (
             ensure_state_directory,
             populate_current_focus,
         )
@@ -107,7 +107,7 @@ class TestOctaveScalarSanitization:
 
     def test_populate_current_focus_sanitizes_role(self, tmp_path: Path):
         """populate_current_focus sanitizes role parameter."""
-        from hestai_mcp.mcp.tools.shared.fast_layer import (
+        from hestai_mcp.modules.tools.shared.fast_layer import (
             ensure_state_directory,
             populate_current_focus,
         )
@@ -186,7 +186,7 @@ class TestMultiWorktreeBranchResolution:
         Creates two git repos with different branches, verifies that
         get_current_branch returns the branch from working_dir, not cwd.
         """
-        from hestai_mcp.mcp.tools.shared.fast_layer import get_current_branch
+        from hestai_mcp.modules.tools.shared.fast_layer import get_current_branch
 
         # Create first repo (will be the target)
         target_repo = tmp_path / "target_repo"
@@ -206,7 +206,7 @@ class TestMultiWorktreeBranchResolution:
 
     def test_get_current_branch_returns_unknown_on_failure(self, tmp_path: Path):
         """get_current_branch returns 'unknown' when git fails."""
-        from hestai_mcp.mcp.tools.shared.fast_layer import get_current_branch
+        from hestai_mcp.modules.tools.shared.fast_layer import get_current_branch
 
         # Directory without git repo
         no_git = tmp_path / "no_git"
@@ -227,7 +227,7 @@ class TestMultiWorktreeBranchResolution:
         _init_git_repo(git_repo, "my-feature-branch")
 
         # Import and call functions
-        from hestai_mcp.mcp.tools.shared.fast_layer import (
+        from hestai_mcp.modules.tools.shared.fast_layer import (
             ensure_state_directory,
             populate_current_focus,
         )
@@ -264,7 +264,7 @@ class TestBlockerRemovalWithExtraFields:
         Blocker with OWNER::, LINKS::, or other extra fields must be fully removed
         when STATUS::RESOLVED.
         """
-        from hestai_mcp.mcp.tools.shared.fast_layer import persist_blockers_on_close
+        from hestai_mcp.modules.tools.shared.fast_layer import persist_blockers_on_close
 
         state_dir = tmp_path / "state"
         state_dir.mkdir(parents=True)
@@ -316,7 +316,7 @@ ACTIVE:
         """
         persist_blockers_on_close handles deeply nested extra fields.
         """
-        from hestai_mcp.mcp.tools.shared.fast_layer import persist_blockers_on_close
+        from hestai_mcp.modules.tools.shared.fast_layer import persist_blockers_on_close
 
         state_dir = tmp_path / "state"
         state_dir.mkdir(parents=True)
@@ -361,7 +361,7 @@ ACTIVE:
         """
         persist_blockers_on_close preserves META and other non-blocker content.
         """
-        from hestai_mcp.mcp.tools.shared.fast_layer import persist_blockers_on_close
+        from hestai_mcp.modules.tools.shared.fast_layer import persist_blockers_on_close
 
         state_dir = tmp_path / "state"
         state_dir.mkdir(parents=True)
@@ -400,7 +400,7 @@ ACTIVE:
         """
         persist_blockers_on_close correctly removes multiple resolved blockers.
         """
-        from hestai_mcp.mcp.tools.shared.fast_layer import persist_blockers_on_close
+        from hestai_mcp.modules.tools.shared.fast_layer import persist_blockers_on_close
 
         state_dir = tmp_path / "state"
         state_dir.mkdir(parents=True)
@@ -470,7 +470,7 @@ class TestAISynthesisIntegration:
         """
         from unittest.mock import AsyncMock, MagicMock, patch
 
-        from hestai_mcp.mcp.tools.shared.fast_layer import synthesize_fast_layer_with_ai
+        from hestai_mcp.modules.tools.shared.fast_layer import synthesize_fast_layer_with_ai
 
         # Mock a successful AI response with valid OCTAVE format (all required fields)
         mock_ai_response = """CONTEXT_FILES::[@.hestai/context/PROJECT-CONTEXT.oct.md:L1-50]
@@ -517,7 +517,7 @@ FRESHNESS_WARNING::NONE"""
         """
         from unittest.mock import AsyncMock, MagicMock, patch
 
-        from hestai_mcp.mcp.tools.shared.fast_layer import synthesize_fast_layer_with_ai
+        from hestai_mcp.modules.tools.shared.fast_layer import synthesize_fast_layer_with_ai
 
         with (
             patch("hestai_mcp.ai.client.AIClient") as mock_ai_client_cls,
@@ -553,7 +553,7 @@ FRESHNESS_WARNING::NONE"""
         """
         from unittest.mock import patch
 
-        from hestai_mcp.mcp.tools.shared.fast_layer import synthesize_fast_layer_with_ai
+        from hestai_mcp.modules.tools.shared.fast_layer import synthesize_fast_layer_with_ai
 
         # Simulate no AI config (load_config raises)
         with patch(
@@ -579,7 +579,7 @@ FRESHNESS_WARNING::NONE"""
         import inspect
         from unittest.mock import AsyncMock, MagicMock, patch
 
-        from hestai_mcp.mcp.tools.shared.fast_layer import synthesize_fast_layer_with_ai
+        from hestai_mcp.modules.tools.shared.fast_layer import synthesize_fast_layer_with_ai
 
         # Verify the function is a coroutine function
         assert inspect.iscoroutinefunction(synthesize_fast_layer_with_ai)
@@ -627,7 +627,7 @@ FRESHNESS_WARNING::NONE"""
         """
         from unittest.mock import AsyncMock, MagicMock, patch
 
-        from hestai_mcp.mcp.tools.shared.fast_layer import synthesize_fast_layer_with_ai
+        from hestai_mcp.modules.tools.shared.fast_layer import synthesize_fast_layer_with_ai
 
         with (
             patch("hestai_mcp.ai.client.AIClient") as mock_ai_client_cls,
@@ -670,7 +670,7 @@ FRESHNESS_WARNING::NONE"""
         """
         from unittest.mock import patch
 
-        from hestai_mcp.mcp.tools.shared.fast_layer import synthesize_fast_layer_with_ai
+        from hestai_mcp.modules.tools.shared.fast_layer import synthesize_fast_layer_with_ai
 
         # Trigger fallback via config load failure
         with patch(
@@ -709,7 +709,7 @@ FRESHNESS_WARNING::NONE"""
         """
         from unittest.mock import AsyncMock, MagicMock, patch
 
-        from hestai_mcp.mcp.tools.shared.fast_layer import synthesize_fast_layer_with_ai
+        from hestai_mcp.modules.tools.shared.fast_layer import synthesize_fast_layer_with_ai
 
         # AI returns incomplete OCTAVE (missing BLOCKERS::, TASKS::, FRESHNESS_WARNING::)
         incomplete_ai_response = """CONTEXT_FILES::[@.hestai/context/PROJECT-CONTEXT.oct.md]
@@ -761,7 +761,7 @@ This is an incomplete response that lacks required fields."""
         """
         from unittest.mock import AsyncMock, MagicMock, patch
 
-        from hestai_mcp.mcp.tools.shared.fast_layer import synthesize_fast_layer_with_ai
+        from hestai_mcp.modules.tools.shared.fast_layer import synthesize_fast_layer_with_ai
 
         # AI returns complete OCTAVE with all required fields
         complete_ai_response = """CONTEXT_FILES::[@.hestai/context/PROJECT-CONTEXT.oct.md]

@@ -36,7 +36,7 @@ class TestSemanticConfigLoading:
 
     def test_load_semantic_config_from_yaml(self, tmp_path: Path):
         """Load semantic_validation config from ai.yaml odyssean_anchor section."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import load_semantic_config
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import load_semantic_config
 
         # Create a test config file
         config_dir = tmp_path / ".hestai" / "config"
@@ -59,7 +59,7 @@ odyssean_anchor:
         )
 
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.get_yaml_config_path",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.get_yaml_config_path",
             return_value=config_file,
         ):
             config = load_semantic_config()
@@ -75,13 +75,13 @@ odyssean_anchor:
 
     def test_semantic_config_defaults_when_missing(self, tmp_path: Path):
         """Returns defaults when ai.yaml doesn't exist."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import load_semantic_config
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import load_semantic_config
 
         # Point to non-existent file
         nonexistent = tmp_path / "does_not_exist.yaml"
 
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.get_yaml_config_path",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.get_yaml_config_path",
             return_value=nonexistent,
         ):
             config = load_semantic_config()
@@ -93,7 +93,7 @@ odyssean_anchor:
 
     def test_semantic_config_defaults_when_section_missing(self, tmp_path: Path):
         """Returns defaults when odyssean_anchor section is missing from ai.yaml."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import load_semantic_config
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import load_semantic_config
 
         config_dir = tmp_path / ".hestai" / "config"
         config_dir.mkdir(parents=True)
@@ -109,7 +109,7 @@ tiers:
         )
 
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.get_yaml_config_path",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.get_yaml_config_path",
             return_value=config_file,
         ):
             config = load_semantic_config()
@@ -128,7 +128,7 @@ class TestEnvironmentVariableOverrides:
 
     def test_env_override_enabled(self, tmp_path: Path):
         """HESTAI_OA_SEMANTIC_VALIDATION=true overrides config enabled."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import load_semantic_config
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import load_semantic_config
 
         # Config has enabled: false
         config_dir = tmp_path / ".hestai" / "config"
@@ -149,7 +149,7 @@ odyssean_anchor:
                 clear=False,
             ),
             patch(
-                "hestai_mcp.mcp.tools.odyssean_anchor_semantic.get_yaml_config_path",
+                "hestai_mcp.modules.tools.odyssean_anchor_semantic.get_yaml_config_path",
                 return_value=config_file,
             ),
         ):
@@ -159,7 +159,7 @@ odyssean_anchor:
 
     def test_env_override_disabled(self, tmp_path: Path):
         """HESTAI_OA_SEMANTIC_VALIDATION=false overrides config enabled."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import load_semantic_config
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import load_semantic_config
 
         config_dir = tmp_path / ".hestai" / "config"
         config_dir.mkdir(parents=True)
@@ -179,7 +179,7 @@ odyssean_anchor:
                 clear=False,
             ),
             patch(
-                "hestai_mcp.mcp.tools.odyssean_anchor_semantic.get_yaml_config_path",
+                "hestai_mcp.modules.tools.odyssean_anchor_semantic.get_yaml_config_path",
                 return_value=config_file,
             ),
         ):
@@ -189,7 +189,7 @@ odyssean_anchor:
 
     def test_env_override_fail_mode(self, tmp_path: Path):
         """HESTAI_OA_SEMANTIC_FAIL_MODE overrides config fail_mode."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import load_semantic_config
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import load_semantic_config
 
         config_dir = tmp_path / ".hestai" / "config"
         config_dir.mkdir(parents=True)
@@ -210,7 +210,7 @@ odyssean_anchor:
                 clear=False,
             ),
             patch(
-                "hestai_mcp.mcp.tools.odyssean_anchor_semantic.get_yaml_config_path",
+                "hestai_mcp.modules.tools.odyssean_anchor_semantic.get_yaml_config_path",
                 return_value=config_file,
             ),
         ):
@@ -231,7 +231,7 @@ class TestSemanticValidationDisabledDefault:
     @pytest.mark.asyncio
     async def test_validate_semantic_returns_success_when_disabled(self):
         """validate_semantic returns success without running checks when disabled."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             SemanticChecksConfig,
             SemanticConfig,
             validate_semantic,
@@ -280,7 +280,7 @@ class TestCognitionAppropriatenessCheck:
     @pytest.mark.asyncio
     async def test_check_cognition_appropriateness_logos_for_architect(self):
         """LOGOS is appropriate for architect roles."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             check_cognition_appropriateness,
         )
 
@@ -289,7 +289,7 @@ class TestCognitionAppropriatenessCheck:
         )
 
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.AIClient",
             return_value=mock_client,
         ):
             result = await check_cognition_appropriateness(
@@ -304,7 +304,7 @@ class TestCognitionAppropriatenessCheck:
     @pytest.mark.asyncio
     async def test_check_cognition_appropriateness_ethos_for_validator(self):
         """ETHOS is appropriate for validator roles."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             check_cognition_appropriateness,
         )
 
@@ -313,7 +313,7 @@ class TestCognitionAppropriatenessCheck:
         )
 
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.AIClient",
             return_value=mock_client,
         ):
             result = await check_cognition_appropriateness(
@@ -327,7 +327,7 @@ class TestCognitionAppropriatenessCheck:
     @pytest.mark.asyncio
     async def test_check_cognition_appropriateness_mismatch(self):
         """Returns concern when cognition type doesn't match role."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             check_cognition_appropriateness,
         )
 
@@ -336,7 +336,7 @@ class TestCognitionAppropriatenessCheck:
         )
 
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.AIClient",
             return_value=mock_client,
         ):
             result = await check_cognition_appropriateness(
@@ -361,7 +361,7 @@ class TestCtxValidityCheck:
 
     def test_check_ctx_validity_existing_files(self, tmp_path: Path):
         """Returns valid when all CTX paths exist."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import check_ctx_validity
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import check_ctx_validity
 
         # Create files referenced in tensions
         (tmp_path / "docs").mkdir()
@@ -381,7 +381,7 @@ class TestCtxValidityCheck:
 
     def test_check_ctx_validity_missing_files(self, tmp_path: Path):
         """Returns invalid with list of missing files."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import check_ctx_validity
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import check_ctx_validity
 
         # Only create one of the referenced files
         (tmp_path / "docs").mkdir()
@@ -402,7 +402,7 @@ class TestCtxValidityCheck:
 
     def test_check_ctx_validity_empty_tensions(self, tmp_path: Path):
         """Returns valid for empty tensions list (no files to check)."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import check_ctx_validity
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import check_ctx_validity
 
         result = check_ctx_validity([], str(tmp_path))
 
@@ -411,7 +411,7 @@ class TestCtxValidityCheck:
 
     def test_check_ctx_validity_handles_line_ranges(self, tmp_path: Path):
         """Strips line ranges from CTX path before checking."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import check_ctx_validity
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import check_ctx_validity
 
         (tmp_path / "docs").mkdir()
         (tmp_path / "docs" / "file.md").write_text("# File")
@@ -438,7 +438,7 @@ class TestWarnMode:
     @pytest.mark.asyncio
     async def test_warn_mode_logs_concerns_returns_success(self, tmp_path: Path, caplog):
         """In warn mode, semantic concerns are logged but don't fail validation."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             SemanticChecksConfig,
             SemanticConfig,
             validate_semantic,
@@ -489,7 +489,7 @@ class TestBlockMode:
     @pytest.mark.asyncio
     async def test_block_mode_fails_on_concerns(self, tmp_path: Path):
         """In block mode, semantic concerns cause validation failure."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             SemanticChecksConfig,
             SemanticConfig,
             validate_semantic,
@@ -526,7 +526,7 @@ class TestBlockMode:
     @pytest.mark.asyncio
     async def test_block_mode_succeeds_without_concerns(self, tmp_path: Path):
         """In block mode, validation succeeds when no concerns."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             SemanticChecksConfig,
             SemanticConfig,
             validate_semantic,
@@ -578,7 +578,7 @@ class TestTimeoutHandling:
         """On AI timeout, returns success in warn mode (graceful degradation)."""
         import asyncio
 
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             SemanticChecksConfig,
             SemanticConfig,
             validate_semantic,
@@ -609,7 +609,7 @@ class TestTimeoutHandling:
         )
 
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.AIClient",
             return_value=mock_client,
         ):
             result = await validate_semantic(
@@ -629,7 +629,7 @@ class TestTimeoutHandling:
     @pytest.mark.asyncio
     async def test_ai_error_logged_graceful_degradation(self, caplog):
         """On AI error, logs warning and continues (graceful degradation)."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             SemanticChecksConfig,
             SemanticConfig,
             validate_semantic,
@@ -655,7 +655,7 @@ class TestTimeoutHandling:
         )
 
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.AIClient",
             return_value=mock_client,
         ):
             result = await validate_semantic(
@@ -683,7 +683,7 @@ class TestTensionRelevanceCheck:
     @pytest.mark.asyncio
     async def test_check_tension_relevance_valid_constraints(self):
         """Returns valid when constraints reference real constraints."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             check_tension_relevance,
         )
 
@@ -695,7 +695,7 @@ class TestTensionRelevanceCheck:
         ]
 
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.AIClient",
             return_value=mock_client,
         ):
             result = await check_tension_relevance(
@@ -710,7 +710,7 @@ class TestTensionRelevanceCheck:
     @pytest.mark.asyncio
     async def test_check_tension_relevance_hallucinated_constraint(self):
         """Returns invalid when constraint appears hallucinated."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             check_tension_relevance,
         )
 
@@ -724,7 +724,7 @@ class TestTensionRelevanceCheck:
         ]
 
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.AIClient",
             return_value=mock_client,
         ):
             result = await check_tension_relevance(
@@ -749,7 +749,7 @@ class TestCommitFeasibilityCheck:
     @pytest.mark.asyncio
     async def test_check_commit_feasibility_achievable(self):
         """Returns valid when artifact is achievable."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             check_commit_feasibility,
         )
 
@@ -758,7 +758,7 @@ class TestCommitFeasibilityCheck:
         )
 
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.AIClient",
             return_value=mock_client,
         ):
             result = await check_commit_feasibility(
@@ -773,7 +773,7 @@ class TestCommitFeasibilityCheck:
     @pytest.mark.asyncio
     async def test_check_commit_feasibility_unrealistic(self):
         """Returns invalid when artifact seems unrealistic."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             check_commit_feasibility,
         )
 
@@ -782,7 +782,7 @@ class TestCommitFeasibilityCheck:
         )
 
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.AIClient",
             return_value=mock_client,
         ):
             result = await check_commit_feasibility(
@@ -807,7 +807,7 @@ class TestOdysseanAnchorIntegration:
     @pytest.mark.asyncio
     async def test_odyssean_anchor_calls_semantic_validation_when_enabled(self, tmp_path: Path):
         """odyssean_anchor() calls semantic validation after structural passes."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             SemanticChecksConfig,
             SemanticConfig,
         )
@@ -828,7 +828,7 @@ class TestOdysseanAnchorIntegration:
 
     def test_semantic_config_model_validates(self):
         """SemanticConfig pydantic model validates correctly."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             SemanticChecksConfig,
             SemanticConfig,
         )
@@ -852,7 +852,7 @@ class TestOdysseanAnchorIntegration:
 
     def test_semantic_result_dataclass(self):
         """SemanticValidationResult has expected fields."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             SemanticValidationResult,
         )
 
@@ -892,8 +892,8 @@ class TestAsyncContextExecution:
         This is the key test - it simulates the MCP server's async call_tool()
         calling _run_semantic_validation() and verifies validation actually runs.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor import _run_semantic_validation
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor import _run_semantic_validation
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             SemanticChecksConfig,
             SemanticConfig,
         )
@@ -918,7 +918,7 @@ class TestAsyncContextExecution:
 
         # Mock load_semantic_config to return our test config
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.load_semantic_config",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.load_semantic_config",
             return_value=config,
         ):
             # Call from async context (simulating MCP server's call_tool)
@@ -947,8 +947,8 @@ class TestAsyncContextExecution:
 
         This proves the validation actually ran (not just returned a stub result).
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor import _run_semantic_validation
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor import _run_semantic_validation
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             SemanticChecksConfig,
             SemanticConfig,
         )
@@ -968,7 +968,7 @@ class TestAsyncContextExecution:
         )
 
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.load_semantic_config",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.load_semantic_config",
             return_value=config,
         ):
             # Reference a file that doesn't exist
@@ -1006,7 +1006,7 @@ class TestCtxPathTraversalSecurity:
 
     def test_ctx_validity_rejects_absolute_paths(self, tmp_path: Path):
         """CTX paths must be relative, not absolute."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import check_ctx_validity
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import check_ctx_validity
 
         # Attempt to reference an absolute path (security violation)
         tensions = [
@@ -1025,7 +1025,7 @@ class TestCtxPathTraversalSecurity:
 
     def test_ctx_validity_rejects_path_traversal_dotdot(self, tmp_path: Path):
         """CTX paths with .. must not escape working directory."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import check_ctx_validity
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import check_ctx_validity
 
         # Create a file outside working_dir to test traversal
         parent_dir = tmp_path.parent
@@ -1047,7 +1047,7 @@ class TestCtxPathTraversalSecurity:
 
     def test_ctx_validity_rejects_deep_traversal(self, tmp_path: Path):
         """CTX paths with multiple .. levels must not escape working directory."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import check_ctx_validity
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import check_ctx_validity
 
         tensions = [
             {"ctx_path": "../../etc/passwd", "constraint": "EXPLOIT"},
@@ -1061,7 +1061,7 @@ class TestCtxPathTraversalSecurity:
 
     def test_ctx_validity_allows_relative_within_workdir(self, tmp_path: Path):
         """Valid relative paths within working_dir should be allowed."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import check_ctx_validity
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import check_ctx_validity
 
         # Create nested structure
         (tmp_path / "docs" / "sub").mkdir(parents=True)
@@ -1079,7 +1079,7 @@ class TestCtxPathTraversalSecurity:
 
     def test_ctx_validity_rejects_backslash_traversal(self, tmp_path: Path):
         """CTX paths with Windows-style backslashes should be handled safely."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import check_ctx_validity
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import check_ctx_validity
 
         tensions = [
             {"ctx_path": "..\\..\\etc\\passwd", "constraint": "EXPLOIT"},
@@ -1092,7 +1092,7 @@ class TestCtxPathTraversalSecurity:
 
     def test_ctx_validity_requires_file_not_directory(self, tmp_path: Path):
         """CTX paths must point to files, not directories."""
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import check_ctx_validity
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import check_ctx_validity
 
         # Create a directory
         (tmp_path / "docs").mkdir()
@@ -1132,7 +1132,7 @@ class TestJsonImportPlacement:
             Path(__file__).parent.parent.parent.parent.parent
             / "src"
             / "hestai_mcp"
-            / "mcp"
+            / "modules"
             / "tools"
             / "odyssean_anchor_semantic.py"
         )
@@ -1189,7 +1189,7 @@ class TestAICheckConcernBranches:
 
         This covers lines 259-260 - cognition concern path.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             SemanticChecksConfig,
             SemanticConfig,
             validate_semantic,
@@ -1213,7 +1213,7 @@ class TestAICheckConcernBranches:
         )
 
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.AIClient",
             return_value=mock_client,
         ):
             result = await validate_semantic(
@@ -1234,7 +1234,7 @@ class TestAICheckConcernBranches:
 
         This covers lines 266-278 - tension relevance concern path.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             SemanticChecksConfig,
             SemanticConfig,
             validate_semantic,
@@ -1261,11 +1261,11 @@ class TestAICheckConcernBranches:
 
         with (
             patch(
-                "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+                "hestai_mcp.modules.tools.odyssean_anchor_semantic.AIClient",
                 return_value=mock_client,
             ),
             patch(
-                "hestai_mcp.mcp.tools.odyssean_anchor_semantic._load_constitution",
+                "hestai_mcp.modules.tools.odyssean_anchor_semantic._load_constitution",
                 return_value="I1::TDD, MIP",
             ),
         ):
@@ -1287,7 +1287,7 @@ class TestAICheckConcernBranches:
 
         This covers lines 281-292 - commit feasibility concern path.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             SemanticChecksConfig,
             SemanticConfig,
             validate_semantic,
@@ -1312,11 +1312,11 @@ class TestAICheckConcernBranches:
 
         with (
             patch(
-                "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+                "hestai_mcp.modules.tools.odyssean_anchor_semantic.AIClient",
                 return_value=mock_client,
             ),
             patch(
-                "hestai_mcp.mcp.tools.odyssean_anchor_semantic._get_session_focus",
+                "hestai_mcp.modules.tools.odyssean_anchor_semantic._get_session_focus",
                 return_value="general",
             ),
         ):
@@ -1340,7 +1340,7 @@ class TestAICheckConcernBranches:
         """
         import asyncio
 
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             SemanticChecksConfig,
             SemanticConfig,
             validate_semantic,
@@ -1369,7 +1369,7 @@ class TestAICheckConcernBranches:
         )
 
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.AIClient",
             return_value=mock_client,
         ):
             result = await validate_semantic(
@@ -1401,7 +1401,7 @@ class TestAIResponseParsingEdgeCases:
 
         This covers lines 458-461 - JSON decode error in cognition check.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             check_cognition_appropriateness,
         )
 
@@ -1409,7 +1409,7 @@ class TestAIResponseParsingEdgeCases:
         mock_client = _create_mock_ai_client("not valid json {}")
 
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.AIClient",
             return_value=mock_client,
         ):
             result = await check_cognition_appropriateness(
@@ -1427,7 +1427,7 @@ class TestAIResponseParsingEdgeCases:
 
         This covers lines 483, 487 - empty tensions short-circuit.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             check_tension_relevance,
         )
 
@@ -1446,7 +1446,7 @@ class TestAIResponseParsingEdgeCases:
 
         This covers line 487 - empty constraint_names.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             check_tension_relevance,
         )
 
@@ -1467,7 +1467,7 @@ class TestAIResponseParsingEdgeCases:
 
         This covers lines 526-528 - JSON decode error in tension check.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             check_tension_relevance,
         )
 
@@ -1476,7 +1476,7 @@ class TestAIResponseParsingEdgeCases:
         tensions = [{"constraint": "TDD_MANDATE", "ctx_path": "file.md"}]
 
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.AIClient",
             return_value=mock_client,
         ):
             result = await check_tension_relevance(
@@ -1494,14 +1494,14 @@ class TestAIResponseParsingEdgeCases:
 
         This covers lines 588-590 - JSON decode error in feasibility check.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             check_commit_feasibility,
         )
 
         mock_client = _create_mock_ai_client("not json")
 
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.AIClient",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.AIClient",
             return_value=mock_client,
         ):
             result = await check_commit_feasibility(
@@ -1528,7 +1528,7 @@ class TestHelperFunctionEdgeCases:
 
         This covers lines 600-616 - constitution loading.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import _load_constitution
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import _load_constitution
 
         # Create the first candidate location
         workflow_dir = tmp_path / ".hestai" / "workflow"
@@ -1548,7 +1548,7 @@ class TestHelperFunctionEdgeCases:
         """
         from pathlib import Path as PathClass
 
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import _load_constitution
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import _load_constitution
 
         # Create the second candidate location (skip first)
         hub_dir = tmp_path / "hub" / "governance" / "workflow"
@@ -1570,7 +1570,7 @@ class TestHelperFunctionEdgeCases:
         """
         from pathlib import Path as PathClass
 
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import _load_constitution
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import _load_constitution
 
         # Mock Path.home() to not interfere with test
         monkeypatch.setattr(PathClass, "home", lambda: tmp_path / "nonexistent_home")
@@ -1585,7 +1585,7 @@ class TestHelperFunctionEdgeCases:
 
         This covers lines 613-614 - OSError handling.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import _load_constitution
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import _load_constitution
 
         # Create file but make it unreadable
         workflow_dir = tmp_path / ".hestai" / "workflow"
@@ -1607,7 +1607,7 @@ class TestHelperFunctionEdgeCases:
 
         This covers lines 624-625 - no sessions directory.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import _get_session_focus
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import _get_session_focus
 
         result = _get_session_focus(str(tmp_path))
         assert result == "general"
@@ -1617,7 +1617,7 @@ class TestHelperFunctionEdgeCases:
 
         This covers lines 630-631 - empty sessions directory.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import _get_session_focus
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import _get_session_focus
 
         sessions_dir = tmp_path / ".hestai" / "sessions" / "active"
         sessions_dir.mkdir(parents=True)
@@ -1632,7 +1632,7 @@ class TestHelperFunctionEdgeCases:
         """
         import json
 
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import _get_session_focus
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import _get_session_focus
 
         sessions_dir = tmp_path / ".hestai" / "sessions" / "active"
         session_dir = sessions_dir / "test-session-123"
@@ -1649,7 +1649,7 @@ class TestHelperFunctionEdgeCases:
 
         This covers lines 639-640 - JSONDecodeError handling.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import _get_session_focus
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import _get_session_focus
 
         sessions_dir = tmp_path / ".hestai" / "sessions" / "active"
         session_dir = sessions_dir / "test-session-123"
@@ -1668,7 +1668,7 @@ class TestHelperFunctionEdgeCases:
         """
         import json
 
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import _get_session_focus
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import _get_session_focus
 
         sessions_dir = tmp_path / ".hestai" / "sessions" / "active"
         session_dir = sessions_dir / "test-session-123"
@@ -1695,7 +1695,7 @@ class TestConfigLoadingEdgeCases:
 
         This covers line 147 - empty config_data.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import load_semantic_config
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import load_semantic_config
 
         config_dir = tmp_path / ".hestai" / "config"
         config_dir.mkdir(parents=True)
@@ -1703,7 +1703,7 @@ class TestConfigLoadingEdgeCases:
         config_file.write_text("")  # Empty file
 
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.get_yaml_config_path",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.get_yaml_config_path",
             return_value=config_file,
         ):
             config = load_semantic_config()
@@ -1715,7 +1715,7 @@ class TestConfigLoadingEdgeCases:
 
         This covers lines 168-170 - YAML parsing error.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import load_semantic_config
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import load_semantic_config
 
         config_dir = tmp_path / ".hestai" / "config"
         config_dir.mkdir(parents=True)
@@ -1723,7 +1723,7 @@ class TestConfigLoadingEdgeCases:
         config_file.write_text("invalid: yaml: content: [")  # Invalid YAML
 
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.get_yaml_config_path",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.get_yaml_config_path",
             return_value=config_file,
         ):
             config = load_semantic_config()
@@ -1736,7 +1736,7 @@ class TestConfigLoadingEdgeCases:
 
         This covers line 232 - config loading fallback.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             SemanticConfig,
             validate_semantic,
         )
@@ -1745,7 +1745,7 @@ class TestConfigLoadingEdgeCases:
         default_config = SemanticConfig(enabled=False)
 
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.load_semantic_config",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.load_semantic_config",
             return_value=default_config,
         ):
             result = await validate_semantic(
@@ -1775,7 +1775,7 @@ class TestCtxValidityAdditional:
 
         This covers line 353 - empty ctx_path continue.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import check_ctx_validity
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import check_ctx_validity
 
         # Create a valid file
         (tmp_path / "docs").mkdir()

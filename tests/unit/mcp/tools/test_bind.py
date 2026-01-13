@@ -17,7 +17,7 @@ NEVER::[c,d]
 """
     )
 
-    from hestai_mcp.mcp.tools.bind import bind
+    from hestai_mcp.modules.tools.bind import bind
 
     result = bind(
         role="technical-architect",
@@ -46,7 +46,7 @@ NEVER::[c,d]
 
 @pytest.mark.unit
 def test_bind_rejects_invalid_role_format():
-    from hestai_mcp.mcp.tools.bind import bind
+    from hestai_mcp.modules.tools.bind import bind
 
     result = bind(role="../bad")
     assert result["success"] is False

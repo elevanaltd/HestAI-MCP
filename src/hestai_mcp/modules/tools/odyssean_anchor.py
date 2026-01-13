@@ -32,7 +32,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from hestai_mcp.mcp.tools.odyssean_anchor_semantic import SemanticValidationResult
+    from hestai_mcp.modules.tools.odyssean_anchor_semantic import SemanticValidationResult
 
 logger = logging.getLogger(__name__)
 
@@ -794,7 +794,7 @@ def _run_semantic_validation(
         SemanticValidationResult with success status and concerns
     """
     # Import here to avoid circular imports
-    from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+    from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
         SemanticValidationResult,
         load_semantic_config,
         validate_semantic,
