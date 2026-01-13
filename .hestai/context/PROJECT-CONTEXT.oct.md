@@ -7,19 +7,21 @@ META:
   VERSION::"0.5.0"
   PHASE::B1_FOUNDATION_INFRASTRUCTURE
   STATUS::active_development
-  LAST_UPDATED::"2026-01-03"
+  LAST_UPDATED::"2026-01-13"
   PYTHON_VERSION::">=3.11"
   CI_MATRIX::[3.11,3.12]
 
 PURPOSE::"MCP server implementing three-layer cognitive architecture for persistent AI agent context, governance, and semantic knowledge"
 
-ARCHITECTURE::THREE_LAYER:
+ARCHITECTURE::FRACTAL_MODULAR:
   LAYER_1_SYSTEM_GOVERNANCE::.hestai-sys/[delivered_not_committed,read_only]
   LAYER_2_PROJECT_CONTEXT::.hestai/[committed_single_writer,mutable]
-  LAYER_3_SEMANTIC_KNOWLEDGE::Basic_Memory_MCP[pending_Phase_2.5,oracle_layer]
+  LAYER_3_SEMANTIC_KNOWLEDGE::Basic_Memory_MCP[pending_Phase_2.5,oracle_layer],
+  INTERNAL_CODE_STRUCTURE::Fractal_Namespaces[Core/Governance_vs_Extensions/Tools]
 
 AUTHORITATIVE_REFERENCES::[
   // NOTE: ADR numbering follows GitHub Issue numbers per ADR-0031
+  ADR_0010::"Fractal Modularization of HestAI-MCP - Internal code isolation",
   ADR_0031::"GitHub Issue-Based Document Numbering",
   ADR_0033::"Dual-Layer Context Architecture - System vs Product separation",
   ADR_0034::"Orchestra Map Architecture - Anchor Pattern Inversion + Semantic Knowledge",
@@ -34,6 +36,7 @@ PHASE_STATUS::[
   Phase_2.5::Orchestra_Map_semantic_spike->IN_PROGRESS[pending_Basic_Memory_PoC],
   Phase_3::single_writer_MCP_tools->IN_PROGRESS[document_submit+context_update_pending],
   Phase_4::governance_delivery+Layer_3_integration->PENDING,
+  Phase_5::Fractal_Refactor_and_RCCAFP->IN_PROGRESS,
   Phase_6::documentation->UNBLOCKED[Issue_#56_clock_in_COMPLETE_2025-12-30]
 ]
 
@@ -43,7 +46,7 @@ QUALITY_GATES::[
   ruff::PASSING[0_errors],
   black::PASSING[54_files_formatted],
   coverage::94%[overall],
-  freshness_check::UPDATED[2026-01-03]
+  freshness_check::UPDATED[2026-01-13]
 ]
 
 IMMUTABLES_ACTIVE::[
@@ -57,7 +60,8 @@ IMMUTABLES_ACTIVE::[
 
 CRITICAL_ASSUMPTIONS::[
   A4::OCTAVE_READABILITY[85%]->PENDING[validation@B1],
-  A8::ORCHESTRA_MAP_FEASIBILITY[85%_confidence]->PROVEN[ADR-0034]
+  A8::ORCHESTRA_MAP_FEASIBILITY[85%_confidence]->PROVEN[ADR-0034],
+  A10::FRACTAL_ISOLATION_ENFORCEMENT[90%_confidence]->PENDING[ADR-0010]
 ]
 
 KEY_INSIGHTS::[
@@ -65,12 +69,24 @@ KEY_INSIGHTS::[
   SINGLE_WRITER_PATTERN::"System Steward MCP tools only write to Layer 2 (.hestai/)",
   ORCHESTRA_MAP_INNOVATION::"Anchor Pattern Inversion enables concept-driven spec coherence (ADR-0034)",
   SEMANTIC_SPIKE_PENDING::"Layer 3 (Basic Memory) validation required Phase 2.5",
-  NO_SYMLINKS::"Direct .hestai/ directory ensures git visibility + ADR-0007 compliance",
-  OCTAVE_STANDARD::"All context in OCTAVE format - semantic density + compression + human readability"
+  FRACTAL_MODULARIZATION::"Logical separation (Governance vs Tools) within a unified server (ADR-0010)",
+  PROTOCOL_OVER_SDK::"Context Injection pattern implemented via internal protocol (Git-native)",
+  RCCAFP_FRAMEWORK::"Root Cause, Corrective Action, Future Proofing as a Governance engine module"
 ]
 
 BLOCKERS::[
   Layer_3_validation::blocked_on_Basic_Memory_MCP_PoC
+]
+
+RESOLVED_2026-01-13::[
+  ARCHITECTURE_RESTRUCTURING::DEBATE_SYNTHESIS[RESOLVED]::[
+    DECISION::"Adopt Fractal Modularization (ADR-0010) - Single server with strict namespace isolation.",
+    DEBATE_ID::"2026-01-13-arch-structure",
+    PARTICIPANTS::[Wind(Claude/PATHOS),Wall(Codex/ETHOS),Door(Gemini/LOGOS)],
+    KEY_INSIGHT::"Physical split (microservices) is a deployment tax; Logical split (modularity) is an architectural necessity.",
+    RCCAFP::"Integrated as a core Governance quality module in .hestai/quality/rccafp/",
+    NEXT_STEPS::[ADR-0010_formalization, src/_refactor, RCCAFP_implementation]
+  ]
 ]
 
 RESOLVED_2026-01-03::[
