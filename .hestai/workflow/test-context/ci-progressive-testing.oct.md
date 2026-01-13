@@ -54,7 +54,7 @@ JOBS::[
     EXECUTES::python scripts/ci/validate_progressive_behavior.py --github-output "$GITHUB_OUTPUT"
   ]
   docs_validate::[
-    PURPOSE::"Validate doc naming/visibility + OCTAVE v6 protocol for changed .oct.md"
+    PURPOSE::"Validate doc naming/visibility + OCTAVE protocol for changed .oct.md"
     EXECUTES::[
       python src/hestai_mcp/_bundled_hub/tools/octave-validator.py --profile protocol {changed}.oct.md
       python scripts/ci/validate_naming_visibility.py {changed_docs}
