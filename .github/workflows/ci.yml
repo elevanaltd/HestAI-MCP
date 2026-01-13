@@ -60,7 +60,7 @@ jobs:
           echo "changed_octave_count=$(wc -l < changed_octave.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
           echo "changed_docs_count=$(wc -l < changed_docs.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
 
-      - name: Validate OCTAVE v5.1.0 (protocol profile)
+      - name: Validate OCTAVE v6 (protocol profile)
         shell: bash
         run: |
           set -euo pipefail
