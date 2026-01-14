@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
 
 @pytest.mark.integration

@@ -35,7 +35,7 @@ class TestBindSectionValidation:
 
     def test_validate_bind_accepts_valid_section(self):
         """Accepts valid BIND section with ROLE, COGNITION, AUTHORITY."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_bind_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_bind_section
 
         valid_bind = """## BIND (Identity Lock)
 ROLE::implementation-lead
@@ -53,7 +53,7 @@ AUTHORITY::RESPONSIBLE[build_phase_execution]"""
 
     def test_validate_bind_rejects_missing_role(self):
         """Rejects BIND section missing ROLE field."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_bind_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_bind_section
 
         invalid_bind = """## BIND (Identity Lock)
 COGNITION::LOGOS::HEPHAESTUS
@@ -66,7 +66,7 @@ AUTHORITY::RESPONSIBLE[build_phase_execution]"""
 
     def test_validate_bind_rejects_missing_cognition(self):
         """Rejects BIND section missing COGNITION field."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_bind_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_bind_section
 
         invalid_bind = """## BIND (Identity Lock)
 ROLE::implementation-lead
@@ -79,7 +79,7 @@ AUTHORITY::RESPONSIBLE[build_phase_execution]"""
 
     def test_validate_bind_rejects_missing_authority(self):
         """Rejects BIND section missing AUTHORITY field."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_bind_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_bind_section
 
         invalid_bind = """## BIND (Identity Lock)
 ROLE::implementation-lead
@@ -92,7 +92,7 @@ COGNITION::LOGOS::HEPHAESTUS"""
 
     def test_validate_bind_rejects_invalid_cognition_type(self):
         """Rejects BIND section with invalid cognition type."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_bind_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_bind_section
 
         invalid_bind = """## BIND (Identity Lock)
 ROLE::implementation-lead
@@ -107,7 +107,7 @@ AUTHORITY::RESPONSIBLE[build_phase_execution]"""
 
     def test_validate_bind_rejects_invalid_archetype(self):
         """Rejects BIND section with invalid archetype."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_bind_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_bind_section
 
         invalid_bind = """## BIND (Identity Lock)
 ROLE::implementation-lead
@@ -121,7 +121,7 @@ AUTHORITY::RESPONSIBLE[build_phase_execution]"""
 
     def test_validate_bind_rejects_empty_role(self):
         """Rejects BIND section with empty ROLE."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_bind_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_bind_section
 
         invalid_bind = """## BIND (Identity Lock)
 ROLE::
@@ -135,7 +135,7 @@ AUTHORITY::RESPONSIBLE[build_phase_execution]"""
 
     def test_validate_bind_accepts_delegated_authority(self):
         """Accepts BIND section with DELEGATED authority (for subagents)."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_bind_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_bind_section
 
         valid_bind = """## BIND (Identity Lock)
 ROLE::code-reviewer
@@ -149,7 +149,7 @@ AUTHORITY::DELEGATED[parent_session_abc123]"""
 
     def test_validate_bind_accepts_multiple_archetypes_unicode(self):
         """Accepts BIND section with multiple archetypes using ⊕ (synthesis operator)."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_bind_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_bind_section
 
         valid_bind = """## BIND (Identity Lock)
 ROLE::holistic-orchestrator
@@ -163,7 +163,7 @@ AUTHORITY::RESPONSIBLE[system_coherence_orchestration]"""
 
     def test_validate_bind_accepts_multiple_archetypes_ascii(self):
         """Accepts BIND section with multiple archetypes using + (ASCII alias for ⊕)."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_bind_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_bind_section
 
         valid_bind = """## BIND (Identity Lock)
 ROLE::holistic-orchestrator
@@ -177,7 +177,7 @@ AUTHORITY::RESPONSIBLE[system_coherence_orchestration]"""
 
     def test_validate_bind_rejects_invalid_archetype_in_list(self):
         """Rejects BIND section if any archetype in the list is invalid."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_bind_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_bind_section
 
         invalid_bind = """## BIND (Identity Lock)
 ROLE::holistic-orchestrator
@@ -201,7 +201,7 @@ class TestTensionSectionValidation:
 
     def test_validate_tension_accepts_valid_section_default_tier(self):
         """Accepts valid TENSION section for default tier (min 2 tensions)."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_tension_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_tension_section
 
         valid_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
 L1::[TDD_MANDATE]⇌CTX:.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md[I1::TDD]→TRIGGER[WRITE_TEST_FIRST]
@@ -215,7 +215,7 @@ L2::[MINIMAL_INTERVENTION]⇌CTX:docs/adr/adr-0036-odyssean-anchor-binding.md:17
 
     def test_validate_tension_rejects_insufficient_count_default_tier(self):
         """Rejects TENSION section with insufficient count for default tier."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_tension_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_tension_section
 
         # Only 1 tension, but default tier requires 2
         invalid_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
@@ -228,7 +228,7 @@ L1::[TDD_MANDATE]⇌CTX:path/to/file.md[state]→TRIGGER[ACTION]"""
 
     def test_validate_tension_accepts_one_tension_quick_tier(self):
         """Accepts TENSION section with 1 tension for quick tier."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_tension_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_tension_section
 
         valid_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
 L1::[STATUS_CHECK]⇌CTX:path/to/file.md[current_state]→TRIGGER[REPORT]"""
@@ -240,7 +240,7 @@ L1::[STATUS_CHECK]⇌CTX:path/to/file.md[current_state]→TRIGGER[REPORT]"""
 
     def test_validate_tension_requires_three_for_deep_tier(self):
         """Requires TENSION section with 3+ tensions for deep tier."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_tension_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_tension_section
 
         # Only 2 tensions, but deep tier requires 3
         invalid_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
@@ -254,7 +254,7 @@ L2::[CONSTRAINT_B]⇌CTX:file2.md:30-40[state_b]→TRIGGER[ACTION_B]"""
 
     def test_validate_tension_accepts_three_tensions_deep_tier(self):
         """Accepts TENSION section with 3+ tensions for deep tier."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_tension_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_tension_section
 
         valid_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
 L1::[CONSTRAINT_A]⇌CTX:file1.md:10-20[state_a]→TRIGGER[ACTION_A]
@@ -268,7 +268,7 @@ L3::[CONSTRAINT_C]⇌CTX:file3.md:50-60[state_c]→TRIGGER[ACTION_C]"""
 
     def test_validate_tension_rejects_missing_ctx_citation(self):
         """Rejects TENSION without CTX: citation."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_tension_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_tension_section
 
         invalid_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
 L1::[TDD_MANDATE]⇌[some_state]→TRIGGER[WRITE_TEST_FIRST]
@@ -281,7 +281,7 @@ L2::[MINIMAL_INTERVENTION]⇌[another_state]→TRIGGER[IMPLEMENT_MINIMAL]"""
 
     def test_validate_tension_rejects_missing_trigger(self):
         """Rejects TENSION without TRIGGER action."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_tension_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_tension_section
 
         invalid_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
 L1::[TDD_MANDATE]⇌CTX:file.md[state]→IMPLICATION
@@ -294,7 +294,7 @@ L2::[MINIMAL_INTERVENTION]⇌CTX:file2.md[state2]→IMPLICATION2"""
 
     def test_validate_tension_rejects_generic_constraint(self):
         """Rejects TENSION with generic/placeholder constraint."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_tension_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_tension_section
 
         invalid_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
 L1::[TODO]⇌CTX:file.md[state]→TRIGGER[ACTION]
@@ -307,7 +307,7 @@ L2::[CONSTRAINT]⇌CTX:file2.md[state2]→TRIGGER[ACTION2]"""
 
     def test_validate_tension_deep_tier_requires_line_ranges(self):
         """Deep tier requires line ranges in CTX citations."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_tension_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_tension_section
 
         # Missing line ranges for deep tier
         invalid_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
@@ -329,7 +329,7 @@ L3::[IMMUTABLE_RULE]⇌CTX:file3.md[state_c]→TRIGGER[ACTION_C]"""
 
         This test ensures backward compatibility with existing agent vectors.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_tension_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_tension_section
 
         # ASCII aliases: <-> for bidirectional, -> for implication
         ascii_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
@@ -356,22 +356,22 @@ class TestCommitSectionValidation:
 
     def test_validate_commit_accepts_valid_section(self):
         """Accepts valid COMMIT section with concrete artifact and gate."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_commit_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_commit_section
 
         valid_commit = """## COMMIT (Falsifiable Contract)
-ARTIFACT::src/hestai_mcp/mcp/tools/odyssean_anchor.py
+ARTIFACT::src/hestai_mcp/modules/tools/odyssean_anchor.py
 GATE::pytest tests/unit/mcp/tools/test_odyssean_anchor.py -v"""
 
         result = validate_commit_section(valid_commit)
 
         assert result.valid is True
-        assert result.artifact == "src/hestai_mcp/mcp/tools/odyssean_anchor.py"
+        assert result.artifact == "src/hestai_mcp/modules/tools/odyssean_anchor.py"
         assert "pytest" in result.gate
         assert len(result.errors) == 0
 
     def test_validate_commit_rejects_missing_artifact(self):
         """Rejects COMMIT section missing ARTIFACT field."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_commit_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_commit_section
 
         invalid_commit = """## COMMIT (Falsifiable Contract)
 GATE::pytest tests/unit/mcp/tools/test_odyssean_anchor.py -v"""
@@ -383,10 +383,10 @@ GATE::pytest tests/unit/mcp/tools/test_odyssean_anchor.py -v"""
 
     def test_validate_commit_rejects_missing_gate(self):
         """Rejects COMMIT section missing GATE field."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_commit_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_commit_section
 
         invalid_commit = """## COMMIT (Falsifiable Contract)
-ARTIFACT::src/hestai_mcp/mcp/tools/odyssean_anchor.py"""
+ARTIFACT::src/hestai_mcp/modules/tools/odyssean_anchor.py"""
 
         result = validate_commit_section(invalid_commit)
 
@@ -395,7 +395,7 @@ ARTIFACT::src/hestai_mcp/mcp/tools/odyssean_anchor.py"""
 
     def test_validate_commit_rejects_generic_artifact(self):
         """Rejects COMMIT section with generic artifact (not concrete path)."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_commit_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_commit_section
 
         invalid_commit = """## COMMIT (Falsifiable Contract)
 ARTIFACT::response
@@ -408,7 +408,7 @@ GATE::manual review"""
 
     def test_validate_commit_rejects_placeholder_artifact(self):
         """Rejects COMMIT section with placeholder artifact."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_commit_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_commit_section
 
         invalid_commit = """## COMMIT (Falsifiable Contract)
 ARTIFACT::TODO
@@ -420,7 +420,7 @@ GATE::pytest tests/"""
 
     def test_validate_commit_accepts_test_file_artifact(self):
         """Accepts COMMIT section with test file as artifact."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_commit_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_commit_section
 
         valid_commit = """## COMMIT (Falsifiable Contract)
 ARTIFACT::tests/unit/tools/test_odyssean_anchor.py
@@ -433,7 +433,7 @@ GATE::pytest -v --tb=short"""
 
     def test_validate_commit_accepts_documentation_artifact(self):
         """Accepts COMMIT section with documentation artifact."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_commit_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_commit_section
 
         valid_commit = """## COMMIT (Falsifiable Contract)
 ARTIFACT::docs/adr/adr-0036-odyssean-anchor-binding.md
@@ -458,7 +458,7 @@ class TestARMInjection:
         """Injects ARM section from session_id and git state."""
         import json
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import inject_arm_section
+        from hestai_mcp.modules.tools.odyssean_anchor import inject_arm_section
 
         # Setup mock session
         working_dir = tmp_path / "project"
@@ -506,7 +506,7 @@ META:
         import json
         import subprocess
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import inject_arm_section
+        from hestai_mcp.modules.tools.odyssean_anchor import inject_arm_section
 
         # Setup mock session
         working_dir = tmp_path / "project"
@@ -578,7 +578,7 @@ META:
         import json
         import subprocess
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import inject_arm_section
+        from hestai_mcp.modules.tools.odyssean_anchor import inject_arm_section
 
         # Setup mock session
         working_dir = tmp_path / "project"
@@ -648,7 +648,7 @@ META:
 
     def test_inject_arm_invalid_session_returns_error(self, tmp_path):
         """Returns error for invalid/nonexistent session_id."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import inject_arm_section
+        from hestai_mcp.modules.tools.odyssean_anchor import inject_arm_section
 
         working_dir = tmp_path / "project"
         working_dir.mkdir()
@@ -676,7 +676,7 @@ class TestSelfCorrectionProtocol:
         """Returns success with validated anchor on valid input."""
         import json
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+        from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
         # Setup mock session
         working_dir = tmp_path / "project"
@@ -717,7 +717,7 @@ L1::[TDD_MANDATE]⇌CTX:.hestai/workflow/000-MCP-NORTH-STAR.md[I1::TDD]→TRIGGE
 L2::[MINIMAL_INTERVENTION]⇌CTX:docs/adr/adr-0036.md:177[schema_v4]→TRIGGER[IMPLEMENT_MINIMAL]
 
 ## COMMIT (Falsifiable Contract)
-ARTIFACT::src/hestai_mcp/mcp/tools/odyssean_anchor.py
+ARTIFACT::src/hestai_mcp/modules/tools/odyssean_anchor.py
 GATE::pytest tests/unit/mcp/tools/test_odyssean_anchor.py -v"""
 
         result = odyssean_anchor(
@@ -740,7 +740,7 @@ GATE::pytest tests/unit/mcp/tools/test_odyssean_anchor.py -v"""
         """Returns validation errors with specific retry guidance."""
         import json
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+        from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
         # Setup mock session
         working_dir = tmp_path / "project"
@@ -796,7 +796,7 @@ GATE::review"""
         """Increments retry_count on subsequent validation failures."""
         import json
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+        from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
         # Setup mock session
         working_dir = tmp_path / "project"
@@ -858,7 +858,7 @@ ARTIFACT::TODO"""
         """Sets terminal=True after max retries (2) exhausted."""
         import json
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+        from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
         # Setup mock session
         working_dir = tmp_path / "project"
@@ -905,7 +905,7 @@ COGNITION::INVALID"""
         """Provides failure-specific guidance (not generic)."""
         import json
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+        from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
         # Setup mock session
         working_dir = tmp_path / "project"
@@ -970,7 +970,7 @@ class TestOdysseanAnchorIntegration:
         """Validates that declared role matches submitted role."""
         import json
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+        from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
         # Setup mock session
         working_dir = tmp_path / "project"
@@ -1025,7 +1025,7 @@ GATE::pytest"""
         import json
         import subprocess
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+        from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
         # Setup mock session with git
         working_dir = tmp_path / "project"
@@ -1090,7 +1090,7 @@ L1::[TDD_MANDATE]⇌CTX:.hestai/workflow/NORTH-STAR.md[I1::TDD]→TRIGGER[WRITE_
 L2::[MINIMAL_INTERVENTION]⇌CTX:docs/adr/adr-0036.md:177[schema]→TRIGGER[IMPLEMENT_MINIMAL]
 
 ## COMMIT (Falsifiable Contract)
-ARTIFACT::src/hestai_mcp/mcp/tools/odyssean_anchor.py
+ARTIFACT::src/hestai_mcp/modules/tools/odyssean_anchor.py
 GATE::pytest tests/ -v"""
 
         result = odyssean_anchor(
@@ -1121,7 +1121,7 @@ class TestOdysseanAnchorResult:
 
     def test_result_has_required_fields(self):
         """OdysseanAnchorResult has all required fields."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import OdysseanAnchorResult
+        from hestai_mcp.modules.tools.odyssean_anchor import OdysseanAnchorResult
 
         result = OdysseanAnchorResult(
             success=True,
@@ -1141,7 +1141,7 @@ class TestOdysseanAnchorResult:
 
     def test_result_success_case(self):
         """OdysseanAnchorResult success case has anchor."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import OdysseanAnchorResult
+        from hestai_mcp.modules.tools.odyssean_anchor import OdysseanAnchorResult
 
         result = OdysseanAnchorResult(
             success=True,
@@ -1158,7 +1158,7 @@ class TestOdysseanAnchorResult:
 
     def test_result_failure_case(self):
         """OdysseanAnchorResult failure case has errors and guidance."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import OdysseanAnchorResult
+        from hestai_mcp.modules.tools.odyssean_anchor import OdysseanAnchorResult
 
         result = OdysseanAnchorResult(
             success=False,
@@ -1186,7 +1186,7 @@ class TestSecurityPathTraversal:
 
     def test_session_id_rejects_absolute_path(self, tmp_path):
         """Rejects session_id containing absolute path (security risk)."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import inject_arm_section
+        from hestai_mcp.modules.tools.odyssean_anchor import inject_arm_section
 
         working_dir = tmp_path / "project"
         working_dir.mkdir()
@@ -1203,7 +1203,7 @@ class TestSecurityPathTraversal:
 
     def test_session_id_rejects_parent_traversal(self, tmp_path):
         """Rejects session_id containing parent directory traversal."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import inject_arm_section
+        from hestai_mcp.modules.tools.odyssean_anchor import inject_arm_section
 
         working_dir = tmp_path / "project"
         working_dir.mkdir()
@@ -1220,7 +1220,7 @@ class TestSecurityPathTraversal:
 
     def test_session_id_rejects_slash_in_name(self, tmp_path):
         """Rejects session_id containing forward slash."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import inject_arm_section
+        from hestai_mcp.modules.tools.odyssean_anchor import inject_arm_section
 
         working_dir = tmp_path / "project"
         working_dir.mkdir()
@@ -1239,7 +1239,7 @@ class TestSecurityPathTraversal:
         """Accepts valid alphanumeric session_id with hyphens."""
         import json
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import inject_arm_section
+        from hestai_mcp.modules.tools.odyssean_anchor import inject_arm_section
 
         working_dir = tmp_path / "project"
         working_dir.mkdir()
@@ -1278,7 +1278,7 @@ class TestARMBranchFallback:
         """ARM branch should be 'unknown' (not None) when git fails."""
         import json
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import inject_arm_section
+        from hestai_mcp.modules.tools.odyssean_anchor import inject_arm_section
 
         # Setup session WITHOUT git repo
         working_dir = tmp_path / "project"
@@ -1319,7 +1319,7 @@ class TestTensionSectionExtractionSecurity:
 
     def test_extract_tension_rejects_indented_header_smuggling(self):
         """Rejects whitespace-prefixed headers inside TENSION block."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import _extract_tension_section
+        from hestai_mcp.modules.tools.odyssean_anchor import _extract_tension_section
 
         # Attack: indented "## COMMIT" inside TENSION should NOT terminate extraction
         smuggled_vector = """## BIND (Identity Lock)
@@ -1344,7 +1344,7 @@ GATE::pytest"""
 
     def test_extract_tension_handles_legitimate_headers(self):
         """Properly terminates at legitimate non-indented headers."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import _extract_tension_section
+        from hestai_mcp.modules.tools.odyssean_anchor import _extract_tension_section
 
         valid_vector = """## BIND (Identity Lock)
 ROLE::test-role
@@ -1376,7 +1376,7 @@ class TestSectionScopedValidation:
 
     def test_bind_validation_only_checks_bind_section(self):
         """BIND validation should only check BIND section content."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_bind_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_bind_section
 
         # BIND section is invalid, but TENSION section has ROLE:: pattern
         tricky_input = """## BIND (Identity Lock)
@@ -1403,7 +1403,7 @@ L1::[CONSTRAINT]⇌CTX:file.md[state]→TRIGGER[ACTION]"""
 
         GitHub Issue: #102 - CRS verdict blocking on Issue 4
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor import (
+        from hestai_mcp.modules.tools.odyssean_anchor import (
             _extract_tension_section,
             validate_tension_section,
         )
@@ -1444,7 +1444,7 @@ GATE::pytest"""
         """
         import json
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+        from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
         # Setup mock session
         working_dir = tmp_path / "project"
@@ -1502,7 +1502,7 @@ GATE::pytest"""
 
     def test_commit_validation_only_checks_commit_section(self):
         """COMMIT validation should only check COMMIT section content."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_commit_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_commit_section
 
         # COMMIT section is invalid, but BIND section has ARTIFACT:: pattern
         tricky_input = """## BIND (Identity Lock)
@@ -1545,7 +1545,7 @@ class TestAnchorStatePersistence:
         import json
         from pathlib import Path
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+        from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
         # Setup valid session environment
         working_dir = tmp_path / "project"
@@ -1587,7 +1587,7 @@ L1::[TDD_MANDATE]⇌CTX:.hestai/workflow/000-MCP-NORTH-STAR.md[I1::TDD]→TRIGGE
 L2::[MINIMAL_INTERVENTION]⇌CTX:docs/adr/adr-0036.md:177[schema_v4]→TRIGGER[IMPLEMENT_MINIMAL]
 
 ## COMMIT (Falsifiable Contract)
-ARTIFACT::src/hestai_mcp/mcp/tools/odyssean_anchor.py
+ARTIFACT::src/hestai_mcp/modules/tools/odyssean_anchor.py
 GATE::pytest tests/unit/mcp/tools/test_odyssean_anchor.py -v"""
 
         # Monkeypatch Path.write_text to raise OSError when writing anchor.json
@@ -1632,7 +1632,7 @@ GATE::pytest tests/unit/mcp/tools/test_odyssean_anchor.py -v"""
         """
         import json
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+        from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
         # Setup valid session
         working_dir = tmp_path / "project"
@@ -1667,7 +1667,7 @@ L1::[TDD_MANDATE]⇌CTX:.hestai/workflow/000-MCP-NORTH-STAR.md[I1::TDD]→TRIGGE
 L2::[MINIMAL_INTERVENTION]⇌CTX:docs/adr/adr-0036.md:177[schema_v4]→TRIGGER[IMPLEMENT_MINIMAL]
 
 ## COMMIT (Falsifiable Contract)
-ARTIFACT::src/hestai_mcp/mcp/tools/odyssean_anchor.py
+ARTIFACT::src/hestai_mcp/modules/tools/odyssean_anchor.py
 GATE::pytest tests/unit/mcp/tools/test_odyssean_anchor.py -v"""
 
         result = odyssean_anchor(
@@ -1707,7 +1707,7 @@ class TestAlternativeTensionPattern:
 
         This covers the alt_pattern branch at lines 340-359 in odyssean_anchor.py.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_tension_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_tension_section
 
         # Alternative format: [constraint]⇌CTX:path[state]→TRIGGER[action]
         # (without the L{N}:: prefix)
@@ -1725,7 +1725,7 @@ class TestAlternativeTensionPattern:
 
     def test_validate_tension_alternative_pattern_validates_ctx(self):
         """Alternative pattern still requires CTX citation."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_tension_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_tension_section
 
         # Alternative format with missing CTX
         invalid_alt_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
@@ -1740,7 +1740,7 @@ class TestAlternativeTensionPattern:
 
     def test_validate_tension_alternative_pattern_validates_trigger(self):
         """Alternative pattern still requires TRIGGER."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_tension_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_tension_section
 
         # Alternative format with missing TRIGGER
         alt_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
@@ -1754,7 +1754,7 @@ class TestAlternativeTensionPattern:
 
     def test_validate_tension_mixed_patterns(self):
         """Accepts mix of standard and alternative TENSION patterns."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_tension_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_tension_section
 
         # Mix of both formats
         mixed_tension = """## TENSION (Cognitive Proof - AGENT GENERATED)
@@ -1781,7 +1781,7 @@ class TestSessionDataEdgeCases:
 
         This covers the JSONDecodeError exception at lines 575-577.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor import inject_arm_section
+        from hestai_mcp.modules.tools.odyssean_anchor import inject_arm_section
 
         # Setup session with invalid JSON
         working_dir = tmp_path / "project"
@@ -1812,7 +1812,7 @@ class TestSessionDataEdgeCases:
         """
         import json
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import inject_arm_section
+        from hestai_mcp.modules.tools.odyssean_anchor import inject_arm_section
 
         # Setup valid session
         working_dir = tmp_path / "project"
@@ -1872,7 +1872,7 @@ class TestGitOperationsEdgeCases:
         import json
         import subprocess
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import inject_arm_section
+        from hestai_mcp.modules.tools.odyssean_anchor import inject_arm_section
 
         # Setup valid session
         working_dir = tmp_path / "project"
@@ -1919,7 +1919,7 @@ class TestGitOperationsEdgeCases:
         import json
         import subprocess
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import inject_arm_section
+        from hestai_mcp.modules.tools.odyssean_anchor import inject_arm_section
 
         # Setup session
         working_dir = tmp_path / "project"
@@ -1987,7 +1987,7 @@ class TestGitOperationsEdgeCases:
         import json
         import subprocess
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import inject_arm_section
+        from hestai_mcp.modules.tools.odyssean_anchor import inject_arm_section
 
         # Setup valid session
         working_dir = tmp_path / "project"
@@ -2067,7 +2067,7 @@ class TestAnchorPersistenceEdgeCases:
 
         This covers lines 708-710 where session directory doesn't exist.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor import _persist_anchor_state
+        from hestai_mcp.modules.tools.odyssean_anchor import _persist_anchor_state
 
         working_dir = tmp_path / "project"
         working_dir.mkdir()
@@ -2098,7 +2098,7 @@ class TestValidationEdgeCases:
 
         This covers line 218 - fallback when _extract_bind_section returns empty.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_bind_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_bind_section
 
         # Text without ## BIND header but has BIND-like content
         raw_bind = """ROLE::implementation-lead
@@ -2117,7 +2117,7 @@ AUTHORITY::RESPONSIBLE[build_phase_execution]"""
         This covers line 225 - empty ROLE field check.
         The regex requires at least one character after ROLE::, so empty matches as "missing".
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_bind_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_bind_section
 
         bind_with_empty_role = """## BIND (Identity Lock)
 ROLE::
@@ -2135,7 +2135,7 @@ AUTHORITY::RESPONSIBLE[build]"""
 
         This covers line 448 - fallback when _extract_commit_section returns empty.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_commit_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_commit_section
 
         # Text without ## COMMIT header but has COMMIT-like content
         raw_commit = """ARTIFACT::src/file.py
@@ -2152,7 +2152,7 @@ GATE::pytest tests/"""
 
         This covers line 467 - empty ARTIFACT check.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_commit_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_commit_section
 
         commit_with_empty_artifact = """## COMMIT (Falsifiable Contract)
 ARTIFACT::
@@ -2168,7 +2168,7 @@ GATE::pytest"""
 
         This covers line 476 - empty GATE check.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor import validate_commit_section
+        from hestai_mcp.modules.tools.odyssean_anchor import validate_commit_section
 
         commit_with_empty_gate = """## COMMIT (Falsifiable Contract)
 ARTIFACT::src/file.py
@@ -2184,7 +2184,7 @@ GATE::   """
 
         This covers line 505 - empty session_id validation.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor import inject_arm_section
+        from hestai_mcp.modules.tools.odyssean_anchor import inject_arm_section
 
         result = inject_arm_section(
             session_id="",
@@ -2199,7 +2199,7 @@ GATE::   """
 
         This covers line 524 - backslash check.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor import inject_arm_section
+        from hestai_mcp.modules.tools.odyssean_anchor import inject_arm_section
 
         result = inject_arm_section(
             session_id="session\\with\\backslash",
@@ -2224,8 +2224,8 @@ class TestSemanticValidationRuntimeError:
 
         This covers lines 802-819 - the RuntimeError path where no event loop exists.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor import _run_semantic_validation
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor import _run_semantic_validation
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             SemanticChecksConfig,
             SemanticConfig,
         )
@@ -2250,7 +2250,7 @@ class TestSemanticValidationRuntimeError:
         # Call directly from sync context (no event loop)
         # This should exercise the RuntimeError path
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.load_semantic_config",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.load_semantic_config",
             return_value=config,
         ):
             result = _run_semantic_validation(
@@ -2270,14 +2270,14 @@ class TestSemanticValidationRuntimeError:
 
         This covers lines 816-819 - exception handling.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor import _run_semantic_validation
+        from hestai_mcp.modules.tools.odyssean_anchor import _run_semantic_validation
 
         # Monkeypatch load_semantic_config to raise an exception
         def raising_config():
             raise ValueError("Unexpected config error")
 
         monkeypatch.setattr(
-            "hestai_mcp.mcp.tools.odyssean_anchor_semantic.load_semantic_config",
+            "hestai_mcp.modules.tools.odyssean_anchor_semantic.load_semantic_config",
             raising_config,
         )
 
@@ -2310,7 +2310,7 @@ class TestMainFunctionErrorPaths:
         """
         import json
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+        from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
         # Setup session
         working_dir = tmp_path / "project"
@@ -2362,7 +2362,7 @@ GATE::pytest"""
         """
         import json
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+        from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
         # Setup session
         working_dir = tmp_path / "project"
@@ -2416,7 +2416,7 @@ GATE::pytest"""
         """
         import json
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+        from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
         # Setup session
         working_dir = tmp_path / "project"
@@ -2469,7 +2469,7 @@ GATE::manual review"""
         """
         import json
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+        from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
         # Setup session
         working_dir = tmp_path / "project"
@@ -2521,7 +2521,7 @@ GATE::manual review"""
         This covers lines 984-985 - ARM failure guidance.
         """
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+        from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
         # Setup session with INVALID session_id to trigger ARM failure
         working_dir = tmp_path / "project"
@@ -2568,8 +2568,8 @@ GATE::pytest"""
         import json
         from unittest.mock import patch
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
-        from hestai_mcp.mcp.tools.odyssean_anchor_semantic import (
+        from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
+        from hestai_mcp.modules.tools.odyssean_anchor_semantic import (
             SemanticValidationResult,
         )
 
@@ -2613,7 +2613,7 @@ GATE::pytest"""
         )
 
         with patch(
-            "hestai_mcp.mcp.tools.odyssean_anchor._run_semantic_validation",
+            "hestai_mcp.modules.tools.odyssean_anchor._run_semantic_validation",
             return_value=mock_result,
         ):
             result = odyssean_anchor(
@@ -2643,7 +2643,7 @@ class TestARMSectionBuilding:
 
         This covers line 1084 - branch with ahead/behind.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor import (
+        from hestai_mcp.modules.tools.odyssean_anchor import (
             ARMInjectionResult,
             _build_arm_section,
         )
@@ -2670,7 +2670,7 @@ class TestARMSectionBuilding:
 
         This covers line 1088 - files with top_files.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor import (
+        from hestai_mcp.modules.tools.odyssean_anchor import (
             ARMInjectionResult,
             _build_arm_section,
         )
@@ -2697,7 +2697,7 @@ class TestARMSectionBuilding:
 
         This covers the empty top_files case.
         """
-        from hestai_mcp.mcp.tools.odyssean_anchor import (
+        from hestai_mcp.modules.tools.odyssean_anchor import (
             ARMInjectionResult,
             _build_arm_section,
         )
@@ -2736,7 +2736,7 @@ class TestGitRemoteTracking:
         import json
         import subprocess
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import inject_arm_section
+        from hestai_mcp.modules.tools.odyssean_anchor import inject_arm_section
 
         # Setup session
         working_dir = tmp_path / "project"
@@ -2878,7 +2878,7 @@ class TestArtifactErrorGuidance:
         """
         import json
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+        from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
         # Setup session
         working_dir = tmp_path / "project"
@@ -2932,7 +2932,7 @@ GATE::manual review"""
         """
         import json
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+        from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
         # Setup session
         working_dir = tmp_path / "project"
@@ -2985,7 +2985,7 @@ GATE::manual review"""
         """
         import json
 
-        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+        from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
         # Setup session
         working_dir = tmp_path / "project"

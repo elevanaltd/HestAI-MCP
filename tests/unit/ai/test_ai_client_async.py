@@ -13,9 +13,9 @@ from typing import ClassVar
 import httpx
 import pytest
 
-from hestai_mcp.ai.client import AIClient
-from hestai_mcp.ai.config import TierConfig, TieredAIConfig
-from hestai_mcp.ai.providers.base import CompletionRequest
+from hestai_mcp.modules.services.ai.client import AIClient
+from hestai_mcp.modules.services.ai.config import TierConfig, TieredAIConfig
+from hestai_mcp.modules.services.ai.providers.base import CompletionRequest
 
 
 @pytest.mark.unit
@@ -102,7 +102,7 @@ class TestProviderAsyncCompliance:
 
     def test_openai_compat_provider_complete_text_is_async(self):
         """OpenAICompatProvider.complete_text must be async."""
-        from hestai_mcp.ai.providers.openai_compat import OpenAICompatProvider
+        from hestai_mcp.modules.services.ai.providers.openai_compat import OpenAICompatProvider
 
         provider = OpenAICompatProvider(
             provider_name="openai", base_url="https://api.openai.com/v1"
@@ -576,7 +576,7 @@ class TestUnsupportedProvider:
 
     def test_get_provider_valid_providers_succeed(self):
         """_get_provider should succeed for valid providers."""
-        from hestai_mcp.ai.providers.base import BaseProvider
+        from hestai_mcp.modules.services.ai.providers.base import BaseProvider
 
         client = AIClient()
 

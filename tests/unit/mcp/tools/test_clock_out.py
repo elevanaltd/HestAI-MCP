@@ -42,7 +42,7 @@ class TestSessionValidation:
 
     def test_validates_session_id_format(self):
         """Rejects session IDs with path traversal characters."""
-        from hestai_mcp.mcp.tools.clock_out import validate_session_id
+        from hestai_mcp.modules.tools.clock_out import validate_session_id
 
         # Valid session IDs
         assert validate_session_id("abc123") == "abc123"
@@ -65,7 +65,7 @@ class TestSessionValidation:
     @pytest.mark.asyncio
     async def test_validates_session_exists(self, tmp_path: Path):
         """Raises FileNotFoundError if session directory doesn't exist."""
-        from hestai_mcp.mcp.tools.clock_out import clock_out
+        from hestai_mcp.modules.tools.clock_out import clock_out
 
         # Create .hestai/sessions structure but no active session
         hestai_dir = tmp_path / ".hestai"
@@ -89,7 +89,7 @@ class TestSessionValidation:
         TranscriptPathResolver must be enforced to prevent malicious transcript_path
         values from accessing files outside allowed sandbox.
         """
-        from hestai_mcp.mcp.tools.clock_out import clock_out
+        from hestai_mcp.modules.tools.clock_out import clock_out
 
         # Remove CLAUDE_TRANSCRIPT_DIR to test default sandbox behavior
         monkeypatch.delenv("CLAUDE_TRANSCRIPT_DIR", raising=False)
@@ -128,7 +128,7 @@ class TestClaudeJsonlLensIntegration:
     @pytest.mark.asyncio
     async def test_uses_jsonl_lens_for_parsing(self, tmp_path: Path):
         """Verifies ClaudeJsonlLens is used instead of custom parser."""
-        from hestai_mcp.mcp.tools.clock_out import clock_out
+        from hestai_mcp.modules.tools.clock_out import clock_out
 
         # Setup session structure
         hestai_dir = tmp_path / ".hestai"
@@ -204,7 +204,7 @@ class TestArchiveCreation:
     @pytest.mark.asyncio
     async def test_creates_archive_with_correct_naming(self, tmp_path: Path):
         """Archive filename follows {timestamp}-{focus}-{session_id}-raw.jsonl pattern."""
-        from hestai_mcp.mcp.tools.clock_out import clock_out
+        from hestai_mcp.modules.tools.clock_out import clock_out
 
         # Setup minimal session structure
         hestai_dir = tmp_path / ".hestai"
@@ -264,7 +264,7 @@ class TestSessionCleanup:
     @pytest.mark.asyncio
     async def test_removes_active_session_directory(self, tmp_path: Path):
         """Active session directory deleted after successful archive."""
-        from hestai_mcp.mcp.tools.clock_out import clock_out
+        from hestai_mcp.modules.tools.clock_out import clock_out
 
         # Setup session
         hestai_dir = tmp_path / ".hestai"
@@ -313,7 +313,7 @@ class TestErrorHandling:
     @pytest.mark.asyncio
     async def test_handles_missing_session_metadata(self, tmp_path: Path):
         """Raises FileNotFoundError if session.json missing."""
-        from hestai_mcp.mcp.tools.clock_out import clock_out
+        from hestai_mcp.modules.tools.clock_out import clock_out
 
         # Create session directory but no session.json
         hestai_dir = tmp_path / ".hestai"
@@ -337,7 +337,7 @@ class TestSecretRedaction:
     @pytest.mark.asyncio
     async def test_applies_redaction_to_archived_jsonl(self, tmp_path: Path):
         """Verifies RedactionEngine applied to archived JSONL files."""
-        from hestai_mcp.mcp.tools.clock_out import clock_out
+        from hestai_mcp.modules.tools.clock_out import clock_out
 
         # Setup session with secret in transcript
         hestai_dir = tmp_path / ".hestai"
@@ -501,7 +501,7 @@ ACTIVE:
           COMPLETED::"{timestamp}"
         ===END===
         """
-        from hestai_mcp.mcp.tools.clock_out import clock_out
+        from hestai_mcp.modules.tools.clock_out import clock_out
 
         project_root, session_id, _ = session_with_fast_layer
 
@@ -529,7 +529,7 @@ ACTIVE:
 
         ADR-0056: Incomplete tasks should be preserved for next session.
         """
-        from hestai_mcp.mcp.tools.clock_out import clock_out
+        from hestai_mcp.modules.tools.clock_out import clock_out
 
         project_root, session_id, _ = session_with_fast_layer
 
@@ -556,7 +556,7 @@ ACTIVE:
 
         ADR-0056: Unresolved blockers should survive session transitions.
         """
-        from hestai_mcp.mcp.tools.clock_out import clock_out
+        from hestai_mcp.modules.tools.clock_out import clock_out
 
         project_root, session_id, _ = session_with_fast_layer
 
@@ -582,7 +582,7 @@ ACTIVE:
 
         ADR-0056: Resolved blockers should be cleared on session end.
         """
-        from hestai_mcp.mcp.tools.clock_out import clock_out
+        from hestai_mcp.modules.tools.clock_out import clock_out
 
         # Setup session structure
         hestai_dir = tmp_path / ".hestai"
@@ -660,7 +660,7 @@ ACTIVE:
 
         Graceful degradation - don't fail archival if state files are missing.
         """
-        from hestai_mcp.mcp.tools.clock_out import clock_out
+        from hestai_mcp.modules.tools.clock_out import clock_out
 
         # Setup session without FAST layer
         hestai_dir = tmp_path / ".hestai"

@@ -744,7 +744,7 @@ class TestMCPClockInAISynthesisIntegration:
 
         # Mock the AI synthesis to verify it's called
         with patch(
-            "hestai_mcp.mcp.tools.shared.fast_layer.synthesize_fast_layer_with_ai",
+            "hestai_mcp.modules.tools.shared.fast_layer.synthesize_fast_layer_with_ai",
             new_callable=AsyncMock,
         ) as mock_ai_synthesis:
             mock_ai_synthesis.return_value = {
@@ -790,7 +790,7 @@ class TestMCPClockInAISynthesisIntegration:
 
         # Mock AI synthesis to fail
         with patch(
-            "hestai_mcp.mcp.tools.shared.fast_layer.synthesize_fast_layer_with_ai",
+            "hestai_mcp.modules.tools.shared.fast_layer.synthesize_fast_layer_with_ai",
             new_callable=AsyncMock,
             side_effect=Exception("AI service unavailable"),
         ):
@@ -820,6 +820,6 @@ class TestMCPClockInAISynthesisIntegration:
         # Just verify it's importable and is a coroutine function
         import inspect
 
-        from hestai_mcp.mcp.tools import clock_in_async
+        from hestai_mcp.modules.tools import clock_in_async
 
         assert inspect.iscoroutinefunction(clock_in_async)

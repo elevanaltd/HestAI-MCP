@@ -18,7 +18,7 @@ import pytest
 import yaml
 from pydantic import ValidationError
 
-from hestai_mcp.ai.config import (
+from hestai_mcp.modules.services.ai.config import (
     KEYRING_SERVICE,
     TierConfig,
     TieredAIConfig,
@@ -315,7 +315,7 @@ class TestAsyncResolveApiKey:
 
     async def test_async_resolve_key_keyring_success(self, monkeypatch):
         """When keyring returns a key, use it (not env) asynchronously."""
-        from hestai_mcp.ai.config import async_resolve_api_key
+        from hestai_mcp.modules.services.ai.config import async_resolve_api_key
 
         monkeypatch.setenv("OPENAI_API_KEY", "env-key-should-not-be-used")
         mock_get_password = MagicMock(return_value="keyring-secret-key")
@@ -329,7 +329,7 @@ class TestAsyncResolveApiKey:
 
     async def test_async_resolve_key_fallback_to_env(self, monkeypatch):
         """When keyring fails, fallback to env asynchronously."""
-        from hestai_mcp.ai.config import async_resolve_api_key
+        from hestai_mcp.modules.services.ai.config import async_resolve_api_key
 
         monkeypatch.setenv("OPENAI_API_KEY", "env-fallback-key")
         mock_get_password = MagicMock(side_effect=keyring.errors.NoKeyringError())

@@ -450,7 +450,7 @@ def update_fast_layer_on_clock_out(
 
 # Import the layered prompt components
 try:
-    from hestai_mcp.ai.prompts import (
+    from hestai_mcp.modules.services.ai.prompts import (
         CLOCK_IN_SYNTHESIS_PROTOCOL,
         compose_prompt,
     )
@@ -540,9 +540,9 @@ async def synthesize_fast_layer_with_ai(
     """
     try:
         # Import here to avoid circular dependencies and make fallback possible
-        from hestai_mcp.ai.client import AIClient
-        from hestai_mcp.ai.config import load_config
-        from hestai_mcp.ai.providers.base import CompletionRequest
+        from hestai_mcp.modules.services.ai.client import AIClient
+        from hestai_mcp.modules.services.ai.config import load_config
+        from hestai_mcp.modules.services.ai.providers.base import CompletionRequest
 
         # Load AI config
         config = load_config()

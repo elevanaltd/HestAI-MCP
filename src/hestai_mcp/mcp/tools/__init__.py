@@ -1,22 +1,37 @@
-"""MCP tools for context management."""
+"""Backward compatibility shim for hestai_mcp.mcp.tools -> hestai_mcp.modules.tools.
 
-from hestai_mcp.mcp.tools.clock_in import clock_in, clock_in_async
-from hestai_mcp.mcp.tools.clock_out import clock_out
-from hestai_mcp.mcp.tools.odyssean_anchor import (
-    OdysseanAnchorResult,
+DEPRECATED: This module exists only for backward compatibility with tests.
+New code should import from hestai_mcp.modules.tools instead.
+"""
+
+# Re-export all tools from new location
+# Expose module-level access for tests doing runtime imports
+import sys
+
+from hestai_mcp.modules import tools as _new_tools_module
+from hestai_mcp.modules.tools import (  # noqa: F401
+    bind,
+    clock_in,
+    clock_out,
+    gating,
     odyssean_anchor,
-    validate_bind_section,
-    validate_commit_section,
-    validate_tension_section,
+    odyssean_anchor_semantic,
+    shared,
+)
+
+# Create module alias for backward compatibility
+sys.modules["hestai_mcp.mcp.tools"] = _new_tools_module
+sys.modules["hestai_mcp.mcp.tools.shared"] = _new_tools_module.shared
+sys.modules["hestai_mcp.mcp.tools.odyssean_anchor_semantic"] = (
+    _new_tools_module.odyssean_anchor_semantic
 )
 
 __all__ = [
+    "bind",
     "clock_in",
-    "clock_in_async",
     "clock_out",
+    "gating",
     "odyssean_anchor",
-    "OdysseanAnchorResult",
-    "validate_bind_section",
-    "validate_tension_section",
-    "validate_commit_section",
+    "odyssean_anchor_semantic",
+    "shared",
 ]

@@ -12,7 +12,7 @@ import pytest
 @pytest.mark.unit
 class TestPendingSessionHelpers:
     def test_create_pending_handshake_writes_handshake_json(self, tmp_path: Path) -> None:
-        from hestai_mcp.mcp.tools.shared.pending_sessions import create_pending_handshake
+        from hestai_mcp.modules.tools.shared.pending_sessions import create_pending_handshake
 
         working_dir = tmp_path / "project"
         working_dir.mkdir()
@@ -34,7 +34,7 @@ class TestPendingSessionHelpers:
         assert "created_at" in data
 
     def test_promote_pending_to_active_moves_directory(self, tmp_path: Path) -> None:
-        from hestai_mcp.mcp.tools.shared.pending_sessions import (
+        from hestai_mcp.modules.tools.shared.pending_sessions import (
             create_pending_handshake,
             promote_pending_to_active,
         )
@@ -56,7 +56,7 @@ class TestPendingSessionHelpers:
         assert (active / "handshake.json").exists()
 
     def test_cleanup_stale_pending_sessions_removes_old_entries(self, tmp_path: Path) -> None:
-        from hestai_mcp.mcp.tools.shared.pending_sessions import (
+        from hestai_mcp.modules.tools.shared.pending_sessions import (
             cleanup_stale_pending_sessions,
             create_pending_handshake,
         )
@@ -92,7 +92,7 @@ class TestPendingSessionHelpers:
         assert not (working_dir / ".hestai" / "sessions" / "pending" / "stale").exists()
 
     def test_token_validation_rejects_path_traversal(self, tmp_path: Path) -> None:
-        from hestai_mcp.mcp.tools.shared.pending_sessions import create_pending_handshake
+        from hestai_mcp.modules.tools.shared.pending_sessions import create_pending_handshake
 
         working_dir = tmp_path / "project"
         working_dir.mkdir()

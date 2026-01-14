@@ -9,7 +9,7 @@ at runtime. This separation enables:
 Architecture Decision: debate 2026-01-02-context-steward-prompt-architecture
 """
 
-from hestai_mcp.ai.prompts.identity_kernel import CONTEXT_STEWARD_IDENTITY
+from hestai_mcp.modules.services.ai.prompts.identity_kernel import CONTEXT_STEWARD_IDENTITY
 
 # clock_in synthesis protocol (~50 lines)
 # Enhanced with structured OCTAVE output format per issue #140

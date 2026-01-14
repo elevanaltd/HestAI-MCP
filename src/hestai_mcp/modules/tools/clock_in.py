@@ -617,6 +617,7 @@ def clock_in(
     Register session start, create session directory, return context paths.
 
     ADR-0007: Uses direct .hestai/ directory structure (no symlinks/worktrees).
+    ADR-0184: Integrates ContextSteward for governance constraint injection.
 
     Args:
         role: Agent role name (e.g., 'implementation-lead')
@@ -644,7 +645,7 @@ def clock_in(
     structure_status = ensure_hestai_structure(working_dir_path)
 
     # Get current branch for focus resolution
-    from hestai_mcp.mcp.tools.shared.fast_layer import get_current_branch
+    from hestai_mcp.modules.tools.shared.fast_layer import get_current_branch
 
     branch = get_current_branch(working_dir=working_dir_path)
 
@@ -691,12 +692,74 @@ def clock_in(
     )
 
     # Update FAST layer (ADR-0046, ADR-0056)
-    from hestai_mcp.mcp.tools.shared.fast_layer import update_fast_layer_on_clock_in
+    from hestai_mcp.modules.tools.shared.fast_layer import update_fast_layer_on_clock_in
 
     update_fast_layer_on_clock_in(working_dir_path, session_id, role, resolved_focus_value)
 
+    # ADR-0184: Inject governance constraints via ContextSteward
+    from hestai_mcp.core.governance.state.context_steward import ContextSteward
+
+    try:
+        # Derive phase (default to B1 for now; TODO: extract from PROJECT-CONTEXT)
+        phase = "B1"
+
+        # Locate OPERATIONAL-WORKFLOW.oct.md
+        workflow_path = (
+            working_dir_path
+            / ".hestai-sys"
+            / "governance"
+            / "workflow"
+            / "OPERATIONAL-WORKFLOW.oct.md"
+        )
+
+        # Instantiate ContextSteward and synthesize constraints
+        steward = ContextSteward(workflow_path=workflow_path)
+        constraints = steward.synthesize_active_state(phase)
+
+        # Write constraints to FAST layer
+        state_dir = working_dir_path / ".hestai" / "context" / "state"
+        state_dir.mkdir(parents=True, exist_ok=True)
+
+        constraints_path = state_dir / "constraints.oct.md"
+        constraints_data = constraints.to_dict()
+
+        # Format as OCTAVE document
+        octave_content = f"""===PHASE_CONSTRAINTS===
+META:
+  TYPE::PHASE_CONSTRAINTS
+  PHASE::{constraints_data['phase']}
+  VELOCITY::SESSION
+
+PURPOSE::{constraints_data['purpose']}
+
+RACI::{constraints_data['raci']}
+
+DELIVERABLES::{constraints_data['deliverables']}
+
+ENTRY_CRITERIA::{constraints_data.get('entry_criteria', [])}
+
+EXIT_CRITERIA::{constraints_data.get('exit_criteria', [])}
+
+QUALITY_GATES::{constraints_data.get('quality_gates', [])}
+
+SUBPHASES::{constraints_data.get('subphases', {})}
+
+===END===
+"""
+        constraints_path.write_text(octave_content)
+        logger.info(f"Injected {phase} phase constraints to {constraints_path}")
+
+    except Exception as e:
+        # Graceful fallback - don't block session creation if governance injection fails
+        logger.warning(f"Failed to inject governance constraints: {e}")
+
     # Resolve context paths (OCTAVE files from .hestai/context/)
     context_paths = resolve_context_paths(working_dir_path)
+
+    # Add constraints.oct.md to context paths if it exists (ADR-0184)
+    constraints_path = working_dir_path / ".hestai" / "context" / "state" / "constraints.oct.md"
+    if constraints_path.exists():
+        context_paths.append(str(constraints_path))
 
     # Return response
     return {
@@ -750,7 +813,7 @@ async def clock_in_async(
     structure_status = ensure_hestai_structure(working_dir_path)
 
     # Get current branch for focus resolution
-    from hestai_mcp.mcp.tools.shared.fast_layer import get_current_branch
+    from hestai_mcp.modules.tools.shared.fast_layer import get_current_branch
 
     branch = get_current_branch(working_dir=working_dir_path)
 
@@ -796,7 +859,7 @@ async def clock_in_async(
     )
 
     # Update FAST layer (sync version for now)
-    from hestai_mcp.mcp.tools.shared.fast_layer import (
+    from hestai_mcp.modules.tools.shared.fast_layer import (
         synthesize_fast_layer_with_ai,
         update_fast_layer_on_clock_in,
     )

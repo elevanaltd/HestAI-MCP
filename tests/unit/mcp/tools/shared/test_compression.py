@@ -22,7 +22,7 @@ class TestOctaveCompression:
         """Verify compress_to_octave function exists and is callable."""
         import inspect
 
-        from hestai_mcp.mcp.tools.shared.compression import compress_to_octave
+        from hestai_mcp.modules.tools.shared.compression import compress_to_octave
 
         # Verify function exists
         assert callable(compress_to_octave)
@@ -32,7 +32,7 @@ class TestOctaveCompression:
 
     def test_load_compression_prompt(self):
         """Compression prompt template loads successfully."""
-        from hestai_mcp.mcp.tools.shared.compression import load_compression_prompt
+        from hestai_mcp.modules.tools.shared.compression import load_compression_prompt
 
         prompt = load_compression_prompt()
 
@@ -50,7 +50,7 @@ class TestContextExtraction:
 
     def test_extract_context_parses_sections(self):
         """Extracts DECISIONS, OUTCOMES, BLOCKERS from OCTAVE content."""
-        from hestai_mcp.mcp.tools.shared.context_extraction import extract_context_from_octave
+        from hestai_mcp.modules.tools.shared.context_extraction import extract_context_from_octave
 
         octave_content = """
 ===SESSION_COMPRESSION===
@@ -84,7 +84,7 @@ BLOCKERS::[
 
     def test_extract_context_returns_none_for_empty(self):
         """Returns None if no extractable content."""
-        from hestai_mcp.mcp.tools.shared.context_extraction import extract_context_from_octave
+        from hestai_mcp.modules.tools.shared.context_extraction import extract_context_from_octave
 
         result = extract_context_from_octave("")
         assert result is None
@@ -99,7 +99,7 @@ class TestVerificationClaims:
 
     def test_verify_claims_detects_missing_files(self, tmp_path: Path):
         """Detects FILES_MODIFIED references to non-existent files."""
-        from hestai_mcp.mcp.tools.shared.verification import verify_context_claims
+        from hestai_mcp.modules.tools.shared.verification import verify_context_claims
 
         octave_content = """
 FILES_MODIFIED::["src/existing.py", "src/nonexistent.py"]
@@ -118,7 +118,7 @@ FILES_MODIFIED::["src/existing.py", "src/nonexistent.py"]
 
     def test_verify_claims_passes_for_valid_files(self, tmp_path: Path):
         """Passes when all FILES_MODIFIED exist."""
-        from hestai_mcp.mcp.tools.shared.verification import verify_context_claims
+        from hestai_mcp.modules.tools.shared.verification import verify_context_claims
 
         octave_content = """
 FILES_MODIFIED::["src/file1.py", "src/file2.py"]
@@ -137,7 +137,7 @@ FILES_MODIFIED::["src/file1.py", "src/file2.py"]
 
     def test_verify_claims_detects_path_traversal(self, tmp_path: Path):
         """Detects path traversal attempts in file references."""
-        from hestai_mcp.mcp.tools.shared.verification import verify_context_claims
+        from hestai_mcp.modules.tools.shared.verification import verify_context_claims
 
         octave_content = """
 FILES_MODIFIED::["../etc/passwd"]
@@ -150,7 +150,7 @@ FILES_MODIFIED::["../etc/passwd"]
 
     def test_verify_claims_rejects_absolute_paths_in_files_modified(self, tmp_path: Path):
         """Rejects absolute paths in FILES_MODIFIED to prevent system file access."""
-        from hestai_mcp.mcp.tools.shared.verification import verify_context_claims
+        from hestai_mcp.modules.tools.shared.verification import verify_context_claims
 
         octave_content = """
 ===SESSION_COMPRESSION===
@@ -170,7 +170,7 @@ LEARNINGS::[x]
 
     def test_verify_claims_rejects_absolute_paths_in_markdown_links(self, tmp_path: Path):
         """Rejects absolute paths in markdown links to prevent system file references."""
-        from hestai_mcp.mcp.tools.shared.verification import verify_context_claims
+        from hestai_mcp.modules.tools.shared.verification import verify_context_claims
 
         octave_content = """
 ===SESSION_COMPRESSION===
@@ -191,7 +191,7 @@ LEARNINGS::[
 
     def test_verify_claims_rejects_file_uri_absolute_paths(self, tmp_path: Path):
         """file:// URIs with absolute paths should fail."""
-        from hestai_mcp.mcp.tools.shared.verification import verify_context_claims
+        from hestai_mcp.modules.tools.shared.verification import verify_context_claims
 
         octave_content = """
 ===SESSION_COMPRESSION===
@@ -211,7 +211,7 @@ LEARNINGS::[
 
     def test_verify_claims_rejects_angle_bracket_absolute_paths(self, tmp_path: Path):
         """Angle-bracket wrapped absolute paths should fail."""
-        from hestai_mcp.mcp.tools.shared.verification import verify_context_claims
+        from hestai_mcp.modules.tools.shared.verification import verify_context_claims
 
         octave_content = """
 ===SESSION_COMPRESSION===
@@ -236,7 +236,7 @@ class TestLearningsIndex:
 
     def test_extract_learnings_keys(self):
         """Extracts DECISION_*, BLOCKER_*, LEARNING_* keys."""
-        from hestai_mcp.mcp.tools.shared.learnings_index import extract_learnings_keys
+        from hestai_mcp.modules.tools.shared.learnings_index import extract_learnings_keys
 
         octave_content = """
 DECISIONS::[
@@ -272,7 +272,7 @@ LEARNINGS::[
 
     def test_append_to_learnings_index(self, tmp_path: Path):
         """Appends learnings to JSONL index."""
-        from hestai_mcp.mcp.tools.shared.learnings_index import append_to_learnings_index
+        from hestai_mcp.modules.tools.shared.learnings_index import append_to_learnings_index
 
         session_data = {
             "session_id": "test-123",

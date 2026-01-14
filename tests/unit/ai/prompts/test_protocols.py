@@ -31,7 +31,7 @@ class TestOdysseanAnchorProtocolConstants:
 
     def test_cognition_check_protocol_exists(self):
         """ODYSSEAN_ANCHOR_COGNITION_CHECK_PROTOCOL constant exists."""
-        from hestai_mcp.ai.prompts.protocols import (
+        from hestai_mcp.modules.services.ai.prompts.protocols import (
             ODYSSEAN_ANCHOR_COGNITION_CHECK_PROTOCOL,
         )
 
@@ -41,7 +41,7 @@ class TestOdysseanAnchorProtocolConstants:
 
     def test_tension_check_protocol_exists(self):
         """ODYSSEAN_ANCHOR_TENSION_CHECK_PROTOCOL constant exists."""
-        from hestai_mcp.ai.prompts.protocols import (
+        from hestai_mcp.modules.services.ai.prompts.protocols import (
             ODYSSEAN_ANCHOR_TENSION_CHECK_PROTOCOL,
         )
 
@@ -51,7 +51,7 @@ class TestOdysseanAnchorProtocolConstants:
 
     def test_commit_check_protocol_exists(self):
         """ODYSSEAN_ANCHOR_COMMIT_CHECK_PROTOCOL constant exists."""
-        from hestai_mcp.ai.prompts.protocols import (
+        from hestai_mcp.modules.services.ai.prompts.protocols import (
             ODYSSEAN_ANCHOR_COMMIT_CHECK_PROTOCOL,
         )
 
@@ -71,7 +71,7 @@ class TestOdysseanAnchorProtocolContent:
 
     def test_cognition_protocol_has_operation_header(self):
         """Cognition protocol follows OPERATION: header pattern."""
-        from hestai_mcp.ai.prompts.protocols import (
+        from hestai_mcp.modules.services.ai.prompts.protocols import (
             ODYSSEAN_ANCHOR_COGNITION_CHECK_PROTOCOL,
         )
 
@@ -79,7 +79,7 @@ class TestOdysseanAnchorProtocolContent:
 
     def test_cognition_protocol_describes_cognition_types(self):
         """Cognition protocol describes LOGOS, ETHOS, PATHOS types."""
-        from hestai_mcp.ai.prompts.protocols import (
+        from hestai_mcp.modules.services.ai.prompts.protocols import (
             ODYSSEAN_ANCHOR_COGNITION_CHECK_PROTOCOL,
         )
 
@@ -90,7 +90,7 @@ class TestOdysseanAnchorProtocolContent:
 
     def test_cognition_protocol_specifies_json_output(self):
         """Cognition protocol specifies JSON output format."""
-        from hestai_mcp.ai.prompts.protocols import (
+        from hestai_mcp.modules.services.ai.prompts.protocols import (
             ODYSSEAN_ANCHOR_COGNITION_CHECK_PROTOCOL,
         )
 
@@ -99,7 +99,7 @@ class TestOdysseanAnchorProtocolContent:
 
     def test_tension_protocol_has_operation_header(self):
         """Tension protocol follows OPERATION: header pattern."""
-        from hestai_mcp.ai.prompts.protocols import (
+        from hestai_mcp.modules.services.ai.prompts.protocols import (
             ODYSSEAN_ANCHOR_TENSION_CHECK_PROTOCOL,
         )
 
@@ -107,7 +107,7 @@ class TestOdysseanAnchorProtocolContent:
 
     def test_tension_protocol_references_constraints(self):
         """Tension protocol references constraint validation."""
-        from hestai_mcp.ai.prompts.protocols import (
+        from hestai_mcp.modules.services.ai.prompts.protocols import (
             ODYSSEAN_ANCHOR_TENSION_CHECK_PROTOCOL,
         )
 
@@ -116,7 +116,7 @@ class TestOdysseanAnchorProtocolContent:
 
     def test_tension_protocol_specifies_json_output(self):
         """Tension protocol specifies JSON output format."""
-        from hestai_mcp.ai.prompts.protocols import (
+        from hestai_mcp.modules.services.ai.prompts.protocols import (
             ODYSSEAN_ANCHOR_TENSION_CHECK_PROTOCOL,
         )
 
@@ -125,7 +125,7 @@ class TestOdysseanAnchorProtocolContent:
 
     def test_commit_protocol_has_operation_header(self):
         """Commit protocol follows OPERATION: header pattern."""
-        from hestai_mcp.ai.prompts.protocols import (
+        from hestai_mcp.modules.services.ai.prompts.protocols import (
             ODYSSEAN_ANCHOR_COMMIT_CHECK_PROTOCOL,
         )
 
@@ -133,7 +133,7 @@ class TestOdysseanAnchorProtocolContent:
 
     def test_commit_protocol_references_artifact_feasibility(self):
         """Commit protocol references artifact feasibility."""
-        from hestai_mcp.ai.prompts.protocols import (
+        from hestai_mcp.modules.services.ai.prompts.protocols import (
             ODYSSEAN_ANCHOR_COMMIT_CHECK_PROTOCOL,
         )
 
@@ -143,7 +143,7 @@ class TestOdysseanAnchorProtocolContent:
 
     def test_commit_protocol_specifies_json_output(self):
         """Commit protocol specifies JSON output format."""
-        from hestai_mcp.ai.prompts.protocols import (
+        from hestai_mcp.modules.services.ai.prompts.protocols import (
             ODYSSEAN_ANCHOR_COMMIT_CHECK_PROTOCOL,
         )
 
@@ -162,7 +162,7 @@ class TestComposePromptWithOdysseanAnchorProtocols:
 
     def test_compose_prompt_with_cognition_protocol(self):
         """compose_prompt combines identity with cognition protocol."""
-        from hestai_mcp.ai.prompts.protocols import (
+        from hestai_mcp.modules.services.ai.prompts.protocols import (
             ODYSSEAN_ANCHOR_COGNITION_CHECK_PROTOCOL,
             compose_prompt,
         )
@@ -177,7 +177,7 @@ class TestComposePromptWithOdysseanAnchorProtocols:
 
     def test_compose_prompt_with_tension_protocol(self):
         """compose_prompt combines identity with tension protocol."""
-        from hestai_mcp.ai.prompts.protocols import (
+        from hestai_mcp.modules.services.ai.prompts.protocols import (
             ODYSSEAN_ANCHOR_TENSION_CHECK_PROTOCOL,
             compose_prompt,
         )
@@ -190,7 +190,7 @@ class TestComposePromptWithOdysseanAnchorProtocols:
 
     def test_compose_prompt_with_commit_protocol(self):
         """compose_prompt combines identity with commit protocol."""
-        from hestai_mcp.ai.prompts.protocols import (
+        from hestai_mcp.modules.services.ai.prompts.protocols import (
             ODYSSEAN_ANCHOR_COMMIT_CHECK_PROTOCOL,
             compose_prompt,
         )
@@ -220,7 +220,7 @@ class TestOdysseanAnchorSemanticUsesProtocols:
             Path(__file__).parent.parent.parent.parent.parent
             / "src"
             / "hestai_mcp"
-            / "mcp"
+            / "modules"
             / "tools"
             / "odyssean_anchor_semantic.py"
         )
@@ -228,8 +228,9 @@ class TestOdysseanAnchorSemanticUsesProtocols:
 
         # Check for compose_prompt import
         assert (
-            "from hestai_mcp.ai.prompts.protocols import" in source_code
-            or "from hestai_mcp.ai.prompts.protocols import compose_prompt" in source_code
+            "from hestai_mcp.modules.services.ai.prompts.protocols import" in source_code
+            or "from hestai_mcp.modules.services.ai.prompts.protocols import compose_prompt"
+            in source_code
         ), "odyssean_anchor_semantic.py should import compose_prompt from protocols"
 
     def test_check_cognition_uses_compose_prompt(self):
@@ -241,7 +242,7 @@ class TestOdysseanAnchorSemanticUsesProtocols:
             Path(__file__).parent.parent.parent.parent.parent
             / "src"
             / "hestai_mcp"
-            / "mcp"
+            / "modules"
             / "tools"
             / "odyssean_anchor_semantic.py"
         )
@@ -289,7 +290,7 @@ class TestOdysseanAnchorSemanticUsesProtocols:
             Path(__file__).parent.parent.parent.parent.parent
             / "src"
             / "hestai_mcp"
-            / "mcp"
+            / "modules"
             / "tools"
             / "odyssean_anchor_semantic.py"
         )
@@ -336,7 +337,7 @@ class TestOdysseanAnchorSemanticUsesProtocols:
             Path(__file__).parent.parent.parent.parent.parent
             / "src"
             / "hestai_mcp"
-            / "mcp"
+            / "modules"
             / "tools"
             / "odyssean_anchor_semantic.py"
         )
@@ -383,7 +384,7 @@ class TestOdysseanAnchorSemanticUsesProtocols:
             Path(__file__).parent.parent.parent.parent.parent
             / "src"
             / "hestai_mcp"
-            / "mcp"
+            / "modules"
             / "tools"
             / "odyssean_anchor_semantic.py"
         )
@@ -448,7 +449,7 @@ class TestClockInSynthesisProtocol:
         The correct path is: .hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md
         NOT: .hestai/workflow/000-NORTH-STAR.md
         """
-        from hestai_mcp.ai.prompts.protocols import CLOCK_IN_SYNTHESIS_PROTOCOL
+        from hestai_mcp.modules.services.ai.prompts.protocols import CLOCK_IN_SYNTHESIS_PROTOCOL
 
         # Should reference the actual file that exists
         assert (
@@ -465,7 +466,7 @@ class TestClockInSynthesisProtocol:
         """
         Protocol must define all required OCTAVE output fields.
         """
-        from hestai_mcp.ai.prompts.protocols import CLOCK_IN_SYNTHESIS_PROTOCOL
+        from hestai_mcp.modules.services.ai.prompts.protocols import CLOCK_IN_SYNTHESIS_PROTOCOL
 
         required_fields = [
             "CONTEXT_FILES::",
@@ -485,7 +486,7 @@ class TestClockInSynthesisProtocol:
         """
         compose_prompt correctly combines identity kernel with protocol.
         """
-        from hestai_mcp.ai.prompts.protocols import (
+        from hestai_mcp.modules.services.ai.prompts.protocols import (
             CLOCK_IN_SYNTHESIS_PROTOCOL,
             compose_prompt,
         )

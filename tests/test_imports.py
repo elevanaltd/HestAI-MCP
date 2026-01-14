@@ -10,7 +10,7 @@ def test_import_main_package() -> None:
 
 def test_import_ai_client() -> None:
     """Test that AI client imports successfully."""
-    from hestai_mcp.ai import AIClient, AIConfig
+    from hestai_mcp.modules.services.ai import AIClient, AIConfig
 
     assert AIClient is not None
     assert AIConfig is not None
@@ -27,7 +27,7 @@ def test_import_schemas() -> None:
 
 def test_import_mcp_tools() -> None:
     """Test that MCP tools import successfully."""
-    from hestai_mcp.mcp.tools import clock_in, clock_out
+    from hestai_mcp.modules.tools import clock_in, clock_out
 
     assert clock_in is not None
     assert clock_out is not None

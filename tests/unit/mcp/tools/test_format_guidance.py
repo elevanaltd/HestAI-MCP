@@ -13,7 +13,7 @@ class TestFormatGuidance:
 
     def test_bind_errors_include_format_template(self, tmp_path):
         """BIND validation errors include concrete format examples."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+        from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
         # Setup mock session
         working_dir = tmp_path / "project"
@@ -63,7 +63,7 @@ COGNITION::INVALID
 
     def test_tension_errors_include_tier_specific_format(self, tmp_path):
         """TENSION validation errors include tier-specific format examples."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+        from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
         # Setup mock session
         working_dir = tmp_path / "project"
@@ -117,7 +117,7 @@ GATE::pytest
 
     def test_format_guide_references_bind_ceremony(self, tmp_path):
         """Format guidance references full bind ceremony documentation."""
-        from hestai_mcp.mcp.tools.odyssean_anchor import odyssean_anchor
+        from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
         # Setup mock session
         working_dir = tmp_path / "project"

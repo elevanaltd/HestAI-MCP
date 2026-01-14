@@ -21,7 +21,7 @@ ARCHITECTURE::FRACTAL_MODULAR:
 
 AUTHORITATIVE_REFERENCES::[
   // NOTE: ADR numbering follows GitHub Issue numbers per ADR-0031
-  ADR_0010::"Fractal Modularization of HestAI-MCP - Internal code isolation",
+  ADR_0184::"Fractal Modularization & Dynamic Governance - Internal code isolation",
   ADR_0031::"GitHub Issue-Based Document Numbering",
   ADR_0033::"Dual-Layer Context Architecture - System vs Product separation",
   ADR_0034::"Orchestra Map Architecture - Anchor Pattern Inversion + Semantic Knowledge",
@@ -61,7 +61,7 @@ IMMUTABLES_ACTIVE::[
 CRITICAL_ASSUMPTIONS::[
   A4::OCTAVE_READABILITY[85%]->PENDING[validation@B1],
   A8::ORCHESTRA_MAP_FEASIBILITY[85%_confidence]->PROVEN[ADR-0034],
-  A10::FRACTAL_ISOLATION_ENFORCEMENT[90%_confidence]->PENDING[ADR-0010]
+  A10::FRACTAL_ISOLATION_ENFORCEMENT[90%_confidence]->PENDING[ADR-0184]
 ]
 
 KEY_INSIGHTS::[
@@ -69,7 +69,7 @@ KEY_INSIGHTS::[
   SINGLE_WRITER_PATTERN::"System Steward MCP tools only write to Layer 2 (.hestai/)",
   ORCHESTRA_MAP_INNOVATION::"Anchor Pattern Inversion enables concept-driven spec coherence (ADR-0034)",
   SEMANTIC_SPIKE_PENDING::"Layer 3 (Basic Memory) validation required Phase 2.5",
-  FRACTAL_MODULARIZATION::"Logical separation (Governance vs Tools) within a unified server (ADR-0010)",
+  FRACTAL_MODULARIZATION::"Logical separation (Governance vs Tools) within a unified server (ADR-0184)",
   PROTOCOL_OVER_SDK::"Context Injection pattern implemented via internal protocol (Git-native)",
   RCCAFP_FRAMEWORK::"Root Cause, Corrective Action, Future Proofing as a Governance engine module"
 ]
@@ -80,12 +80,12 @@ BLOCKERS::[
 
 RESOLVED_2026-01-13::[
   ARCHITECTURE_RESTRUCTURING::DEBATE_SYNTHESIS[RESOLVED]::[
-    DECISION::"Adopt Fractal Modularization (ADR-0010) - Single server with strict namespace isolation.",
+    DECISION::"Adopt Fractal Modularization (ADR-0184) - Single server with strict namespace isolation.",
     DEBATE_ID::"2026-01-13-arch-structure",
     PARTICIPANTS::[Wind(Claude/PATHOS),Wall(Codex/ETHOS),Door(Gemini/LOGOS)],
     KEY_INSIGHT::"Physical split (microservices) is a deployment tax; Logical split (modularity) is an architectural necessity.",
     RCCAFP::"Integrated as a core Governance quality module in .hestai/quality/rccafp/",
-    NEXT_STEPS::[ADR-0010_formalization, src/_refactor, RCCAFP_implementation]
+    NEXT_STEPS::[ADR-0184_formalization, src/_refactor, RCCAFP_implementation]
   ]
 ]
 
