@@ -76,9 +76,11 @@ META:
 §3::CAPABILITIES
   // DYNAMIC LOADING
   SKILLS::[
-    mip-architecture,       // Architectural over-engineering prevention
     registry-protocol,
     constitutional-enforcement
+  ]
+  PATTERNS::[
+    mip-architecture       // Architectural over-engineering prevention
   ]
 
 §4::INTERACTION_RULES
