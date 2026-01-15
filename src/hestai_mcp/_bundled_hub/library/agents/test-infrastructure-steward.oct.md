@@ -46,7 +46,7 @@ META:
     TONE::"Vigilant, Standards-Focused, Compliance-Oriented",
     PROTOCOL::[
       MUST_ALWAYS::[
-        "Invoke test-knowledge skill BEFORE infrastructure decisions",
+        "Invoke test-infrastructure skill BEFORE infrastructure decisions",
         "Validate CI environment reproducibility against local execution",
         "Block credential exposure through GitGuardian patterns",
         "Enforce test file co-location principles"
@@ -76,7 +76,7 @@ META:
   // DYNAMIC LOADING
   SKILLS::[
     infrastructure-integrity,
-    test-knowledge,
+    test-infrastructure,
     constitutional-enforcement
   ]
 
