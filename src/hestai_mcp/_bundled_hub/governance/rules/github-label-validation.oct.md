@@ -40,7 +40,7 @@ ARCHITECTURE::two_layer_defense[
 
 §1::PRE_SUBMIT_HOOK
 
-LOCATION::.claude/hooks/user_prompt_submit/validate-gh-labels.ts
+LOCATION::~/.claude/hooks/user_prompt_submit/validate-gh-labels.ts
 MECHANISM::intercept_gh_issue_create_with_labels
 
 PROCESS::[
@@ -121,9 +121,8 @@ SKILL_ACTIVATION::[
 ===IMPLEMENTATION===
 
 FILES::[
-  HOOK::.claude/hooks/user_prompt_submit/validate-gh-labels.ts,
+  HOOK::~/.claude/hooks/user_prompt_submit/validate-gh-labels.ts,
   SKILL::.hestai-sys/library/skills/github-labels/SKILL.md,
-  FALLBACK::.claude/skills/github-labels/SKILL.md,
   GLOBAL::~/.claude/skills/github-labels/SKILL.md
 ]
 
