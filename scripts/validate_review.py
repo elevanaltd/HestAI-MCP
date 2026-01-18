@@ -112,6 +112,8 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
     if not pr_number:
         return False, "❌ PR_NUMBER not set in environment"
 
+    print(f"   Checking PR #{pr_number} for review comments...")
+
     # Use gh CLI to get comments
     try:
         result = subprocess.run(
