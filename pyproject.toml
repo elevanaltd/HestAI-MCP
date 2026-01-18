@@ -67,6 +67,7 @@ markers = [
     "behavior: executable behavior tests (NOW)",
     "contract: interaction/contract tests (SOON)",
     "integration: full integration tests (LATER)",
+    "security: security-critical tests that validate fail-closed behavior",
 ]
 addopts = [
     "--cov=hestai_mcp",

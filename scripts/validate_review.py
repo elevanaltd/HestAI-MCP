@@ -8,11 +8,13 @@ Source: https://github.com/elevanaltd/HestAI-MCP
 Last updated: 2026-01-18
 """
 
+# Critical-Engineer: consulted for Review-gate fail-closed validation
 import json
 import os
 import re
 import subprocess
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -49,7 +51,11 @@ def get_changed_files() -> list[dict[str, Any]]:
                     }
                 )
         return files
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
+        # SECURITY FIX: Fail closed in CI, permissive locally
+        if "CI" in os.environ:
+            print(f"❌ Git command failed in CI: {e}", file=sys.stderr)
+            sys.exit(1)
         return []
 
 
@@ -60,13 +66,24 @@ def determine_review_tier(files: list[dict[str, Any]]) -> tuple[str, str]:
     total_lines = sum(f["total_changed"] for f in files)
     changed_paths = [f["path"] for f in files]
 
-    # Check for exempt patterns
+    # Check for exempt patterns (exclude architecture docs from exemption)
     exempt_patterns = [
-        r".*\.md$",
         r"^tests/.*$",
         r".*\.lock$",
         r".*\.json$",
     ]
+
+    # Architecture files are NOT exempt even if .md
+    architecture_patterns = [r".*architecture.*", r".*\.sql$"]
+
+    has_architecture_files = any(
+        any(re.search(pattern, path, re.IGNORECASE) for pattern in architecture_patterns)
+        for path in changed_paths
+    )
+
+    # Markdown is exempt ONLY if not architecture-related
+    if not has_architecture_files:
+        exempt_patterns.append(r".*\.md$")
 
     all_exempt = all(
         any(re.match(pattern, path) for pattern in exempt_patterns) for path in changed_paths
@@ -148,11 +165,58 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
                 missing.append("CE APPROVED")
             return False, f"❌ Missing: {', '.join(missing)}"
 
-    except (subprocess.CalledProcessError, json.JSONDecodeError):
-        # If we can't check, be permissive
-        return True, "Unable to check PR comments"
+    except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
+        # SECURITY FIX: Fail closed in CI, permissive locally
+        if "CI" in os.environ:
+            return False, f"❌ Error checking PR comments: {e}"
+        return True, "Unable to check PR comments (local mode)"
 
     return True, "No review required for this tier"
+
+
+def log_emergency_bypass() -> None:
+    """Create audit trail for emergency bypass."""
+    # Create audit directory
+    audit_dir = Path.cwd() / ".hestai" / "audit"
+    audit_dir.mkdir(parents=True, exist_ok=True)
+    audit_log = audit_dir / "bypass-log.jsonl"
+
+    # Get metadata
+    pr_number = os.environ.get("PR_NUMBER", "unknown")
+
+    # Get git user info
+    try:
+        user_name = subprocess.run(
+            ["git", "config", "user.name"], capture_output=True, text=True, check=True
+        ).stdout.strip()
+        user_email = subprocess.run(
+            ["git", "config", "user.email"], capture_output=True, text=True, check=True
+        ).stdout.strip()
+    except subprocess.CalledProcessError:
+        user_name = "unknown"
+        user_email = "unknown"
+
+    # Get commit SHA
+    try:
+        commit_sha = subprocess.run(
+            ["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True
+        ).stdout.strip()
+    except subprocess.CalledProcessError:
+        commit_sha = "unknown"
+
+    # Create audit entry
+    entry = {
+        "timestamp": datetime.now(UTC).isoformat(),
+        "reason": "EMERGENCY_BYPASS",
+        "pr_number": pr_number,
+        "commit": commit_sha,
+        "user_name": user_name,
+        "user_email": user_email,
+    }
+
+    # Append to audit log
+    with open(audit_log, "a") as f:
+        f.write(json.dumps(entry) + "\n")
 
 
 def check_emergency_bypass() -> bool:
@@ -172,6 +236,7 @@ def main() -> int:
     # Check for emergency bypass
     if check_emergency_bypass():
         print("⚠️  EMERGENCY BYPASS - Review required post-merge")
+        log_emergency_bypass()
         return 0
 
     # Get changed files
