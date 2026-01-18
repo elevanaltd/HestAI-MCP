@@ -44,10 +44,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           CI: true
+          GITHUB_BASE_REF: origin/${{ github.event.pull_request.base.ref }}
         run: |
-          # Get the base and head for comparison
-          BASE_SHA=${{ github.event.pull_request.base.sha }}
-          HEAD_SHA=${{ github.event.pull_request.head.sha }}
+          # Fetch the base branch for comparison
+          git fetch origin ${{ github.event.pull_request.base.ref }}
 
           # Check out PR branch
           git checkout ${{ github.event.pull_request.head.ref }}

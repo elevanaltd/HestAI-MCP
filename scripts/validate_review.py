@@ -16,10 +16,17 @@ from typing import Any
 def get_changed_files() -> list[dict[str, Any]]:
     """Get list of changed files with line counts."""
     try:
+        # In CI, compare against base branch; locally use cached
+        if "CI" in os.environ:
+            # Get the base branch (usually main)
+            base_ref = os.environ.get("GITHUB_BASE_REF", "origin/main")
+            cmd = ["git", "diff", f"{base_ref}...HEAD", "--numstat"]
+        else:
+            # Local: check staged files
+            cmd = ["git", "diff", "--cached", "--numstat"]
+
         # Get diff stats
-        result = subprocess.run(
-            ["git", "diff", "--cached", "--numstat"], capture_output=True, text=True, check=True
-        )
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
 
         files = []
         for line in result.stdout.strip().split("\n"):
