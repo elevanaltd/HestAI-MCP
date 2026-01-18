@@ -89,19 +89,18 @@ gh issue create \
 - `b1`, `b2` (missing `phase:` prefix)
 - `mcp-tools`, `governance` (missing `area:` prefix)
 - Custom labels that don't exist
-- Spaces in multi-word labels (use hyphens)
 
 ✅ **Do use:**
 - `priority:p0-critical`, `priority:p1-high`
 - `phase:b1`, `phase:b2`
 - `area:mcp-tools`, `area:governance`
-- Exact label names from the valid list above
+- Exact label names from the valid list above (including spaces when present, e.g., `good first issue`)
 
 ## Auto-Validation
 
-The `.claude/hooks/user_prompt_submit/validate-gh-labels.ts` hook automatically:
-1. Detects `gh issue create` commands
-2. Validates labels against current repository labels
+The `~/.claude/hooks/pre_tool_use/validate-gh-labels.sh` hook automatically:
+1. Intercepts Bash tool before `gh issue create` executes
+2. Validates labels against current repository labels (cached 5min)
 3. Removes invalid labels
 4. Warns you about changes
 
