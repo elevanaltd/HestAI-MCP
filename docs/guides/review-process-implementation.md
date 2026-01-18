@@ -4,6 +4,10 @@
 
 This guide explains how to implement the tiered review process in other projects. The system provides automated enforcement of code review requirements through local pre-commit hooks and GitHub Actions CI.
 
+**Current Version:** 1.1.0 (fork support added)
+
+> **Distribution Strategy**: Currently using manual copy approach during active development. See [review-process-distribution-strategy.md](review-process-distribution-strategy.md) for evolution plans and when to migrate to reusable GitHub Actions.
+
 ## Prerequisites
 
 - Project has `.hestai-sys/` directory structure in place
@@ -171,6 +175,13 @@ The GitHub Actions workflow responds to:
 
 This ensures re-validation when approval comments are added.
 
+### Fork Support
+The workflow uses GitHub's universal PR ref system (`refs/pull/<number>/head`) which works for:
+- **Same-repository PRs**: Branch in same repo
+- **Fork PRs**: Branch from external fork
+
+This eliminates the need for fork detection logic and ensures external contributions work seamlessly.
+
 ## Testing the Implementation
 
 ### Local Testing
@@ -218,6 +229,12 @@ Add project-specific tier 3 triggers (e.g., API changes, database schemas) aroun
 - Check exempt patterns match your project structure
 - Verify file paths in `changed_paths` list
 - Add debug output: `print(f"DEBUG: {changed_paths}")`
+
+### Fork PR failures
+- **Not an issue**: The workflow uses GitHub's universal PR ref system
+- Works automatically for both same-repo and fork PRs
+- No fork detection logic needed
+- If you see checkout failures, verify the PR number is correct
 
 ## Files Summary
 
