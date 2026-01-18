@@ -32,11 +32,11 @@ jobs:
         id: pr
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+            echo "number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
           else
             # For issue_comment events on PRs
             PR_NUMBER=$(echo "${{ github.event.issue.pull_request.url }}" | grep -oE '[0-9]+$')
-            echo "PR_NUMBER=${PR_NUMBER}" >> $GITHUB_ENV
+            echo "number=${PR_NUMBER}" >> $GITHUB_OUTPUT
           fi
 
       - name: Check Review Requirements
@@ -44,7 +44,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           CI: true
-          PR_NUMBER: ${{ env.PR_NUMBER }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
           GITHUB_BASE_REF: origin/${{ github.event.pull_request.base.ref }}
         run: |
           # Fetch the base branch for comparison
@@ -73,6 +73,7 @@ jobs:
         uses: actions/github-script@v7
         env:
           REVIEW_EXIT_CODE: ${{ steps.review_check.outputs.exit_code }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
         with:
           script: |
             const fs = require('fs');
