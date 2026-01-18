@@ -2,10 +2,11 @@
 META:
   TYPE::SCHEMA
   VERSION::"1.0"
-  STATUS::ACTIVE
-  PURPOSE::"Artifact-centric orchestration schema for self-documenting review compliance"
-  AUTHORITY::MANDATORY[All code reviews must generate valid REVIEW_PROOF]
-  ENFORCEMENT::CI_GATE[No merge without valid artifact]
+  STATUS::FUTURE_VISION
+  PURPOSE::"Future enhancement: Full artifact-centric orchestration schema for self-documenting review compliance"
+  NOTE::"Currently using simpler PR comment magic. This represents the eventual goal."
+  AUTHORITY::FUTURE[Will require all code reviews to generate valid REVIEW_PROOF]
+  ENFORCEMENT::FUTURE[Will gate merges on artifact validation]
 
 §1::IDENTITY
 SCHEMA_CONTRACT::[
