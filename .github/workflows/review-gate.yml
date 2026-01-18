@@ -46,26 +46,29 @@ jobs:
           CI: true
           PR_NUMBER: ${{ steps.pr.outputs.number }}
         run: |
-          # Get PR details for both event types
+          # Universal PR checkout - works for both same-repo and fork PRs
+          PR_NUMBER="${{ steps.pr.outputs.number }}"
+
+          # Get base ref for comparison
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             BASE_REF="${{ github.event.pull_request.base.ref }}"
-            HEAD_REF="${{ github.event.pull_request.head.ref }}"
           else
             # For issue_comment events, fetch PR details via API
-            PR_DATA=$(gh pr view ${{ steps.pr.outputs.number }} --json baseRefName,headRefName)
+            PR_DATA=$(gh pr view "$PR_NUMBER" --json baseRefName)
             BASE_REF=$(echo "$PR_DATA" | jq -r '.baseRefName')
-            HEAD_REF=$(echo "$PR_DATA" | jq -r '.headRefName')
           fi
 
-          echo "Base: $BASE_REF, Head: $HEAD_REF"
+          echo "PR Number: $PR_NUMBER"
+          echo "Base ref: $BASE_REF"
+
+          # Fetch base branch
+          git fetch origin "$BASE_REF"
           export GITHUB_BASE_REF="origin/$BASE_REF"
 
-          # Fetch both branches
-          git fetch origin "$BASE_REF"
-          git fetch origin "$HEAD_REF"
-
-          # Check out PR branch
-          git checkout "$HEAD_REF"
+          # Fetch and checkout PR using GitHub's universal PR ref
+          # This works for all PRs (same-repo and forks)
+          git fetch origin "refs/pull/$PR_NUMBER/head:pr-$PR_NUMBER"
+          git checkout "pr-$PR_NUMBER"
 
           # Run validation and capture output
           set +e  # Don't exit on error
