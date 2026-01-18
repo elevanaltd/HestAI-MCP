@@ -8,8 +8,7 @@ META:
 
 §1::REVIEW_TIERS
 TIER_0_EXEMPT::[
-  docs/**/*.md[except:**/ARCHITECTURE.md,**/API.md],
-  .hestai/context/*.md,
+  **/*.md,
   tests/**/*[when:no_src_changes],
   **/*.json[when:generated_file],
   **/*.lock

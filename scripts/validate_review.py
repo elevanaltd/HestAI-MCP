@@ -58,20 +58,14 @@ def determine_review_tier(files: list[dict[str, Any]]) -> tuple[str, str]:
 
     # Check for exempt patterns
     exempt_patterns = [
-        r"^docs/.*\.md$",
-        r"^\.hestai/context/.*\.md$",
+        r".*\.md$",
         r"^tests/.*$",
         r".*\.lock$",
         r".*\.json$",
     ]
 
-    # Skip ARCHITECTURE.md and API.md
-    non_exempt = ["ARCHITECTURE.md", "API.md"]
-
     all_exempt = all(
-        any(re.match(pattern, path) for pattern in exempt_patterns)
-        and not any(path.endswith(ne) for ne in non_exempt)
-        for path in changed_paths
+        any(re.match(pattern, path) for pattern in exempt_patterns) for path in changed_paths
     )
 
     if all_exempt:
