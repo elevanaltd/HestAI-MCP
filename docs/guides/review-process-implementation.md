@@ -71,8 +71,7 @@ Edit `scripts/validate_review.py` to adjust tier thresholds:
 **Line 60-66**: Exempt patterns
 ```python
 exempt_patterns = [
-    r"^docs/.*\.md$",
-    r"^\.hestai/context/.*\.md$",
+    r".*\.md$",
     r"^tests/.*$",
     r".*\.lock$",
     r".*\.json$",
@@ -107,8 +106,7 @@ pre-commit install
 ## Review Tier System
 
 ### Tier 0: Exempt
-- **Trigger**: Only docs, tests, lockfiles, or `.hestai/context/` changes
-- **Exception**: `ARCHITECTURE.md` and `API.md` are NOT exempt
+- **Trigger**: Only Markdown docs (`*.md`, including `*.oct.md`), tests, lockfiles, or JSON changes
 - **Review**: None required
 - **Enforcement**: Automatic
 
