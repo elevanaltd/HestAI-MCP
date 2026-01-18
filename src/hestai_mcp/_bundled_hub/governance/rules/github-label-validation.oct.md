@@ -34,22 +34,25 @@ TYPICAL_ERROR::"could not add label: 'X' not found"
 ===SOLUTION===
 
 ARCHITECTURE::two_layer_defense[
-  LAYER_1::pre_submit_hook[automatic_validation],
+  LAYER_1::pre_tool_use_hook[automatic_validation],
   LAYER_2::skill_reference[educational_documentation]
 ]
 
-§1::PRE_SUBMIT_HOOK
+§1::PRE_TOOL_USE_HOOK
 
-LOCATION::~/.claude/hooks/user_prompt_submit/validate-gh-labels.ts
-MECHANISM::intercept_gh_issue_create_with_labels
+LOCATION::~/.claude/hooks/pre_tool_use/validate-gh-labels.sh
+MECHANISM::intercept_bash_tool_before_execution
+SCOPE::global[applies_to_all_projects]
 
 PROCESS::[
-  1::detect_command["gh issue create" + "--label"],
-  2::extract_requested_labels[regex_parsing],
-  3::fetch_valid_labels[gh_label_list + 5min_cache],
-  4::filter_invalid_labels[comparison],
-  5::rebuild_command[valid_labels_only],
-  6::warn_agent[educational_feedback]
+  1::parse_tool_input[JSON_from_stdin],
+  2::detect_bash_tool_with_gh_issue_create_and_labels,
+  3::extract_requested_labels[regex_parsing],
+  4::fetch_valid_labels[gh_label_list + 5min_cache],
+  5::filter_invalid_labels[comparison],
+  6::rebuild_command[valid_labels_only],
+  7::output_modified_tool_input[JSON_to_stdout],
+  8::warn_agent[stderr_message]
 ]
 
 ERROR_HANDLING::[
@@ -58,9 +61,9 @@ ERROR_HANDLING::[
 ]
 
 EXAMPLE::[
-  INPUT::"gh issue create --label 'invalid,enhancement,p1'",
-  OUTPUT::"gh issue create --label 'enhancement'",
-  WARNING::"Invalid labels removed: invalid, p1"
+  TOOL_INPUT::{"tool_name":"Bash","tool_input":{"command":"gh issue create --label 'invalid,enhancement,p1'"}},
+  TOOL_OUTPUT::{"tool_name":"Bash","tool_input":{"command":"gh issue create --label 'enhancement'"}},
+  WARNING_STDERR::"Invalid labels removed: invalid, p1"
 ]
 
 §2::SKILL_REFERENCE
@@ -121,20 +124,20 @@ SKILL_ACTIVATION::[
 ===IMPLEMENTATION===
 
 FILES::[
-  HOOK::~/.claude/hooks/user_prompt_submit/validate-gh-labels.ts,
-  SKILL::.hestai-sys/library/skills/github-labels/SKILL.md,
-  GLOBAL::~/.claude/skills/github-labels/SKILL.md
+  HOOK::~/.claude/hooks/pre_tool_use/validate-gh-labels.sh,
+  SKILL::.hestai-sys/library/skills/github-labels/SKILL.md
 ]
 
 DEPENDENCIES::[
   gh_cli::installed_and_authenticated,
-  node::runtime_for_typescript_hook,
-  tsx::typescript_execution
+  bash::shell_runtime,
+  jq::json_parsing
 ]
 
 TESTING::[
-  TEST_INVALID_LABEL::"echo '{\"text\":\"gh issue create --label invalid\"}' | tsx validate-gh-labels.ts",
-  EXPECT::label_removed_and_warning_shown
+  TEST_INVALID_LABEL::"echo '{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"gh issue create --label invalid,enhancement\"}}' | ~/.claude/hooks/pre_tool_use/validate-gh-labels.sh",
+  EXPECT::modified_command_with_valid_labels_only,
+  EXPECT::warning_message_on_stderr
 ]
 
 ===WORKFLOW===
