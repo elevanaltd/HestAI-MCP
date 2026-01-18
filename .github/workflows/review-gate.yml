@@ -45,13 +45,27 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           CI: true
           PR_NUMBER: ${{ steps.pr.outputs.number }}
-          GITHUB_BASE_REF: origin/${{ github.event.pull_request.base.ref }}
         run: |
-          # Fetch the base branch for comparison
-          git fetch origin ${{ github.event.pull_request.base.ref }}
+          # Get PR details for both event types
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE_REF="${{ github.event.pull_request.base.ref }}"
+            HEAD_REF="${{ github.event.pull_request.head.ref }}"
+          else
+            # For issue_comment events, fetch PR details via API
+            PR_DATA=$(gh pr view ${{ steps.pr.outputs.number }} --json baseRefName,headRefName)
+            BASE_REF=$(echo "$PR_DATA" | jq -r '.baseRefName')
+            HEAD_REF=$(echo "$PR_DATA" | jq -r '.headRefName')
+          fi
+
+          echo "Base: $BASE_REF, Head: $HEAD_REF"
+          export GITHUB_BASE_REF="origin/$BASE_REF"
+
+          # Fetch both branches
+          git fetch origin "$BASE_REF"
+          git fetch origin "$HEAD_REF"
 
           # Check out PR branch
-          git checkout ${{ github.event.pull_request.head.ref }}
+          git checkout "$HEAD_REF"
 
           # Run validation and capture output
           set +e  # Don't exit on error
