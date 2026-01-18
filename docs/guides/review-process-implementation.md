@@ -4,6 +4,10 @@
 
 This guide explains how to implement the tiered review process in other projects. The system provides automated enforcement of code review requirements through local pre-commit hooks and GitHub Actions CI.
 
+**Current Version:** 1.1.0 (fork support added)
+
+> **Distribution Strategy**: Currently using manual copy approach during active development. See [review-process-distribution-strategy.md](review-process-distribution-strategy.md) for evolution plans and when to migrate to reusable GitHub Actions.
+
 ## Prerequisites
 
 - Project has `.hestai-sys/` directory structure in place

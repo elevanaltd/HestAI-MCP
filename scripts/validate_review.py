@@ -2,6 +2,10 @@
 """
 Review validation script - enforces review requirements based on PR changes.
 Called by pre-commit hooks and CI pipeline.
+
+Version: 1.1.0 (fork support added)
+Source: https://github.com/elevanaltd/HestAI-MCP
+Last updated: 2026-01-18
 """
 
 import json
