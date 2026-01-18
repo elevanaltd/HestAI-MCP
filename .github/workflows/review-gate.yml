@@ -44,6 +44,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           CI: true
+          PR_NUMBER: ${{ env.PR_NUMBER }}
           GITHUB_BASE_REF: origin/${{ github.event.pull_request.base.ref }}
         run: |
           # Fetch the base branch for comparison

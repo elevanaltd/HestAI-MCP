@@ -110,7 +110,7 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
 
     pr_number = os.environ.get("PR_NUMBER")
     if not pr_number:
-        return True, "No PR context available"
+        return False, "❌ PR_NUMBER not set in environment"
 
     # Use gh CLI to get comments
     try:
