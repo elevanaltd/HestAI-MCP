@@ -36,6 +36,13 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: review-validator
+        name: Check review requirements
+        entry: python3 scripts/validate_review.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: ruff
         name: ruff (staged)
         entry: ruff check
