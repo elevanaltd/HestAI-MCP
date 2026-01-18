@@ -10,9 +10,10 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 
-def get_changed_files() -> list[dict[str, any]]:
+def get_changed_files() -> list[dict[str, Any]]:
     """Get list of changed files with line counts."""
     try:
         # Get diff stats
@@ -41,7 +42,7 @@ def get_changed_files() -> list[dict[str, any]]:
         return []
 
 
-def determine_review_tier(files: list[dict]) -> tuple[str, str]:
+def determine_review_tier(files: list[dict[str, Any]]) -> tuple[str, str]:
     """Determine required review tier based on changed files."""
 
     # Calculate totals
@@ -158,7 +159,7 @@ def check_emergency_bypass() -> bool:
         return False
 
 
-def main():
+def main() -> int:
     """Main validation logic."""
 
     # Check for emergency bypass
@@ -172,9 +173,17 @@ def main():
         print("✓ No files changed")
         return 0
 
+    # Show changed files summary
+    total_lines = sum(int(f["total_changed"]) for f in files)
+    print(f"📊 Changed Files: {len(files)} files, {total_lines} lines")
+    for f in files[:5]:  # Show first 5
+        print(f"   - {f['path']} (+{f['added']}/-{f['deleted']})")
+    if len(files) > 5:
+        print(f"   ... and {len(files) - 5} more")
+
     # Determine review tier
     tier, reason = determine_review_tier(files)
-    print(f"📋 Review Tier: {tier}")
+    print(f"\n📋 Review Tier: {tier}")
     print(f"   Reason: {reason}")
 
     # Check if tier is exempt
@@ -190,21 +199,25 @@ def main():
         print("\n⚠️  Review Requirements:")
         if tier == "TIER_1_SELF":
             print("   Add comment: 'IL SELF-REVIEWED: [your rationale]'")
+            print("   Example: 'IL SELF-REVIEWED: Fixed typo in error message'")
         elif tier == "TIER_2_CRS":
             print("   Need comment: 'CRS APPROVED: [assessment]'")
+            print("   Example: 'CRS APPROVED: Logic correct, tests pass, no security issues'")
         elif tier == "TIER_3_FULL":
             print("   Need comments:")
             print("   - 'CRS APPROVED: [assessment]'")
-            print("   - 'CE APPROVED: [assessment]'")
+            print("   - 'CE APPROVED: [critical assessment]'")
+            print("   Example: 'CE APPROVED: Architecture sound, performance acceptable'")
 
         # Only block in CI context
         if "CI" in os.environ:
+            print("\n❌ Blocking merge - reviews required")
             return 1
         else:
             print("\n   ℹ️  Local check only - not blocking")
             return 0
 
-    print("✓ Review requirements satisfied")
+    print("\n✓ Review requirements satisfied")
     return 0
 
 
