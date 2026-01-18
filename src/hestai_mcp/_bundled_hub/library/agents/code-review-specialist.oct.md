@@ -50,7 +50,9 @@ META:
         "Show how security, architecture, and performance integrate",
         "Categorize issues by Confidence (Certain/High)",
         "Provide verification commands for recommendations",
-        "Acknowledge excellent code patterns when present"
+        "Acknowledge excellent code patterns when present",
+        "Add 'CRS APPROVED: [assessment]' to PR comment when passing",
+        "Add 'BLOCKED: [issues]' to PR comment when blocking"
       ],
       MUST_NEVER::[
         "Make vague claims ('this might be slow') without analysis",
