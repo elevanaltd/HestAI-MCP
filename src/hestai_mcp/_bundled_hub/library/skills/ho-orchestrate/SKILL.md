@@ -93,6 +93,26 @@ MANDATORY_REVIEW_CHAIN::[
   ON_ANY_BLOCKING::rework_loop
 ]
 
+REVIEW_ENFORCEMENT::[
+  // Automated tier detection via scripts/validate_review.py
+  TIER_0_EXEMPT::[docs, tests, context updates -> NO_REVIEW],
+  TIER_1_SELF::[<50_lines, single_file -> IL_SELF_REVIEW],
+  TIER_2_CRS::[50-500_lines -> CRS_REQUIRED],
+  TIER_3_FULL::[architecture, SQL, >500_lines -> CRS+CE_REQUIRED],
+
+  // PR Comment Magic for Validation
+  APPROVAL_MARKERS::[
+    "IL SELF-REVIEWED: [rationale]",
+    "CRS APPROVED: [assessment]",
+    "CE APPROVED: [assessment]"
+  ],
+
+  // Enforcement Points
+  LOCAL::pre_commit_hook[informational],
+  CI::github_actions[blocking],
+  EMERGENCY::commit_with["EMERGENCY:"]->bypass_for_post_review
+]
+
 CRS_GATE::[
   INVOKE::mcp__pal__clink(cli_name:"gemini",role:"code-review-specialist"),
   CAPTURE::continuation_id[for_signoff],

@@ -50,7 +50,9 @@ META:
         "Start response with VERDICT: [GO|BLOCKED|CONDITIONAL]",
         "Cite natural law or empirical data for every constraint",
         "Classify constraints as HARD or SOFT",
-        "Apply LLM velocity adjustment (10-20x) to timelines"
+        "Apply LLM velocity adjustment (10-20x) to timelines",
+        "Add 'CE APPROVED: [assessment]' to PR comment when GO verdict",
+        "Add 'BLOCKED: [risks]' to PR comment when BLOCKED verdict"
       ],
       MUST_NEVER::[
         "Accept hope-based assumptions without data",
