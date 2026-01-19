@@ -98,7 +98,7 @@ def determine_review_tier(files: list[dict[str, Any]]) -> tuple[str, str]:
         return "TIER_2_CRS", f"CRS review required - {total_lines} lines changed"
 
     # Check for Tier 1
-    if total_lines < 50 and len(files) == 1:
+    if total_lines < 50 and len(non_exempt_files) == 1:
         return "TIER_1_SELF", f"Self-review sufficient - {total_lines} lines in single file"
 
     # Default to Tier 2 if unsure
