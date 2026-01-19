@@ -3,9 +3,10 @@
 Review validation script - enforces review requirements based on PR changes.
 Called by pre-commit hooks and CI pipeline.
 
-Version: 1.1.0 (fork support added)
+Version: 2.0.0 (SECURITY: Fail-closed error handling)
 Source: https://github.com/elevanaltd/HestAI-MCP
-Last updated: 2026-01-18
+Last updated: 2026-01-19
+Breaking Change: Now exits non-zero on CI failures (was: fail-open)
 """
 
 # Critical-Engineer: consulted for Review-gate fail-closed validation

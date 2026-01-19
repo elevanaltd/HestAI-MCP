@@ -348,16 +348,17 @@ git push --tags
 # scripts/validate_review.py
 """
 Review validation script - enforces review requirements based on PR changes.
-Version: 1.1.0 (fork support added)
+Version: 2.0.0 (SECURITY: Fail-closed error handling)
 Source: https://github.com/elevanaltd/HestAI-MCP
+Breaking Change: Now exits non-zero on CI failures
 """
 ```
 
 ```yaml
 # .github/workflows/review-gate.yml
-# HestAI Review Gate v1.1.0
+# HestAI Review Gate v2.0.0
 # Source: https://github.com/elevanaltd/HestAI-MCP
-# Last updated: 2026-01-18
+# Last updated: 2026-01-19
 ```
 
 **When to evolve:**

@@ -1,6 +1,6 @@
-# HestAI Review Gate v1.1.0
+# HestAI Review Gate v2.0.0
 # Source: https://github.com/elevanaltd/HestAI-MCP
-# Last updated: 2026-01-18 (fork support added)
+# Last updated: 2026-01-19 (SECURITY: fail-closed error handling)
 
 name: Review Gate
 
