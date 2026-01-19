@@ -284,13 +284,14 @@ class TestReviewTierLogic:
         tier, reason = validate_review.determine_review_tier(files)
         assert tier == "TIER_3_FULL"
 
-    def test_tier_3_full_for_architecture_changes(self):
-        """TIER_3_FULL for architecture files."""
+    def test_tier_0_exempt_for_architecture_markdown(self):
+        """TIER_0_EXEMPT for architecture markdown (all .md exempt)."""
         files = [
             {"path": "docs/architecture/system.md", "added": 10, "deleted": 5, "total_changed": 15}
         ]
         tier, reason = validate_review.determine_review_tier(files)
-        assert tier == "TIER_3_FULL"
+        assert tier == "TIER_0_EXEMPT"
+        assert "exempt" in reason.lower()
 
 
 @pytest.mark.behavior

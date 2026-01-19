@@ -88,7 +88,6 @@ def determine_review_tier(files: list[dict[str, Any]]) -> tuple[str, str]:
     tier3_triggers = [
         any(path.endswith(".sql") for path in changed_paths),
         total_lines > 500,
-        len({Path(p).parts[0] for p in changed_paths if "/" in p}) > 1,  # Multiple components
     ]
 
     if any(tier3_triggers):
