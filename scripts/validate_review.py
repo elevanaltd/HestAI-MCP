@@ -63,39 +63,29 @@ def get_changed_files() -> list[dict[str, Any]]:
 def determine_review_tier(files: list[dict[str, Any]]) -> tuple[str, str]:
     """Determine required review tier based on changed files."""
 
-    # Calculate totals
-    total_lines = sum(f["total_changed"] for f in files)
-    changed_paths = [f["path"] for f in files]
-
-    # Check for exempt patterns (exclude architecture docs from exemption)
+    # Exempt patterns - files that don't count toward review requirements
     exempt_patterns = [
+        r".*\.md$",  # All markdown files exempt (including architecture docs)
         r"^tests/.*$",
         r".*\.lock$",
         r".*\.json$",
     ]
 
-    # Architecture files are NOT exempt even if .md
-    architecture_patterns = [r".*architecture.*", r".*\.sql$"]
+    # Filter out exempt files for tier calculation
+    non_exempt_files = [
+        f for f in files if not any(re.match(pattern, f["path"]) for pattern in exempt_patterns)
+    ]
 
-    has_architecture_files = any(
-        any(re.search(pattern, path, re.IGNORECASE) for pattern in architecture_patterns)
-        for path in changed_paths
-    )
-
-    # Markdown is exempt ONLY if not architecture-related
-    if not has_architecture_files:
-        exempt_patterns.append(r".*\.md$")
-
-    all_exempt = all(
-        any(re.match(pattern, path) for pattern in exempt_patterns) for path in changed_paths
-    )
-
-    if all_exempt:
+    # If only exempt files changed, no review needed
+    if not non_exempt_files:
         return "TIER_0_EXEMPT", "No review required - only exempt files changed"
+
+    # Calculate totals based on non-exempt files only
+    total_lines = sum(f["total_changed"] for f in non_exempt_files)
+    changed_paths = [f["path"] for f in non_exempt_files]
 
     # Check for Tier 3 triggers (highest priority)
     tier3_triggers = [
-        any("architecture" in path for path in changed_paths),
         any(path.endswith(".sql") for path in changed_paths),
         total_lines > 500,
         len({Path(p).parts[0] for p in changed_paths if "/" in p}) > 1,  # Multiple components
