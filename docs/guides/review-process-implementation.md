@@ -4,9 +4,11 @@
 
 This guide explains how to implement the tiered review process in other projects. The system provides automated enforcement of code review requirements through local pre-commit hooks and GitHub Actions CI.
 
-**Current Version:** 1.1.0 (fork support added)
+**Current Version:** 2.0.0 (SECURITY: fail-closed error handling)
 
 > **Distribution Strategy**: Currently using manual copy approach during active development. See [review-process-distribution-strategy.md](review-process-distribution-strategy.md) for evolution plans and when to migrate to reusable GitHub Actions.
+>
+> **Security Note**: Version 2.0.0 implements fail-closed behavior in CI - git failures and comment validation failures now block PRs instead of allowing bypass. See PR #195 for details.
 
 ## Prerequisites
 

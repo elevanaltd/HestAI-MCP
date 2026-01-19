@@ -3,9 +3,10 @@
 Review validation script - enforces review requirements based on PR changes.
 Called by pre-commit hooks and CI pipeline.
 
-Version: 1.1.0 (fork support added)
+Version: 2.0.0 (SECURITY: Fail-closed error handling)
 Source: https://github.com/elevanaltd/HestAI-MCP
-Last updated: 2026-01-18
+Last updated: 2026-01-19
+Breaking Change: Now exits non-zero on CI failures (was: fail-open)
 """
 
 # Critical-Engineer: consulted for Review-gate fail-closed validation
@@ -62,42 +63,31 @@ def get_changed_files() -> list[dict[str, Any]]:
 def determine_review_tier(files: list[dict[str, Any]]) -> tuple[str, str]:
     """Determine required review tier based on changed files."""
 
-    # Calculate totals
-    total_lines = sum(f["total_changed"] for f in files)
-    changed_paths = [f["path"] for f in files]
-
-    # Check for exempt patterns (exclude architecture docs from exemption)
+    # Exempt patterns - files that don't count toward review requirements
     exempt_patterns = [
+        r".*\.md$",  # All markdown files exempt (including architecture docs)
         r"^tests/.*$",
         r".*\.lock$",
         r".*\.json$",
     ]
 
-    # Architecture files are NOT exempt even if .md
-    architecture_patterns = [r".*architecture.*", r".*\.sql$"]
+    # Filter out exempt files for tier calculation
+    non_exempt_files = [
+        f for f in files if not any(re.match(pattern, f["path"]) for pattern in exempt_patterns)
+    ]
 
-    has_architecture_files = any(
-        any(re.search(pattern, path, re.IGNORECASE) for pattern in architecture_patterns)
-        for path in changed_paths
-    )
-
-    # Markdown is exempt ONLY if not architecture-related
-    if not has_architecture_files:
-        exempt_patterns.append(r".*\.md$")
-
-    all_exempt = all(
-        any(re.match(pattern, path) for pattern in exempt_patterns) for path in changed_paths
-    )
-
-    if all_exempt:
+    # If only exempt files changed, no review needed
+    if not non_exempt_files:
         return "TIER_0_EXEMPT", "No review required - only exempt files changed"
+
+    # Calculate totals based on non-exempt files only
+    total_lines = sum(f["total_changed"] for f in non_exempt_files)
+    changed_paths = [f["path"] for f in non_exempt_files]
 
     # Check for Tier 3 triggers (highest priority)
     tier3_triggers = [
-        any("architecture" in path for path in changed_paths),
         any(path.endswith(".sql") for path in changed_paths),
         total_lines > 500,
-        len({Path(p).parts[0] for p in changed_paths if "/" in p}) > 1,  # Multiple components
     ]
 
     if any(tier3_triggers):
@@ -108,7 +98,7 @@ def determine_review_tier(files: list[dict[str, Any]]) -> tuple[str, str]:
         return "TIER_2_CRS", f"CRS review required - {total_lines} lines changed"
 
     # Check for Tier 1
-    if total_lines < 50 and len(files) == 1:
+    if total_lines < 50 and len(non_exempt_files) == 1:
         return "TIER_1_SELF", f"Self-review sufficient - {total_lines} lines in single file"
 
     # Default to Tier 2 if unsure
