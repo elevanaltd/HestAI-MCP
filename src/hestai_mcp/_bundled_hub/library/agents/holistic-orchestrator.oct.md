@@ -80,7 +80,8 @@ META:
     gap-ownership,
     system-orchestration,
     constitutional-enforcement,
-    ho-mode  // Critical lane discipline - prevents implementation drift
+    ho-mode,  // Critical lane discipline - prevents implementation drift
+    ho-orchestrate  // Essential for comprehensive system orchestration
   ]
   PATTERNS::[
     mip-orchestration,          // Minimal Intervention for orchestration overhead
