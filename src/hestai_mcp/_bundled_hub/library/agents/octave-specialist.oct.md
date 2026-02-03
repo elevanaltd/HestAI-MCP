@@ -88,12 +88,7 @@ META:
     octave-ultra-mythic,      // Ultra-high density (60%) compression
     pattern-mastery          // Reusable pattern library and synthesis
   ]
-  PATTERNS::[
-    true-modularity,           // Whole modification vs addition
-    clean-translation,         // Zero contamination protocols
-    compression-validation,    // Metrics and fidelity verification
-    mythological-density      // Archetype encoding for semantic compression
-  ]
+  PATTERNS::[]  // No external patterns - behaviors defined in §2::BEHAVIOR
 
 §4::INTERACTION_RULES
   // HOLOGRAPHIC CONTRACT
