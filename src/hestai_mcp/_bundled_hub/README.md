@@ -21,9 +21,6 @@ These files are automatically managed by the MCP server and will be replaced on 
 # Your agent constitution (if binding as a role)
 .hestai-sys/agents/{your-role}.oct.md
 
-# Available commands
-.hestai-sys/library/commands/bind.md
-
 # Reusable skills
 .hestai-sys/library/skills/*/SKILL.md
 ```
@@ -51,7 +48,6 @@ Glob pattern: .hestai-sys/**/*.md
 │   └── workflow/     # North Stars and methodology
 ├── agents/           # Agent constitutions (one per role)
 ├── library/          # Reusable components
-│   ├── commands/     # Slash commands like /bind
 │   ├── skills/       # Reusable skill patterns
 │   ├── specs/        # Protocol specifications
 │   └── octave/       # OCTAVE format guide

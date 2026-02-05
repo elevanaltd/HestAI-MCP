@@ -124,7 +124,7 @@ def _normalize_tier_for_anchor(tier: str) -> str:
 def _bind_todos() -> list[dict[str, str]]:
     """Return the canonical 7-step bind TODO list.
 
-    This mirrors src/hestai_mcp/_bundled_hub/library/commands/bind.md.
+    This mirrors the /bind command ceremony steps.
     """
     return [
         {"content": "T0: TodoWrite", "status": "in_progress", "activeForm": "Sequencing"},

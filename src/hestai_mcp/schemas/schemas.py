@@ -1,11 +1,11 @@
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Literal
 
 from pydantic import UUID4, BaseModel, Field, field_validator
 
 
-class EventType(str, Enum):
+class EventType(StrEnum):
     SESSION_START = "session_start"
     CONTEXT_UPDATE = "context_update"
     ARTIFACT_SUBMIT = "artifact_submit"

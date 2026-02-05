@@ -154,5 +154,5 @@ GATE::pytest
         )
 
         # Verify reference to full documentation
-        assert ".hestai-sys/library/commands/bind.md" in result.guidance
+        assert "/bind command" in result.guidance
         assert "full ceremony documentation" in result.guidance
