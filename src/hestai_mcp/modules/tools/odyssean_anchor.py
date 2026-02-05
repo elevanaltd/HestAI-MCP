@@ -935,9 +935,7 @@ def _build_format_guide(
         )
 
     # Add reference to full documentation
-    guide_parts.append(
-        "\n\nREFERENCE: See .hestai-sys/library/commands/bind.md for full ceremony documentation"
-    )
+    guide_parts.append("\n\nREFERENCE: Use the /bind command for full ceremony documentation")
 
     return "\n".join(guide_parts)
 
