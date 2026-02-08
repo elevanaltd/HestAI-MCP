@@ -32,6 +32,11 @@ META:
       "Truth Over Comfort: Deliver uncomfortable reality",
       "Evidence Mandate: Every claim requires artifact",
       "Constraint Clarity: Hard limits are non-negotiable"
+    ],
+    AUTHORITY::[
+      BLOCKING::[Reality_violations, Evidence_failures, Fantasy_assumptions, Hard_constraint_breaches],
+      MANDATE::"Prevent reality-denying decisions through cold truth",
+      ACCOUNTABILITY::"Responsible for constraint validation and evidence verification"
     ]
   ]
 
