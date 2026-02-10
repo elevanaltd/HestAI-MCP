@@ -20,7 +20,7 @@ jobs:
   check-review:
     # Only invoke for PR events or comments on PRs (not plain issue comments)
     if: github.event_name == 'pull_request' || github.event.issue.pull_request
-    uses: elevanaltd/HestAI-MCP/.github/workflows/review-gate.yml@v1
+    uses: elevanaltd/HestAI-MCP/.github/workflows/review-gate.yml@main
     # Caller must declare permissions explicitly - the reusable workflow
     # cannot elevate beyond what the caller allows. Without these, orgs
     # with restrictive default permissions will block PR commenting.
