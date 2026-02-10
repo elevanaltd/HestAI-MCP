@@ -19,4 +19,5 @@ on:
 jobs:
   check-review:
     uses: elevanaltd/HestAI-MCP/.github/workflows/review-gate.yml@v1
-    secrets: inherit
+    with:
+      pr_number: ${{ github.event.pull_request.number || github.event.issue.number }}

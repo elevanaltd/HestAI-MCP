@@ -17,6 +17,11 @@ on:
   issue_comment:
     types: [created, edited]
   workflow_call:
+    inputs:
+      pr_number:
+        description: 'PR number from the calling workflow'
+        required: true
+        type: string
 
 jobs:
   check-review:
@@ -70,7 +75,9 @@ jobs:
       - name: Get PR Number
         id: pr
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
+          if [ -n "${{ inputs.pr_number }}" ]; then
+            echo "number=${{ inputs.pr_number }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
             echo "number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
           else
             # For issue_comment events on PRs
@@ -84,15 +91,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           CI: true
           PR_NUMBER: ${{ steps.pr.outputs.number }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
           # Universal PR checkout - works for both same-repo and fork PRs
-          PR_NUMBER="${{ steps.pr.outputs.number }}"
 
           # Get base ref for comparison
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BASE_REF="${{ github.event.pull_request.base.ref }}"
+          if [ "$EVENT_NAME" = "pull_request" ] || [ -n "$PR_BASE_REF" ]; then
+            BASE_REF="$PR_BASE_REF"
           else
-            # For issue_comment events, fetch PR details via API
+            # For issue_comment or workflow_call events, fetch PR details via API
             PR_DATA=$(gh pr view "$PR_NUMBER" --json baseRefName)
             BASE_REF=$(echo "$PR_DATA" | jq -r '.baseRefName')
           fi
