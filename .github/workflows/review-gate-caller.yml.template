@@ -1,0 +1,32 @@
+# Review Gate - Governance Socket
+# Copy this file to .github/workflows/review-gate.yml in your repo.
+# Source: https://github.com/elevanaltd/HestAI-MCP
+#
+# This delegates PR review-gate enforcement to the reusable workflow
+# hosted in HestAI-MCP. The reusable workflow will:
+#   - Checkout your repo and the review-gate tooling
+#   - Determine review tier based on changed files
+#   - Check for required approval comments on the PR
+#   - Post a status comment on the PR
+name: Review Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  issue_comment:
+    types: [created, edited]
+
+jobs:
+  check-review:
+    # Only invoke for PR events or comments on PRs (not plain issue comments)
+    if: github.event_name == 'pull_request' || github.event.issue.pull_request
+    uses: elevanaltd/HestAI-MCP/.github/workflows/review-gate.yml@v1
+    # Caller must declare permissions explicitly - the reusable workflow
+    # cannot elevate beyond what the caller allows. Without these, orgs
+    # with restrictive default permissions will block PR commenting.
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    with:
+      pr_number: ${{ github.event.pull_request.number || github.event.issue.number }}
