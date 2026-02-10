@@ -1,6 +1,13 @@
-# HestAI Review Gate v2.0.0
+# HestAI Review Gate v3.0.0 - Governance Socket
 # Source: https://github.com/elevanaltd/HestAI-MCP
-# Last updated: 2026-01-19 (SECURITY: fail-closed error handling)
+# Last updated: 2026-02-10 (Governance Socket: reusable workflow_call support)
+#
+# This workflow runs review validation for PRs. It supports two modes:
+#   1. LOCAL:  Triggered directly by HestAI-MCP's own PRs (pull_request / issue_comment)
+#   2. REMOTE: Called by other repos via workflow_call (Governance Socket pattern)
+#
+# For consuming repos, copy review-gate-caller.yml.template to your
+# .github/workflows/review-gate.yml - see that file for details.
 
 name: Review Gate
 
@@ -9,12 +16,17 @@ on:
     types: [opened, synchronize, reopened, edited]
   issue_comment:
     types: [created, edited]
+  workflow_call:
 
 jobs:
   check-review:
     runs-on: ubuntu-latest
     # Only run on PR comments or PR events
-    if: github.event_name == 'pull_request' || github.event.issue.pull_request
+    # workflow_call does not set issue_comment context, so we also allow it through
+    if: >-
+      github.event_name == 'pull_request'
+      || github.event_name == 'workflow_call'
+      || github.event.issue.pull_request
 
     # Required for PR commenting
     permissions:
@@ -23,6 +35,29 @@ jobs:
       issues: write
 
     steps:
+      # --- Determine execution context ---
+      - name: Detect execution context
+        id: context
+        run: |
+          if [ "${{ github.repository }}" = "elevanaltd/HestAI-MCP" ]; then
+            echo "mode=local" >> $GITHUB_OUTPUT
+            echo "script_path=scripts/validate_review.py" >> $GITHUB_OUTPUT
+          else
+            echo "mode=remote" >> $GITHUB_OUTPUT
+            echo "script_path=.review-gate-tools/scripts/validate_review.py" >> $GITHUB_OUTPUT
+          fi
+
+      # --- Cross-repo: fetch review-gate tooling from HestAI-MCP ---
+      - name: Checkout review-gate tooling
+        if: steps.context.outputs.mode == 'remote'
+        uses: actions/checkout@v4
+        with:
+          repository: elevanaltd/HestAI-MCP
+          path: .review-gate-tools
+          sparse-checkout: scripts/validate_review.py
+          sparse-checkout-cone-mode: false
+
+      # --- Checkout the target repo (caller or self) ---
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -74,9 +109,12 @@ jobs:
           git fetch origin "refs/pull/$PR_NUMBER/head:pr-$PR_NUMBER"
           git checkout "pr-$PR_NUMBER"
 
-          # Run validation and capture output
+          # Run validation using context-appropriate script path
+          SCRIPT_PATH="${{ steps.context.outputs.script_path }}"
+          echo "Running: python3 $SCRIPT_PATH"
+
           set +e  # Don't exit on error
-          OUTPUT=$(python3 scripts/validate_review.py 2>&1)
+          OUTPUT=$(python3 "$SCRIPT_PATH" 2>&1)
           EXIT_CODE=$?
           set -e
 
