@@ -52,7 +52,17 @@ jobs:
             echo "script_path=.review-gate-tools/scripts/validate_review.py" >> $GITHUB_OUTPUT
           fi
 
+      # --- Checkout the target repo (caller or self) ---
+      # NOTE: This MUST come before the tools checkout below, because
+      # actions/checkout with clean:true (default) runs git clean -ffdx
+      # which would delete any previously checked-out untracked directories.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       # --- Cross-repo: fetch review-gate tooling from HestAI-MCP ---
+      # Checked out into a subdirectory of the already-checked-out repo.
+      # Must come AFTER the target repo checkout to survive git clean.
       - name: Checkout review-gate tooling
         if: steps.context.outputs.mode == 'remote'
         uses: actions/checkout@v4
@@ -61,11 +71,6 @@ jobs:
           path: .review-gate-tools
           sparse-checkout: scripts/validate_review.py
           sparse-checkout-cone-mode: false
-
-      # --- Checkout the target repo (caller or self) ---
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v4
