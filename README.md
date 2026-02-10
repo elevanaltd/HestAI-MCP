@@ -23,10 +23,13 @@ HestAI-MCP treats system governance as **installed software**:
 ```
 YOUR PROJECT (using HestAI)
 ├── .hestai-sys/              # SYSTEM (read-only, injected by MCP)
-│   ├── README.md            # ← Agents: Read this for governance access!
+│   ├── CONSTITUTION.md       # Immutable laws
 │   ├── governance/           # Rules, North Stars
-│   ├── agents/               # Agent templates
-│   └── library/              # Reference materials (OCTAVE guide, etc)
+│   ├── library/
+│   │   ├── agents/           # Agent definitions
+│   │   ├── skills/           # Capability definitions
+│   │   └── patterns/         # Reusable solution patterns
+│   └── templates/            # Document templates
 │
 ├── .hestai/                  # PRODUCT (your project's context)
 │   ├── context/              # Living state (PROJECT-CONTEXT, etc)
@@ -66,13 +69,14 @@ For detailed architecture, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## MCP Tools
 
-| Tool | Purpose |
-|------|---------|
-| `clock_in` | Start session, load context |
-| `clock_out` | End session, compress to OCTAVE |
-| `odyssean_anchor` | Validate agent identity |
-| `document_submit` | Route docs to correct location |
-| `context_update` | Update context with conflict resolution |
+| Tool | Purpose | Status |
+|------|---------|--------|
+| `clock_in` | Start session, load context | Implemented |
+| `clock_out` | End session, compress to OCTAVE | Implemented |
+| `odyssean_anchor` | Validate agent identity (RAPH Vector) | Implemented |
+| `bind` | Lightweight agent binding bootstrap | Implemented |
+| `document_submit` | Route docs to correct location | Planned (Phase 4) |
+| `context_update` | Update context with conflict resolution | Planned (Phase 4) |
 
 ## Documentation Format
 
@@ -95,7 +99,7 @@ For detailed architecture, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ```bash
 # Clone and install
-git clone https://github.com/your-org/hestai-mcp.git
+git clone https://github.com/elevanaltd/HestAI-MCP.git
 cd hestai-mcp
 pip install -e ".[dev]"
 
@@ -103,7 +107,7 @@ pip install -e ".[dev]"
 pytest
 
 # Check quality
-ruff check . && mypy src/ && black --check .
+ruff check src tests scripts && mypy src && black --check src tests scripts
 ```
 
 ### MCP Configuration
@@ -145,12 +149,13 @@ Documentation placement is governed by rules injected to `.hestai-sys/governance
 
 - ✅ Phase 0-2: Foundation, porting, MCP server
 - ✅ Phase 2.5: Hub architecture, bundled governance
+- ✅ Odyssean Anchor: Agent identity binding (ADR-0036)
+- ✅ Clock tools: Session lifecycle with AI synthesis
 - 🚧 Phase 3: Single writer tools (document_submit, context_update)
-- 🚧 Phase 4: Governance injection at runtime
+- 🚧 Phase 5: Fractal refactor and modularization (ADR-0184)
 
 ## Related
 
-- [OCTAVE](https://github.com/your-org/octave) - Compression format specification
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - Detailed architecture
 
 ## License
