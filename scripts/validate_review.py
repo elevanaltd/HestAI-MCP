@@ -114,9 +114,12 @@ def _matches_approval_pattern(text: str, prefix: str, keyword: str) -> bool:
       - 'CRS  APPROVED' (extra whitespace)
       - 'IL SELF-REVIEWED:' and 'IL (Claude): SELF-REVIEWED:'
 
-    The regex pattern is: {prefix}\\s*(\\([^)]*\\)\\s*:?\\s*)?{keyword}
+    Uses a word boundary (\\b) after the keyword to prevent substring false
+    positives (e.g., 'APPROVEDLY' must not match as 'APPROVED').
+
+    The regex pattern is: {prefix}\\s*(\\([^)]*\\)\\s*:?\\s*)?{keyword}\\b
     """
-    pattern = rf"{re.escape(prefix)}\s*(\([^)]*\)\s*:?\s*)?{re.escape(keyword)}"
+    pattern = rf"{re.escape(prefix)}\s*(\([^)]*\)\s*:?\s*)?{re.escape(keyword)}\b"
     return bool(re.search(pattern, text))
 
 

@@ -576,3 +576,74 @@ class TestFlexiblePatternMatching:
 
         approved, message = validate_review.check_pr_comments("TIER_2_CRS")
         assert approved is True, "Original exact format must continue to work"
+
+
+@pytest.mark.behavior
+class TestSubstringFalsePositivePrevention:
+    """Regression tests for CRS MEDIUM finding: keyword substring false positive.
+
+    The keyword 'APPROVED' could match as a substring of longer words like
+    'APPROVEDLY' or 'APPROVEDISH'. The approval regex must use word boundaries
+    after the keyword to prevent such false positives. Note: prefix substrings
+    like 'DISAPPROVED' are already prevented by the regex structure (the prefix
+    must be followed by whitespace then the keyword), but suffix substrings
+    require an explicit word boundary.
+    """
+
+    def test_approved_suffix_word_does_not_match(self):
+        """REGRESSION: 'CRS APPROVEDLY' must NOT match as 'CRS APPROVED'."""
+        result = validate_review._matches_approval_pattern(
+            "CRS APPROVEDLY noted", "CRS", "APPROVED"
+        )
+        assert (
+            result is False
+        ), "APPROVEDLY must not match as APPROVED - suffix substring false positive"
+
+    def test_approved_suffix_compound_does_not_match(self):
+        """REGRESSION: 'CRS APPROVEDISH' must NOT match as approval."""
+        result = validate_review._matches_approval_pattern(
+            "CRS APPROVEDISH maybe", "CRS", "APPROVED"
+        )
+        assert (
+            result is False
+        ), "APPROVEDISH must not match as APPROVED - suffix substring false positive"
+
+    def test_disapproved_does_not_match_as_approval(self):
+        """REGRESSION: 'CRS DISAPPROVED' must NOT match as 'CRS APPROVED'."""
+        result = validate_review._matches_approval_pattern(
+            "CRS DISAPPROVED: This change has issues", "CRS", "APPROVED"
+        )
+        assert result is False, "DISAPPROVED must not match as APPROVED"
+
+    def test_disapproved_with_parenthetical_does_not_match(self):
+        """REGRESSION: 'CRS (Gemini): DISAPPROVED' must NOT match as approval."""
+        result = validate_review._matches_approval_pattern(
+            "CRS (Gemini): DISAPPROVED - Rejected", "CRS", "APPROVED"
+        )
+        assert result is False, "Parenthetical DISAPPROVED must not match as APPROVED"
+
+    def test_approved_still_matches_after_fix(self):
+        """Sanity check: 'CRS APPROVED' must still match after word boundary fix."""
+        result = validate_review._matches_approval_pattern(
+            "CRS APPROVED: Logic correct", "CRS", "APPROVED"
+        )
+        assert result is True, "APPROVED must still match after word boundary fix"
+
+    def test_approved_with_colon_suffix_still_matches(self):
+        """Sanity check: 'APPROVED:' (with colon) must still match with word boundary."""
+        result = validate_review._matches_approval_pattern(
+            "CRS APPROVED: tests pass", "CRS", "APPROVED"
+        )
+        assert result is True, "APPROVED followed by colon must still match"
+
+    def test_approved_at_end_of_line_still_matches(self):
+        """Sanity check: 'CRS APPROVED' at end of string must still match."""
+        result = validate_review._matches_approval_pattern("CRS APPROVED", "CRS", "APPROVED")
+        assert result is True, "APPROVED at end of string must still match"
+
+    def test_ce_disapproved_does_not_match(self):
+        """REGRESSION: 'CE DISAPPROVED' must NOT match as 'CE APPROVED'."""
+        result = validate_review._matches_approval_pattern(
+            "CE DISAPPROVED: Architecture concerns", "CE", "APPROVED"
+        )
+        assert result is False, "CE DISAPPROVED must not match as CE APPROVED"
