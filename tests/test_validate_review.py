@@ -304,7 +304,7 @@ class TestPRCommentValidation:
         # Mock gh CLI to return comments without self-review
         def mock_run(cmd, *args, **kwargs):
             return MagicMock(
-                stdout=json.dumps({"comments": [{"body": "Some other comment"}]}),
+                stdout=json.dumps({"body": "", "comments": [{"body": "Some other comment"}]}),
                 returncode=0,
                 check=lambda: None,
             )
@@ -322,7 +322,7 @@ class TestPRCommentValidation:
         def mock_run(cmd, *args, **kwargs):
             return MagicMock(
                 stdout=json.dumps(
-                    {"comments": [{"body": "CRS APPROVED: Logic correct, tests pass"}]}
+                    {"body": "", "comments": [{"body": "CRS APPROVED: Logic correct, tests pass"}]}
                 ),
                 returncode=0,
                 check=lambda: None,
@@ -340,7 +340,9 @@ class TestPRCommentValidation:
         # Mock gh CLI to return comments with only CRS approval
         def mock_run(cmd, *args, **kwargs):
             return MagicMock(
-                stdout=json.dumps({"comments": [{"body": "CRS APPROVED: Logic correct"}]}),
+                stdout=json.dumps(
+                    {"body": "", "comments": [{"body": "CRS APPROVED: Logic correct"}]}
+                ),
                 returncode=0,
                 check=lambda: None,
             )
@@ -350,3 +352,227 @@ class TestPRCommentValidation:
         approved, message = validate_review.check_pr_comments("TIER_3_FULL")
         assert approved is False
         assert "CE APPROVED" in message
+
+
+@pytest.mark.behavior
+class TestPRBodyScanning:
+    """Validate that PR body is scanned for approval patterns in addition to comments."""
+
+    def test_crs_approval_in_pr_body_is_accepted(self, ci_environment, monkeypatch):
+        """Approval pattern in PR body should satisfy the review gate."""
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "## Review Summary\nCRS APPROVED: Logic correct, tests pass",
+                        "comments": [],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments("TIER_2_CRS")
+        assert approved is True, "CRS approval in PR body should be accepted"
+        assert "CRS approval found" in message
+
+    def test_self_review_in_pr_body_is_accepted(self, ci_environment, monkeypatch):
+        """Self-review pattern in PR body should satisfy TIER_1_SELF."""
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "IL SELF-REVIEWED: Small config change",
+                        "comments": [],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments("TIER_1_SELF")
+        assert approved is True, "Self-review in PR body should be accepted"
+        assert "Self-review found" in message
+
+    def test_tier_3_approvals_split_between_body_and_comments(self, ci_environment, monkeypatch):
+        """TIER_3: CRS approval in body + CE approval in comment should pass."""
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "CRS APPROVED: Architecture sound",
+                        "comments": [{"body": "CE APPROVED: Performance acceptable"}],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments("TIER_3_FULL")
+        assert approved is True, "Approvals split between body and comments should pass"
+        assert "Both CRS and CE approvals found" in message
+
+    def test_gh_cli_fetches_body_and_comments(self, ci_environment, monkeypatch):
+        """The gh CLI call should request both 'body' and 'comments' fields."""
+        captured_cmds = []
+
+        def mock_run(cmd, *args, **kwargs):
+            captured_cmds.append(cmd)
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [{"body": "CRS APPROVED: ok"}],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        validate_review.check_pr_comments("TIER_2_CRS")
+
+        # Verify gh pr view fetches both body and comments
+        assert len(captured_cmds) > 0
+        gh_cmd = captured_cmds[0]
+        assert (
+            "comments,body" in gh_cmd or "body,comments" in gh_cmd
+        ), f"gh CLI should fetch both comments and body, got: {gh_cmd}"
+
+    def test_empty_pr_body_still_checks_comments(self, ci_environment, monkeypatch):
+        """Empty or null PR body should not break comment checking."""
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": None,
+                        "comments": [{"body": "CRS APPROVED: Looks good"}],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments("TIER_2_CRS")
+        assert approved is True, "Null PR body should not block comment-based approval"
+
+
+@pytest.mark.behavior
+class TestFlexiblePatternMatching:
+    """Validate flexible approval pattern matching beyond exact string match."""
+
+    def test_crs_parenthetical_model_format(self, ci_environment, monkeypatch):
+        """'CRS (Gemini): APPROVED' format should be recognized."""
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "CRS (Gemini): APPROVED - Logic correct, tests pass",
+                        "comments": [],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments("TIER_2_CRS")
+        assert approved is True, "'CRS (Gemini): APPROVED' should be recognized"
+
+    def test_ce_parenthetical_model_format(self, ci_environment, monkeypatch):
+        """'CE (Claude): APPROVED' format should be recognized."""
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [
+                            {"body": "CRS APPROVED: ok"},
+                            {"body": "CE (Claude): APPROVED - Architecture sound"},
+                        ],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments("TIER_3_FULL")
+        assert approved is True, "'CE (Claude): APPROVED' should be recognized"
+
+    def test_crs_with_extra_whitespace(self, ci_environment, monkeypatch):
+        """Patterns with varied whitespace should still match."""
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "CRS  APPROVED: Logic correct",
+                        "comments": [],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments("TIER_2_CRS")
+        assert approved is True, "CRS APPROVED with extra whitespace should match"
+
+    def test_il_parenthetical_model_format(self, ci_environment, monkeypatch):
+        """'IL (Claude): SELF-REVIEWED' format should be recognized."""
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "IL (Claude): SELF-REVIEWED: Quick fix",
+                        "comments": [],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments("TIER_1_SELF")
+        assert approved is True, "'IL (Claude): SELF-REVIEWED' should be recognized"
+
+    def test_original_exact_format_still_works(self, ci_environment, monkeypatch):
+        """Original exact format 'CRS APPROVED:' must continue to work."""
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [{"body": "CRS APPROVED: Logic correct, tests pass"}],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments("TIER_2_CRS")
+        assert approved is True, "Original exact format must continue to work"
