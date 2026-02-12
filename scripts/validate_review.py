@@ -110,16 +110,28 @@ def _matches_approval_pattern(text: str, prefix: str, keyword: str) -> bool:
 
     Matches patterns like:
       - 'CRS APPROVED:' (original exact format)
-      - 'CRS (Gemini): APPROVED' (parenthetical model annotation)
+      - 'CRS (Gemini): APPROVED' (parenthetical model annotation with colon)
+      - 'CRS (Gemini) \u2014 APPROVED' (parenthetical with em dash separator)
+      - 'CRS (Gemini) \u2013 APPROVED' (parenthetical with en dash separator)
+      - 'CRS (Gemini) - APPROVED' (parenthetical with hyphen separator)
+      - 'CRS \u2014 APPROVED' (em dash separator, no parenthetical)
+      - 'CRS: APPROVED' (colon separator, no parenthetical)
       - 'CRS  APPROVED' (extra whitespace)
       - 'IL SELF-REVIEWED:' and 'IL (Claude): SELF-REVIEWED:'
+
+    The separator between the prefix (or closing paren) and keyword accepts any
+    mix of whitespace, colons, em dashes (U+2014), en dashes (U+2013), and
+    hyphens.
 
     Uses a word boundary (\\b) after the keyword to prevent substring false
     positives (e.g., 'APPROVEDLY' must not match as 'APPROVED').
 
-    The regex pattern is: {prefix}\\s*(\\([^)]*\\)\\s*:?\\s*)?{keyword}\\b
+    The regex pattern is:
+      {prefix}[\\s:\\u2014\\u2013\\-]*(\\([^)]*\\)[\\s:\\u2014\\u2013\\-]*)?{keyword}\\b
     """
-    pattern = rf"{re.escape(prefix)}\s*(\([^)]*\)\s*:?\s*)?{re.escape(keyword)}\b"
+    # Flexible separator: whitespace, colon, em dash, en dash, or hyphen
+    sep = r"[\s:\u2014\u2013\-]*"
+    pattern = rf"{re.escape(prefix)}{sep}(\([^)]*\){sep})?{re.escape(keyword)}\b"
     return bool(re.search(pattern, text))
 
 

@@ -815,3 +815,106 @@ class TestGoKeywordApproval:
         approved, message = validate_review.check_pr_comments("TIER_2_CRS")
         assert approved is False
         assert "GO" in message, "Error message should mention GO as an accepted format"
+
+
+@pytest.mark.behavior
+class TestFlexibleSeparatorMatching:
+    """Validate that em dash, en dash, hyphen, and colon separators are accepted.
+
+    Real-world approval text uses varied separators between the prefix/parenthetical
+    and the keyword. For example:
+      - 'CRS (Gemini) \u2014 APPROVED (98/100)' (em dash U+2014)
+      - 'CE (Codex) \u2014 APPROVED (GO)' (em dash)
+      - 'CRS (Gemini) \u2013 APPROVED' (en dash U+2013)
+      - 'CRS (Gemini) - APPROVED' (hyphen)
+      - 'CRS \u2014 APPROVED' (em dash, no parenthetical)
+      - 'CRS: APPROVED' (colon, no parenthetical)
+
+    The regex must handle any mix of whitespace, colons, and dashes as separators.
+    """
+
+    # --- Em dash separator (the actual failing case from issue #213) ---
+
+    def test_crs_em_dash_with_parenthetical_approved(self):
+        """'CRS (Gemini) \u2014 APPROVED (98/100)' must match -- the real-world failing case."""
+        result = validate_review._matches_approval_pattern(
+            "CRS (Gemini) \u2014 APPROVED (98/100)", "CRS", "APPROVED"
+        )
+        assert result is True, "Em dash separator with parenthetical must match"
+
+    def test_ce_em_dash_with_parenthetical_approved_go(self):
+        """'CE (Codex) \u2014 APPROVED (GO)' must match for APPROVED keyword."""
+        result = validate_review._matches_approval_pattern(
+            "CE (Codex) \u2014 APPROVED (GO)", "CE", "APPROVED"
+        )
+        assert result is True, "Em dash separator CE with parenthetical must match"
+
+    def test_crs_em_dash_no_parenthetical(self):
+        """'CRS \u2014 APPROVED' must match (no model annotation, em dash separator)."""
+        result = validate_review._matches_approval_pattern("CRS \u2014 APPROVED", "CRS", "APPROVED")
+        assert result is True, "Em dash separator without parenthetical must match"
+
+    def test_crs_em_dash_go_keyword(self):
+        """'CRS (Gemini) \u2014 GO (9/10)' must match for GO keyword."""
+        result = validate_review._matches_approval_pattern(
+            "CRS (Gemini) \u2014 GO (9/10)", "CRS", "GO"
+        )
+        assert result is True, "Em dash separator with GO keyword must match"
+
+    # --- En dash separator (defensive) ---
+
+    def test_crs_en_dash_with_parenthetical(self):
+        """'CRS (Gemini) \u2013 APPROVED' must match (en dash separator)."""
+        result = validate_review._matches_approval_pattern(
+            "CRS (Gemini) \u2013 APPROVED", "CRS", "APPROVED"
+        )
+        assert result is True, "En dash separator with parenthetical must match"
+
+    def test_crs_en_dash_no_parenthetical(self):
+        """'CRS \u2013 APPROVED' must match (en dash, no parenthetical)."""
+        result = validate_review._matches_approval_pattern("CRS \u2013 APPROVED", "CRS", "APPROVED")
+        assert result is True, "En dash separator without parenthetical must match"
+
+    # --- Hyphen separator (defensive) ---
+
+    def test_crs_hyphen_with_parenthetical(self):
+        """'CRS (Gemini) - APPROVED' must match (hyphen separator)."""
+        result = validate_review._matches_approval_pattern(
+            "CRS (Gemini) - APPROVED", "CRS", "APPROVED"
+        )
+        assert result is True, "Hyphen separator with parenthetical must match"
+
+    def test_crs_hyphen_no_parenthetical(self):
+        """'CRS - APPROVED' must match (hyphen, no parenthetical)."""
+        result = validate_review._matches_approval_pattern("CRS - APPROVED", "CRS", "APPROVED")
+        assert result is True, "Hyphen separator without parenthetical must match"
+
+    # --- Colon separator without parenthetical ---
+
+    def test_crs_colon_no_parenthetical(self):
+        """'CRS: APPROVED' must match (colon separator, no parenthetical)."""
+        result = validate_review._matches_approval_pattern("CRS: APPROVED", "CRS", "APPROVED")
+        assert result is True, "Colon separator without parenthetical must match"
+
+    # --- IL / SELF-REVIEWED with dash separators ---
+
+    def test_il_em_dash_self_reviewed(self):
+        """'IL (Claude) \u2014 SELF-REVIEWED' must match."""
+        result = validate_review._matches_approval_pattern(
+            "IL (Claude) \u2014 SELF-REVIEWED: quick fix", "IL", "SELF-REVIEWED"
+        )
+        assert result is True, "IL with em dash separator must match SELF-REVIEWED"
+
+    # --- Negative cases: separators must not cause false positives ---
+
+    def test_approved_suffix_with_em_dash_does_not_false_positive(self):
+        """'CRS (Gemini) \u2014 APPROVEDLY' must NOT match (word boundary still enforced)."""
+        result = validate_review._matches_approval_pattern(
+            "CRS (Gemini) \u2014 APPROVEDLY noted", "CRS", "APPROVED"
+        )
+        assert result is False, "Word boundary must still prevent suffix false positives"
+
+    def test_going_with_em_dash_does_not_false_positive(self):
+        """'CRS \u2014 GOING' must NOT match as GO."""
+        result = validate_review._matches_approval_pattern("CRS \u2014 GOING ahead", "CRS", "GO")
+        assert result is False, "Word boundary must still prevent GOING matching as GO"
