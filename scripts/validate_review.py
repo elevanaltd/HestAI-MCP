@@ -118,21 +118,31 @@ def _matches_approval_pattern(text: str, prefix: str, keyword: str) -> bool:
       - 'CRS: APPROVED' (colon separator, no parenthetical)
       - 'CRS  APPROVED' (extra whitespace)
       - 'IL SELF-REVIEWED:' and 'IL (Claude): SELF-REVIEWED:'
+      - '| CRS | Gemini | **APPROVED** |' (markdown table with bold)
 
-    The separator between the prefix (or closing paren) and keyword accepts any
-    mix of whitespace, colons, em dashes (U+2014), en dashes (U+2013), and
-    hyphens.
+    Uses word boundaries around both prefix and keyword to prevent false
+    positives (e.g., 'XCRS' must not match 'CRS', 'APPROVEDLY' must not
+    match 'APPROVED').
 
-    Uses a word boundary (\\b) after the keyword to prevent substring false
-    positives (e.g., 'APPROVEDLY' must not match as 'APPROVED').
-
-    The regex pattern is:
-      {prefix}[\\s:\\u2014\\u2013\\-]*(\\([^)]*\\)[\\s:\\u2014\\u2013\\-]*)?{keyword}\\b
+    Strips markdown bold/italic formatting before matching, then checks
+    each line for both tokens in order with word boundaries.
     """
-    # Flexible separator: whitespace, colon, em dash, en dash, or hyphen
-    sep = r"[\s:\u2014\u2013\-]*"
-    pattern = rf"{re.escape(prefix)}{sep}(\([^)]*\){sep})?{re.escape(keyword)}\b"
-    return bool(re.search(pattern, text))
+    # Strip markdown bold/italic markers so **APPROVED** matches as APPROVED
+    cleaned = re.sub(r"\*{1,2}([^*]+)\*{1,2}", r"\1", text)
+
+    prefix_re = re.compile(rf"\b{re.escape(prefix)}\b")
+    keyword_re = re.compile(rf"\b{re.escape(keyword)}\b")
+
+    for line in cleaned.splitlines():
+        prefix_match = prefix_re.search(line)
+        if not prefix_match:
+            continue
+        # Keyword must appear after the prefix on the same line
+        keyword_match = keyword_re.search(line, prefix_match.end())
+        if keyword_match:
+            return True
+
+    return False
 
 
 def _has_approval(texts: list[str], prefix: str, keyword: str) -> bool:
