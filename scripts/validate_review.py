@@ -158,11 +158,17 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
         pr_data = json.loads(result.stdout)
 
         # Collect all searchable text: PR body + comment bodies
+        # Exclude bot status comments to prevent self-referencing approval
+        # (the bot's guidance text contains "CRS APPROVED:" which would falsely match)
         searchable_texts: list[str] = []
         pr_body = pr_data.get("body")
         if pr_body:
             searchable_texts.append(pr_body)
-        searchable_texts.extend(c["body"] for c in pr_data.get("comments", []))
+        searchable_texts.extend(
+            c["body"]
+            for c in pr_data.get("comments", [])
+            if "<!-- review-gate-status -->" not in c["body"]
+        )
 
         # Check for required approvals based on tier
         if tier == "TIER_1_SELF":
