@@ -105,8 +105,36 @@ def determine_review_tier(files: list[dict[str, Any]]) -> tuple[str, str]:
     return "TIER_2_CRS", "CRS review required - default tier"
 
 
+def _matches_approval_pattern(text: str, prefix: str, keyword: str) -> bool:
+    """Check if text matches a flexible approval pattern.
+
+    Matches patterns like:
+      - 'CRS APPROVED:' (original exact format)
+      - 'CRS (Gemini): APPROVED' (parenthetical model annotation)
+      - 'CRS  APPROVED' (extra whitespace)
+      - 'IL SELF-REVIEWED:' and 'IL (Claude): SELF-REVIEWED:'
+
+    Uses a word boundary (\\b) after the keyword to prevent substring false
+    positives (e.g., 'APPROVEDLY' must not match as 'APPROVED').
+
+    The regex pattern is: {prefix}\\s*(\\([^)]*\\)\\s*:?\\s*)?{keyword}\\b
+    """
+    pattern = rf"{re.escape(prefix)}\s*(\([^)]*\)\s*:?\s*)?{re.escape(keyword)}\b"
+    return bool(re.search(pattern, text))
+
+
+def _has_approval(texts: list[str], prefix: str, keyword: str) -> bool:
+    """Check if any text in the list matches the approval pattern."""
+    return any(_matches_approval_pattern(t, prefix, keyword) for t in texts)
+
+
 def check_pr_comments(tier: str) -> tuple[bool, str]:
-    """Check if required review comments exist in PR."""
+    """Check if required review comments and PR body contain approval patterns.
+
+    Scans both PR comments and the PR description body for approval patterns.
+    Supports flexible matching including parenthetical model annotations
+    (e.g., 'CRS (Gemini): APPROVED') in addition to the original exact format.
+    """
 
     # In pre-commit context, we can't check PR comments
     # This would be called from CI with PR number
@@ -119,31 +147,37 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
 
     print(f"   Checking PR #{pr_number} for review comments...")
 
-    # Use gh CLI to get comments
+    # Use gh CLI to get comments and PR body
     try:
         result = subprocess.run(
-            ["gh", "pr", "view", pr_number, "--json", "comments"],
+            ["gh", "pr", "view", pr_number, "--json", "comments,body"],
             capture_output=True,
             text=True,
             check=True,
         )
-        comments_data = json.loads(result.stdout)
-        comments = [c["body"] for c in comments_data.get("comments", [])]
+        pr_data = json.loads(result.stdout)
+
+        # Collect all searchable text: PR body + comment bodies
+        searchable_texts: list[str] = []
+        pr_body = pr_data.get("body")
+        if pr_body:
+            searchable_texts.append(pr_body)
+        searchable_texts.extend(c["body"] for c in pr_data.get("comments", []))
 
         # Check for required approvals based on tier
         if tier == "TIER_1_SELF":
-            if any("IL SELF-REVIEWED:" in c for c in comments):
+            if _has_approval(searchable_texts, "IL", "SELF-REVIEWED"):
                 return True, "✓ Self-review found"
             return False, "❌ Missing: IL SELF-REVIEWED comment"
 
         elif tier == "TIER_2_CRS":
-            if any("CRS APPROVED:" in c for c in comments):
+            if _has_approval(searchable_texts, "CRS", "APPROVED"):
                 return True, "✓ CRS approval found"
             return False, "❌ Missing: CRS APPROVED comment"
 
         elif tier == "TIER_3_FULL":
-            has_crs = any("CRS APPROVED:" in c for c in comments)
-            has_ce = any("CE APPROVED:" in c for c in comments)
+            has_crs = _has_approval(searchable_texts, "CRS", "APPROVED")
+            has_ce = _has_approval(searchable_texts, "CE", "APPROVED")
 
             if has_crs and has_ce:
                 return True, "✓ Both CRS and CE approvals found"
