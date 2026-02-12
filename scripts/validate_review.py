@@ -128,6 +128,16 @@ def _has_approval(texts: list[str], prefix: str, keyword: str) -> bool:
     return any(_matches_approval_pattern(t, prefix, keyword) for t in texts)
 
 
+def _has_crs_approval(texts: list[str]) -> bool:
+    """Check if any text contains a CRS approval (APPROVED or GO)."""
+    return _has_approval(texts, "CRS", "APPROVED") or _has_approval(texts, "CRS", "GO")
+
+
+def _has_ce_approval(texts: list[str]) -> bool:
+    """Check if any text contains a CE approval (APPROVED or GO)."""
+    return _has_approval(texts, "CE", "APPROVED") or _has_approval(texts, "CE", "GO")
+
+
 def check_pr_comments(tier: str) -> tuple[bool, str]:
     """Check if required review comments and PR body contain approval patterns.
 
@@ -177,22 +187,22 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
             return False, "❌ Missing: IL SELF-REVIEWED comment"
 
         elif tier == "TIER_2_CRS":
-            if _has_approval(searchable_texts, "CRS", "APPROVED"):
+            if _has_crs_approval(searchable_texts):
                 return True, "✓ CRS approval found"
-            return False, "❌ Missing: CRS APPROVED comment"
+            return False, "❌ Missing: CRS APPROVED or CRS GO comment"
 
         elif tier == "TIER_3_FULL":
-            has_crs = _has_approval(searchable_texts, "CRS", "APPROVED")
-            has_ce = _has_approval(searchable_texts, "CE", "APPROVED")
+            has_crs = _has_crs_approval(searchable_texts)
+            has_ce = _has_ce_approval(searchable_texts)
 
             if has_crs and has_ce:
                 return True, "✓ Both CRS and CE approvals found"
 
             missing = []
             if not has_crs:
-                missing.append("CRS APPROVED")
+                missing.append("CRS APPROVED or CRS GO")
             if not has_ce:
-                missing.append("CE APPROVED")
+                missing.append("CE APPROVED or CE GO")
             return False, f"❌ Missing: {', '.join(missing)}"
 
     except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
