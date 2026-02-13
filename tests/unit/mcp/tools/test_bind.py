@@ -41,7 +41,7 @@ NEVER::[c,d]
     assert "T0::TodoWrite" in steps
     assert "T1::CONSTITUTION" in steps
     assert "mcp__hestai__clock_in" in steps
-    assert "mcp__hestai__odyssean_anchor" in steps
+    assert "mcp__odyssean-anchor__anchor_request" in steps
 
 
 @pytest.mark.unit

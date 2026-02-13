@@ -30,12 +30,4 @@ INTEGRATION_POINTS: tuple[IntegrationPointSpec, ...] = (
         contract_test_glob="tests/contracts/living_artifacts/test_*.py",
         integration_test_glob="tests/integration/living_artifacts/test_*.py",
     ),
-    IntegrationPointSpec(
-        point_id="odyssean_anchor",
-        stage="NOW",
-        reference_token="INTEGRATION_POINT::odyssean_anchor",
-        implementation_import="hestai_mcp.modules.tools.odyssean_anchor",
-        contract_test_glob="tests/contracts/odyssean_anchor/test_*.py",
-        integration_test_glob="tests/integration/odyssean_anchor/test_*.py",
-    ),
 )

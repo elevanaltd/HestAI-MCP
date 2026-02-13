@@ -2,7 +2,7 @@
 name: mcp-tools
 description: MCP tool implementation patterns for HestAI including tool structure, session tools, and shared utilities
 allowed-tools: "*"
-triggers: ["MCP tool", "clock_in", "clock_out", "odyssean_anchor", "mcp server", "tool implementation", "hestai context", "session management", "path_resolution", "fast_layer"]
+triggers: ["MCP tool", "clock_in", "clock_out", "bind", "mcp server", "tool implementation", "hestai context", "session management", "path_resolution", "fast_layer"]
 ---
 
 ===MCP_TOOLS===
@@ -39,10 +39,10 @@ META:
     PARAMS::[session_id,description?],
     RETURNS::[archive_path,learnings]
   ]
-  ODYSSEAN_ANCHOR::[
-    PURPOSE::"Validate agent identity binding (RAPH vector)",
-    PARAMS::[role,vector_candidate,session_id,working_dir,tier?],
-    RETURNS::[success,anchor,errors,guidance]
+  BIND::[
+    PURPOSE::"Bootstrap agent binding with low token usage",
+    PARAMS::[role,topic?,tier?,working_dir?],
+    RETURNS::[agent_file,skills,context_paths]
   ]
 
 §3::KEY_DIRECTORIES

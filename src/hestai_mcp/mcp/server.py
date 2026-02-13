@@ -4,7 +4,7 @@ HestAI MCP Server - Dual-Layer Context Architecture (ADR-0007).
 This MCP server provides context management tools for AI agents:
 - clock_in: Register session start and return context paths
 - clock_out: Archive session transcript with OCTAVE compression
-- odyssean_anchor: Validate and complete agent identity vector (RAPH Vector v4.0)
+- bind: Lightweight agent binding bootstrap
 - document_submit: Submit documents to .hestai/ (TODO - Phase 4)
 
 Architecture:
@@ -27,7 +27,6 @@ from mcp.types import TextContent, Tool
 from hestai_mcp.modules.tools.bind import bind
 from hestai_mcp.modules.tools.clock_in import clock_in_async, validate_working_dir
 from hestai_mcp.modules.tools.clock_out import clock_out
-from hestai_mcp.modules.tools.odyssean_anchor import odyssean_anchor
 
 # Load .env file for HESTAI_PROJECT_ROOT and other configuration
 # This must happen BEFORE bootstrap_system_governance() is called
@@ -403,47 +402,6 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
-            name="odyssean_anchor",
-            description=(
-                "Validate and complete agent identity vector (RAPH Vector v4.0). "
-                "Validates BIND, TENSION, COMMIT sections and injects ARM. "
-                "Returns validated anchor or retry guidance. "
-                "Implements OA-I5: Odyssean Identity Binding."
-            ),
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "role": {
-                        "type": "string",
-                        "description": "Expected role name (must match BIND.ROLE)",
-                    },
-                    "vector_candidate": {
-                        "type": "string",
-                        "description": "Agent's BIND+TENSION+COMMIT sections",
-                    },
-                    "session_id": {
-                        "type": "string",
-                        "description": "Session ID from clock_in for ARM injection",
-                    },
-                    "working_dir": {
-                        "type": "string",
-                        "description": "Project working directory path",
-                    },
-                    "tier": {
-                        "type": "string",
-                        "description": "Validation tier: quick, default, or deep",
-                        "default": "default",
-                    },
-                    "retry_count": {
-                        "type": "integer",
-                        "description": "Current retry attempt (0, 1, 2)",
-                        "default": 0,
-                    },
-                },
-                "required": ["role", "vector_candidate", "session_id", "working_dir"],
-            },
-        ),
-        Tool(
             name="bind",
             description=(
                 "Bootstrap agent binding with low token usage. "
@@ -557,37 +515,6 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         )
 
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
-
-    elif name == "odyssean_anchor":
-        import json
-
-        # Validate working_dir before any governance writes (fail-closed).
-        working_dir_path = validate_working_dir(arguments["working_dir"])
-        _validate_project_identity(working_dir_path)
-
-        # Ensure governance is present in the target working directory.
-        ensure_system_governance(working_dir_path)
-
-        anchor_result = odyssean_anchor(
-            role=arguments["role"],
-            vector_candidate=arguments["vector_candidate"],
-            session_id=arguments["session_id"],
-            working_dir=arguments["working_dir"],
-            tier=arguments.get("tier", "default"),
-            retry_count=arguments.get("retry_count", 0),
-        )
-
-        # Convert result dataclass to dict for JSON serialization
-        result_dict = {
-            "success": anchor_result.success,
-            "anchor": anchor_result.anchor,
-            "errors": anchor_result.errors,
-            "guidance": anchor_result.guidance,
-            "retry_count": anchor_result.retry_count,
-            "terminal": anchor_result.terminal,
-        }
-
-        return [TextContent(type="text", text=json.dumps(result_dict, indent=2))]
 
     elif name == "bind":
         import json
