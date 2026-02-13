@@ -81,7 +81,8 @@ META:
     system-orchestration,
     constitutional-enforcement,
     ho-mode,  // Critical lane discipline - prevents implementation drift
-    ho-orchestrate  // Essential for comprehensive system orchestration
+    ho-orchestrate,  // Essential for comprehensive system orchestration
+    subagent-rules  // Delegation patterns for Task() via oa-router
   ]
   PATTERNS::[
     mip-orchestration,          // Minimal Intervention for orchestration overhead
