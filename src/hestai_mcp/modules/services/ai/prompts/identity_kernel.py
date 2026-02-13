@@ -2,7 +2,7 @@
 
 This is the immutable identity core loaded for ALL AI operations within HestAI-MCP.
 It provides the "cognitive anchor" that ensures constitutional coherence across
-clock_in, clock_out, odyssean_anchor, and future tools.
+clock_in, clock_out, and future tools.
 
 Architecture Decision: debate 2026-01-02-context-steward-prompt-architecture
 - Identity Kernel: ~30 lines, WHO the agent IS

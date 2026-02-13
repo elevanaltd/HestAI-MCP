@@ -41,7 +41,6 @@ operations:
   clock_in_synthesis: synthesis   # Fast context generation on session start
   context_update: synthesis       # Context updates during session
   document_analysis: analysis     # Deeper document analysis
-  odyssean_anchor_validation: analysis  # Semantic validation of agent binding (Issue #131)
 
 # =============================================================================
 # TIMEOUT SETTINGS
@@ -72,27 +71,6 @@ timeouts:
 #
 # See full list: https://openrouter.ai/models
 #
-# =============================================================================
-# ODYSSEAN ANCHOR SEMANTIC VALIDATION (Issue #131)
-# =============================================================================
-# Optional AI-driven semantic validation for agent binding.
-# When enabled, validates that TENSION and COMMIT reflect genuine understanding.
-# Can be overridden via environment variables:
-#   HESTAI_OA_SEMANTIC_VALIDATION=true
-#   HESTAI_OA_SEMANTIC_FAIL_MODE=warn
-
-odyssean_anchor:
-  semantic_validation:
-    enabled: false              # Default off for backward compatibility
-    tier: analysis              # Which AI tier to use (synthesis/analysis/critical)
-    timeout_seconds: 15         # Max time for semantic validation
-    fail_mode: warn             # warn (log only) | block (reject bind)
-    checks:
-      cognition_appropriateness: true   # Is COGNITION type correct for role?
-      tension_relevance: true           # Do TENSIONs cite real constraints?
-      ctx_validity: true                # Do CTX paths reference actual files?
-      commit_feasibility: true          # Is COMMIT artifact achievable?
-
 # =============================================================================
 # ALTERNATIVE: SINGLE PROVIDER SETUP
 # =============================================================================

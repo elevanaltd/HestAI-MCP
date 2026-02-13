@@ -13,25 +13,16 @@ from hestai_mcp.modules.tools import (  # noqa: F401
     bind,
     clock_in,
     clock_out,
-    gating,
-    odyssean_anchor,
-    odyssean_anchor_semantic,
     shared,
 )
 
 # Create module alias for backward compatibility
 sys.modules["hestai_mcp.mcp.tools"] = _new_tools_module
 sys.modules["hestai_mcp.mcp.tools.shared"] = _new_tools_module.shared
-sys.modules["hestai_mcp.mcp.tools.odyssean_anchor_semantic"] = (
-    _new_tools_module.odyssean_anchor_semantic
-)
 
 __all__ = [
     "bind",
     "clock_in",
     "clock_out",
-    "gating",
-    "odyssean_anchor",
-    "odyssean_anchor_semantic",
     "shared",
 ]

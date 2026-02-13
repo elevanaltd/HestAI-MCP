@@ -113,11 +113,11 @@ def parse_arguments(args: list[str]) -> dict[str, Any]:
     return result
 
 
-def _normalize_tier_for_anchor(tier: str) -> str:
-    """Normalize bind tier to Odyssean Anchor tier names.
+def _normalize_tier(tier: str) -> str:
+    """Normalize bind tier names.
 
     bind tool historically used: quick | standard | deep
-    odyssean_anchor expects:      quick | default  | deep
+    Normalized form:             quick | default  | deep
     """
     if tier == "standard":
         return "default"
@@ -138,7 +138,7 @@ def _bind_todos() -> list[dict[str, str]]:
         {"content": "T2: clock_in + ARM", "status": "pending", "activeForm": "Context"},
         {"content": "T3: TENSION", "status": "pending", "activeForm": "Cognitive proof"},
         {"content": "T4: COMMIT", "status": "pending", "activeForm": "Contract"},
-        {"content": "T5: Odyssean Anchor", "status": "pending", "activeForm": "MCP validation"},
+        {"content": "T5: Anchor Ceremony", "status": "pending", "activeForm": "MCP validation"},
         {"content": "T6: Dashboard", "status": "pending", "activeForm": "Summary"},
     ]
 
@@ -154,7 +154,7 @@ def _build_command_steps(
 
     Intentionally minimal: no prose between steps.
     """
-    anchor_tier = _normalize_tier_for_anchor(tier)
+    anchor_tier = _normalize_tier(tier)
 
     todos_lines = ["TODOS::["]
     for i, t in enumerate(_bind_todos()):
@@ -167,7 +167,7 @@ def _build_command_steps(
     # Keep placeholders in-step (agent-authored steps: T3/T4)
     return "\n".join(
         [
-            "⚠️ AGENT INSTRUCTION: You must strictly follow this binding sequence.",
+            "AGENT INSTRUCTION: You must strictly follow this binding sequence.",
             "1. Create these TODOs using 'create_todo_list'.",
             "2. Execute T0-T6 sequentially.",
             "",
@@ -175,15 +175,14 @@ def _build_command_steps(
         + todos_lines
         + [
             "",
-            "T0::TodoWrite(TODOS)→mark_complete",
-            f'T1::CONSTITUTION→Read(".hestai-sys/library/agents/{role}.oct.md")→EXTRACT[COGNITION,ARCHETYPES,MUST[2],NEVER[2]]→SET_AUTHORITY[main→RESPONSIBLE[scope]|sub→DELEGATED[parent_session]]→EMIT',
-            f'T2::CLOCK_IN→mcp__hestai__clock_in(role:"{role}",working_dir:"{working_dir}",focus:"{focus}")→CAPTURE[SESSION_ID,CONTEXT_PATHS]→IF[FAIL]→STOP',
-            "T2b::ARM_CONTEXT→Read(project_context)→Bash(git_log+status+branch+ahead_behind)→EXTRACT[PHASE,BRANCH,FILES]→EMIT",
-            "T3::TENSION→GENERATE[L{N}::[constraint]⇌CTX:{path}[state]→TRIGGER[action]]→MIN_COUNT_PER_TIER→mark_complete",
-            "T4::COMMIT→DECLARE[ARTIFACT::concrete_path,GATE::validation_method]→mark_complete",
-            "T5::ANCHOR→BUILD_VECTOR[BIND+TENSION+COMMIT]→mcp__hestai__odyssean_anchor(role,vector,session_id,working_dir,tier)→HANDLE_RESULT",
-            f'T5_ARGS::role="{role}" tier="{anchor_tier}" working_dir="{working_dir}"',
-            "T6::DASHBOARD→EMIT[VECTOR_BLOCK+DASHBOARD_BLOCK]→mark_complete",
+            "T0::TodoWrite(TODOS)->mark_complete",
+            f'T1::CONSTITUTION->Read(".hestai-sys/library/agents/{role}.oct.md")->EXTRACT[COGNITION,ARCHETYPES,MUST[2],NEVER[2]]->SET_AUTHORITY[main->RESPONSIBLE[scope]|sub->DELEGATED[parent_session]]->EMIT',
+            f'T2::CLOCK_IN->mcp__hestai__clock_in(role:"{role}",working_dir:"{working_dir}",focus:"{focus}")->CAPTURE[SESSION_ID,CONTEXT_PATHS]->IF[FAIL]->STOP',
+            "T2b::ARM_CONTEXT->Read(project_context)->Bash(git_log+status+branch+ahead_behind)->EXTRACT[PHASE,BRANCH,FILES]->EMIT",
+            "T3::TENSION->GENERATE[L{N}::[constraint]<->CTX:{path}[state]->TRIGGER[action]]->MIN_COUNT_PER_TIER->mark_complete",
+            "T4::COMMIT->DECLARE[ARTIFACT::concrete_path,GATE::validation_method]->mark_complete",
+            f'T5::ANCHOR->mcp__odyssean-anchor__anchor_request(role:"{role}",tier:"{anchor_tier}",working_dir:"{working_dir}")->FOLLOW_CEREMONY->HANDLE_RESULT',
+            "T6::DASHBOARD->EMIT[VECTOR_BLOCK+DASHBOARD_BLOCK]->mark_complete",
         ]
     )
 
@@ -266,7 +265,7 @@ def execute_bind(
         "role": role,
         "topic": topic,
         "tier": tier,
-        "anchor_tier": _normalize_tier_for_anchor(tier),
+        "anchor_tier": _normalize_tier(tier),
         "cognition": cognition,
         "archetypes": archetypes,
         # Note: this is a lightweight stub; real session_id comes from clock_in.

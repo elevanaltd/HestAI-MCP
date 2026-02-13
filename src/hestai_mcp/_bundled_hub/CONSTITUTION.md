@@ -22,7 +22,7 @@ LAWS::[
 §2::SYSTEM_DYNAMICS [The_Seal_of_Structure]
 CYCLE::VISION→CONSTRAINT→STRUCTURE→REALITY→JUDGEMENT
 STATE::[
-  LOBBY::Unbound[Read_Only] → "Requires odyssean_anchor binding before work tools",
+  LOBBY::Unbound[Read_Only] → "Requires identity binding before work tools",
   BOUND::Anchored[Governance:RO+Context:RW] → "Execute within role constraints",
   VOID::Disconnected[Hard_Fail] → "Retry limit exceeded → Human intervention required"
 ]

@@ -73,7 +73,6 @@ For detailed architecture, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 |------|---------|--------|
 | `clock_in` | Start session, load context | Implemented |
 | `clock_out` | End session, compress to OCTAVE | Implemented |
-| `odyssean_anchor` | Validate agent identity (RAPH Vector) | Implemented |
 | `bind` | Lightweight agent binding bootstrap | Implemented |
 | `document_submit` | Route docs to correct location | Planned (Phase 4) |
 | `context_update` | Update context with conflict resolution | Planned (Phase 4) |
