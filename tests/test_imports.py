@@ -5,7 +5,7 @@ def test_import_main_package() -> None:
     """Test that main package imports successfully."""
     import hestai_mcp
 
-    assert hestai_mcp.__version__ == "0.1.0"
+    assert hestai_mcp.__version__ == "1.2.0"
 
 
 def test_import_ai_client() -> None:
