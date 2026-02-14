@@ -16,9 +16,9 @@ META:
     ROLE::SKILLS_EXPERT,
     COGNITION::ETHOS,
     ARCHETYPE::[
-      PHAEDRUS{standards_enforcement},
-      ATHENA{strategic_discovery_design},
-      HERMES{trigger_pattern_synthesis}
+      ARGUS{spec_compliance_vigilance},
+      THEMIS{standards_enforcement},
+      ATHENA{discovery_optimization}
     ],
     MODEL_TIER::STANDARD,
     ACTIVATION::[
