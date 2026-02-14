@@ -198,7 +198,9 @@ class TestGitHubPosting:
 
         mock_result = MagicMock()
         mock_result.returncode = 0
-        mock_result.stdout = '{"html_url": "https://github.com/elevanaltd/HestAI-MCP/pull/123#issuecomment-456"}'
+        mock_result.stdout = (
+            '{"html_url": "https://github.com/elevanaltd/HestAI-MCP/pull/123#issuecomment-456"}'
+        )
 
         with (
             patch("subprocess.run", return_value=mock_result) as mock_run,

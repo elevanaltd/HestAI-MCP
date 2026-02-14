@@ -138,15 +138,9 @@ def format_review_comment(
         Formatted review comment string.
     """
     # Map IL APPROVED to SELF-REVIEWED keyword
-    if role == "IL" and verdict == "APPROVED":
-        keyword = _IL_APPROVED_KEYWORD
-    else:
-        keyword = verdict
+    keyword = _IL_APPROVED_KEYWORD if role == "IL" and verdict == "APPROVED" else verdict
 
     # Build the prefix with optional model annotation
-    if model_annotation:
-        prefix = f"{role} ({model_annotation})"
-    else:
-        prefix = role
+    prefix = f"{role} ({model_annotation})" if model_annotation else role
 
     return f"{prefix} {keyword}: {assessment}"

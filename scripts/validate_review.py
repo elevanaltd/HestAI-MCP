@@ -111,7 +111,11 @@ def determine_review_tier(files: list[dict[str, Any]]) -> tuple[str, str]:
 try:
     from hestai_mcp.modules.tools.shared.review_formats import (
         has_ce_approval as _has_ce_approval,
+    )
+    from hestai_mcp.modules.tools.shared.review_formats import (
         has_crs_approval as _has_crs_approval,
+    )
+    from hestai_mcp.modules.tools.shared.review_formats import (
         matches_approval_pattern as _matches_approval_pattern,
     )
 except (ImportError, ModuleNotFoundError):

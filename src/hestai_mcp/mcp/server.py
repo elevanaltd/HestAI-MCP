@@ -448,8 +448,7 @@ async def list_tools() -> list[Tool]:
                     "repo": {
                         "type": "string",
                         "description": (
-                            "Repository in owner/name format "
-                            "(e.g., 'elevanaltd/HestAI-MCP')"
+                            "Repository in owner/name format " "(e.g., 'elevanaltd/HestAI-MCP')"
                         ),
                     },
                     "pr_number": {
@@ -472,9 +471,7 @@ async def list_tools() -> list[Tool]:
                     },
                     "model_annotation": {
                         "type": "string",
-                        "description": (
-                            "Optional model name (e.g., 'Gemini') for annotation"
-                        ),
+                        "description": ("Optional model name (e.g., 'Gemini') for annotation"),
                     },
                     "dry_run": {
                         "type": "boolean",

@@ -21,7 +21,6 @@ from hestai_mcp.modules.tools.shared.review_formats import (
     has_ce_approval,
     has_crs_approval,
     has_il_self_review,
-    matches_approval_pattern,
 )
 
 
@@ -38,8 +37,7 @@ def _validate_inputs(
 
     if verdict not in VALID_VERDICTS:
         return (
-            f"Invalid verdict: '{verdict}'. "
-            f"Must be one of: {', '.join(sorted(VALID_VERDICTS))}"
+            f"Invalid verdict: '{verdict}'. " f"Must be one of: {', '.join(sorted(VALID_VERDICTS))}"
         )
 
     if not assessment or not assessment.strip():

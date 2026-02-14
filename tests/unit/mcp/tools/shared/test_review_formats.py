@@ -94,9 +94,7 @@ class TestMatchesApprovalPattern:
             matches_approval_pattern,
         )
 
-        assert matches_approval_pattern(
-            "CRS (Gemini): APPROVED - all good", "CRS", "APPROVED"
-        )
+        assert matches_approval_pattern("CRS (Gemini): APPROVED - all good", "CRS", "APPROVED")
 
     def test_parenthetical_model_with_em_dash(self) -> None:
         """Matches 'CRS (Gemini) \u2014 APPROVED' format."""
@@ -124,9 +122,7 @@ class TestMatchesApprovalPattern:
             matches_approval_pattern,
         )
 
-        assert matches_approval_pattern(
-            "CRS (Gemini) - APPROVED: assessment", "CRS", "APPROVED"
-        )
+        assert matches_approval_pattern("CRS (Gemini) - APPROVED: assessment", "CRS", "APPROVED")
 
     def test_em_dash_no_parenthetical(self) -> None:
         """Matches 'CRS \u2014 APPROVED' without model annotation."""
@@ -158,9 +154,7 @@ class TestMatchesApprovalPattern:
             matches_approval_pattern,
         )
 
-        assert matches_approval_pattern(
-            "| CRS | Gemini | **APPROVED** |", "CRS", "APPROVED"
-        )
+        assert matches_approval_pattern("| CRS | Gemini | **APPROVED** |", "CRS", "APPROVED")
 
     def test_markdown_table_format(self) -> None:
         """Matches markdown table row format."""
@@ -362,9 +356,7 @@ class TestFormatReviewComment:
             has_crs_approval,
         )
 
-        comment = format_review_comment(
-            role="CRS", verdict="APPROVED", assessment="All good"
-        )
+        comment = format_review_comment(role="CRS", verdict="APPROVED", assessment="All good")
         assert has_crs_approval([comment])
 
     def test_formatted_ce_approved_clears_gate(self) -> None:
@@ -386,9 +378,7 @@ class TestFormatReviewComment:
             has_il_self_review,
         )
 
-        comment = format_review_comment(
-            role="IL", verdict="APPROVED", assessment="Trivial fix"
-        )
+        comment = format_review_comment(role="IL", verdict="APPROVED", assessment="Trivial fix")
         assert has_il_self_review([comment])
 
     def test_formatted_with_model_clears_gate(self) -> None:
