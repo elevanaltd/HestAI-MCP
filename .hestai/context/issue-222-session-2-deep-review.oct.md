@@ -375,4 +375,92 @@ EXEMPLARS_TO_CREATE::[
   "tdd-discipline: ADD §ANCHOR_KERNEL to demonstrate kernel authoring pattern"
 ]
 
+§9::RESEARCH_CROSS_REFERENCES
+
+// Cross-referenced against .hestai/research/skills-deep-research-report.oct.md (v2.0.0)
+// Research covers: Claude Code, MCP, Claude API, LangChain, CrewAI, AutoGen
+
+CONFIRMED_BY_RESEARCH::[
+  SIZING::[
+    OUR_FINDING::"300-700 tokens optimal (§3::SIZE_ANALYSIS)",
+    RESEARCH::"§5::OPTIMAL_SKILL_TEMPLATE: 'body 300-700 tokens; bulk reference→separate files on demand'",
+    VALIDATION::"Direct match. Our severely undersized skills (clarification-gate: 90 words, gap-ownership: 86 words) are well below minimum even at OCTAVE's ~1.3 tokens/word."
+  ],
+  SECTION_STRUCTURE::[
+    OUR_FINDING::"§1::CORE, §2::PROTOCOL, §3::GOVERNANCE, §4::EXAMPLES (§6::CANONICAL_SECTION_STRUCTURE_PROPOSAL)",
+    RESEARCH::"§5: 'section headers: Objective, Inputs, Procedure, Invariants, Output'",
+    VALIDATION::"Close mapping. §1::CORE≈Objective, §2::PROTOCOL≈Procedure, §3::GOVERNANCE≈Invariants, §4::EXAMPLES≈Inputs/Output examples."
+  ],
+  CONSTRAINTS_EARLY::[
+    OUR_FINDING::"§3::GOVERNANCE contains MUST/NEVER boundaries",
+    RESEARCH::"§5: 'declarative constraints EARLY, before procedures' and 'do/dont constraints before procedures'",
+    REFINEMENT::"Research suggests constraints BEFORE procedures. Consider: §1::CORE+constraints → §2::PROTOCOL → §3::EXAMPLES. Or keep 4 sections but front-load MUST_NEVER into §1::CORE."
+  ],
+  EXAMPLES_DENSITY::[
+    OUR_FINDING::"§4::EXAMPLES — 1-2 examples + 1 anti-example",
+    RESEARCH::"§5: '1-2 canonical ⊕ 1 anti-example; 1 example per 200 tokens of abstraction'",
+    VALIDATION::"Exact match. Research adds density rule: 1 example per 200 tokens of abstraction."
+  ],
+  OCTAVE_BODY_VALUE::[
+    OUR_FINDING::"Session 1: 'OCTAVE body IS the value — the LLM is the parser'",
+    RESEARCH::"§4: 'Use structure your runtime can consume programmatically. Everything else is noise.'",
+    VALIDATION::"OCTAVE KEY::VALUE syntax IS programmatic structure for the LLM. Strongest validation."
+  ]
+]
+
+NEW_INSIGHTS_FROM_RESEARCH::[
+  DESCRIPTION_IS_RETRIEVAL_ONLY::[
+    RESEARCH::"§0: 'Descriptions are retrieval hints, NOT enforceable constraints'",
+    IMPACT::"YAML description is for discovery routing only. Behavioral enforcement lives in the OCTAVE body. Our focus on body content quality (§4::MIP_ANALYSIS) is correct.",
+    SPEC_IMPLICATION::"octave-skills-spec should explicitly state this."
+  ],
+  DUAL_RETRIEVAL_LAYERS::[
+    RESEARCH::"§1: 'hybrid: BM25 over name+description, embeddings over body'",
+    IMPACT::"Two retrieval paths: name+description→lexical matching, body→semantic matching. Names need domain terms. Descriptions need task verbs + triggers. Body matters for semantic retrieval beyond direct instruction."
+  ],
+  ENFORCEMENT_REDUCES_OVERHEAD::[
+    RESEARCH::"§2c: 'Enforcement improves performance by reducing retries, NOT through local parsing cost'",
+    IMPACT::"Inverts 'governance adds overhead' objection. Well-structured skills REDUCE total cost by preventing retry loops. Aligns with empirical evidence (3x agent turns without skills, 70% unnecessary work)."
+  ],
+  PER_DECISION_TOOL_COUNT::[
+    RESEARCH::"§6c: 'per-decision toolsets small (single-digit to low tens)' and §7a: 'Opus4: 49%→74% with tool search'",
+    IMPACT::"Validates agent §3::CAPABILITIES model: 3-7 skills per agent. Anchor JIT loading empirically supported. Selective loading: 49%→74% accuracy."
+  ],
+  EXAMPLE_DENSITY_RULE::[
+    RESEARCH::"§5: '1 example per 200 tokens of abstraction'",
+    IMPACT::"New authoring heuristic. 400-token body→2 examples. build-philosophy (780 tokens)→should have 3-4, has 2.",
+    MISSING_FROM_SPEC::"octave-skills-spec should include this heuristic."
+  ]
+]
+
+SPEC_CHANGE_IMPLICATIONS::[
+  OCTAVE_SKILLS_SPEC::[
+    "Add: descriptions are retrieval hints, not behavioral constraints (research §0)",
+    "Add: example density heuristic — 1 example per 200 tokens of abstraction (research §5)",
+    "Add: recommended canonical §section names for skill bodies (§1::CORE, §2::PROTOCOL, §3::GOVERNANCE, §4::EXAMPLES)",
+    "Clarify: constraints should appear EARLY in skill body, before procedures (research §5)"
+  ],
+  OCTAVE_AGENTS_SPEC::[
+    "Clarify: relationship between v6 4-section hub format and expanded user-level format from agent-creation skill",
+    "Consider: should agents spec document canonical skill §section naming recommendations?"
+  ]
+]
+
+§10::SKILLS_EXPERT_AGENT_REWRITE
+
+OLD_AGENT::[
+  LOCATION::"/Users/shaunbuswell/.claude/agents/skills-expert.oct.md",
+  SIZE::"385 lines",
+  FORMAT::"Pre-v6 (8 custom sections + markdown headers in body)",
+  ISSUES::[duplicate_META, markdown_in_OCTAVE, missing_§3_CAPABILITIES, missing_§4_INTERACTION_RULES, domain_knowledge_in_agent_identity, Claude_Code_only_scope]
+]
+
+NEW_AGENT::[
+  LOCATION::"src/hestai_mcp/_bundled_hub/library/agents/skills-expert.oct.md",
+  SIZE::"104 lines",
+  FORMAT::"v6.0.0 dual-lock schema",
+  ARCHETYPE::[ARGUS{spec_compliance_vigilance}, THEMIS{standards_enforcement}, ATHENA{discovery_optimization}],
+  NOTE::"PHAEDRUS initially used but not in canonical set. Issue: odyssean-anchor-mcp#102 to open archetype set."
+]
+
 ===END===
