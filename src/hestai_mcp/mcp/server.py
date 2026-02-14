@@ -27,6 +27,7 @@ from mcp.types import TextContent, Tool
 from hestai_mcp.modules.tools.bind import bind
 from hestai_mcp.modules.tools.clock_in import clock_in_async, validate_working_dir
 from hestai_mcp.modules.tools.clock_out import clock_out
+from hestai_mcp.modules.tools.submit_review import submit_review
 
 # Load .env file for HESTAI_PROJECT_ROOT and other configuration
 # This must happen BEFORE bootstrap_system_governance() is called
@@ -434,6 +435,62 @@ async def list_tools() -> list[Tool]:
                 "required": ["role"],
             },
         ),
+        Tool(
+            name="submit_review",
+            description=(
+                "Submit a structured review comment on a GitHub PR. "
+                "Formats the comment to clear the review-gate CI check. "
+                "Supports dry-run validation without posting."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "repo": {
+                        "type": "string",
+                        "description": (
+                            "Repository in owner/name format "
+                            "(e.g., 'elevanaltd/HestAI-MCP')"
+                        ),
+                    },
+                    "pr_number": {
+                        "type": "integer",
+                        "description": "PR number to comment on",
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": ["CRS", "CE", "IL"],
+                        "description": "Reviewer role",
+                    },
+                    "verdict": {
+                        "type": "string",
+                        "enum": ["APPROVED", "BLOCKED", "CONDITIONAL"],
+                        "description": "Review verdict",
+                    },
+                    "assessment": {
+                        "type": "string",
+                        "description": "Review assessment content",
+                    },
+                    "model_annotation": {
+                        "type": "string",
+                        "description": (
+                            "Optional model name (e.g., 'Gemini') for annotation"
+                        ),
+                    },
+                    "dry_run": {
+                        "type": "boolean",
+                        "description": "If true, validate format without posting",
+                        "default": False,
+                    },
+                },
+                "required": [
+                    "repo",
+                    "pr_number",
+                    "role",
+                    "verdict",
+                    "assessment",
+                ],
+            },
+        ),
     ]
 
 
@@ -533,6 +590,21 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         )
 
         return [TextContent(type="text", text=json.dumps(bind_result, indent=2))]
+
+    elif name == "submit_review":
+        import json
+
+        result = await submit_review(
+            repo=arguments["repo"],
+            pr_number=arguments["pr_number"],
+            role=arguments["role"],
+            verdict=arguments["verdict"],
+            assessment=arguments["assessment"],
+            model_annotation=arguments.get("model_annotation"),
+            dry_run=arguments.get("dry_run", False),
+        )
+
+        return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
     else:
         raise ValueError(f"Unknown tool: {name}")
