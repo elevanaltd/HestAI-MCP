@@ -470,6 +470,23 @@ class TestStatusToActionMapping:
         status, headers, body = _parse_http_response(raw_output)
         assert _map_status_to_action(status, headers) == "rate_limit"
 
+    def test_parse_unix_line_endings(self) -> None:
+        """Parse response with Unix line endings (LF) from subprocess text=True."""
+        from hestai_mcp.modules.tools.submit_review import _parse_http_response
+
+        raw_output = (
+            "HTTP/2 201 Created\n"
+            "Content-Type: application/json\n"
+            "X-RateLimit-Remaining: 4999\n"
+            "\n"
+            '{"id": 123, "html_url": "https://github.com/test"}'
+        )
+        status, headers, body = _parse_http_response(raw_output)
+        assert status == 201
+        assert headers["content-type"] == "application/json"
+        assert headers["x-ratelimit-remaining"] == "4999"
+        assert "html_url" in body
+
     def test_status_401_maps_to_auth(self) -> None:
         """HTTP 401 maps to auth."""
         from hestai_mcp.modules.tools.submit_review import _map_status_to_action
@@ -693,6 +710,84 @@ class TestErrorClassification:
 
         assert result["success"] is False
         assert result["error_type"] == "validation"
+
+    @pytest.mark.asyncio
+    async def test_gh_cli_non_zero_exit_rate_limit(self) -> None:
+        """Non-zero exit code with rate limit in stderr classified correctly."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        mock_result = MagicMock()
+        mock_result.returncode = 1
+        mock_result.stderr = "gh: rate limit exceeded (HTTP 429)"
+        mock_result.stdout = ""  # Empty stdout on error
+
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch.dict("os.environ", {"GITHUB_TOKEN": "test-token"}),
+        ):
+            result = await submit_review(
+                repo="elevanaltd/HestAI-MCP",
+                pr_number=123,
+                role="CRS",
+                verdict="APPROVED",
+                assessment="Test gh CLI error",
+            )
+
+        assert result["success"] is False
+        assert result["error_type"] == "rate_limit"
+        assert "GitHub CLI error" in result["error"]
+
+    @pytest.mark.asyncio
+    async def test_gh_cli_non_zero_exit_auth(self) -> None:
+        """Non-zero exit code with auth error in stderr classified correctly."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        mock_result = MagicMock()
+        mock_result.returncode = 1
+        mock_result.stderr = "gh: authentication failed (HTTP 401)"
+        mock_result.stdout = ""
+
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch.dict("os.environ", {"GITHUB_TOKEN": "test-token"}),
+        ):
+            result = await submit_review(
+                repo="elevanaltd/HestAI-MCP",
+                pr_number=123,
+                role="CRS",
+                verdict="APPROVED",
+                assessment="Test gh CLI error",
+            )
+
+        assert result["success"] is False
+        assert result["error_type"] == "auth"
+        assert "GitHub CLI error" in result["error"]
+
+    @pytest.mark.asyncio
+    async def test_gh_cli_non_zero_exit_network(self) -> None:
+        """Non-zero exit code with network error in stderr classified correctly."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        mock_result = MagicMock()
+        mock_result.returncode = 1
+        mock_result.stderr = "gh: connection timeout"
+        mock_result.stdout = ""
+
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch.dict("os.environ", {"GITHUB_TOKEN": "test-token"}),
+        ):
+            result = await submit_review(
+                repo="elevanaltd/HestAI-MCP",
+                pr_number=123,
+                role="CRS",
+                verdict="APPROVED",
+                assessment="Test gh CLI error",
+            )
+
+        assert result["success"] is False
+        assert result["error_type"] == "network"
+        assert "GitHub CLI error" in result["error"]
 
     @pytest.mark.asyncio
     async def test_not_found_classified(self) -> None:

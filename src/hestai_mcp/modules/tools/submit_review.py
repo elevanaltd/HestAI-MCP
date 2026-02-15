@@ -113,13 +113,24 @@ def _parse_http_response(raw_output: str) -> tuple[int, dict[str, str], str]:
         Header keys are lowercased for consistent access.
     """
     # Split response into status line + headers + body
-    parts = raw_output.split("\r\n\r\n", 1)
+    # Handle both Windows (\r\n) and Unix (\n) line endings
+    # subprocess.run(..., text=True) normalizes to \n on Unix platforms
+    if "\r\n\r\n" in raw_output:
+        parts = raw_output.split("\r\n\r\n", 1)
+        line_separator = "\r\n"
+    elif "\n\n" in raw_output:
+        parts = raw_output.split("\n\n", 1)
+        line_separator = "\n"
+    else:
+        # Malformed response - treat as unknown error
+        return 0, {}, raw_output
+
     if len(parts) != 2:
         # Malformed response - treat as unknown error
         return 0, {}, raw_output
 
     header_section, body = parts
-    lines = header_section.split("\r\n")
+    lines = header_section.split(line_separator)
 
     # Parse status line: "HTTP/2 201 Created"
     status_line = lines[0]
@@ -217,7 +228,32 @@ def _post_comment(repo: str, pr_number: int, comment: str) -> dict[str, Any]:
             timeout=30,
         )
 
-        # Parse HTTP response (status, headers, body)
+        # Check for gh CLI errors first (non-zero exit code)
+        if result.returncode != 0:
+            # gh CLI failed - classify error from stderr
+            error_msg = result.stderr.strip()
+            error_lower = error_msg.lower()
+
+            # Determine error type from stderr patterns
+            if "rate limit" in error_lower or "429" in error_msg:
+                error_type = "rate_limit"
+            elif "authentication" in error_lower or "401" in error_msg or "403" in error_msg:
+                error_type = "auth"
+            elif any(
+                term in error_lower for term in ["timeout", "connection", "network", "unreachable"]
+            ):
+                error_type = "network"
+            else:
+                # Default to network for unknown gh CLI errors (retryable)
+                error_type = "network"
+
+            return {
+                "success": False,
+                "error": f"GitHub CLI error: {error_msg}",
+                "error_type": error_type,
+            }
+
+        # Parse HTTP response (status, headers, body) from stdout
         status, headers, body = _parse_http_response(result.stdout)
 
         # Success: 2xx status codes
