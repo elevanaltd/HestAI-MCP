@@ -193,12 +193,16 @@ class TestGitHubPosting:
 
     @pytest.mark.asyncio
     async def test_successful_post(self) -> None:
-        """Successful post returns comment URL."""
+        """Successful post returns comment URL from HTTP response."""
         from hestai_mcp.modules.tools.submit_review import submit_review
 
         mock_result = MagicMock()
         mock_result.returncode = 0
         mock_result.stdout = (
+            "HTTP/2 201 Created\r\n"
+            "content-type: application/json\r\n"
+            "x-ratelimit-remaining: 4999\r\n"
+            "\r\n"
             '{"html_url": "https://github.com/elevanaltd/HestAI-MCP/pull/123#issuecomment-456"}'
         )
 
@@ -216,7 +220,10 @@ class TestGitHubPosting:
 
         assert result["success"] is True
         assert "github.com" in result["comment_url"]
-        mock_run.assert_called_once()
+
+        # Verify --include flag was added
+        call_args = mock_run.call_args[0][0]
+        assert "--include" in call_args
 
     @pytest.mark.asyncio
     async def test_github_api_failure(self) -> None:
@@ -262,18 +269,220 @@ class TestGitHubPosting:
 
 
 @pytest.mark.unit
+class TestHTTPResponseParsing:
+    """Test HTTP response parsing from gh api --include output.
+
+    The gh api --include flag returns HTTP headers + body in stdout:
+    HTTP/2 {status_code} {reason}\r\n
+    {headers}\r\n
+    \r\n
+    {json_body}
+    """
+
+    def test_parse_success_response(self) -> None:
+        """Parse 201 Created response with headers and body."""
+        from hestai_mcp.modules.tools.submit_review import _parse_http_response
+
+        raw_output = (
+            "HTTP/2 201 Created\r\n"
+            "content-type: application/json\r\n"
+            "x-ratelimit-remaining: 4999\r\n"
+            "\r\n"
+            '{"html_url": "https://github.com/elevanaltd/HestAI-MCP/pull/123#issuecomment-456"}'
+        )
+
+        status, headers, body = _parse_http_response(raw_output)
+
+        assert status == 201
+        assert headers["x-ratelimit-remaining"] == "4999"
+        assert "html_url" in body
+
+    def test_parse_rate_limit_response(self) -> None:
+        """Parse 429 Too Many Requests response."""
+        from hestai_mcp.modules.tools.submit_review import _parse_http_response
+
+        raw_output = (
+            "HTTP/2 429 Too Many Requests\r\n"
+            "x-ratelimit-remaining: 0\r\n"
+            "retry-after: 60\r\n"
+            "\r\n"
+            '{"message": "API rate limit exceeded"}'
+        )
+
+        status, headers, body = _parse_http_response(raw_output)
+
+        assert status == 429
+        assert headers["x-ratelimit-remaining"] == "0"
+        assert headers["retry-after"] == "60"
+
+    def test_parse_auth_error_response(self) -> None:
+        """Parse 401 Unauthorized response."""
+        from hestai_mcp.modules.tools.submit_review import _parse_http_response
+
+        raw_output = (
+            "HTTP/2 401 Unauthorized\r\n"
+            "content-type: application/json\r\n"
+            "\r\n"
+            '{"message": "Bad credentials"}'
+        )
+
+        status, headers, body = _parse_http_response(raw_output)
+
+        assert status == 401
+
+    def test_parse_forbidden_with_rate_limit(self) -> None:
+        """Parse 403 Forbidden with x-ratelimit-remaining: 0 (secondary rate limit)."""
+        from hestai_mcp.modules.tools.submit_review import _parse_http_response
+
+        raw_output = (
+            "HTTP/2 403 Forbidden\r\n"
+            "x-ratelimit-remaining: 0\r\n"
+            "\r\n"
+            '{"message": "You have exceeded a secondary rate limit"}'
+        )
+
+        status, headers, body = _parse_http_response(raw_output)
+
+        assert status == 403
+        assert headers["x-ratelimit-remaining"] == "0"
+
+    def test_parse_server_error_response(self) -> None:
+        """Parse 500 Internal Server Error response."""
+        from hestai_mcp.modules.tools.submit_review import _parse_http_response
+
+        raw_output = (
+            "HTTP/2 500 Internal Server Error\r\n"
+            "content-type: text/html\r\n"
+            "\r\n"
+            "<html>Server Error</html>"
+        )
+
+        status, headers, body = _parse_http_response(raw_output)
+
+        assert status == 500
+
+    def test_parse_validation_error_response(self) -> None:
+        """Parse 422 Unprocessable Entity response."""
+        from hestai_mcp.modules.tools.submit_review import _parse_http_response
+
+        raw_output = (
+            "HTTP/2 422 Unprocessable Entity\r\n"
+            "content-type: application/json\r\n"
+            "\r\n"
+            '{"message": "Validation Failed"}'
+        )
+
+        status, headers, body = _parse_http_response(raw_output)
+
+        assert status == 422
+
+    def test_parse_headers_case_insensitive(self) -> None:
+        """Header names should be lowercased for consistent access."""
+        from hestai_mcp.modules.tools.submit_review import _parse_http_response
+
+        raw_output = (
+            "HTTP/2 200 OK\r\n"
+            "X-RateLimit-Remaining: 5000\r\n"
+            "Content-Type: application/json\r\n"
+            "\r\n"
+            "{}"
+        )
+
+        status, headers, body = _parse_http_response(raw_output)
+
+        # Headers should be accessible via lowercase keys
+        assert headers["x-ratelimit-remaining"] == "5000"
+        assert headers["content-type"] == "application/json"
+
+
+@pytest.mark.unit
+class TestStatusToActionMapping:
+    """Test HTTP status code to error_type mapping."""
+
+    def test_status_429_maps_to_rate_limit(self) -> None:
+        """HTTP 429 explicitly maps to rate_limit."""
+        from hestai_mcp.modules.tools.submit_review import _map_status_to_action
+
+        error_type = _map_status_to_action(429, {})
+        assert error_type == "rate_limit"
+
+    def test_status_403_with_zero_remaining_maps_to_rate_limit(self) -> None:
+        """HTTP 403 with x-ratelimit-remaining: 0 maps to rate_limit (secondary rate limit)."""
+        from hestai_mcp.modules.tools.submit_review import _map_status_to_action
+
+        error_type = _map_status_to_action(403, {"x-ratelimit-remaining": "0"})
+        assert error_type == "rate_limit"
+
+    def test_status_403_without_rate_limit_maps_to_auth(self) -> None:
+        """HTTP 403 without rate limit indicator maps to auth (permissions)."""
+        from hestai_mcp.modules.tools.submit_review import _map_status_to_action
+
+        error_type = _map_status_to_action(403, {"x-ratelimit-remaining": "4999"})
+        assert error_type == "auth"
+
+    def test_status_401_maps_to_auth(self) -> None:
+        """HTTP 401 maps to auth."""
+        from hestai_mcp.modules.tools.submit_review import _map_status_to_action
+
+        error_type = _map_status_to_action(401, {})
+        assert error_type == "auth"
+
+    def test_status_5xx_maps_to_network(self) -> None:
+        """HTTP 5xx server errors map to network (retryable)."""
+        from hestai_mcp.modules.tools.submit_review import _map_status_to_action
+
+        assert _map_status_to_action(500, {}) == "network"
+        assert _map_status_to_action(502, {}) == "network"
+        assert _map_status_to_action(503, {}) == "network"
+        assert _map_status_to_action(504, {}) == "network"
+
+    def test_status_404_maps_to_validation(self) -> None:
+        """HTTP 404 Not Found maps to validation (fail-fast)."""
+        from hestai_mcp.modules.tools.submit_review import _map_status_to_action
+
+        error_type = _map_status_to_action(404, {})
+        assert error_type == "validation"
+
+    def test_status_422_maps_to_validation(self) -> None:
+        """HTTP 422 Unprocessable Entity maps to validation (fail-fast)."""
+        from hestai_mcp.modules.tools.submit_review import _map_status_to_action
+
+        error_type = _map_status_to_action(422, {})
+        assert error_type == "validation"
+
+    def test_status_400_maps_to_validation(self) -> None:
+        """HTTP 400 Bad Request maps to validation (fail-fast)."""
+        from hestai_mcp.modules.tools.submit_review import _map_status_to_action
+
+        error_type = _map_status_to_action(400, {})
+        assert error_type == "validation"
+
+    def test_unknown_status_maps_to_validation(self) -> None:
+        """Unknown status codes map to validation (fail-closed)."""
+        from hestai_mcp.modules.tools.submit_review import _map_status_to_action
+
+        # Fail-closed: unknown status = don't retry
+        error_type = _map_status_to_action(999, {})
+        assert error_type == "validation"
+
+
+@pytest.mark.unit
 class TestErrorClassification:
-    """Test error_type field for intelligent retry strategies."""
+    """Test error_type field for intelligent retry strategies using HTTP status codes."""
 
     @pytest.mark.asyncio
     async def test_rate_limit_error_classified(self) -> None:
-        """Rate limit errors include error_type='rate_limit' for backoff retry."""
+        """HTTP 429 classified as rate_limit error."""
         from hestai_mcp.modules.tools.submit_review import submit_review
 
         mock_result = MagicMock()
-        mock_result.returncode = 1
-        mock_result.stderr = "gh: rate limit exceeded (HTTP 429)"
-        mock_result.stdout = ""
+        mock_result.returncode = 0
+        mock_result.stdout = (
+            "HTTP/2 429 Too Many Requests\r\n"
+            "x-ratelimit-remaining: 0\r\n"
+            "\r\n"
+            '{"message": "API rate limit exceeded"}'
+        )
 
         with (
             patch("subprocess.run", return_value=mock_result),
@@ -291,14 +500,47 @@ class TestErrorClassification:
         assert result["error_type"] == "rate_limit"
 
     @pytest.mark.asyncio
-    async def test_auth_error_classified(self) -> None:
-        """Auth errors include error_type='auth' for escalation."""
+    async def test_secondary_rate_limit_classified(self) -> None:
+        """HTTP 403 with x-ratelimit-remaining: 0 classified as rate_limit."""
         from hestai_mcp.modules.tools.submit_review import submit_review
 
         mock_result = MagicMock()
-        mock_result.returncode = 1
-        mock_result.stderr = "gh: authentication failed (HTTP 401)"
-        mock_result.stdout = ""
+        mock_result.returncode = 0
+        mock_result.stdout = (
+            "HTTP/2 403 Forbidden\r\n"
+            "x-ratelimit-remaining: 0\r\n"
+            "\r\n"
+            '{"message": "You have exceeded a secondary rate limit"}'
+        )
+
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch.dict("os.environ", {"GITHUB_TOKEN": "test-token"}),
+        ):
+            result = await submit_review(
+                repo="elevanaltd/HestAI-MCP",
+                pr_number=123,
+                role="CRS",
+                verdict="APPROVED",
+                assessment="Should detect secondary rate limit",
+            )
+
+        assert result["success"] is False
+        assert result["error_type"] == "rate_limit"
+
+    @pytest.mark.asyncio
+    async def test_auth_error_classified(self) -> None:
+        """HTTP 401 classified as auth error."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = (
+            "HTTP/2 401 Unauthorized\r\n"
+            "content-type: application/json\r\n"
+            "\r\n"
+            '{"message": "Bad credentials"}'
+        )
 
         with (
             patch("subprocess.run", return_value=mock_result),
@@ -316,14 +558,18 @@ class TestErrorClassification:
         assert result["error_type"] == "auth"
 
     @pytest.mark.asyncio
-    async def test_network_error_classified(self) -> None:
-        """Network errors include error_type='network' for immediate retry."""
+    async def test_permission_error_classified(self) -> None:
+        """HTTP 403 without rate limit classified as auth error."""
         from hestai_mcp.modules.tools.submit_review import submit_review
 
         mock_result = MagicMock()
-        mock_result.returncode = 1
-        mock_result.stderr = "gh: connection timed out"
-        mock_result.stdout = ""
+        mock_result.returncode = 0
+        mock_result.stdout = (
+            "HTTP/2 403 Forbidden\r\n"
+            "x-ratelimit-remaining: 4999\r\n"
+            "\r\n"
+            '{"message": "Resource not accessible by integration"}'
+        )
 
         with (
             patch("subprocess.run", return_value=mock_result),
@@ -334,7 +580,36 @@ class TestErrorClassification:
                 pr_number=123,
                 role="CRS",
                 verdict="APPROVED",
-                assessment="Should detect network error",
+                assessment="Should detect permissions error",
+            )
+
+        assert result["success"] is False
+        assert result["error_type"] == "auth"
+
+    @pytest.mark.asyncio
+    async def test_server_error_classified(self) -> None:
+        """HTTP 500 classified as network error (retryable)."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = (
+            "HTTP/2 500 Internal Server Error\r\n"
+            "content-type: text/html\r\n"
+            "\r\n"
+            "<html>Server Error</html>"
+        )
+
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch.dict("os.environ", {"GITHUB_TOKEN": "test-token"}),
+        ):
+            result = await submit_review(
+                repo="elevanaltd/HestAI-MCP",
+                pr_number=123,
+                role="CRS",
+                verdict="APPROVED",
+                assessment="Should detect server error",
             )
 
         assert result["success"] is False
@@ -342,7 +617,65 @@ class TestErrorClassification:
 
     @pytest.mark.asyncio
     async def test_validation_error_classified(self) -> None:
-        """Validation errors include error_type='validation' for no retry."""
+        """HTTP 422 classified as validation error (fail-fast)."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = (
+            "HTTP/2 422 Unprocessable Entity\r\n"
+            "content-type: application/json\r\n"
+            "\r\n"
+            '{"message": "Validation Failed"}'
+        )
+
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch.dict("os.environ", {"GITHUB_TOKEN": "test-token"}),
+        ):
+            result = await submit_review(
+                repo="elevanaltd/HestAI-MCP",
+                pr_number=123,
+                role="CRS",
+                verdict="APPROVED",
+                assessment="Should detect validation error",
+            )
+
+        assert result["success"] is False
+        assert result["error_type"] == "validation"
+
+    @pytest.mark.asyncio
+    async def test_not_found_classified(self) -> None:
+        """HTTP 404 classified as validation error (fail-fast)."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = (
+            "HTTP/2 404 Not Found\r\n"
+            "content-type: application/json\r\n"
+            "\r\n"
+            '{"message": "Not Found"}'
+        )
+
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch.dict("os.environ", {"GITHUB_TOKEN": "test-token"}),
+        ):
+            result = await submit_review(
+                repo="elevanaltd/HestAI-MCP",
+                pr_number=999,
+                role="CRS",
+                verdict="APPROVED",
+                assessment="Should detect not found",
+            )
+
+        assert result["success"] is False
+        assert result["error_type"] == "validation"
+
+    @pytest.mark.asyncio
+    async def test_input_validation_error_classified(self) -> None:
+        """Input validation errors still return error_type='validation'."""
         from hestai_mcp.modules.tools.submit_review import submit_review
 
         result = await submit_review(
@@ -355,31 +688,6 @@ class TestErrorClassification:
 
         assert result["success"] is False
         assert result["error_type"] == "validation"
-
-    @pytest.mark.asyncio
-    async def test_generic_error_has_error_type(self) -> None:
-        """Generic errors include error_type='network' as fallback."""
-        from hestai_mcp.modules.tools.submit_review import submit_review
-
-        mock_result = MagicMock()
-        mock_result.returncode = 1
-        mock_result.stderr = "gh: some unknown error"
-        mock_result.stdout = ""
-
-        with (
-            patch("subprocess.run", return_value=mock_result),
-            patch.dict("os.environ", {"GITHUB_TOKEN": "test-token"}),
-        ):
-            result = await submit_review(
-                repo="elevanaltd/HestAI-MCP",
-                pr_number=123,
-                role="CRS",
-                verdict="APPROVED",
-                assessment="Should have error_type",
-            )
-
-        assert result["success"] is False
-        assert "error_type" in result
 
 
 @pytest.mark.unit

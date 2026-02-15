@@ -89,42 +89,90 @@ def _get_tier_requirements(role: str) -> str:
     return requirements.get(role, "Unknown tier requirement")
 
 
-def _classify_error(error_message: str) -> str:
-    """Classify error type for intelligent retry strategies.
+def _parse_http_response(raw_output: str) -> tuple[int, dict[str, str], str]:
+    """Parse HTTP response from gh api --include output.
+
+    The gh api --include flag returns HTTP headers + body in stdout:
+    HTTP/2 {status_code} {reason}\r\n
+    {headers}\r\n
+    \r\n
+    {json_body}
 
     Args:
-        error_message: Error message from GitHub API or subprocess.
+        raw_output: Raw HTTP response from gh api --include.
+
+    Returns:
+        Tuple of (status_code, headers_dict, body_string).
+        Header keys are lowercased for consistent access.
+    """
+    # Split response into status line + headers + body
+    parts = raw_output.split("\r\n\r\n", 1)
+    if len(parts) != 2:
+        # Malformed response - treat as unknown error
+        return 0, {}, raw_output
+
+    header_section, body = parts
+    lines = header_section.split("\r\n")
+
+    # Parse status line: "HTTP/2 201 Created"
+    status_line = lines[0]
+    status_parts = status_line.split()
+    if len(status_parts) < 2:
+        return 0, {}, raw_output
+
+    try:
+        status_code = int(status_parts[1])
+    except (ValueError, IndexError):
+        return 0, {}, raw_output
+
+    # Parse headers (lowercase keys for consistent access)
+    headers = {}
+    for line in lines[1:]:
+        if ": " in line:
+            key, value = line.split(": ", 1)
+            headers[key.lower()] = value
+
+    return status_code, headers, body
+
+
+def _map_status_to_action(status: int, headers: dict[str, str]) -> str:
+    """Map HTTP status code to error_type for intelligent retry strategies.
+
+    Args:
+        status: HTTP status code from GitHub API.
+        headers: HTTP headers (lowercase keys).
 
     Returns:
         Error type classification:
-        - "rate_limit": Rate limit exceeded, agent should retry with backoff
-        - "auth": Authentication failed, agent must escalate
-        - "network": Network/timeout error, agent can retry immediately
-        - "validation": Validation error, agent must not retry
+        - "rate_limit": Rate limit exceeded (429 or 403 with zero remaining)
+        - "auth": Authentication/authorization failed (401, 403 without rate limit)
+        - "network": Server error (5xx) - retryable
+        - "validation": Client error (4xx) or unknown - fail-fast, no retry
     """
-    error_lower = error_message.lower()
-
-    # Rate limit detection (HTTP 429 or explicit rate limit messages)
-    if "rate limit" in error_lower or "429" in error_message:
+    # Explicit rate limit (HTTP 429)
+    if status == 429:
         return "rate_limit"
 
-    # Authentication errors (HTTP 401, 403)
-    if "authentication" in error_lower or "401" in error_message or "403" in error_message:
+    # Secondary rate limit (HTTP 403 with x-ratelimit-remaining: 0)
+    if status == 403 and headers.get("x-ratelimit-remaining") == "0":
+        return "rate_limit"
+
+    # Authentication/authorization errors (401, 403 without rate limit)
+    if status in (401, 403):
         return "auth"
 
-    # Network errors (timeouts, connection issues)
-    if any(
-        term in error_lower
-        for term in ["timeout", "timed out", "connection", "network", "unreachable"]
-    ):
+    # Server errors (5xx) are retryable - but only standard 500-599 range
+    if 500 <= status < 600:
         return "network"
 
-    # Default to network for unknown errors (safe for retry)
-    return "network"
+    # Fail-closed: all other status codes (4xx, unknown, >599) -> validation (no retry)
+    return "validation"
 
 
 def _post_comment(repo: str, pr_number: int, comment: str) -> dict[str, Any]:
-    """Post a comment on a GitHub PR using gh CLI.
+    """Post a comment on a GitHub PR using gh CLI with HTTP status code parsing.
+
+    Uses gh api --include to get HTTP headers for protocol-level error classification.
 
     Args:
         repo: Repository in owner/name format.
@@ -133,7 +181,11 @@ def _post_comment(repo: str, pr_number: int, comment: str) -> dict[str, Any]:
 
     Returns:
         Dict with success status and comment URL or error.
-        Error responses include error_type for intelligent retry strategies.
+        Error responses include error_type for intelligent retry strategies:
+        - "rate_limit": HTTP 429 or 403 with x-ratelimit-remaining: 0
+        - "auth": HTTP 401 or 403 (without rate limit)
+        - "network": HTTP 5xx server errors
+        - "validation": HTTP 4xx client errors or unknown
     """
     token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
     if not token:
@@ -148,6 +200,7 @@ def _post_comment(repo: str, pr_number: int, comment: str) -> dict[str, Any]:
             [
                 "gh",
                 "api",
+                "--include",  # Get HTTP headers in stdout
                 f"repos/{repo}/issues/{pr_number}/comments",
                 "-f",
                 f"body={comment}",
@@ -157,30 +210,37 @@ def _post_comment(repo: str, pr_number: int, comment: str) -> dict[str, Any]:
             timeout=30,
         )
 
-        if result.returncode != 0:
-            error_msg = result.stderr or result.stdout
-            return {
-                "success": False,
-                "error": f"GitHub API error: {error_msg}",
-                "error_type": _classify_error(error_msg),
-            }
+        # Parse HTTP response (status, headers, body)
+        status, headers, body = _parse_http_response(result.stdout)
 
-        response_data = json.loads(result.stdout)
+        # Success: 2xx status codes
+        if 200 <= status < 300:
+            try:
+                response_data = json.loads(body)
+                return {
+                    "success": True,
+                    "comment_url": response_data.get("html_url", ""),
+                }
+            except json.JSONDecodeError:
+                # Even if JSON parsing fails, HTTP 2xx means success
+                # This is defensive: GitHub should always return valid JSON for 2xx
+                return {
+                    "success": True,
+                    "comment_url": "",
+                }
+
+        # Error: non-2xx status
+        error_type = _map_status_to_action(status, headers)
         return {
-            "success": True,
-            "comment_url": response_data.get("html_url", ""),
+            "success": False,
+            "error": f"GitHub API error: HTTP {status}",
+            "error_type": error_type,
         }
 
     except subprocess.TimeoutExpired:
         return {
             "success": False,
             "error": "GitHub API request timed out (30s)",
-            "error_type": "network",
-        }
-    except json.JSONDecodeError:
-        return {
-            "success": False,
-            "error": f"Invalid JSON response: {result.stdout}",
             "error_type": "network",
         }
     except Exception as e:
