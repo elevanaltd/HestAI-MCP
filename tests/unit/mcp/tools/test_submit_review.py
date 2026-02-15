@@ -262,6 +262,127 @@ class TestGitHubPosting:
 
 
 @pytest.mark.unit
+class TestErrorClassification:
+    """Test error_type field for intelligent retry strategies."""
+
+    @pytest.mark.asyncio
+    async def test_rate_limit_error_classified(self) -> None:
+        """Rate limit errors include error_type='rate_limit' for backoff retry."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        mock_result = MagicMock()
+        mock_result.returncode = 1
+        mock_result.stderr = "gh: rate limit exceeded (HTTP 429)"
+        mock_result.stdout = ""
+
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch.dict("os.environ", {"GITHUB_TOKEN": "test-token"}),
+        ):
+            result = await submit_review(
+                repo="elevanaltd/HestAI-MCP",
+                pr_number=123,
+                role="CRS",
+                verdict="APPROVED",
+                assessment="Should detect rate limit",
+            )
+
+        assert result["success"] is False
+        assert result["error_type"] == "rate_limit"
+
+    @pytest.mark.asyncio
+    async def test_auth_error_classified(self) -> None:
+        """Auth errors include error_type='auth' for escalation."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        mock_result = MagicMock()
+        mock_result.returncode = 1
+        mock_result.stderr = "gh: authentication failed (HTTP 401)"
+        mock_result.stdout = ""
+
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch.dict("os.environ", {"GITHUB_TOKEN": "test-token"}),
+        ):
+            result = await submit_review(
+                repo="elevanaltd/HestAI-MCP",
+                pr_number=123,
+                role="CRS",
+                verdict="APPROVED",
+                assessment="Should detect auth error",
+            )
+
+        assert result["success"] is False
+        assert result["error_type"] == "auth"
+
+    @pytest.mark.asyncio
+    async def test_network_error_classified(self) -> None:
+        """Network errors include error_type='network' for immediate retry."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        mock_result = MagicMock()
+        mock_result.returncode = 1
+        mock_result.stderr = "gh: connection timed out"
+        mock_result.stdout = ""
+
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch.dict("os.environ", {"GITHUB_TOKEN": "test-token"}),
+        ):
+            result = await submit_review(
+                repo="elevanaltd/HestAI-MCP",
+                pr_number=123,
+                role="CRS",
+                verdict="APPROVED",
+                assessment="Should detect network error",
+            )
+
+        assert result["success"] is False
+        assert result["error_type"] == "network"
+
+    @pytest.mark.asyncio
+    async def test_validation_error_classified(self) -> None:
+        """Validation errors include error_type='validation' for no retry."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        result = await submit_review(
+            repo="elevanaltd/HestAI-MCP",
+            pr_number=123,
+            role="INVALID_ROLE",
+            verdict="APPROVED",
+            assessment="Should detect validation error",
+        )
+
+        assert result["success"] is False
+        assert result["error_type"] == "validation"
+
+    @pytest.mark.asyncio
+    async def test_generic_error_has_error_type(self) -> None:
+        """Generic errors include error_type='network' as fallback."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        mock_result = MagicMock()
+        mock_result.returncode = 1
+        mock_result.stderr = "gh: some unknown error"
+        mock_result.stdout = ""
+
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch.dict("os.environ", {"GITHUB_TOKEN": "test-token"}),
+        ):
+            result = await submit_review(
+                repo="elevanaltd/HestAI-MCP",
+                pr_number=123,
+                role="CRS",
+                verdict="APPROVED",
+                assessment="Should have error_type",
+            )
+
+        assert result["success"] is False
+        assert "error_type" in result
+
+
+@pytest.mark.unit
 class TestFailClosed:
     """Test fail-closed behavior: invalid format must not post."""
 

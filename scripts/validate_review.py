@@ -135,9 +135,9 @@ except (ImportError, ModuleNotFoundError):
     assert _spec is not None and _spec.loader is not None
     _review_formats = importlib.util.module_from_spec(_spec)
     _spec.loader.exec_module(_review_formats)
-    _matches_approval_pattern = _review_formats.matches_approval_pattern  # type: ignore[attr-defined]
-    _has_crs_approval = _review_formats.has_crs_approval  # type: ignore[attr-defined]
-    _has_ce_approval = _review_formats.has_ce_approval  # type: ignore[attr-defined]
+    _matches_approval_pattern = _review_formats.matches_approval_pattern
+    _has_crs_approval = _review_formats.has_crs_approval
+    _has_ce_approval = _review_formats.has_ce_approval
 
 
 def _has_approval(texts: list[str], prefix: str, keyword: str) -> bool:

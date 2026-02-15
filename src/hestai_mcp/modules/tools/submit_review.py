@@ -89,6 +89,40 @@ def _get_tier_requirements(role: str) -> str:
     return requirements.get(role, "Unknown tier requirement")
 
 
+def _classify_error(error_message: str) -> str:
+    """Classify error type for intelligent retry strategies.
+
+    Args:
+        error_message: Error message from GitHub API or subprocess.
+
+    Returns:
+        Error type classification:
+        - "rate_limit": Rate limit exceeded, agent should retry with backoff
+        - "auth": Authentication failed, agent must escalate
+        - "network": Network/timeout error, agent can retry immediately
+        - "validation": Validation error, agent must not retry
+    """
+    error_lower = error_message.lower()
+
+    # Rate limit detection (HTTP 429 or explicit rate limit messages)
+    if "rate limit" in error_lower or "429" in error_message:
+        return "rate_limit"
+
+    # Authentication errors (HTTP 401, 403)
+    if "authentication" in error_lower or "401" in error_message or "403" in error_message:
+        return "auth"
+
+    # Network errors (timeouts, connection issues)
+    if any(
+        term in error_lower
+        for term in ["timeout", "timed out", "connection", "network", "unreachable"]
+    ):
+        return "network"
+
+    # Default to network for unknown errors (safe for retry)
+    return "network"
+
+
 def _post_comment(repo: str, pr_number: int, comment: str) -> dict[str, Any]:
     """Post a comment on a GitHub PR using gh CLI.
 
@@ -99,12 +133,14 @@ def _post_comment(repo: str, pr_number: int, comment: str) -> dict[str, Any]:
 
     Returns:
         Dict with success status and comment URL or error.
+        Error responses include error_type for intelligent retry strategies.
     """
     token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
     if not token:
         return {
             "success": False,
             "error": "GITHUB_TOKEN or GH_TOKEN environment variable not set",
+            "error_type": "auth",
         }
 
     try:
@@ -122,9 +158,11 @@ def _post_comment(repo: str, pr_number: int, comment: str) -> dict[str, Any]:
         )
 
         if result.returncode != 0:
+            error_msg = result.stderr or result.stdout
             return {
                 "success": False,
-                "error": f"GitHub API error: {result.stderr or result.stdout}",
+                "error": f"GitHub API error: {error_msg}",
+                "error_type": _classify_error(error_msg),
             }
 
         response_data = json.loads(result.stdout)
@@ -134,11 +172,23 @@ def _post_comment(repo: str, pr_number: int, comment: str) -> dict[str, Any]:
         }
 
     except subprocess.TimeoutExpired:
-        return {"success": False, "error": "GitHub API request timed out (30s)"}
+        return {
+            "success": False,
+            "error": "GitHub API request timed out (30s)",
+            "error_type": "network",
+        }
     except json.JSONDecodeError:
-        return {"success": False, "error": f"Invalid JSON response: {result.stdout}"}
+        return {
+            "success": False,
+            "error": f"Invalid JSON response: {result.stdout}",
+            "error_type": "network",
+        }
     except Exception as e:
-        return {"success": False, "error": f"Unexpected error: {e}"}
+        return {
+            "success": False,
+            "error": f"Unexpected error: {e}",
+            "error_type": "network",
+        }
 
 
 async def submit_review(
@@ -168,12 +218,13 @@ async def submit_review(
 
     Returns:
         Dict with success status, comment URL, validation info, and
-        formatted comment.
+        formatted comment. Error responses include error_type field for
+        intelligent retry strategies.
     """
     # Step 1: Validate inputs
     error = _validate_inputs(repo, pr_number, role, verdict, assessment)
     if error:
-        return {"success": False, "error": error}
+        return {"success": False, "error": error, "error_type": "validation"}
 
     # Step 2: Format the comment using shared module
     formatted_comment = format_review_comment(
@@ -192,6 +243,7 @@ async def submit_review(
         return {
             "success": False,
             "error": "Format validation failed: APPROVED comment does not match gate pattern",
+            "error_type": "validation",
             "formatted_comment": formatted_comment,
             "validation": {
                 "would_clear_gate": False,
@@ -220,6 +272,7 @@ async def submit_review(
         return {
             "success": False,
             "error": post_result["error"],
+            "error_type": post_result["error_type"],
             "formatted_comment": formatted_comment,
             "validation": validation,
         }
