@@ -394,6 +394,40 @@ class TestHTTPResponseParsing:
         assert headers["x-ratelimit-remaining"] == "5000"
         assert headers["content-type"] == "application/json"
 
+    def test_parse_empty_response(self) -> None:
+        """Empty response returns fail-safe values."""
+        from hestai_mcp.modules.tools.submit_review import _parse_http_response
+
+        status, headers, body = _parse_http_response("")
+        assert status == 0
+        assert headers == {}
+        assert body == ""
+
+    def test_parse_no_separator(self) -> None:
+        """Response without double CRLF returns fail-safe."""
+        from hestai_mcp.modules.tools.submit_review import (
+            _map_status_to_action,
+            _parse_http_response,
+        )
+
+        status, headers, body = _parse_http_response("HTTP/2 200 OK")
+        assert status == 0
+        assert _map_status_to_action(0, {}) == "validation"
+
+    def test_parse_invalid_status(self) -> None:
+        """Invalid status code returns fail-safe."""
+        from hestai_mcp.modules.tools.submit_review import _parse_http_response
+
+        status, headers, body = _parse_http_response("HTTP/2 NOTANUMBER\r\n\r\n{}")
+        assert status == 0
+
+    def test_parse_malformed_status_line(self) -> None:
+        """Malformed status line returns fail-safe."""
+        from hestai_mcp.modules.tools.submit_review import _parse_http_response
+
+        status, headers, body = _parse_http_response("BROKEN\r\n\r\n{}")
+        assert status == 0
+
 
 @pytest.mark.unit
 class TestStatusToActionMapping:
@@ -419,6 +453,22 @@ class TestStatusToActionMapping:
 
         error_type = _map_status_to_action(403, {"x-ratelimit-remaining": "4999"})
         assert error_type == "auth"
+
+    def test_secondary_rate_limit_mixed_case_header(self) -> None:
+        """403 with X-RateLimit-Remaining: 0 (mixed case) detected as rate_limit."""
+        from hestai_mcp.modules.tools.submit_review import (
+            _map_status_to_action,
+            _parse_http_response,
+        )
+
+        raw_output = (
+            "HTTP/2 403 Forbidden\r\n"
+            "X-RateLimit-Remaining: 0\r\n"  # Mixed case
+            "\r\n"
+            '{"message": "Rate limit"}'
+        )
+        status, headers, body = _parse_http_response(raw_output)
+        assert _map_status_to_action(status, headers) == "rate_limit"
 
     def test_status_401_maps_to_auth(self) -> None:
         """HTTP 401 maps to auth."""

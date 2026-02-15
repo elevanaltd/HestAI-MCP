@@ -7,6 +7,13 @@ scripts/validate_review.py via the shared review_formats module.
 
 Fail-closed: validates format before posting. If validation fails,
 the comment is NOT posted.
+
+CONSULTATION EVIDENCE:
+- critical-engineer (CE): Required 5 additional tests for HTTP response
+  parsing edge cases (Issue #225):
+  * 4 malformed HTTP response tests (empty, no separator, invalid status, malformed line)
+  * 1 mixed-case header + 403 rate limit detection test
+  Tests added to tests/unit/mcp/tools/test_submit_review.py.
 """
 
 import json
