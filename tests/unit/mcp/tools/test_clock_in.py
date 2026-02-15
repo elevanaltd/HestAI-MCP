@@ -891,8 +891,7 @@ class TestRichContextSummary:
 
         # Create PROJECT-CONTEXT.oct.md with recognizable content
         project_context = mock_hestai_structure / ".hestai" / "context" / "PROJECT-CONTEXT.oct.md"
-        project_context.write_text(
-            """===PROJECT_CONTEXT===
+        project_context.write_text("""===PROJECT_CONTEXT===
 META:
   TYPE::"PROJECT_CONTEXT"
   PHASE::B1_FOUNDATION
@@ -905,8 +904,7 @@ NEXT_ACTIONS::[
   2::fix_bug_Y
 ]
 ===END===
-"""
-        )
+""")
 
         context_paths = resolve_context_paths(mock_hestai_structure)
         summary = build_rich_context_summary(
@@ -989,8 +987,7 @@ NEXT_ACTIONS::[
         state_dir = mock_hestai_structure / ".hestai" / "context" / "state"
         state_dir.mkdir(parents=True, exist_ok=True)
         blockers_file = state_dir / "blockers.oct.md"
-        blockers_file.write_text(
-            """===BLOCKERS===
+        blockers_file.write_text("""===BLOCKERS===
 META:
   TYPE::FAST_BLOCKERS
 
@@ -1001,8 +998,7 @@ ACTIVE:
     STATUS::ACTIVE
 
 ===END===
-"""
-        )
+""")
 
         context_paths = resolve_context_paths(mock_hestai_structure)
         summary = build_rich_context_summary(
@@ -1181,15 +1177,13 @@ class TestNorthStarConstraintsExtraction:
         workflow_dir = mock_hestai_structure / ".hestai" / "workflow"
         workflow_dir.mkdir(parents=True, exist_ok=True)
         north_star = workflow_dir / "000-MCP-PRODUCT-NORTH-STAR.oct.md"
-        north_star.write_text(
-            """===NORTH_STAR===
+        north_star.write_text("""===NORTH_STAR===
 SCOPE_BOUNDARIES::[
   IS::[persistent_memory_system, structural_governance_engine],
   IS_NOT::[SaaS_product, AI_model]
 ]
 ===END===
-"""
-        )
+""")
 
         constraints = _extract_north_star_constraints(north_star)
 
@@ -1212,8 +1206,7 @@ SCOPE_BOUNDARIES::[
         workflow_dir = mock_hestai_structure / ".hestai" / "workflow"
         workflow_dir.mkdir(parents=True, exist_ok=True)
         north_star = workflow_dir / "000-MCP-PRODUCT-NORTH-STAR.oct.md"
-        north_star.write_text(
-            """===NORTH_STAR===
+        north_star.write_text("""===NORTH_STAR===
 IMMUTABLES::[
   I3::DUAL_LAYER_AUTHORITY,
   I4::FRESHNESS_VERIFICATION
@@ -1224,8 +1217,7 @@ SCOPE_BOUNDARIES::[
   IS_NOT::[SaaS_product]
 ]
 ===END===
-"""
-        )
+""")
 
         context_paths = resolve_context_paths(mock_hestai_structure)
         summary = build_rich_context_summary(
@@ -1562,15 +1554,13 @@ class TestCoverageGaps:
         from hestai_mcp.modules.tools.clock_in import _extract_north_star_constraints
 
         north_star = tmp_path / "north-star.md"
-        north_star.write_text(
-            """===NORTH_STAR===
+        north_star.write_text("""===NORTH_STAR===
 I1::IMMUTABLE_ONE
 I2::IMMUTABLE_TWO
 I3::IMMUTABLE_THREE
 I4::IMMUTABLE_FOUR
 ===END===
-"""
-        )
+""")
 
         result = _extract_north_star_constraints(north_star)
         assert result is not None
@@ -1710,8 +1700,7 @@ class TestContextStewardIntegration:
             / "OPERATIONAL-WORKFLOW.oct.md"
         )
         workflow_file.parent.mkdir(parents=True, exist_ok=True)
-        workflow_file.write_text(
-            """===OPERATIONAL_WORKFLOW===
+        workflow_file.write_text("""===OPERATIONAL_WORKFLOW===
 META:
   TYPE::STANDARD
   STATUS::ACTIVE
@@ -1730,8 +1719,7 @@ WORKFLOW_PHASES:
   QUALITY_GATE_MANDATORY::"lint_passing && typecheck_passing && test_coverage_80"
 
 ===END===
-"""
-        )
+""")
 
         result = clock_in(
             role="implementation-lead",
@@ -1774,8 +1762,7 @@ WORKFLOW_PHASES:
             / "OPERATIONAL-WORKFLOW.oct.md"
         )
         workflow_file.parent.mkdir(parents=True, exist_ok=True)
-        workflow_file.write_text(
-            """===OPERATIONAL_WORKFLOW===
+        workflow_file.write_text("""===OPERATIONAL_WORKFLOW===
 META:
   TYPE::STANDARD
   STATUS::ACTIVE
@@ -1786,8 +1773,7 @@ WORKFLOW_PHASES:
   DELIVERABLES::["foundation"]
 
 ===END===
-"""
-        )
+""")
 
         clock_in(
             role="implementation-lead",
@@ -1830,16 +1816,14 @@ class TestStructuredClockInOutput:
 
         # Create PROJECT-CONTEXT with recognizable content
         project_context = mock_hestai_structure / ".hestai" / "context" / "PROJECT-CONTEXT.oct.md"
-        project_context.write_text(
-            """===PROJECT_CONTEXT===
+        project_context.write_text("""===PROJECT_CONTEXT===
 META:
   TYPE::"PROJECT_CONTEXT"
   PHASE::B1_FOUNDATION
 
 PURPOSE::"Test project"
 ===END===
-"""
-        )
+""")
 
         # Verify the protocol instructs structured OCTAVE output format
         assert "OCTAVE structure" in CLOCK_IN_SYNTHESIS_PROTOCOL
