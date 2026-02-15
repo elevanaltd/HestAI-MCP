@@ -38,9 +38,8 @@ class TestToolOptInEnforcement:
         (project_root / ".git").mkdir()
         (project_root / ".env").write_text("HESTAI_GOVERNANCE_ENABLED=true\n")
 
-        # Create bundled hub structure for the test
-        with Path(server.__file__).parent.parent.joinpath("_bundled_hub/VERSION").open("w") as f:
-            f.write("1.0.0-test\n")
+        # DON'T modify the real bundled hub VERSION file - just run the test
+        # The actual VERSION content doesn't matter for this test
 
         result = server.ensure_system_governance(project_root)
 
@@ -59,9 +58,8 @@ class TestToolOptInEnforcement:
         (project_root / ".git").mkdir()
         (project_root / ".hestai").mkdir()  # Existing HestAI project
 
-        # Create bundled hub structure for the test
-        with Path(server.__file__).parent.parent.joinpath("_bundled_hub/VERSION").open("w") as f:
-            f.write("1.0.0-test\n")
+        # DON'T modify the real bundled hub VERSION file - just run the test
+        # The actual VERSION content doesn't matter for this test
 
         result = server.ensure_system_governance(project_root)
 

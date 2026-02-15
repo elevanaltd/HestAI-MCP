@@ -326,13 +326,11 @@ def test_bind_emits_command_steps_and_todos(tmp_path, monkeypatch):
     agents_dir = tmp_path / ".hestai-sys" / "library" / "agents"
     agents_dir.mkdir(parents=True)
 
-    (agents_dir / "technical-architect.oct.md").write_text(
-        """COGNITION::LOGOS
+    (agents_dir / "technical-architect.oct.md").write_text("""COGNITION::LOGOS
 ARCHETYPES::ATLAS
 MUST::[a,b]
 NEVER::[c,d]
-"""
-    )
+""")
 
     from hestai_mcp.modules.tools.bind import bind
 
