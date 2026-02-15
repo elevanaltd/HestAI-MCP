@@ -569,15 +569,15 @@ class TestListTools:
         assert mock_validate.call_count >= 1
 
     @pytest.mark.asyncio
-    async def test_returns_three_tools(self):
-        """Returns exactly three tools (clock_in, clock_out, bind)."""
+    async def test_returns_four_tools(self):
+        """Returns exactly four tools (clock_in, clock_out, bind, submit_review)."""
         from hestai_mcp.mcp.server import list_tools
 
         tools = await list_tools()
 
-        assert len(tools) == 3
+        assert len(tools) == 4
         tool_names = {t.name for t in tools}
-        assert tool_names == {"clock_in", "clock_out", "bind"}
+        assert tool_names == {"clock_in", "clock_out", "bind", "submit_review"}
 
 
 # =============================================================================

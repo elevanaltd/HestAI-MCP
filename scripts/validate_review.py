@@ -105,59 +105,44 @@ def determine_review_tier(files: list[dict[str, Any]]) -> tuple[str, str]:
     return "TIER_2_CRS", "CRS review required - default tier"
 
 
-def _matches_approval_pattern(text: str, prefix: str, keyword: str) -> bool:
-    """Check if text matches a flexible approval pattern.
+# Import shared review format utilities (single source of truth).
+# In CI, the package may not be installed, so we use importlib to load
+# the module file directly without triggering the package's __init__.py.
+try:
+    from hestai_mcp.modules.tools.shared.review_formats import (
+        has_ce_approval as _has_ce_approval,
+    )
+    from hestai_mcp.modules.tools.shared.review_formats import (
+        has_crs_approval as _has_crs_approval,
+    )
+    from hestai_mcp.modules.tools.shared.review_formats import (
+        matches_approval_pattern as _matches_approval_pattern,
+    )
+except (ImportError, ModuleNotFoundError):
+    # CI fallback: load the module file directly via importlib
+    import importlib.util
 
-    Matches patterns like:
-      - 'CRS APPROVED:' (original exact format)
-      - 'CRS (Gemini): APPROVED' (parenthetical model annotation with colon)
-      - 'CRS (Gemini) \u2014 APPROVED' (parenthetical with em dash separator)
-      - 'CRS (Gemini) \u2013 APPROVED' (parenthetical with en dash separator)
-      - 'CRS (Gemini) - APPROVED' (parenthetical with hyphen separator)
-      - 'CRS \u2014 APPROVED' (em dash separator, no parenthetical)
-      - 'CRS: APPROVED' (colon separator, no parenthetical)
-      - 'CRS  APPROVED' (extra whitespace)
-      - 'IL SELF-REVIEWED:' and 'IL (Claude): SELF-REVIEWED:'
-      - '| CRS | Gemini | **APPROVED** |' (markdown table with bold)
-
-    Uses word boundaries around both prefix and keyword to prevent false
-    positives (e.g., 'XCRS' must not match 'CRS', 'APPROVEDLY' must not
-    match 'APPROVED').
-
-    Strips markdown bold/italic formatting before matching, then checks
-    each line for both tokens in order with word boundaries.
-    """
-    # Strip markdown bold/italic markers so **APPROVED** matches as APPROVED
-    cleaned = re.sub(r"\*{1,2}([^*]+)\*{1,2}", r"\1", text)
-
-    prefix_re = re.compile(rf"\b{re.escape(prefix)}\b")
-    keyword_re = re.compile(rf"\b{re.escape(keyword)}\b")
-
-    for line in cleaned.splitlines():
-        prefix_match = prefix_re.search(line)
-        if not prefix_match:
-            continue
-        # Keyword must appear after the prefix on the same line
-        keyword_match = keyword_re.search(line, prefix_match.end())
-        if keyword_match:
-            return True
-
-    return False
+    _module_path = (
+        Path(__file__).resolve().parent.parent
+        / "src"
+        / "hestai_mcp"
+        / "modules"
+        / "tools"
+        / "shared"
+        / "review_formats.py"
+    )
+    _spec = importlib.util.spec_from_file_location("review_formats", _module_path)
+    assert _spec is not None and _spec.loader is not None
+    _review_formats = importlib.util.module_from_spec(_spec)
+    _spec.loader.exec_module(_review_formats)
+    _matches_approval_pattern = _review_formats.matches_approval_pattern
+    _has_crs_approval = _review_formats.has_crs_approval
+    _has_ce_approval = _review_formats.has_ce_approval
 
 
 def _has_approval(texts: list[str], prefix: str, keyword: str) -> bool:
     """Check if any text in the list matches the approval pattern."""
     return any(_matches_approval_pattern(t, prefix, keyword) for t in texts)
-
-
-def _has_crs_approval(texts: list[str]) -> bool:
-    """Check if any text contains a CRS approval (APPROVED or GO)."""
-    return _has_approval(texts, "CRS", "APPROVED") or _has_approval(texts, "CRS", "GO")
-
-
-def _has_ce_approval(texts: list[str]) -> bool:
-    """Check if any text contains a CE approval (APPROVED or GO)."""
-    return _has_approval(texts, "CE", "APPROVED") or _has_approval(texts, "CE", "GO")
 
 
 def check_pr_comments(tier: str) -> tuple[bool, str]:
