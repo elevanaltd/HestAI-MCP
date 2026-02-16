@@ -82,6 +82,16 @@ jobs:
           fi
           xargs -a changed_docs.txt python scripts/ci/validate_naming_visibility.py
 
+      - name: "Validate SYS::/PROD:: namespace compliance"
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ steps.diff.outputs.changed_docs_count }}" = "0" ]; then
+            echo "SKIP namespace validator (no doc changes)"
+            exit 0
+          fi
+          xargs -a changed_docs.txt python scripts/hooks/validate_namespace.py
+
   validate_doc_numbering:
     runs-on: ubuntu-latest
     steps:

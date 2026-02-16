@@ -22,6 +22,13 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: namespace-validate
+        name: "Validate SYS::/PROD:: namespace compliance"
+        entry: python3 scripts/hooks/validate_namespace.py --staged
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: naming-visibility-validate
         name: Validate naming/visibility for staged docs
         entry: python3 scripts/ci/validate_naming_visibility.py --staged
