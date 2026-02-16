@@ -141,7 +141,7 @@ jobs:
       - name: Run pre-commit linters (black, ruff)
         uses: pre-commit/action@v3.0.1
         with:
-          extra_args: black ruff --all-files
+          extra_args: --all-files
 
   test_now:
     runs-on: ubuntu-latest
