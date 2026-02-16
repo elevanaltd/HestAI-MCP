@@ -135,7 +135,7 @@ META:
   STEP_3::"Audit all I# references: grep -E 'I[1-6]' document.md"
   STEP_4::"Apply qualification rules: same-namespace refs stay bare, cross-namespace refs get prefix"
   STEP_5::"For PROD docs: add TRACES_TO:[SYS::I#_list] to each I# definition"
-  STEP_6::"Run validation: python scripts/audit_namespace_refs.py document.md"
+  STEP_6::"Run validation: python scripts/hooks/validate_namespace.py document.md"
   STEP_7::"Verify checklist: declaration present, bare refs match namespace, cross-refs prefixed, TRACES_TO complete"
 
 §9::VALIDATION_EXAMPLES

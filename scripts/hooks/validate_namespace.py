@@ -2,33 +2,28 @@
 """
 Pre-commit hook for validating SYS::/PROD:: namespace compliance.
 
-Implements Constitution §3.5 Relativity Governance Protocol validation.
-Validates namespace declarations and immutable references across documentation.
-
-Usage:
-    python scripts/hooks/validate_namespace.py --staged  # Check staged files
-    python scripts/hooks/validate_namespace.py FILE...  # Check specific files
-
-Grace period until 2026-08-16: warnings only
-After grace period: violations become errors
-
-Exit codes:
-    0 - All files pass validation (or only warnings during grace period)
-    1 - Validation errors found
-    2 - Script errors
+Uses the core NamespaceResolver for consistency with tested validation logic.
 """
 
 from __future__ import annotations
 
 import argparse
-import re
 import subprocess
 import sys
-from datetime import date
 from pathlib import Path
 
-# Define inline to avoid import issues
-GRACE_PERIOD_END = date(2026, 8, 16)
+# Add src to path to import core module
+repo_root = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(repo_root / "src"))
+
+try:
+    from hestai_mcp.core.namespace_resolver import NamespaceResolver
+except ImportError:
+    print(
+        "ERROR: Cannot import NamespaceResolver. Ensure project is installed with: pip install -e .",
+        file=sys.stderr,
+    )
+    sys.exit(2)
 
 
 def get_staged_files() -> list[Path]:
@@ -72,76 +67,6 @@ def should_validate(file_path: Path) -> bool:
     return any(path_str.startswith(d) for d in relevant_dirs)
 
 
-def validate_namespace_inline(file_path: Path) -> tuple[list[str], list[str]]:
-    """
-    Simple inline namespace validation.
-
-    Returns:
-        Tuple of (warnings, errors)
-    """
-    warnings = []
-    errors = []
-
-    try:
-        content = file_path.read_text()
-    except Exception as e:
-        errors.append(f"Could not read file: {e}")
-        return warnings, errors
-
-    # Extract namespace declaration
-    namespace = None
-
-    # Check OCTAVE META block
-    meta_match = re.search(r"META::[^]]*NAMESPACE::(\w+)", content)
-    if meta_match:
-        namespace = meta_match.group(1)
-
-    # Check YAML frontmatter
-    if content.startswith("---\n"):
-        yaml_end = content.find("\n---\n", 4)
-        if yaml_end > 0:
-            yaml_section = content[4:yaml_end]
-            ns_match = re.search(r"^namespace:\s*(\w+)", yaml_section, re.MULTILINE)
-            if ns_match:
-                namespace = ns_match.group(1).upper()
-
-    # Find all I# references
-    bare_refs = re.findall(r"\bI[1-6]\b(?!::)", content)
-    sys_refs = re.findall(r"\bSYS::I[1-6]\b", content)
-    prod_refs = re.findall(r"\bPROD::I[1-6]\b", content)
-
-    # Apply validation rules
-    in_grace_period = date.today() < GRACE_PERIOD_END
-
-    # V1: No namespace + bare refs = error
-    if not namespace and bare_refs:
-        msg = f"No namespace declared but found {len(bare_refs)} bare I# reference(s)"
-        if in_grace_period:
-            warnings.append(msg)
-        else:
-            errors.append(msg)
-
-    # V2: Cross-namespace refs must be qualified
-    if namespace == "SYS" and prod_refs and not all("PROD::" in r for r in prod_refs):
-        msg = "Cross-namespace references to PROD must be qualified"
-        errors.append(msg)
-    elif namespace == "PROD" and sys_refs and not all("SYS::" in r for r in sys_refs):
-        msg = "Cross-namespace references to SYS must be qualified"
-        errors.append(msg)
-
-    # V3: Redundant qualification warning
-    if namespace == "SYS" and sys_refs:
-        warnings.append(
-            f"Redundant SYS:: qualification in SYS namespace file ({len(sys_refs)} instances)"
-        )
-    elif namespace == "PROD" and prod_refs:
-        warnings.append(
-            f"Redundant PROD:: qualification in PROD namespace file ({len(prod_refs)} instances)"
-        )
-
-    return warnings, errors
-
-
 def main() -> int:
     """Main entry point."""
     parser = argparse.ArgumentParser(description="Validate SYS::/PROD:: namespace compliance")
@@ -175,7 +100,8 @@ def main() -> int:
         print("✓ No documentation files to validate")
         return 0
 
-    # Validate each file
+    # Use the core NamespaceResolver
+    resolver = NamespaceResolver()
     total_warnings = 0
     total_errors = 0
 
@@ -183,15 +109,17 @@ def main() -> int:
         if not file_path.exists():
             continue
 
-        warnings, errors = validate_namespace_inline(file_path)
+        result = resolver.validate_file(file_path)
 
-        if warnings or errors:
+        if result.warnings or result.errors:
             print(f"\n{file_path}:")
-            for warning in warnings:
-                print(f"  ⚠️  WARNING: {warning}")
+
+            for warning in result.warnings:
+                print(f"  ⚠️  WARNING [{warning.line}]: {warning.message}")
                 total_warnings += 1
-            for error in errors:
-                print(f"  ❌ ERROR: {error}")
+
+            for error in result.errors:
+                print(f"  ❌ ERROR [{error.line}]: {error.message}")
                 total_errors += 1
 
     # Summary
