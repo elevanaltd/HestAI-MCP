@@ -39,6 +39,36 @@ VIOLATION_RESPONSE::[
   IF(continuity_missing) → CITE[I1] + BLOCK
 ]
 
+§3.5::NAMESPACE_RESOLUTION [The_Relativity_Protocol]
+CONTEXT::[
+  PROBLEM::"Two immutable sets (System vs Product) collide on I1-I6 namespace",
+  SOLUTION::"Namespace prefixing with file-level declaration (Relativity Governance Protocol)"
+]
+
+NAMESPACE_RULES::[
+  DECLARATION::files_declare_namespace_via_META::NAMESPACE::[SYS|PROD],
+  BARE_RESOLUTION::bare_I#_references_resolve_to_declared_namespace,
+  CROSS_NAMESPACE::cross_namespace_refs_MUST_use_prefix[SYS::I5,PROD::I1],
+  NO_DECLARATION::files_without_namespace_declaration_MUST_qualify_all_refs,
+  DERIVATION::TRACES_TO_shows_how_PROD_immutables_derive_from_SYS_foundation
+]
+
+NAMESPACE_DEFINITIONS::[
+  SYS::"System North Star immutables (constitutional methodology)",
+  SYS_IMMUTABLES::[I1::TDD,I2::Phase_Gated,I3::Human_Primacy,I4::Artifact_Persistence,I5::Quality_Verification,I6::Explicit_Accountability],
+  PROD::"Product North Star immutables (MCP operational requirements)",
+  PROD_IMMUTABLES::[I1::Cognitive_Continuity,I2::Structural_Integrity,I3::Dual_Layer_Authority,I4::Freshness_Verification,I5::Odyssean_Identity,I6::Universal_Scope]
+]
+
+ENFORCEMENT::[
+  VALIDATION::parsers_MUST_validate_namespace_declarations,
+  GRACE_PERIOD::until_2024-04-01[bare_refs_permitted_with_warnings],
+  POST_GRACE::undeclared_namespace_in_bare_ref_is_ERROR,
+  CROSS_NAMESPACE::missing_prefix_in_cross_namespace_ref_is_ERROR
+]
+
+RATIONALE::"Relativity enables two orthogonal governance domains to coexist without collision. System defines HOW to build; Product defines WHAT to build. Namespace locality preserves semantic clarity while enabling cross-domain traceability."
+
 §4::GOVERNANCE_HIERARCHY [The_Seal_of_Authority]
 HIERARCHY::CONSTITUTION → NORTH_STARS[SYSTEM+PRODUCT] → ADRs → WORKFLOWS
 AMENDMENT::"Only human authority can modify constitutional law"

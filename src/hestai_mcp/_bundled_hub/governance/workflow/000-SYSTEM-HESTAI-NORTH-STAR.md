@@ -1,13 +1,21 @@
 ---
 type: NORTH_STAR
 id: system-hestai-north-star
-version: 1.1
+version: 1.2
 status: APPROVED
 purpose: Constitutional methodology and governance for all HestAI projects
+namespace: SYS
 inherits: NONE[ROOT_DOCUMENT]
 approved_by: Shaun Buswell (Human Primacy Authority)
 approval_date: 2025-12-05
-last_validated: 2025-12-20
+last_validated: 2026-02-16
+amendment_history:
+  - version: 1.2
+    date: 2026-02-16
+    change: "Added NAMESPACE::SYS declaration and DERIVES section (Relativity Protocol)"
+  - version: 1.1
+    date: 2025-12-20
+    change: "Refreshed validation and assumptions"
 ---
 
 <!-- HestAI-Doc-Steward: consulted for document-creation-and-placement -->
@@ -230,7 +238,68 @@ HestAI's compressed notation system:
 
 ---
 
-## SECTION 7: PROTECTION CLAUSE
+## SECTION 7: DERIVATION MAPPING (Relativity Protocol)
+
+This section shows how Product North Star immutables (PROD::I1-I6) derive from System North Star immutables (SYS::I1-I6). This mapping enables cross-domain traceability while maintaining namespace separation per Constitution §3.5.
+
+### PROD::I1 (Persistent Cognitive Continuity)
+
+**TRACES_TO:** [SYS::I4 (Artifact Persistence), SYS::I6 (Explicit Accountability)]
+
+- **SYS::I4:** Cognitive continuity requires persistent, discoverable records across sessions
+- **SYS::I6:** Session learnings must have traceable ownership and authorship
+- **Product Specialization:** Extends artifact persistence to include cognitive state (context, decisions, learnings) not just work products
+
+### PROD::I2 (Structural Integrity Priority)
+
+**TRACES_TO:** [SYS::I5 (Quality Verification), SYS::I2 (Phase-Gated Progression)]
+
+- **SYS::I5:** Integrity checks are a form of quality verification that must block progression
+- **SYS::I2:** Structural validation is a gate between phases
+- **Product Specialization:** Prioritizes correctness over velocity in autonomous agent systems
+
+### PROD::I3 (Dual Layer Authority)
+
+**TRACES_TO:** [SYS::I3 (Human Primacy)]
+
+- **SYS::I3:** Read-only governance preserves human authority over strategic direction
+- **Product Specialization:** Implements human primacy through strict governance/context separation preventing agent rule rewriting
+
+### PROD::I4 (Freshness Verification)
+
+**TRACES_TO:** [SYS::I5 (Quality Verification)]
+
+- **SYS::I5:** Freshness is a quality criterion that must be verified before use
+- **Product Specialization:** Targets AI hallucination prevention through temporal validation
+
+### PROD::I5 (Odyssean Identity Binding)
+
+**TRACES_TO:** [SYS::I6 (Explicit Accountability), SYS::I2 (Phase-Gated Progression)]
+
+- **SYS::I6:** Identity verification establishes accountability for agent actions
+- **SYS::I2:** Identity binding is a gate before operational work
+- **Product Specialization:** Structural identity ceremony prevents generic drift in multi-agent systems
+
+### PROD::I6 (Universal Scope)
+
+**TRACES_TO:** [SYS::I4 (Artifact Persistence)]
+
+- **SYS::I4:** Discoverability requires handling diverse repository structures
+- **Product Specialization:** Ensures adoption across legacy codebases without structural assumptions
+
+### Derivation Principles
+
+**FOUNDATION:** All Product immutables ultimately derive from System immutables. The Product North Star cannot contradict the System North Star.
+
+**SPECIALIZATION:** Product immutables add domain-specific constraints (AI agents, context management, MCP protocol) while satisfying System requirements.
+
+**TRACEABILITY:** When PROD::I# is cited, the SYS::I# foundation provides constitutional grounding for the requirement.
+
+**NAMESPACE CLARITY:** Within this document, bare I# references mean SYS::I#. Cross-references to Product use PROD::I# notation per Constitution §3.5.
+
+---
+
+## SECTION 8: PROTECTION CLAUSE
 
 If ANY agent detects misalignment between work and this North Star:
 
@@ -242,7 +311,7 @@ If ANY agent detects misalignment between work and this North Star:
 
 ---
 
-## COMMITMENT CEREMONY RECORD
+## SECTION 9: COMMITMENT CEREMONY RECORD
 
 **Ceremony Conducted:** 2025-12-05
 **Methodology:** Full Immutability Funnel (HERMES → PSYCHE → APOLLO)

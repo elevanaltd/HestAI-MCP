@@ -3,47 +3,65 @@
 META:
   TYPE::NORTH_STAR_SUMMARY
   ID::mcp-product-north-star-summary
-  VERSION::"1.0-OCTAVE-SUMMARY"
+  VERSION::"1.1-OCTAVE-SUMMARY"
   STATUS::ACTIVE
   PURPOSE::"Operational decision-logic for HestAI-MCP product development"
   INHERITS::".hestai-sys/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md"
+  NAMESPACE::PROD
+  COMPRESSION_TIER::CONSERVATIVE
+  AMENDMENT_HISTORY::[
+    "1.1::2026-02-16::Added NAMESPACE::PROD + TRACES_TO mappings (Relativity Protocol)",
+    "1.0::Initial release"
+  ]
 
 ## IMMUTABLES (6 Total)
 
 I1::PERSISTENT_COGNITIVE_CONTINUITY::[
   PRINCIPLE::system_must_persist_context_decisions_learnings_across_sessions,
   WHY::prevents_costly_re-learning+amnesia_is_system_failure,
-  STATUS::PENDING[implementation-lead@B1]
+  STATUS::PENDING[implementation-lead@B1],
+  TRACES_TO::[SYS::I4,SYS::I6],
+  DERIVATION::"Extends artifact_persistence[SYS::I4] to cognitive_state + requires accountability[SYS::I6] for session_learnings"
 ]
 
 I2::STRUCTURAL_INTEGRITY_PRIORITY::[
   PRINCIPLE::correctness_and_compliance_take_precedence_over_velocity,
   WHY::reliability_is_critical_for_autonomous_systems,
-  STATUS::PROVEN[architectural_mandate]
+  STATUS::PROVEN[architectural_mandate],
+  TRACES_TO::[SYS::I5,SYS::I2],
+  DERIVATION::"Integrity_checks are quality_verification[SYS::I5] + phase_gates[SYS::I2] for autonomous_agents"
 ]
 
 I3::DUAL_LAYER_AUTHORITY::[
   PRINCIPLE::strict_separation_between_read-only_governance_and_mutable_context,
   WHY::prevents_governance_drift+agent_rule_rewriting,
-  STATUS::PROVEN[ADR-0001]
+  STATUS::PROVEN[ADR-0001],
+  TRACES_TO::[SYS::I3],
+  DERIVATION::"Implements human_primacy[SYS::I3] via governance_immutability preventing agent_rule_override"
 ]
 
 I4::FRESHNESS_VERIFICATION::[
   PRINCIPLE::context_must_be_verified_as_current_before_use,
   WHY::prevents_hallucinations_from_stale_data,
-  STATUS::PENDING[B1_freshness_check]
+  STATUS::PENDING[B1_freshness_check],
+  TRACES_TO::[SYS::I5],
+  DERIVATION::"Temporal_validity is quality_criterion[SYS::I5] for AI_hallucination_prevention"
 ]
 
 I5::ODYSSEAN_IDENTITY_BINDING::[
   PRINCIPLE::agents_must_undergo_structural_identity_verification_to_operate,
   WHY::prevents_generic_drift+enforces_role_constraints,
-  STATUS::PENDING[bind_command]
+  STATUS::PENDING[bind_command],
+  TRACES_TO::[SYS::I6,SYS::I2],
+  DERIVATION::"Identity_ceremony establishes accountability[SYS::I6] + is gate[SYS::I2] before operational_work"
 ]
 
 I6::UNIVERSAL_SCOPE::[
   PRINCIPLE::system_must_function_on_any_repository_structure,
   WHY::ensures_broad_adoption+handles_legacy_diversity,
-  STATUS::PENDING[multi-repo_testing]
+  STATUS::PENDING[multi-repo_testing],
+  TRACES_TO::[SYS::I4],
+  DERIVATION::"Universal_discoverability[SYS::I4] requires handling diverse_repository_structures"
 ]
 
 ## CRITICAL ASSUMPTIONS (2 Total)
@@ -114,5 +132,14 @@ THEN::[
   CITE::specific_requirement_violated[I#],
   ESCALATE::to_requirements-steward
 ]
+
+## NAMESPACE_CLARITY
+
+CONTEXT::per_Constitution_§3.5_Relativity_Protocol
+DECLARATION::NAMESPACE::PROD[declared_in_META_block_above]
+BARE_REFS::I#_within_this_file_resolve_to_PROD::I#
+CROSS_NAMESPACE::references_to_System_use_SYS::I#_notation
+TRACEABILITY::TRACES_TO_shows_derivation_from_SYS_foundation
+MIGRATION::grace_period_until_2024-04-01[see_NAMESPACE-MIGRATION-GUIDE.md]
 
 ===END===
