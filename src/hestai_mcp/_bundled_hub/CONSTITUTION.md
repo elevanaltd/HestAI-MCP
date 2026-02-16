@@ -62,7 +62,7 @@ NAMESPACE_DEFINITIONS::[
 
 ENFORCEMENT::[
   VALIDATION::parsers_MUST_validate_namespace_declarations,
-  GRACE_PERIOD::until_2024-04-01[bare_refs_permitted_with_warnings],
+  GRACE_PERIOD::until_2026-08-16[bare_refs_permitted_with_warnings],
   POST_GRACE::undeclared_namespace_in_bare_ref_is_ERROR,
   CROSS_NAMESPACE::missing_prefix_in_cross_namespace_ref_is_ERROR
 ]

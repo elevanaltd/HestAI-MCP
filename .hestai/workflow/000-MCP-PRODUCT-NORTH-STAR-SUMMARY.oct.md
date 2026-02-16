@@ -140,6 +140,6 @@ DECLARATION::NAMESPACE::PROD[declared_in_META_block_above]
 BARE_REFS::I#_within_this_file_resolve_to_PROD::I#
 CROSS_NAMESPACE::references_to_System_use_SYS::I#_notation
 TRACEABILITY::TRACES_TO_shows_derivation_from_SYS_foundation
-MIGRATION::grace_period_until_2024-04-01[see_NAMESPACE-MIGRATION-GUIDE.md]
+MIGRATION::grace_period_until_2026-08-16[see_NAMESPACE-MIGRATION-GUIDE.md]
 
 ===END===

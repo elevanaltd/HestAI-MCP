@@ -24,11 +24,12 @@ amendment_history:
 
 # HESTAI SYSTEM NORTH STAR
 
-**Version:** 1.1
+**Version:** 1.2
 **Status:** APPROVED
-**Approval Date:** 2025-12-05 (Refreshed 2025-12-20)
+**Approval Date:** 2025-12-05 (Refreshed 2025-12-20, Amended 2026-02-16)
 **Approved By:** Shaun Buswell (Human Primacy Authority)
 **Validation:** Multi-model consensus (Codex GO + Gemini GO)
+**Namespace:** SYS (per Constitution §3.5 Relativity Protocol)
 
 ---
 
