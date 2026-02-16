@@ -118,16 +118,15 @@ META:
   SUCCESS_RESPONSE:
     success::true
     comment_url::STRING[GitHub_comment_URL]
+    formatted_comment::STRING[posted_comment_text]
     validation:
-      would_clear_il::BOOLEAN
-      would_clear_crs::BOOLEAN
-      would_clear_ce::BOOLEAN
-    tier_requirement::STRING[human_readable]
+      would_clear_gate::BOOLEAN
+      tier_requirements::STRING[human_readable]
 
 §8::ERROR_HANDLING
   ERROR_TYPES→ACTION_MAPPING:
     validation→no_retry[input_invalid]
-    auth→human_intervention[token_missing∨invalid]
+    auth→configure_env[add_GITHUB_TOKEN_to_.env_file]
     network→retry_immediate[transient_failure]
     rate_limit→retry_backoff[wait_60s,exponential]
     github_api→check_PR_exists[404∨other_API_error]
