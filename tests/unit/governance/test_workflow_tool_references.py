@@ -14,7 +14,6 @@ from hestai_mcp.governance.validators import (
     DEPRECATED_HESTAI_MCP_TOOLS,
     DEPRECATED_SEMANTIC_TERMS,
     VALID_HESTAI_MCP_TOOLS,
-    check_workflow_synchronization,
     get_workflow_file_paths,
     validate_no_deprecated_semantic_terms,
     validate_no_deprecated_tools,
@@ -35,23 +34,19 @@ def test_workflow_documents_do_not_reference_deprecated_hestai_tools():
         ], f"Found deprecated tool references in {Path(file_path).name}: {result['deprecated_tools']}"
 
 
-@pytest.mark.unit
-def test_both_workflow_copies_are_identical():
-    """Test that both copies of the workflow document are identical."""
-    project_root = Path(__file__).parent.parent.parent.parent
-
-    try:
-        are_identical = check_workflow_synchronization(project_root)
-        assert (
-            are_identical
-        ), "Workflow document copies are not identical - they must be kept in sync"
-    except FileNotFoundError as e:
-        pytest.fail(str(e))
+# NOTE: Removed test_both_workflow_copies_are_identical()
+# The .hestai-sys/ directory is gitignored and only exists at runtime.
+# CI environments don't have this directory, so we can't test synchronization there.
+# The bundled version (src/hestai_mcp/_bundled_hub/) is the source of truth.
 
 
 @pytest.mark.unit
 def test_workflow_documents_exist():
-    """Test that both workflow document copies exist."""
+    """Test that the bundled workflow document exists.
+
+    Note: Only tests the bundled version since .hestai-sys/ is gitignored
+    and only exists at runtime. CI environments don't have the runtime copy.
+    """
     project_root = Path(__file__).parent.parent.parent.parent
     for file_path in get_workflow_file_paths(project_root):
         assert file_path.exists(), f"Workflow file not found: {file_path}"
@@ -119,18 +114,16 @@ def test_validate_no_deprecated_semantic_terms_case_insensitive():
         assert "TESTGUARD" in result
 
 
-@pytest.mark.unit
-def test_check_workflow_synchronization_raises_on_missing_file(tmp_path):
-    """Test synchronization check raises FileNotFoundError for missing files."""
-    with pytest.raises(FileNotFoundError, match="Workflow file not found"):
-        check_workflow_synchronization(tmp_path)
+# NOTE: Removed test_check_workflow_synchronization_raises_on_missing_file()
+# The check_workflow_synchronization() function was removed because .hestai-sys/
+# is gitignored and only exists at runtime. Can't test synchronization in CI.
 
 
 @pytest.mark.unit
 def test_get_workflow_file_paths_with_custom_root(tmp_path):
     """Test workflow path getter with custom project root."""
     paths = get_workflow_file_paths(tmp_path)
-    assert len(paths) == 2
+    assert len(paths) == 1  # Only bundled version
     assert all(tmp_path in path.parents for path in paths)
 
 
@@ -141,7 +134,7 @@ def test_validate_workflow_documents_returns_structure():
     results = validate_workflow_documents(project_root)
 
     assert isinstance(results, dict)
-    assert len(results) == 2  # Two workflow copies
+    assert len(results) == 1  # Only bundled workflow copy
 
     for _file_path, result in results.items():
         assert "exists" in result

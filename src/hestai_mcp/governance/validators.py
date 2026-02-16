@@ -50,13 +50,16 @@ DEPRECATED_SEMANTIC_TERMS = {
 
 
 def get_workflow_file_paths(project_root: Path | None = None) -> list[Path]:
-    """Get both copies of the workflow document.
+    """Get the bundled workflow document path.
+
+    Note: Only returns the bundled version since .hestai-sys/ is gitignored
+    and only exists at runtime. CI environments don't have the runtime copy.
 
     Args:
         project_root: Root directory of the project. If None, inferred from this file's location.
 
     Returns:
-        List of paths to both workflow document copies.
+        List containing path to the bundled workflow document (source of truth).
     """
     if project_root is None:
         # Infer project root from this file's location
@@ -66,7 +69,6 @@ def get_workflow_file_paths(project_root: Path | None = None) -> list[Path]:
     return [
         project_root
         / "src/hestai_mcp/_bundled_hub/governance/workflow/OPERATIONAL-WORKFLOW.oct.md",
-        project_root / ".hestai-sys/governance/workflow/OPERATIONAL-WORKFLOW.oct.md",
     ]
 
 
@@ -122,7 +124,10 @@ def validate_no_deprecated_semantic_terms(content: str) -> list[str]:
 def validate_workflow_documents(
     project_root: Path | None = None,
 ) -> dict[str, ValidationResult]:
-    """Validate both workflow document copies for deprecated references.
+    """Validate the bundled workflow document for deprecated references.
+
+    Note: Only validates the bundled version since .hestai-sys/ is gitignored
+    and only exists at runtime. CI environments don't have the runtime copy.
 
     Args:
         project_root: Root directory of the project. If None, inferred from this file's location.
@@ -130,12 +135,11 @@ def validate_workflow_documents(
     Returns:
         Dictionary mapping file paths to validation results:
         {
-            "/path/to/file1": {
+            "/path/to/bundled_workflow": {
                 "deprecated_tools": [...],
                 "deprecated_terms": [...],
                 "exists": True
-            },
-            ...
+            }
         }
 
     Example:
@@ -161,33 +165,3 @@ def validate_workflow_documents(
         results[str(file_path)] = file_results
 
     return results
-
-
-def check_workflow_synchronization(project_root: Path | None = None) -> bool:
-    """Verify both workflow document copies are identical.
-
-    Args:
-        project_root: Root directory of the project. If None, inferred from this file's location.
-
-    Returns:
-        True if both copies exist and are identical, False otherwise.
-
-    Raises:
-        FileNotFoundError: If one or both workflow files don't exist.
-
-    Example:
-        >>> check_workflow_synchronization()
-        True
-    """
-    workflow_paths = get_workflow_file_paths(project_root)
-
-    # Check both files exist
-    for file_path in workflow_paths:
-        if not file_path.exists():
-            raise FileNotFoundError(f"Workflow file not found: {file_path}")
-
-    # Read both files
-    contents = [path.read_text() for path in workflow_paths]
-
-    # Compare
-    return contents[0] == contents[1]
