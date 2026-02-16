@@ -92,7 +92,7 @@ def validate_namespace_inline(file_path: Path) -> tuple[list[str], list[str]]:
     namespace = None
 
     # Check OCTAVE META block
-    meta_match = re.search(r'META::[^]]*NAMESPACE::(\w+)', content)
+    meta_match = re.search(r"META::[^]]*NAMESPACE::(\w+)", content)
     if meta_match:
         namespace = meta_match.group(1)
 
@@ -101,14 +101,14 @@ def validate_namespace_inline(file_path: Path) -> tuple[list[str], list[str]]:
         yaml_end = content.find("\n---\n", 4)
         if yaml_end > 0:
             yaml_section = content[4:yaml_end]
-            ns_match = re.search(r'^namespace:\s*(\w+)', yaml_section, re.MULTILINE)
+            ns_match = re.search(r"^namespace:\s*(\w+)", yaml_section, re.MULTILINE)
             if ns_match:
                 namespace = ns_match.group(1).upper()
 
     # Find all I# references
-    bare_refs = re.findall(r'\bI[1-6]\b(?!::)', content)
-    sys_refs = re.findall(r'\bSYS::I[1-6]\b', content)
-    prod_refs = re.findall(r'\bPROD::I[1-6]\b', content)
+    bare_refs = re.findall(r"\bI[1-6]\b(?!::)", content)
+    sys_refs = re.findall(r"\bSYS::I[1-6]\b", content)
+    prod_refs = re.findall(r"\bPROD::I[1-6]\b", content)
 
     # Apply validation rules
     in_grace_period = date.today() < GRACE_PERIOD_END
@@ -144,9 +144,7 @@ def validate_namespace_inline(file_path: Path) -> tuple[list[str], list[str]]:
 
 def main() -> int:
     """Main entry point."""
-    parser = argparse.ArgumentParser(
-        description="Validate SYS::/PROD:: namespace compliance"
-    )
+    parser = argparse.ArgumentParser(description="Validate SYS::/PROD:: namespace compliance")
     parser.add_argument(
         "--staged",
         action="store_true",
@@ -204,9 +202,7 @@ def main() -> int:
         print(f"\n✓ Validation passed with {total_warnings} warning(s)")
         return 0
     else:
-        print(
-            f"\n❌ Validation failed: {total_errors} error(s), {total_warnings} warning(s)"
-        )
+        print(f"\n❌ Validation failed: {total_errors} error(s), {total_warnings} warning(s)")
         return 1
 
 
