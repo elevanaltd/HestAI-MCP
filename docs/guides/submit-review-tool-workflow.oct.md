@@ -51,17 +51,17 @@ META:
 
 §4::REVIEW_TIERS
   TIER_1_SELF:
-    TRIGGER::[lines<50∨docs_only]
-    REQUIRED::IL_APPROVED
+    TRIGGER::[lines_lt_50_or_docs_only]
+    REQUIRED::IL_SELF_REVIEWED
     EXAMPLES::[README,config,small_fixes]
 
   TIER_2_CRS:
-    TRIGGER::[50≤lines≤500]
+    TRIGGER::[lines_50_to_500]
     REQUIRED::CRS_APPROVED
     EXAMPLES::[features,bug_fixes,refactoring]
 
   TIER_3_FULL:
-    TRIGGER::[lines>500∨architecture∨database∨cross_module]
+    TRIGGER::[lines_gt_500_or_architecture_or_database_or_cross_module]
     REQUIRED::[CRS_APPROVED∧CE_APPROVED]
     EXAMPLES::[major_features,redesigns,security_critical]
 
