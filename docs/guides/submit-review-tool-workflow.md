@@ -1,5 +1,7 @@
 # submit_review Tool Workflow Guide
 
+> **Note for Agents**: A compressed OCTAVE version of this guide is available at [submit-review-tool-workflow.oct.md](submit-review-tool-workflow.oct.md) for reduced token consumption (~70% compression).
+
 ## Overview
 The `submit_review` tool is an MCP (Model Context Protocol) tool that enables agents to programmatically post PR review comments that clear the review-gate CI check. These comments are specially formatted to be recognized by the review-gate CI system, which automatically validates and processes them to clear review requirements.
 
