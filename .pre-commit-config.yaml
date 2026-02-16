@@ -1,6 +1,35 @@
+# Improved pre-commit configuration with proper tool management
+# This version uses pre-commit's built-in environments for consistency
+
 repos:
+  # Python formatters and linters (managed by pre-commit)
+  - repo: https://github.com/psf/black
+    rev: "26.1.0"  # Match pyproject.toml version exactly
+    hooks:
+      - id: black
+        files: ^(src|tests|scripts)/.*\.py$
+        args: [--line-length=100]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: "v0.15.0"  # Match pyproject.toml version
+    hooks:
+      - id: ruff
+        files: ^(src|tests|scripts)/.*\.py$
+        args: [--fix]
+
+  # Note: mypy is kept as a local hook because it needs all project dependencies
+  # Using the managed version would require listing every dependency twice
+
+  # Local hooks for project-specific validators
   - repo: local
     hooks:
+      - id: mypy
+        name: mypy src (only when src staged)
+        entry: bash -c 'set -euo pipefail; if git diff --cached --name-only --diff-filter=ACMR | grep -E "^src/.*\.py$" >/dev/null; then mypy src; else echo "SKIP mypy (no src/*.py staged)"; fi'
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: no-tests-init
         name: Prevent tests/__init__.py
         entry: bash -c 'if find tests -name "__init__.py" -type f | grep -q .; then echo "ERROR tests/__init__.py files must not exist per TEST-STRUCTURE-STANDARD.md Standard 4"; exit 1; fi'
@@ -17,7 +46,7 @@ repos:
 
       - id: octave-validate
         name: Validate OCTAVE for staged .oct.md
-        entry: bash -c 'set -euo pipefail; files="$(git diff --cached --name-only --diff-filter=ACMR | grep -E "\\.oct\\.md$" | grep -v "^src/hestai_mcp/_bundled_hub/" || true)"; if [ -z "$files" ]; then echo "SKIP octave validator (no .oct.md staged)"; exit 0; fi; for f in $files; do python3 src/hestai_mcp/_bundled_hub/tools/octave-validator.py --profile protocol "$f"; done'
+        entry: bash -c 'set -euo pipefail; files="$(git diff --cached --name-only --diff-filter=ACMR | grep -E "\.oct\.md$" | grep -v "^src/hestai_mcp/_bundled_hub/" || true)"; if [ -z "$files" ]; then echo "SKIP octave validator (no .oct.md staged)"; exit 0; fi; for f in $files; do python3 src/hestai_mcp/_bundled_hub/tools/octave-validator.py --profile protocol "$f"; done'
         language: system
         pass_filenames: false
         always_run: true
@@ -36,41 +65,21 @@ repos:
         pass_filenames: false
         always_run: true
 
-      - id: adr-numbering
+      - id: adr-numbering-validate
         name: Validate ADR numbering matches GitHub Issue
-        entry: bash -c 'set -euo pipefail; if git diff --cached --name-only --diff-filter=ACMR | grep -E "^docs/adr/adr-" >/dev/null; then bash scripts/ci/validate-doc-numbering.sh; else echo "SKIP doc numbering (no ADR staged)"; fi'
+        entry: python3 scripts/ci/validate_adr_numbering.py --staged
         language: system
         pass_filenames: false
         always_run: true
 
-      - id: review-validator
+      - id: review-requirements
         name: Check review requirements
-        entry: python3 scripts/validate_review.py
+        entry: python3 scripts/ci/check_review_requirements.py --staged --github-api
         language: system
         pass_filenames: false
         always_run: true
 
-      - id: ruff
-        name: ruff (staged)
-        entry: ruff check
-        language: system
-        types: [python]
-        files: ^(src|tests|scripts)/.*\.py$
-
-      - id: black
-        name: black --check (staged)
-        entry: black --check
-        language: system
-        types: [python]
-        files: ^(src|tests|scripts)/.*\.py$
-
-      - id: mypy
-        name: mypy src (only when src staged)
-        entry: bash -c 'set -euo pipefail; if git diff --cached --name-only --diff-filter=ACMR | grep -E "^src/.*\\.py$" >/dev/null; then mypy src; else echo "SKIP mypy (no src/*.py staged)"; fi'
-        language: system
-        pass_filenames: false
-        always_run: true
-
+  # General file validators (managed by pre-commit)
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
@@ -79,4 +88,15 @@ repos:
       - id: check-yaml
       - id: check-added-large-files
         args: ['--maxkb=500']
-        exclude: '^\.hestai/sessions/archive/.*\.jsonl$'
+
+# Configuration settings
+default_install_hook_types: [pre-commit, commit-msg]
+default_stages: [pre-commit]
+
+# Ensure hooks run in order
+fail_fast: false
+
+# Cache pre-commit environments
+ci:
+  autofix_prs: false
+  autoupdate_schedule: monthly

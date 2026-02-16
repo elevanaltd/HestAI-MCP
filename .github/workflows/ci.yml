@@ -132,14 +132,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip"
-      - name: Install
+      - name: Install dev dependencies for mypy
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
-      - name: Ruff
-        run: python -m ruff check src tests scripts
-      - name: Black
-        run: python -m black --check src tests scripts
+      # Use pre-commit to ensure CI and local dev use exact same tool versions
+      # Pre-commit manages its own environments with pinned versions from .pre-commit-config.yaml
+      - name: Run pre-commit linters (black, ruff)
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --hook-stage manual --all-files
 
   test_now:
     runs-on: ubuntu-latest
