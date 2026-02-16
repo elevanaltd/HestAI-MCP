@@ -191,7 +191,7 @@ result = await submit_review(
 )
 
 # Check if format would clear gate
-if result["validation"]["would_clear_crs"]:
+if result["validation"]["would_clear_gate"]:
     print("Format is correct")
 ```
 

@@ -51,17 +51,17 @@ META:
 
 §4::REVIEW_TIERS
   TIER_1_SELF:
-    TRIGGER::[lines<50∨docs_only]
-    REQUIRED::IL_APPROVED
+    TRIGGER::[lines_lt_50_or_docs_only]
+    REQUIRED::IL_SELF_REVIEWED
     EXAMPLES::[README,config,small_fixes]
 
   TIER_2_CRS:
-    TRIGGER::[50≤lines≤500]
+    TRIGGER::[lines_50_to_500]
     REQUIRED::CRS_APPROVED
     EXAMPLES::[features,bug_fixes,refactoring]
 
   TIER_3_FULL:
-    TRIGGER::[lines>500∨architecture∨database∨cross_module]
+    TRIGGER::[lines_gt_500_or_architecture_or_database_or_cross_module]
     REQUIRED::[CRS_APPROVED∧CE_APPROVED]
     EXAMPLES::[major_features,redesigns,security_critical]
 
@@ -118,16 +118,15 @@ META:
   SUCCESS_RESPONSE:
     success::true
     comment_url::STRING[GitHub_comment_URL]
+    formatted_comment::STRING[posted_comment_text]
     validation:
-      would_clear_il::BOOLEAN
-      would_clear_crs::BOOLEAN
-      would_clear_ce::BOOLEAN
-    tier_requirement::STRING[human_readable]
+      would_clear_gate::BOOLEAN
+      tier_requirements::STRING[human_readable]
 
 §8::ERROR_HANDLING
   ERROR_TYPES→ACTION_MAPPING:
     validation→no_retry[input_invalid]
-    auth→human_intervention[token_missing∨invalid]
+    auth→configure_env[add_GITHUB_TOKEN_to_.env_file]
     network→retry_immediate[transient_failure]
     rate_limit→retry_backoff[wait_60s,exponential]
     github_api→check_PR_exists[404∨other_API_error]
