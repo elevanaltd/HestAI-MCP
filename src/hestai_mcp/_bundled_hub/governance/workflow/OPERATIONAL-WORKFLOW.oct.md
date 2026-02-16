@@ -69,8 +69,8 @@ PURPOSE::"Validated architecture→actionable implementation plan"
 SUBPHASES::"B1_01[task-decomposer:atomic_tasks+dependencies]→B1_02[workspace-architect:project_migration_execution+structure+environments+CI/CD_pipeline+QUALITY_GATES_MANDATORY]→MIGRATION_GATE→B1_03[workspace-architect:build_directory_validation]→B1_04[implementation-lead:task_sequencing]→B1_05[build-plan-checker:completeness+feasibility]"
 RACI::"R[planning_specialists]→A[critical-engineer:final_build_plan_approval]→C[technical-architect:guidance, requirements-steward:scope, principal-engineer:tech_debt_strategy_at_B1_01]→I[solution-steward, code-review-specialist, universal-test-engineer]"
 MIGRATION_GATE::"B1_02_completion→STOP→HUMAN_MIGRATION_POINT"
-RESTART_IN_NEW_LOCATION::"cd /Volumes/HestAI-Projects/{PROJECT_NAME}/build/VERIFY_pwd→RESUME_B1_03"
-QUALITY_GATE_MANDATORY::"⚠️ SEE /Users/shaunbuswell/.claude/protocols/WORKSPACE-SETUP.md - NO src/ FILES WITHOUT PASSING: npm run lint && npm run typecheck && npm run test"
+RESTART_IN_NEW_LOCATION::"cd ${PROJECT_ROOT}/build/VERIFY_pwd→RESUME_B1_03"
+QUALITY_GATE_MANDATORY::"⚠️ SEE workspace-setup skill - NO src/ FILES WITHOUT PASSING quality gates per project's CLAUDE.md"
 DELIVERABLES::["B1-BUILD-PLAN.md⊕task_breakdown","B1-WORKSPACE.md⊕environment⊕CI/CD_setup⊕QUALITY_GATE_EVIDENCE","B1-DEPENDENCIES.md⊕critical_path",TRACED_artifacts]
 LOCATION::"@dev/reports/"
 CRITERIA::[all_components_have_tasks,"dependencies_mapped⊕sequenced",test_requirements_identified,QUALITY_GATES_OPERATIONAL,resources_defined,risks_mitigated,"timeline_realistic⊕buffered"]
@@ -127,10 +127,10 @@ POST_MORTEM_ANALYSIS:
   INVOCATION::"MANDATORY for CRITICAL incidents, HIGH-priority recurring failures, architectural erosion signals"
 COORDINATION_ARCHITECTURE:
   TWO_REPOSITORY_PATTERN::[[[DEV_REPOSITORY::"docs/*[ALL_technical_docs], src/, tests/"]],[[COORDINATION_REPOSITORY::"workflow-docs/[phase_artifacts], phase-reports/[B1-B4], planning-docs/[CHARTER,ASSIGNMENTS], ACTIVE-WORK.md[visibility]"]]]
-  DOCUMENT_PLACEMENT_PROTOCOL::"See /Users/shaunbuswell/.claude/protocols/DOCUMENT_PLACEMENT_AND_VISIBILITY.md"
+  DOCUMENT_PLACEMENT_PROTOCOL::"See documentation-placement skill (.hestai-sys/library/skills/documentation-placement/SKILL.md)"
   PHASE_TRANSITION_CLEANUP::["B1_02, B2_04, B3_04, B4_05 require cleanup validation","holistic-orchestrator→directory-curator→workspace-architect pattern"]
 SESSION_COORDINATION:
-  IDEATION_GRADUATION_EXECUTION::[[[D0_IDEATION::"/HestAI-Projects/0-ideation/sessions/[structured_exploration+thread_messaging+manifest_tracking]"]],[[PROJECT_MIGRATION_EXECUTION::"workspace-architect[B1_02]→migration[0-ideation→{project-name}/sessions/]→MIGRATION_GATE[directory_change_required]→coordination_symlink[.coord/]→using_graduation_assessment_from_D0"]],[[ARTIFACT_DISTRIBUTION::"D-phase→@coordination/docs/workflow/, B-phase→@dev/reports/"]]]
+  IDEATION_GRADUATION_EXECUTION::[[[D0_IDEATION::"/Volumes/HestAI-Projects/0-ideation/sessions/[structured_exploration+thread_messaging+manifest_tracking]"]],[[PROJECT_MIGRATION_EXECUTION::"workspace-architect[B1_02]→migration[0-ideation→{project-name}/sessions/]→MIGRATION_GATE[directory_change_required]→coordination_symlink[.coord/]→using_graduation_assessment_from_D0"]],[[ARTIFACT_DISTRIBUTION::"D-phase→@coordination/docs/workflow/, B-phase→@dev/reports/"]]]
   LINK_STANDARDS::[[[LOCALITY_PRINCIPLE::"internal_links[relative_paths], external_links[full_paths_boundary_crossing_only]"]],[[MIGRATION_RESILIENCE::"links_survive_reorganization+repository_moves"]],[[VALIDATION_ENFORCEMENT::"automation_testable+broken_links_block_commits"]]]
 ENHANCEMENT_CLASSIFICATION:
   B5_CRITERIA::[improves_existing_beyond_original,works_within_architectural_framework,completable_within_scope_limits,low_destabilization_risk]
