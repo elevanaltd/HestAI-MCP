@@ -1,6 +1,6 @@
 # submit_review Tool Workflow Guide
 
-> **Note for Agents**: A compressed OCTAVE version of this guide is available at [submit-review-tool-workflow.oct.md](submit-review-tool-workflow.oct.md) for reduced token consumption (~70% compression).
+> **Note for Agents**: A compressed OCTAVE version of this guide is available at [submit-review-tool-workflow.oct.md](submit-review-tool-workflow.oct.md) for reduced token consumption (50% compression).
 
 ## Overview
 The `submit_review` tool is an MCP (Model Context Protocol) tool that enables agents to programmatically post PR review comments that clear the review-gate CI check. These comments are specially formatted to be recognized by the review-gate CI system, which automatically validates and processes them to clear review requirements.
@@ -129,7 +129,7 @@ The system has three review tiers based on change complexity:
 
 ### Tier 1: Self-Review (IL Role)
 - **When**: Changes under 50 lines, documentation/config only
-- **Required**: IL APPROVED comment
+- **Required**: IL SELF-REVIEWED comment (Note: IL uses "SELF-REVIEWED" not "APPROVED")
 - **Example changes**: README updates, config tweaks, small fixes
 
 ### Tier 2: Code Review (CRS Role)
@@ -217,11 +217,10 @@ The tool returns a structured response:
   "success": true,
   "comment_url": "https://github.com/owner/repo/pull/123#issuecomment-456",
   "validation": {
-    "would_clear_il": false,
-    "would_clear_crs": true,
-    "would_clear_ce": false
+    "would_clear_gate": true,
+    "tier_requirements": "TIER_2_CRS: CRS APPROVED comment required"
   },
-  "tier_requirement": "TIER_2_CRS: CRS APPROVED comment required"
+  "formatted_comment": "CRS APPROVED: Code meets all quality standards"
 }
 ```
 
