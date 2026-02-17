@@ -209,6 +209,15 @@ def inject_system_governance(project_root: Path) -> None:
             raise FileNotFoundError(f"Bundled hub missing required directory: {hub_path / d}")
 
     hestai_sys_dir = project_root / ".hestai-sys"
+
+    # Holographic Constitution: restore writable permissions before re-injection
+    if hestai_sys_dir.exists():
+        from hestai_mcp.modules.tools.shared.governance_integrity import (
+            restore_writable_permissions,
+        )
+
+        restore_writable_permissions(hestai_sys_dir)
+
     tmp_dir = project_root / ".hestai-sys.__tmp__"
     old_dir = project_root / ".hestai-sys.__old__"
 
@@ -239,6 +248,15 @@ def inject_system_governance(project_root: Path) -> None:
 
     if old_dir.exists():
         shutil.rmtree(old_dir)
+
+    # Holographic Constitution: store integrity hash and apply read-only permissions
+    from hestai_mcp.modules.tools.shared.governance_integrity import (
+        apply_readonly_permissions,
+        store_governance_hash,
+    )
+
+    store_governance_hash(hestai_sys_dir)
+    apply_readonly_permissions(hestai_sys_dir)
 
     logger.info(f"Injected system governance v{get_hub_version()} to {hestai_sys_dir}")
 
