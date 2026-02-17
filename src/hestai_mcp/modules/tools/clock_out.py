@@ -57,59 +57,6 @@ def validate_session_id(session_id: str) -> str:
     return session_id.strip()
 
 
-def redact_sensitive_params(params: dict[str, Any]) -> dict[str, Any]:
-    """
-    Redact sensitive parameters from tool invocations.
-
-    Security: Prevents exposure of API keys, passwords, tokens in session archives.
-
-    Args:
-        params: Raw tool parameters
-
-    Returns:
-        Sanitized parameters with sensitive values redacted
-    """
-    if not isinstance(params, dict):
-        return {}
-
-    # Patterns for sensitive keys
-    sensitive_patterns = [
-        "key",
-        "password",
-        "token",
-        "secret",
-        "auth",
-        "bearer",
-        "credential",
-        "api_key",
-        "access_token",
-    ]
-
-    redacted: dict[str, Any] = {}
-    for key, value in params.items():
-        key_lower = key.lower()
-
-        # Check if key contains sensitive pattern
-        if any(pattern in key_lower for pattern in sensitive_patterns):
-            redacted[key] = "***REDACTED***"
-        # Recursively redact nested dictionaries
-        elif isinstance(value, dict):
-            redacted[key] = redact_sensitive_params(value)
-        # Check if value looks like a secret (long alphanumeric string)
-        elif isinstance(value, str) and len(value) > 20 and any(c.isalnum() for c in value):
-            # Could be a secret - redact if it has key-like patterns
-            if any(pattern in value.lower() for pattern in ["sk-", "bearer ", "token "]):
-                redacted[key] = "***REDACTED***"
-            else:
-                # Truncate long values to prevent bloat
-                redacted[key] = value[:100] + "..." if len(value) > 100 else value
-        else:
-            # Safe to include
-            redacted[key] = value
-
-    return redacted
-
-
 async def clock_out(
     session_id: str,
     description: str,
@@ -266,10 +213,20 @@ async def clock_out(
         compression_status = "failed"
         logger.warning(f"OCTAVE compression failed (non-blocking): {e}")
 
-    # Update FAST layer (ADR-0046, ADR-0056)
-    from hestai_mcp.modules.tools.shared.fast_layer import update_fast_layer_on_clock_out
+    # Update FAST layer (ADR-0046, ADR-0056) -- graceful degradation
+    try:
+        from hestai_mcp.modules.tools.shared.fast_layer import update_fast_layer_on_clock_out
 
-    update_fast_layer_on_clock_out(project_root, session_id)
+        update_fast_layer_on_clock_out(project_root, session_id)
+    except Exception as e:
+        logger.warning(f"FAST layer update failed (non-blocking): {e}")
+
+    # Verify archive integrity before deleting session
+    if not redacted_jsonl_path.exists() or redacted_jsonl_path.stat().st_size == 0:
+        raise RuntimeError(
+            f"Archive verification failed: {redacted_jsonl_path} is missing or empty. "
+            "Session directory preserved for manual recovery."
+        )
 
     # Remove active session directory
     shutil.rmtree(session_dir)
@@ -287,5 +244,17 @@ async def clock_out(
 
     if octave_path:
         response["octave_path"] = str(octave_path)
+
+    # Record session duration
+    started_at = session_data.get("started_at")
+    if started_at:
+        try:
+            start_time = datetime.fromisoformat(started_at)
+            end_time = datetime.now(start_time.tzinfo)
+            duration_seconds = (end_time - start_time).total_seconds()
+            response["ended_at"] = end_time.isoformat()
+            response["duration_seconds"] = round(duration_seconds, 1)
+        except (ValueError, TypeError):
+            pass  # Malformed started_at, skip duration
 
     return response

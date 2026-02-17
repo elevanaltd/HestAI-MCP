@@ -677,6 +677,66 @@ class TestCallTool:
         assert response_data["session_id"] == session_id
 
     @pytest.mark.asyncio
+    async def test_clock_out_uses_explicit_working_dir(self, tmp_path: Path):
+        """clock_out uses working_dir parameter when provided."""
+        from hestai_mcp.mcp.server import call_tool
+
+        # Create project with session
+        project = tmp_path / "project"
+        project.mkdir()
+        (project / ".git").mkdir()
+        (project / ".hestai" / "sessions" / "active").mkdir(parents=True)
+        (project / ".hestai" / "sessions" / "archive").mkdir(parents=True)
+        (project / ".hestai" / "context" / "state").mkdir(parents=True)
+
+        session_id = "working-dir-test-123"
+        session_dir = project / ".hestai" / "sessions" / "active" / session_id
+        session_dir.mkdir()
+        session_data = {
+            "session_id": session_id,
+            "role": "test-role",
+            "working_dir": str(project),
+        }
+        (session_dir / "session.json").write_text(json.dumps(session_data))
+
+        # Mock clock_out function to avoid complex dependencies
+        with patch("hestai_mcp.mcp.server.clock_out", new_callable=AsyncMock) as mock_clock_out:
+            mock_clock_out.return_value = {
+                "status": "completed",
+                "session_id": session_id,
+            }
+
+            # Call with explicit working_dir -- should NOT depend on cwd
+            arguments = {
+                "session_id": session_id,
+                "description": "Test session",
+                "working_dir": str(project),
+            }
+            result = await call_tool("clock_out", arguments)
+
+        assert len(result) == 1
+        response_data = json.loads(result[0].text)
+        assert response_data["session_id"] == session_id
+
+        # Verify clock_out was called with the correct project root
+        mock_clock_out.assert_called_once()
+        call_kwargs = mock_clock_out.call_args
+        assert call_kwargs.kwargs["project_root"] == project
+
+    @pytest.mark.asyncio
+    async def test_clock_out_schema_includes_working_dir(self):
+        """clock_out tool schema includes optional working_dir parameter."""
+        from hestai_mcp.mcp.server import list_tools
+
+        tools = await list_tools()
+        clock_out_tool = next((t for t in tools if t.name == "clock_out"), None)
+        assert clock_out_tool is not None
+
+        schema = clock_out_tool.inputSchema
+        assert "working_dir" in schema["properties"]
+        assert "working_dir" not in schema.get("required", [])
+
+    @pytest.mark.asyncio
     async def test_raises_value_error_for_unknown_tool(self):
         """Raises ValueError for unknown tool name."""
         from hestai_mcp.mcp.server import call_tool
