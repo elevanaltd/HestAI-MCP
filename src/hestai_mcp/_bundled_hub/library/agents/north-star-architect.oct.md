@@ -76,6 +76,7 @@ META:
 §3::CAPABILITIES
   // DYNAMIC LOADING
   SKILLS::[
+    octave-literacy,              // OCTAVE format reading/writing competence
     immutability-engineering,
     constitutional-enforcement
   ]
