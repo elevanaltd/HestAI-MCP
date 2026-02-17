@@ -4,21 +4,24 @@ Python MCP server providing context management tools for Claude Code.
 
 ## Quick Commands
 
+**Always use `.venv/bin/python` — the system `python` does not have project packages.**
+The `.venv` is created by the session startup hook (`uv sync --all-extras`).
+
 ```bash
 # Quality gates (run before committing)
-python -m ruff check src tests scripts
-python -m black --check src tests scripts
-python -m mypy src
-python -m pytest
+.venv/bin/python -m ruff check src tests scripts
+.venv/bin/python -m black --check src tests scripts
+.venv/bin/python -m mypy src
+.venv/bin/python -m pytest
 
 # Fix formatting
-python -m black src tests scripts
-python -m ruff check --fix src tests scripts
+.venv/bin/python -m black src tests scripts
+.venv/bin/python -m ruff check --fix src tests scripts
 
 # Run specific test markers
-python -m pytest -m smoke       # Fast sanity checks
-python -m pytest -m behavior    # Behavioral tests (NOW)
-python -m pytest -m contract    # Contract tests (SOON)
+.venv/bin/python -m pytest -m smoke       # Fast sanity checks
+.venv/bin/python -m pytest -m behavior    # Behavioral tests (NOW)
+.venv/bin/python -m pytest -m contract    # Contract tests (SOON)
 ```
 
 ## Core Files
