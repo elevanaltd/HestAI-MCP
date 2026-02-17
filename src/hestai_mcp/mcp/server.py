@@ -31,7 +31,17 @@ from hestai_mcp.modules.tools.submit_review import submit_review
 
 # Load .env file for HESTAI_PROJECT_ROOT and other configuration
 # This must happen BEFORE bootstrap_system_governance() is called
-load_dotenv()
+#
+# Use an explicit path anchored to __file__ so the server finds .env
+# regardless of CWD at spawn time (e.g. when launched by Claude Desktop
+# or PAL clink from an unrelated directory).
+#
+# Search order:
+#   1. <repo-root>/.env  (3 dirs up from src/hestai_mcp/mcp/server.py)
+#   2. CWD/.env          (fallback via plain load_dotenv())
+_server_dir = Path(__file__).resolve().parent
+_repo_root_env = _server_dir.parents[2] / ".env"
+load_dotenv(dotenv_path=_repo_root_env if _repo_root_env.exists() else None)
 
 logger = logging.getLogger(__name__)
 
