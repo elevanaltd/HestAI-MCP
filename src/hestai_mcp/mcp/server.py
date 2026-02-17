@@ -416,6 +416,12 @@ async def list_tools() -> list[Tool]:
                         "description": "Optional session summary/description",
                         "default": "",
                     },
+                    "working_dir": {
+                        "type": "string",
+                        "description": (
+                            "Project working directory (recommended). " "Falls back to cwd search."
+                        ),
+                    },
                 },
                 "required": ["session_id"],
             },
@@ -547,38 +553,47 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     elif name == "clock_out":
         import json
 
-        # Read session metadata to get project_root
         session_id = arguments["session_id"]
 
-        # Find session file - check all possible locations
-        # Sessions are stored in {project}/.hestai/sessions/active/{session_id}/
-        # We need to search for the session to find the project root
-        possible_roots = [
-            Path.cwd(),  # Current directory
-            Path.cwd().parent,  # Parent directory
-        ]
+        # Prefer explicit working_dir if provided
+        explicit_working_dir = arguments.get("working_dir")
 
-        session_file = None
-        project_root = None
-
-        for root in possible_roots:
-            potential_session = (
-                root / ".hestai" / "sessions" / "active" / session_id / "session.json"
+        if explicit_working_dir:
+            project_root = validate_working_dir(explicit_working_dir)
+            _validate_project_identity(project_root)
+            session_file = (
+                project_root / ".hestai" / "sessions" / "active" / session_id / "session.json"
             )
-            if potential_session.exists():
-                session_file = potential_session
-                project_root = root
-                break
+            if not session_file.exists():
+                raise FileNotFoundError(f"Session {session_id} not found at {project_root}")
+        else:
+            # Fallback: search common locations
+            possible_roots = [Path.cwd(), Path.cwd().parent]
+            session_file = None
+            project_root = None
+            for root in possible_roots:
+                potential_session = (
+                    root / ".hestai" / "sessions" / "active" / session_id / "session.json"
+                )
+                if potential_session.exists():
+                    session_file = potential_session
+                    project_root = root
+                    break
+            if not session_file or not project_root:
+                raise FileNotFoundError(
+                    f"Session {session_id} not found. Searched: {possible_roots}. "
+                    "Hint: provide working_dir parameter."
+                )
 
-        if not session_file or not project_root:
-            raise FileNotFoundError(
-                f"Session {session_id} not found. Searched in: {possible_roots}"
-            )
-
-        # Load session data to get the actual working_dir
+        # Load session data with safe access
         session_data = json.loads(session_file.read_text())
-        actual_project_root = validate_working_dir(session_data["working_dir"])
-        _validate_project_identity(actual_project_root)
+        working_dir_value = session_data.get("working_dir")
+        if working_dir_value:
+            actual_project_root = validate_working_dir(working_dir_value)
+            _validate_project_identity(actual_project_root)
+        else:
+            assert project_root is not None  # guaranteed by FileNotFoundError above
+            actual_project_root = project_root
 
         result = await clock_out(
             session_id=session_id,

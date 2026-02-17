@@ -701,3 +701,266 @@ ACTIVE:
         )
 
         assert result["status"] == "success"
+
+
+@pytest.mark.unit
+class TestArchiveVerification:
+    """Test archive integrity verification before session deletion."""
+
+    @pytest.fixture
+    def session_setup(self, tmp_path: Path):
+        """Create a standard session structure for archive verification tests."""
+        hestai_dir = tmp_path / ".hestai"
+        sessions_dir = hestai_dir / "sessions"
+        active_dir = sessions_dir / "active"
+        state_dir = hestai_dir / "context" / "state"
+
+        active_dir.mkdir(parents=True)
+        state_dir.mkdir(parents=True)
+
+        session_id = "archive-verify-test"
+        session_dir = active_dir / session_id
+        session_dir.mkdir()
+
+        # Create minimal JSONL
+        jsonl_path = tmp_path / "session.jsonl"
+        jsonl_path.write_text(
+            json.dumps(
+                {
+                    "type": "user",
+                    "message": {"role": "user", "content": [{"type": "text", "text": "Test"}]},
+                }
+            )
+        )
+
+        session_data = {
+            "session_id": session_id,
+            "role": "test",
+            "focus": "test",
+            "transcript_path": str(jsonl_path),
+            "working_dir": str(tmp_path),
+        }
+        (session_dir / "session.json").write_text(json.dumps(session_data))
+
+        # Minimal state files
+        (state_dir / "current-focus.oct.md").write_text(
+            "===CURRENT_FOCUS===\nSESSION::ACTIVE\n===END==="
+        )
+        (state_dir / "checklist.oct.md").write_text("===SESSION_CHECKLIST===\n===END===")
+        (state_dir / "blockers.oct.md").write_text("===BLOCKERS===\n===END===")
+
+        return tmp_path, session_id, session_dir
+
+    @pytest.mark.asyncio
+    async def test_blocks_deletion_when_archive_missing(self, session_setup):
+        """Session directory preserved if archive file is missing."""
+        from unittest.mock import patch
+
+        from hestai_mcp.modules.tools.clock_out import clock_out
+
+        tmp_path, session_id, session_dir = session_setup
+
+        # Mock RedactionEngine.copy_and_redact to NOT create the file
+        with (
+            patch(
+                "hestai_mcp.modules.tools.shared.security.RedactionEngine.copy_and_redact",
+                side_effect=lambda src, dst: None,  # Does nothing -- no file created
+            ),
+            pytest.raises(RuntimeError, match="Archive verification failed"),
+        ):
+            await clock_out(
+                session_id=session_id,
+                description="",
+                project_root=tmp_path,
+            )
+
+        # Session directory must still exist
+        assert session_dir.exists()
+
+    @pytest.mark.asyncio
+    async def test_blocks_deletion_when_archive_empty(self, session_setup):
+        """Session directory preserved if archive file is empty (0 bytes)."""
+        from unittest.mock import patch
+
+        from hestai_mcp.modules.tools.clock_out import clock_out
+
+        tmp_path, session_id, session_dir = session_setup
+
+        # Mock RedactionEngine.copy_and_redact to create an empty file
+        def create_empty_file(src, dst):
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            dst.touch()  # 0 bytes
+
+        with (
+            patch(
+                "hestai_mcp.modules.tools.shared.security.RedactionEngine.copy_and_redact",
+                side_effect=create_empty_file,
+            ),
+            pytest.raises(RuntimeError, match="Archive verification failed"),
+        ):
+            await clock_out(
+                session_id=session_id,
+                description="",
+                project_root=tmp_path,
+            )
+
+        # Session directory must still exist
+        assert session_dir.exists()
+
+
+@pytest.mark.unit
+class TestFASTLayerGracefulDegradation:
+    """Test FAST layer update failure doesn't block clock_out."""
+
+    @pytest.mark.asyncio
+    async def test_clock_out_succeeds_when_fast_layer_update_fails(self, tmp_path: Path):
+        """clock_out completes even if FAST layer update throws."""
+        from unittest.mock import patch
+
+        from hestai_mcp.modules.tools.clock_out import clock_out
+
+        # Setup session
+        hestai_dir = tmp_path / ".hestai"
+        sessions_dir = hestai_dir / "sessions"
+        active_dir = sessions_dir / "active"
+        active_dir.mkdir(parents=True)
+
+        session_id = "fast-layer-fail-test"
+        session_dir = active_dir / session_id
+        session_dir.mkdir()
+
+        jsonl_path = tmp_path / "session.jsonl"
+        jsonl_path.write_text(
+            json.dumps(
+                {
+                    "type": "user",
+                    "message": {"role": "user", "content": [{"type": "text", "text": "X"}]},
+                }
+            )
+        )
+
+        session_data = {
+            "session_id": session_id,
+            "role": "test",
+            "focus": "test",
+            "transcript_path": str(jsonl_path),
+            "working_dir": str(tmp_path),
+        }
+        (session_dir / "session.json").write_text(json.dumps(session_data))
+
+        # Mock FAST layer to fail
+        with patch(
+            "hestai_mcp.modules.tools.shared.fast_layer.update_fast_layer_on_clock_out",
+            side_effect=RuntimeError("FAST layer broken"),
+        ):
+            result = await clock_out(
+                session_id=session_id,
+                description="",
+                project_root=tmp_path,
+            )
+
+        assert result["status"] == "success"
+        # Session directory should be cleaned up despite FAST layer failure
+        assert not session_dir.exists()
+
+
+@pytest.mark.unit
+class TestSessionDuration:
+    """Test session duration recording."""
+
+    @pytest.mark.asyncio
+    async def test_records_session_duration(self, tmp_path: Path):
+        """Response includes ended_at and duration_seconds."""
+        from hestai_mcp.modules.tools.clock_out import clock_out
+
+        # Setup session
+        hestai_dir = tmp_path / ".hestai"
+        sessions_dir = hestai_dir / "sessions"
+        active_dir = sessions_dir / "active"
+        active_dir.mkdir(parents=True)
+
+        session_id = "duration-test"
+        session_dir = active_dir / session_id
+        session_dir.mkdir()
+
+        jsonl_path = tmp_path / "session.jsonl"
+        jsonl_path.write_text(
+            json.dumps(
+                {
+                    "type": "user",
+                    "message": {"role": "user", "content": [{"type": "text", "text": "X"}]},
+                }
+            )
+        )
+
+        # Set started_at to 1 hour ago
+        from datetime import datetime, timedelta
+
+        started_at = (datetime.now() - timedelta(hours=1)).isoformat()
+
+        session_data = {
+            "session_id": session_id,
+            "role": "test",
+            "focus": "test",
+            "started_at": started_at,
+            "transcript_path": str(jsonl_path),
+            "working_dir": str(tmp_path),
+        }
+        (session_dir / "session.json").write_text(json.dumps(session_data))
+
+        result = await clock_out(
+            session_id=session_id,
+            description="",
+            project_root=tmp_path,
+        )
+
+        assert result["status"] == "success"
+        assert "ended_at" in result
+        assert "duration_seconds" in result
+        # Should be approximately 3600 seconds (1 hour), allow generous tolerance
+        assert result["duration_seconds"] > 3500
+        assert result["duration_seconds"] < 3700
+
+    @pytest.mark.asyncio
+    async def test_handles_missing_started_at(self, tmp_path: Path):
+        """Gracefully handles missing started_at in session_data."""
+        from hestai_mcp.modules.tools.clock_out import clock_out
+
+        # Setup session without started_at
+        hestai_dir = tmp_path / ".hestai"
+        sessions_dir = hestai_dir / "sessions"
+        active_dir = sessions_dir / "active"
+        active_dir.mkdir(parents=True)
+
+        session_id = "no-start-time"
+        session_dir = active_dir / session_id
+        session_dir.mkdir()
+
+        jsonl_path = tmp_path / "session.jsonl"
+        jsonl_path.write_text(
+            json.dumps(
+                {
+                    "type": "user",
+                    "message": {"role": "user", "content": [{"type": "text", "text": "X"}]},
+                }
+            )
+        )
+
+        session_data = {
+            "session_id": session_id,
+            "role": "test",
+            "focus": "test",
+            # No started_at field
+            "transcript_path": str(jsonl_path),
+            "working_dir": str(tmp_path),
+        }
+        (session_dir / "session.json").write_text(json.dumps(session_data))
+
+        result = await clock_out(
+            session_id=session_id,
+            description="",
+            project_root=tmp_path,
+        )
+
+        assert result["status"] == "success"
+        assert "duration_seconds" not in result
