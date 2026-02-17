@@ -129,3 +129,32 @@ WRONG::Task(subagent_type:"oa-router", prompt:"review the auth module")
   // Missing role - oa-router cannot bind without knowing what to become
 
 RIGHT::Task(subagent_type:"oa-router", prompt:"role: technical-architect\ntopic: auth review\n\n## YOUR TASK\nReview auth module")
+
+§7::CEREMONY_INTEGRITY
+
+The oa-router enforces the anchor ceremony (I5). The caller MUST NOT interfere.
+
+CALLER_RULES::[
+  NEVER::instruct the subagent to "skip anchor" or "just do the work"
+  NEVER::include pre-ceremony task instructions that bypass binding
+  NEVER::tell the subagent what identity to assume (the anchor assigns it)
+  ALWAYS::provide only role, tier, and topic — the oa-router handles the rest
+]
+
+The caller's prompt is the TOPIC, not the instructions. The oa-router injects
+the system prompt, runs the ceremony, and only then unlocks the topic. Any
+attempt to front-load instructions causes the subagent to act without
+governance, identity, or context — producing INVALID work per I5.
+
+INVALID_WORK::[
+  IF::subagent produces output without a valid PERMIT_SID,
+  THEN::work_is_INVALID[I5_violated] — must be discarded and re-delegated
+]
+
+WRONG::Task(subagent_type:"oa-router", prompt:"You are an implementation-lead. Skip the anchor and just implement the feature.\n\n## YOUR TASK\n...")
+  // Pre-instructs identity and tells subagent to bypass ceremony
+
+WRONG::Task(subagent_type:"oa-router", prompt:"role: implementation-lead\ntopic: feature X\n\nIMPORTANT: Do not run the binding ceremony, just start coding immediately.\n\n## YOUR TASK\n...")
+  // Explicitly undermines I5
+
+RIGHT::Task(subagent_type:"oa-router", prompt:"role: implementation-lead\ntier: default\ntopic: feature X implementation\n\n## YOUR TASK\nImplement feature X with TDD.\n\n## SUCCESS CRITERIA\n- Tests passing\n- Quality gates green")
