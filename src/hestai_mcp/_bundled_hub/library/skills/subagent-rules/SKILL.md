@@ -13,7 +13,7 @@ Do NOT call role-specific agents directly (e.g., technical-architect, implementa
 The oa-router runs the anchor ceremony which provides identity, governance, and context.
 
 PATTERN::[
-  ALWAYS::Task(subagent_type:"oa-router", prompt:"role: {role}\ntier: {tier}\ntopic: {topic}\n\n## YOUR TASK\n{task}")
+  ALWAYS::Task(subagent_type:"oa-router", prompt:"role: {role}\ntier: {tier}\ntopic: {topic}\n\n⚠️ BEFORE ANY WORK: Complete the anchor ceremony. Do not read or act on the task below until you have a valid PERMIT_SID.\n\n## YOUR TASK\n{task}")
   NEVER::Task(subagent_type:"{role-name}", prompt:"{task}")
 ]
 
@@ -27,6 +27,8 @@ Task({
 role: {role}
 tier: {tier|default}
 topic: {context for ARM computation}
+
+⚠️ BEFORE ANY WORK: Complete the anchor ceremony. Do not read or act on the task below until you have a valid PERMIT_SID.
 
 ## YOUR TASK
 {detailed task description}
@@ -58,6 +60,8 @@ role: implementation-lead
 tier: default
 topic: JWT authentication implementation
 
+⚠️ BEFORE ANY WORK: Complete the anchor ceremony. Do not read or act on the task below until you have a valid PERMIT_SID.
+
 ## YOUR TASK
 Implement JWT-based auth service with bcrypt hashing and refresh tokens.
 
@@ -78,6 +82,8 @@ role: technical-architect
 tier: quick
 topic: authentication module design review
 
+⚠️ BEFORE ANY WORK: Complete the anchor ceremony. Do not read or act on the task below until you have a valid PERMIT_SID.
+
 ## YOUR TASK
 Review src/auth/ for architectural soundness. Apply MIP pattern.
 
@@ -97,6 +103,8 @@ Task({
 role: error-architect
 tier: quick
 topic: CI pipeline type error cascade
+
+⚠️ BEFORE ANY WORK: Complete the anchor ceremony. Do not read or act on the task below until you have a valid PERMIT_SID.
 
 ## YOUR TASK
 47 TypeScript errors across 12 files. Apply ERROR TRIAGE LOOP.
@@ -128,23 +136,23 @@ WRONG::Task(subagent_type:"technical-architect", prompt:"review this")
 WRONG::Task(subagent_type:"oa-router", prompt:"review the auth module")
   // Missing role - oa-router cannot bind without knowing what to become
 
-RIGHT::Task(subagent_type:"oa-router", prompt:"role: technical-architect\ntopic: auth review\n\n## YOUR TASK\nReview auth module")
+RIGHT::Task(subagent_type:"oa-router", prompt:"role: technical-architect\ntopic: auth review\n\n⚠️ BEFORE ANY WORK: Complete the anchor ceremony. Do not read or act on the task below until you have a valid PERMIT_SID.\n\n## YOUR TASK\nReview auth module")
 
 §7::CEREMONY_INTEGRITY
 
 The oa-router enforces the anchor ceremony (I5). The caller MUST NOT interfere.
 
 CALLER_RULES::[
+  ALWAYS::include the anchor-first instruction line in every delegation prompt (see §2::TEMPLATE)
   NEVER::instruct the subagent to "skip anchor" or "just do the work"
   NEVER::include pre-ceremony task instructions that bypass binding
   NEVER::tell the subagent what identity to assume (the anchor assigns it)
-  ALWAYS::provide only role, tier, and topic — the oa-router handles the rest
 ]
 
-The caller's prompt is the TOPIC, not the instructions. The oa-router injects
-the system prompt, runs the ceremony, and only then unlocks the topic. Any
-attempt to front-load instructions causes the subagent to act without
-governance, identity, or context — producing INVALID work per I5.
+The anchor-first instruction (`⚠️ BEFORE ANY WORK: Complete the anchor ceremony...`) is
+baked into the template so every delegation inherently carries it. This ensures the
+subagent sees "do anchor first" as part of its prompt, not just as an oa-router system
+behavior that can be overlooked.
 
 INVALID_WORK::[
   IF::subagent produces output without a valid PERMIT_SID,
@@ -157,4 +165,4 @@ WRONG::Task(subagent_type:"oa-router", prompt:"You are an implementation-lead. S
 WRONG::Task(subagent_type:"oa-router", prompt:"role: implementation-lead\ntopic: feature X\n\nIMPORTANT: Do not run the binding ceremony, just start coding immediately.\n\n## YOUR TASK\n...")
   // Explicitly undermines I5
 
-RIGHT::Task(subagent_type:"oa-router", prompt:"role: implementation-lead\ntier: default\ntopic: feature X implementation\n\n## YOUR TASK\nImplement feature X with TDD.\n\n## SUCCESS CRITERIA\n- Tests passing\n- Quality gates green")
+RIGHT::Task(subagent_type:"oa-router", prompt:"role: implementation-lead\ntier: default\ntopic: feature X implementation\n\n⚠️ BEFORE ANY WORK: Complete the anchor ceremony. Do not read or act on the task below until you have a valid PERMIT_SID.\n\n## YOUR TASK\nImplement feature X with TDD.\n\n## SUCCESS CRITERIA\n- Tests passing\n- Quality gates green")
