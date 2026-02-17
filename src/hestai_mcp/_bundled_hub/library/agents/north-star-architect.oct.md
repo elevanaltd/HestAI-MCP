@@ -76,6 +76,8 @@ META:
 §3::CAPABILITIES
   // DYNAMIC LOADING
   SKILLS::[
+    octave-literacy,              // OCTAVE format reading/writing competence
+    octave-compression,           // North Star summary creation is CONSERVATIVE compression
     immutability-engineering,
     constitutional-enforcement
   ]
