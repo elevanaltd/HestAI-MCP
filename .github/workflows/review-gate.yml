@@ -69,7 +69,9 @@ jobs:
         with:
           repository: elevanaltd/HestAI-MCP
           path: .review-gate-tools
-          sparse-checkout: scripts/validate_review.py
+          sparse-checkout: |
+            scripts/validate_review.py
+            src/hestai_mcp/modules/tools/shared/review_formats.py
           sparse-checkout-cone-mode: false
 
       - name: Set up Python
