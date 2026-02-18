@@ -31,7 +31,15 @@ def apply_readonly_permissions(governance_dir: Path) -> None:
 
     Args:
         governance_dir: Path to .hestai-sys/ directory
+
+    Raises:
+        ValueError: If governance_dir is itself a symlink (root-level substitution attack)
     """
+    if governance_dir.is_symlink():
+        raise ValueError(
+            f"governance_dir is a symlink — potential root-level substitution attack: "
+            f"{governance_dir}"
+        )
     if not governance_dir.exists():
         return
 
@@ -82,7 +90,15 @@ def restore_writable_permissions(governance_dir: Path) -> None:
 
     Args:
         governance_dir: Path to .hestai-sys/ directory
+
+    Raises:
+        ValueError: If governance_dir is itself a symlink (root-level substitution attack)
     """
+    if governance_dir.is_symlink():
+        raise ValueError(
+            f"governance_dir is a symlink — potential root-level substitution attack: "
+            f"{governance_dir}"
+        )
     if not governance_dir.exists():
         return
 
@@ -141,7 +157,15 @@ def compute_governance_hash(governance_dir: Path) -> str:
 
     Returns:
         64-character hex SHA256 hash string
+
+    Raises:
+        ValueError: If governance_dir is itself a symlink (root-level substitution attack)
     """
+    if governance_dir.is_symlink():
+        raise ValueError(
+            f"governance_dir is a symlink — potential root-level substitution attack: "
+            f"{governance_dir}"
+        )
     hasher = hashlib.sha256()
 
     # Collect all file paths relative to governance_dir, sorted
@@ -182,6 +206,12 @@ def verify_governance_integrity(governance_dir: Path) -> dict:
         dict with 'intact' (bool), optionally 'reason' (str),
         'first_run' (bool)
     """
+    if governance_dir.is_symlink():
+        return {
+            "intact": False,
+            "reason": ("governance_dir is a symlink — potential root-level substitution attack"),
+        }
+
     integrity_file = governance_dir / ".integrity"
 
     if not integrity_file.exists():
@@ -213,7 +243,15 @@ def store_governance_hash(governance_dir: Path) -> str:
 
     Returns:
         The computed hash string
+
+    Raises:
+        ValueError: If governance_dir is itself a symlink (root-level substitution attack)
     """
+    if governance_dir.is_symlink():
+        raise ValueError(
+            f"governance_dir is a symlink — potential root-level substitution attack: "
+            f"{governance_dir}"
+        )
     gov_hash = compute_governance_hash(governance_dir)
     integrity_file = governance_dir / ".integrity"
     integrity_file.write_text(gov_hash)
