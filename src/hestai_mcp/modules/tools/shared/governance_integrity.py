@@ -31,7 +31,15 @@ def apply_readonly_permissions(governance_dir: Path) -> None:
 
     Args:
         governance_dir: Path to .hestai-sys/ directory
+
+    Raises:
+        ValueError: If governance_dir is itself a symlink (root-level substitution attack)
     """
+    if governance_dir.is_symlink():
+        raise ValueError(
+            f"governance_dir is a symlink — potential root-level substitution attack: "
+            f"{governance_dir}"
+        )
     if not governance_dir.exists():
         return
 
@@ -39,14 +47,18 @@ def apply_readonly_permissions(governance_dir: Path) -> None:
 
     # Walk bottom-up so we can set directory permissions after
     # processing their contents
-    for root, dirs, files in os.walk(str(governance_dir), topdown=False):
+    for root, dirs, files in os.walk(str(governance_dir), topdown=False, followlinks=False):
         for f in files:
             fpath = os.path.join(root, f)
+            if os.path.islink(fpath):
+                continue
             os.chmod(fpath, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
             file_count += 1
 
         for d in dirs:
             dpath = os.path.join(root, d)
+            if os.path.islink(dpath):
+                continue
             os.chmod(
                 dpath,
                 stat.S_IRUSR
@@ -78,27 +90,38 @@ def restore_writable_permissions(governance_dir: Path) -> None:
 
     Args:
         governance_dir: Path to .hestai-sys/ directory
+
+    Raises:
+        ValueError: If governance_dir is itself a symlink (root-level substitution attack)
     """
+    if governance_dir.is_symlink():
+        raise ValueError(
+            f"governance_dir is a symlink — potential root-level substitution attack: "
+            f"{governance_dir}"
+        )
     if not governance_dir.exists():
         return
 
     # Walk top-down so we can set directory permissions first,
     # enabling write access to modify contents
-    for root, dirs, files in os.walk(str(governance_dir), topdown=True):
+    for root, dirs, files in os.walk(str(governance_dir), topdown=True, followlinks=False):
         # Restore directory write permission first
-        os.chmod(
-            root,
-            stat.S_IRUSR
-            | stat.S_IWUSR
-            | stat.S_IXUSR
-            | stat.S_IRGRP
-            | stat.S_IXGRP
-            | stat.S_IROTH
-            | stat.S_IXOTH,
-        )
+        if not os.path.islink(root):
+            os.chmod(
+                root,
+                stat.S_IRUSR
+                | stat.S_IWUSR
+                | stat.S_IXUSR
+                | stat.S_IRGRP
+                | stat.S_IXGRP
+                | stat.S_IROTH
+                | stat.S_IXOTH,
+            )
 
         for f in files:
             fpath = os.path.join(root, f)
+            if os.path.islink(fpath):
+                continue
             os.chmod(
                 fpath,
                 stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH,
@@ -106,6 +129,8 @@ def restore_writable_permissions(governance_dir: Path) -> None:
 
         for d in dirs:
             dpath = os.path.join(root, d)
+            if os.path.islink(dpath):
+                continue
             os.chmod(
                 dpath,
                 stat.S_IRUSR
@@ -132,16 +157,27 @@ def compute_governance_hash(governance_dir: Path) -> str:
 
     Returns:
         64-character hex SHA256 hash string
+
+    Raises:
+        ValueError: If governance_dir is itself a symlink (root-level substitution attack)
     """
+    if governance_dir.is_symlink():
+        raise ValueError(
+            f"governance_dir is a symlink — potential root-level substitution attack: "
+            f"{governance_dir}"
+        )
     hasher = hashlib.sha256()
 
     # Collect all file paths relative to governance_dir, sorted
     file_entries: list[tuple[str, Path]] = []
-    for root, _dirs, files in os.walk(str(governance_dir)):
+    for root, _dirs, files in os.walk(str(governance_dir), followlinks=False):
         for f in files:
             if f in _HASH_EXCLUDED_FILES:
                 continue
             full_path = Path(root) / f
+            # Skip symlinks — only hash real governance files
+            if full_path.is_symlink():
+                continue
             rel_path = str(full_path.relative_to(governance_dir))
             file_entries.append((rel_path, full_path))
 
@@ -170,6 +206,12 @@ def verify_governance_integrity(governance_dir: Path) -> dict:
         dict with 'intact' (bool), optionally 'reason' (str),
         'first_run' (bool)
     """
+    if governance_dir.is_symlink():
+        return {
+            "intact": False,
+            "reason": ("governance_dir is a symlink — potential root-level substitution attack"),
+        }
+
     integrity_file = governance_dir / ".integrity"
 
     if not integrity_file.exists():
@@ -201,7 +243,15 @@ def store_governance_hash(governance_dir: Path) -> str:
 
     Returns:
         The computed hash string
+
+    Raises:
+        ValueError: If governance_dir is itself a symlink (root-level substitution attack)
     """
+    if governance_dir.is_symlink():
+        raise ValueError(
+            f"governance_dir is a symlink — potential root-level substitution attack: "
+            f"{governance_dir}"
+        )
     gov_hash = compute_governance_hash(governance_dir)
     integrity_file = governance_dir / ".integrity"
     integrity_file.write_text(gov_hash)

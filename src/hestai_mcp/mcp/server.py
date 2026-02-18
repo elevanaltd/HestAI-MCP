@@ -27,6 +27,7 @@ from mcp.types import TextContent, Tool
 from hestai_mcp.modules.tools.bind import bind
 from hestai_mcp.modules.tools.clock_in import clock_in_async, validate_working_dir
 from hestai_mcp.modules.tools.clock_out import clock_out
+from hestai_mcp.modules.tools.shared.governance_integrity import store_governance_hash
 from hestai_mcp.modules.tools.submit_review import submit_review
 
 # Load .env file for HESTAI_PROJECT_ROOT and other configuration
@@ -250,19 +251,26 @@ def inject_system_governance(project_root: Path) -> None:
 
     # Swap in the new tree
     if hestai_sys_dir.exists():
-        if old_dir.exists():
+        if old_dir.is_symlink():
+            old_dir.unlink()
+        elif old_dir.exists():
             shutil.rmtree(old_dir)
         hestai_sys_dir.rename(old_dir)
 
     tmp_dir.rename(hestai_sys_dir)
 
-    if old_dir.exists():
-        shutil.rmtree(old_dir)
+    if old_dir.exists() or old_dir.is_symlink():
+        # Holographic Constitution: guard against symlink edge — old_dir may be a symlink
+        # if a previous cleanup was interrupted. Use unlink() for symlinks to avoid
+        # shutil.rmtree() following or failing on the symlink target.
+        if old_dir.is_symlink():
+            old_dir.unlink()
+        else:
+            shutil.rmtree(old_dir)
 
     # Holographic Constitution: store integrity hash and apply read-only permissions
     from hestai_mcp.modules.tools.shared.governance_integrity import (
         apply_readonly_permissions,
-        store_governance_hash,
     )
 
     store_governance_hash(hestai_sys_dir)
@@ -311,6 +319,12 @@ def ensure_system_governance(project_root: Path) -> dict[str, Any]:
     )
 
     if current == desired and has_required_tree:
+        # Holographic Constitution: backfill .integrity if absent on pre-existing deployments.
+        # Without this, trees that were deployed before the integrity feature was introduced
+        # would stay in "first_run" mode (no enforcement) indefinitely.
+        integrity_file = hestai_sys_dir / ".integrity"
+        if not integrity_file.exists():
+            store_governance_hash(hestai_sys_dir)
         return {"status": "up_to_date", "current": current, "desired": desired}
 
     inject_system_governance(project_root)
@@ -548,6 +562,21 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         # Ensure governance is present in the target working directory.
         ensure_system_governance(working_dir_path)
 
+        # Holographic Constitution: verify governance integrity at session start
+        hestai_sys_dir = working_dir_path / ".hestai-sys"
+        if hestai_sys_dir.exists():
+            from hestai_mcp.modules.tools.shared.governance_integrity import (
+                verify_governance_integrity,
+            )
+
+            integrity_result = verify_governance_integrity(hestai_sys_dir)
+            if not integrity_result.get("intact", True):
+                logger.warning(
+                    "Governance tampering detected at clock_in: %s. Self-healing...",
+                    integrity_result.get("reason", "unknown"),
+                )
+                inject_system_governance(working_dir_path)
+
         # Use async path with AI synthesis capability (Issue #56 fix)
         result = await clock_in_async(
             role=arguments["role"],
@@ -604,6 +633,21 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         else:
             assert project_root is not None  # guaranteed by FileNotFoundError above
             actual_project_root = project_root
+
+        # Holographic Constitution: verify governance integrity at session end
+        hestai_sys_dir = actual_project_root / ".hestai-sys"
+        if hestai_sys_dir.exists():
+            from hestai_mcp.modules.tools.shared.governance_integrity import (
+                verify_governance_integrity,
+            )
+
+            integrity_result = verify_governance_integrity(hestai_sys_dir)
+            if not integrity_result.get("intact", True):
+                logger.warning(
+                    "Governance tampering detected at clock_out: %s. Self-healing...",
+                    integrity_result.get("reason", "unknown"),
+                )
+                inject_system_governance(actual_project_root)
 
         result = await clock_out(
             session_id=session_id,

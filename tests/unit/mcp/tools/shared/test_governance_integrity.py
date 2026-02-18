@@ -125,6 +125,17 @@ class TestRestoreWritablePermissions:
         dir_mode = stat.S_IMODE(os.stat(sub).st_mode)
         assert dir_mode == 0o755, f"Dir has mode {oct(dir_mode)}, expected 0o755"
 
+    def test_restore_writable_permissions_skips_nonexistent_path(self, tmp_path: Path) -> None:
+        """Returns without error if path doesn't exist."""
+        from hestai_mcp.modules.tools.shared.governance_integrity import (
+            restore_writable_permissions,
+        )
+
+        nonexistent = tmp_path / "nonexistent"
+
+        # Should not raise
+        restore_writable_permissions(nonexistent)
+
 
 @pytest.mark.unit
 class TestComputeGovernanceHash:
@@ -231,6 +242,28 @@ class TestComputeGovernanceHash:
         # Restore for cleanup
         os.chmod(str(f), 0o644)
 
+    def test_compute_governance_hash_ignores_symlinks(self, tmp_path: Path) -> None:
+        """Symlinks are not followed during hash computation."""
+        from hestai_mcp.modules.tools.shared.governance_integrity import (
+            compute_governance_hash,
+        )
+
+        gov_dir = tmp_path / "gov"
+        gov_dir.mkdir()
+        (gov_dir / "real.md").write_text("content")
+
+        hash_without_symlink = compute_governance_hash(gov_dir)
+
+        # Create a symlink pointing outside governance dir
+        outside_file = tmp_path / "outside.md"
+        outside_file.write_text("external content")
+        (gov_dir / "sneaky_link").symlink_to(outside_file)
+
+        hash_with_symlink = compute_governance_hash(gov_dir)
+
+        # Hash should be the same — symlink is not followed
+        assert hash_without_symlink == hash_with_symlink
+
     def test_compute_governance_hash_handles_empty_directory(self, tmp_path: Path) -> None:
         """Returns valid hash for empty directory."""
         from hestai_mcp.modules.tools.shared.governance_integrity import (
@@ -294,3 +327,124 @@ class TestVerifyGovernanceIntegrity:
 
         assert result["intact"] is True
         assert result["first_run"] is True
+
+    def test_verify_governance_integrity_rejects_symlinked_governance_dir(
+        self, tmp_path: Path
+    ) -> None:
+        """Returns intact=False when governance_dir is itself a symlink (root-level substitution)."""
+        from hestai_mcp.modules.tools.shared.governance_integrity import (
+            verify_governance_integrity,
+        )
+
+        # Create a real directory with content
+        real_dir = tmp_path / "real_governance"
+        real_dir.mkdir()
+        (real_dir / "CONSTITUTION.md").write_text("real content")
+
+        # Create a symlink that points to the real directory
+        symlink_dir = tmp_path / "symlink_governance"
+        symlink_dir.symlink_to(real_dir)
+
+        assert symlink_dir.is_symlink()
+
+        result = verify_governance_integrity(symlink_dir)
+
+        assert result["intact"] is False
+        assert "reason" in result
+        assert "symlink" in result["reason"].lower()
+
+
+@pytest.mark.unit
+class TestComputeGovernanceHashSymlinkRejection:
+    """Test that compute_governance_hash rejects symlinked governance dir."""
+
+    def test_compute_governance_hash_rejects_symlinked_governance_dir(self, tmp_path: Path) -> None:
+        """Raises ValueError when governance_dir is itself a symlink."""
+        from hestai_mcp.modules.tools.shared.governance_integrity import (
+            compute_governance_hash,
+        )
+
+        real_dir = tmp_path / "real_governance"
+        real_dir.mkdir()
+        (real_dir / "CONSTITUTION.md").write_text("real content")
+
+        symlink_dir = tmp_path / "symlink_governance"
+        symlink_dir.symlink_to(real_dir)
+
+        assert symlink_dir.is_symlink()
+
+        with pytest.raises(ValueError, match="symlink"):
+            compute_governance_hash(symlink_dir)
+
+
+@pytest.mark.unit
+class TestApplyReadonlyPermissionsSymlinkRejection:
+    """Test that apply_readonly_permissions rejects symlinked governance dir."""
+
+    def test_apply_readonly_permissions_rejects_symlinked_governance_dir(
+        self, tmp_path: Path
+    ) -> None:
+        """Raises ValueError when governance_dir is itself a symlink."""
+        from hestai_mcp.modules.tools.shared.governance_integrity import (
+            apply_readonly_permissions,
+        )
+
+        real_dir = tmp_path / "real_governance"
+        real_dir.mkdir()
+        (real_dir / "CONSTITUTION.md").write_text("real content")
+
+        symlink_dir = tmp_path / "symlink_governance"
+        symlink_dir.symlink_to(real_dir)
+
+        assert symlink_dir.is_symlink()
+
+        with pytest.raises(ValueError, match="symlink"):
+            apply_readonly_permissions(symlink_dir)
+
+
+@pytest.mark.unit
+class TestRestoreWritablePermissionsSymlinkRejection:
+    """Test that restore_writable_permissions rejects symlinked governance dir."""
+
+    def test_restore_writable_permissions_rejects_symlinked_governance_dir(
+        self, tmp_path: Path
+    ) -> None:
+        """Raises ValueError when governance_dir is itself a symlink."""
+        from hestai_mcp.modules.tools.shared.governance_integrity import (
+            restore_writable_permissions,
+        )
+
+        real_dir = tmp_path / "real_governance"
+        real_dir.mkdir()
+        (real_dir / "CONSTITUTION.md").write_text("real content")
+
+        symlink_dir = tmp_path / "symlink_governance"
+        symlink_dir.symlink_to(real_dir)
+
+        assert symlink_dir.is_symlink()
+
+        with pytest.raises(ValueError, match="symlink"):
+            restore_writable_permissions(symlink_dir)
+
+
+@pytest.mark.unit
+class TestStoreGovernanceHashSymlinkRejection:
+    """Test that store_governance_hash rejects symlinked governance dir."""
+
+    def test_store_governance_hash_rejects_symlinked_governance_dir(self, tmp_path: Path) -> None:
+        """Raises ValueError when governance_dir is itself a symlink."""
+        from hestai_mcp.modules.tools.shared.governance_integrity import (
+            store_governance_hash,
+        )
+
+        real_dir = tmp_path / "real_governance"
+        real_dir.mkdir()
+        (real_dir / "CONSTITUTION.md").write_text("real content")
+
+        symlink_dir = tmp_path / "symlink_governance"
+        symlink_dir.symlink_to(real_dir)
+
+        assert symlink_dir.is_symlink()
+
+        with pytest.raises(ValueError, match="symlink"):
+            store_governance_hash(symlink_dir)
