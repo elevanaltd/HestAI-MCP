@@ -125,6 +125,17 @@ class TestRestoreWritablePermissions:
         dir_mode = stat.S_IMODE(os.stat(sub).st_mode)
         assert dir_mode == 0o755, f"Dir has mode {oct(dir_mode)}, expected 0o755"
 
+    def test_restore_writable_permissions_skips_nonexistent_path(self, tmp_path: Path) -> None:
+        """Returns without error if path doesn't exist."""
+        from hestai_mcp.modules.tools.shared.governance_integrity import (
+            restore_writable_permissions,
+        )
+
+        nonexistent = tmp_path / "nonexistent"
+
+        # Should not raise
+        restore_writable_permissions(nonexistent)
+
 
 @pytest.mark.unit
 class TestComputeGovernanceHash:
@@ -230,6 +241,28 @@ class TestComputeGovernanceHash:
 
         # Restore for cleanup
         os.chmod(str(f), 0o644)
+
+    def test_compute_governance_hash_ignores_symlinks(self, tmp_path: Path) -> None:
+        """Symlinks are not followed during hash computation."""
+        from hestai_mcp.modules.tools.shared.governance_integrity import (
+            compute_governance_hash,
+        )
+
+        gov_dir = tmp_path / "gov"
+        gov_dir.mkdir()
+        (gov_dir / "real.md").write_text("content")
+
+        hash_without_symlink = compute_governance_hash(gov_dir)
+
+        # Create a symlink pointing outside governance dir
+        outside_file = tmp_path / "outside.md"
+        outside_file.write_text("external content")
+        (gov_dir / "sneaky_link").symlink_to(outside_file)
+
+        hash_with_symlink = compute_governance_hash(gov_dir)
+
+        # Hash should be the same — symlink is not followed
+        assert hash_without_symlink == hash_with_symlink
 
     def test_compute_governance_hash_handles_empty_directory(self, tmp_path: Path) -> None:
         """Returns valid hash for empty directory."""
