@@ -956,3 +956,180 @@ class TestMCPClockInAISynthesisIntegration:
         from hestai_mcp.modules.tools import clock_in_async
 
         assert inspect.iscoroutinefunction(clock_in_async)
+
+
+# =============================================================================
+# Holographic Constitution: governance integrity at session boundaries (#235)
+# =============================================================================
+
+
+@pytest.mark.unit
+class TestGovernanceIntegrityAtSessionBoundaries:
+    """Test Holographic Constitution integrity checks at clock_in and clock_out."""
+
+    @pytest.mark.asyncio
+    async def test_clock_in_detects_and_heals_tampering(self, tmp_path: Path):
+        """clock_in self-heals when governance files are tampered."""
+        from hestai_mcp.mcp import server
+        from hestai_mcp.mcp.server import call_tool
+
+        # Create project with governance
+        project = tmp_path / "project"
+        project.mkdir()
+        (project / ".git").mkdir()
+        (project / ".hestai" / "sessions" / "active").mkdir(parents=True)
+        (project / ".hestai" / "context").mkdir(parents=True)
+
+        # Create .hestai-sys with integrity hash
+        hestai_sys = project / ".hestai-sys"
+        hestai_sys.mkdir()
+        (hestai_sys / "CONSTITUTION.md").write_text("Original content")
+        (hestai_sys / "governance").mkdir()
+        (hestai_sys / "library").mkdir()
+        (hestai_sys / "templates").mkdir()
+
+        from hestai_mcp.modules.tools.shared.governance_integrity import (
+            store_governance_hash,
+        )
+
+        store_governance_hash(hestai_sys)
+
+        # Tamper with governance
+        (hestai_sys / "CONSTITUTION.md").write_text("TAMPERED content")
+
+        # Mock ensure_system_governance to not overwrite our setup
+        # Mock inject_system_governance to track if self-healing was triggered
+        with (
+            patch.object(server, "ensure_system_governance", return_value={"status": "up_to_date"}),
+            patch.object(server, "inject_system_governance") as mock_inject,
+        ):
+            arguments = {
+                "role": "test-role",
+                "working_dir": str(project),
+                "focus": "test",
+            }
+            await call_tool("clock_in", arguments)
+
+        # Self-healing should have been triggered
+        mock_inject.assert_called_once_with(project)
+
+    @pytest.mark.asyncio
+    async def test_clock_in_passes_when_governance_intact(self, tmp_path: Path):
+        """clock_in proceeds normally when governance is intact."""
+        from hestai_mcp.mcp import server
+        from hestai_mcp.mcp.server import call_tool
+
+        project = tmp_path / "project"
+        project.mkdir()
+        (project / ".git").mkdir()
+        (project / ".hestai" / "sessions" / "active").mkdir(parents=True)
+        (project / ".hestai" / "context").mkdir(parents=True)
+
+        hestai_sys = project / ".hestai-sys"
+        hestai_sys.mkdir()
+        (hestai_sys / "CONSTITUTION.md").write_text("Original content")
+        (hestai_sys / "governance").mkdir()
+        (hestai_sys / "library").mkdir()
+        (hestai_sys / "templates").mkdir()
+
+        from hestai_mcp.modules.tools.shared.governance_integrity import (
+            store_governance_hash,
+        )
+
+        store_governance_hash(hestai_sys)
+
+        # No tampering -- governance intact
+        with (
+            patch.object(server, "ensure_system_governance", return_value={"status": "up_to_date"}),
+            patch.object(server, "inject_system_governance") as mock_inject,
+        ):
+            arguments = {
+                "role": "test-role",
+                "working_dir": str(project),
+                "focus": "test",
+            }
+            await call_tool("clock_in", arguments)
+
+        # Self-healing should NOT have been triggered
+        mock_inject.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_clock_out_detects_and_heals_tampering(self, tmp_path: Path):
+        """clock_out self-heals when governance files are tampered during session."""
+        from hestai_mcp.mcp import server
+        from hestai_mcp.mcp.server import call_tool
+
+        project = tmp_path / "project"
+        project.mkdir()
+        (project / ".git").mkdir()
+        (project / ".hestai" / "sessions" / "active").mkdir(parents=True)
+
+        # Create session
+        session_id = "integrity-test-session"
+        session_dir = project / ".hestai" / "sessions" / "active" / session_id
+        session_dir.mkdir()
+        session_data = {
+            "session_id": session_id,
+            "role": "test-role",
+            "working_dir": str(project),
+        }
+        (session_dir / "session.json").write_text(json.dumps(session_data))
+
+        # Create .hestai-sys with integrity hash
+        hestai_sys = project / ".hestai-sys"
+        hestai_sys.mkdir()
+        (hestai_sys / "CONSTITUTION.md").write_text("Original content")
+        (hestai_sys / "governance").mkdir()
+        (hestai_sys / "library").mkdir()
+        (hestai_sys / "templates").mkdir()
+
+        from hestai_mcp.modules.tools.shared.governance_integrity import (
+            store_governance_hash,
+        )
+
+        store_governance_hash(hestai_sys)
+
+        # Tamper with governance (simulating mid-session modification)
+        (hestai_sys / "CONSTITUTION.md").write_text("TAMPERED by agent")
+
+        with (
+            patch("hestai_mcp.mcp.server.clock_out", new_callable=AsyncMock) as mock_clock_out,
+            patch.object(server, "inject_system_governance") as mock_inject,
+        ):
+            mock_clock_out.return_value = {"status": "success", "session_id": session_id}
+
+            arguments = {
+                "session_id": session_id,
+                "working_dir": str(project),
+            }
+            await call_tool("clock_out", arguments)
+
+        # Self-healing should have been triggered
+        mock_inject.assert_called_once_with(project)
+
+    @pytest.mark.asyncio
+    async def test_clock_in_skips_integrity_check_when_no_hestai_sys(self, tmp_path: Path):
+        """clock_in skips integrity check when .hestai-sys doesn't exist yet."""
+        from hestai_mcp.mcp import server
+        from hestai_mcp.mcp.server import call_tool
+
+        project = tmp_path / "project"
+        project.mkdir()
+        (project / ".git").mkdir()
+        (project / ".hestai" / "sessions" / "active").mkdir(parents=True)
+        (project / ".hestai" / "context").mkdir(parents=True)
+
+        # No .hestai-sys directory exists
+        with (
+            patch.object(server, "ensure_system_governance", return_value={"status": "up_to_date"}),
+            patch.object(server, "inject_system_governance") as mock_inject,
+        ):
+            arguments = {
+                "role": "test-role",
+                "working_dir": str(project),
+                "focus": "test",
+            }
+            await call_tool("clock_in", arguments)
+
+        # No self-healing needed
+        mock_inject.assert_not_called()

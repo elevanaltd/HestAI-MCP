@@ -548,6 +548,21 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         # Ensure governance is present in the target working directory.
         ensure_system_governance(working_dir_path)
 
+        # Holographic Constitution: verify governance integrity at session start
+        hestai_sys_dir = working_dir_path / ".hestai-sys"
+        if hestai_sys_dir.exists():
+            from hestai_mcp.modules.tools.shared.governance_integrity import (
+                verify_governance_integrity,
+            )
+
+            integrity_result = verify_governance_integrity(hestai_sys_dir)
+            if not integrity_result.get("intact", True):
+                logger.warning(
+                    "Governance tampering detected at clock_in: %s. Self-healing...",
+                    integrity_result.get("reason", "unknown"),
+                )
+                inject_system_governance(working_dir_path)
+
         # Use async path with AI synthesis capability (Issue #56 fix)
         result = await clock_in_async(
             role=arguments["role"],
@@ -604,6 +619,21 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         else:
             assert project_root is not None  # guaranteed by FileNotFoundError above
             actual_project_root = project_root
+
+        # Holographic Constitution: verify governance integrity at session end
+        hestai_sys_dir = actual_project_root / ".hestai-sys"
+        if hestai_sys_dir.exists():
+            from hestai_mcp.modules.tools.shared.governance_integrity import (
+                verify_governance_integrity,
+            )
+
+            integrity_result = verify_governance_integrity(hestai_sys_dir)
+            if not integrity_result.get("intact", True):
+                logger.warning(
+                    "Governance tampering detected at clock_out: %s. Self-healing...",
+                    integrity_result.get("reason", "unknown"),
+                )
+                inject_system_governance(actual_project_root)
 
         result = await clock_out(
             session_id=session_id,
