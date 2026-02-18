@@ -39,6 +39,23 @@ VIOLATION_RESPONSE::[
   IF(continuity_missing) → CITE[I1] + BLOCK
 ]
 
+§3.5::NAMESPACE_RESOLUTION [The_Seal_of_Clarity]
+NAMESPACES::[
+  SYS::"System-level governance documents (Constitution, System North Star, system ADRs)",
+  PROD::"Product-level context documents (Product North Stars, product ADRs, workflow docs)"
+]
+PURPOSE::"Disambiguate immutable references that collide between System and Product North Stars"
+COLLISION_EXAMPLE::[
+  SYS::I2::"Phase-Gated Progression",
+  PROD::I2::"Structural Integrity Priority"
+]
+RESOLUTION_RULE::"When citing an immutable where cross-namespace ambiguity exists, use fully-qualified form"
+EXAMPLES::[
+  QUALIFIED::[SYS::I2, PROD::I4, SYS::I6],
+  SHORT_FORM::"Within a single namespace context, bare form (I2, I4) remains valid"
+]
+DOCUMENT_DECLARATION::"Governance documents declare namespace in META as NAMESPACE::SYS or NAMESPACE::PROD"
+
 §4::GOVERNANCE_HIERARCHY [The_Seal_of_Authority]
 HIERARCHY::CONSTITUTION → NORTH_STARS[SYSTEM+PRODUCT] → ADRs → WORKFLOWS
 AMENDMENT::"Only human authority can modify constitutional law"

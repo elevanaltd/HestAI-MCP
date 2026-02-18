@@ -5,6 +5,7 @@ META:
   ID::mcp-product-north-star-summary
   VERSION::"1.0-OCTAVE-SUMMARY"
   STATUS::ACTIVE
+  NAMESPACE::PROD
   PURPOSE::"Operational decision-logic for HestAI-MCP product development"
   INHERITS::".hestai-sys/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md"
 
