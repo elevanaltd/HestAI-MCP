@@ -18,8 +18,10 @@ Immutable index collision table (I1-I6 have different meanings in SYS vs PROD):
 import re
 from pathlib import Path
 
-# Matches NAMESPACE::SYS or NAMESPACE::PROD (valid values only)
-_NAMESPACE_PATTERN = re.compile(r"NAMESPACE::(SYS|PROD)")
+# Matches NAMESPACE::SYS or NAMESPACE::PROD as a line-level declaration.
+# Requires line start (with optional whitespace) and word boundary after value
+# to prevent matching body text mentions or partial values like SYSADMIN.
+_NAMESPACE_PATTERN = re.compile(r"^\s*NAMESPACE::(SYS|PROD)\b", re.MULTILINE)
 
 # Matches all immutable references I1-I9 (bare or qualified)
 # Used in find_bare_references to filter out qualified forms
@@ -97,7 +99,15 @@ def validate_file(path: Path) -> dict:
             "errors": [f"File not found: {path}"],
         }
 
-    content = path.read_text(encoding="utf-8")
+    try:
+        content = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        return {
+            "valid": False,
+            "namespace": None,
+            "warnings": [],
+            "errors": [f"Cannot decode file as UTF-8: {path}"],
+        }
     namespace = extract_namespace(content)
     bare_refs = find_bare_references(content)
     warnings: list[str] = []

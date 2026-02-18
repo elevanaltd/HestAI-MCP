@@ -70,6 +70,27 @@ class TestExtractNamespace:
         content = "META:\n  NAMESPACE::sys\n\nContent."
         assert extract_namespace(content) is None
 
+    def test_extract_namespace_ignores_body_text_mention(self) -> None:
+        """NAMESPACE::SYS in body text (not a declaration line) is not extracted."""
+        from hestai_mcp.core.namespace_resolver import extract_namespace
+
+        content = "# Guide\n\nUse NAMESPACE::SYS as an example, not a declaration."
+        assert extract_namespace(content) is None
+
+    def test_extract_namespace_ignores_partial_value(self) -> None:
+        """NAMESPACE::SYSADMIN should not match as SYS."""
+        from hestai_mcp.core.namespace_resolver import extract_namespace
+
+        content = "META:\n  NAMESPACE::SYSADMIN\n\nContent."
+        assert extract_namespace(content) is None
+
+    def test_extract_namespace_ignores_partial_prod_value(self) -> None:
+        """NAMESPACE::PRODUCTION should not match as PROD."""
+        from hestai_mcp.core.namespace_resolver import extract_namespace
+
+        content = "META:\n  NAMESPACE::PRODUCTION\n\nContent."
+        assert extract_namespace(content) is None
+
 
 @pytest.mark.unit
 class TestFindBareReferences:
@@ -256,3 +277,15 @@ class TestValidateFile:
         # Intra-namespace: PROD doc citing I3 → valid, no warnings
         assert result["valid"] is True
         assert result["warnings"] == []
+
+    def test_validate_file_binary_file_produces_error(self, tmp_path: Path) -> None:
+        """Binary file that cannot be decoded as UTF-8 returns an error."""
+        from hestai_mcp.core.namespace_resolver import validate_file
+
+        f = tmp_path / "binary.bin"
+        f.write_bytes(b"\x80\x81\x82\xff\xfe")
+
+        result = validate_file(f)
+
+        assert result["valid"] is False
+        assert any("utf-8" in e.lower() or "decode" in e.lower() for e in result["errors"])
