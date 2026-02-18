@@ -8,6 +8,8 @@ inherits: NONE[ROOT_DOCUMENT]
 approved_by: Shaun Buswell (Human Primacy Authority)
 approval_date: 2025-12-05
 last_validated: 2025-12-20
+NAMESPACE::SYS
+# // REFERENCE: points-to-canonical (.hestai-sys/ runtime-injected copy; this is the _bundled_hub source)
 ---
 
 <!-- HestAI-Doc-Steward: consulted for document-creation-and-placement -->
