@@ -41,8 +41,8 @@ VIOLATION_RESPONSE::[
 
 §3.5::NAMESPACE_RESOLUTION [The_Seal_of_Clarity]
 NAMESPACES::[
-  SYS::::"System-level governance documents (Constitution, System North Star, system ADRs)",
-  PROD::::"Product-level context documents (Product North Stars, product ADRs, workflow docs)"
+  SYS::"System-level governance documents (Constitution, System North Star, system ADRs)",
+  PROD::"Product-level context documents (Product North Stars, product ADRs, workflow docs)"
 ]
 PURPOSE::"Disambiguate immutable references that collide between System and Product North Stars"
 COLLISION_EXAMPLE::[
