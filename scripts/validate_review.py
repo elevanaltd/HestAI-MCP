@@ -187,10 +187,16 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
             if "<!-- review-gate-status -->" not in c["body"]
         )
 
-        # Check for required approvals based on tier
+        # Check for required approvals based on tier.
+        # Higher-tier reviews satisfy lower-tier requirements (hierarchy rule):
+        #   TIER_1_SELF: IL SELF-REVIEWED OR CRS OR CRS+CE
+        #   TIER_2_CRS:  CRS OR CRS+CE
+        #   TIER_3_FULL: CRS+CE (unchanged)
         if tier == "TIER_1_SELF":
             if _has_approval(searchable_texts, "IL", "SELF-REVIEWED"):
                 return True, "✓ Self-review found"
+            if _has_crs_approval(searchable_texts):
+                return True, "✓ CRS approval satisfies self-review requirement"
             return False, "❌ Missing: IL SELF-REVIEWED comment"
 
         elif tier == "TIER_2_CRS":
