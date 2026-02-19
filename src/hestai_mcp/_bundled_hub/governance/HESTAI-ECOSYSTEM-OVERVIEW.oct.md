@@ -8,6 +8,14 @@ META:
   CREATED::"2026-02-18"
   FORMAT::octave
 
+§0::ARCHITECTURE_NOTE
+NOTE::"This document describes the TARGET three-repo MCP architecture. Currently, odyssean-anchor-mcp (elevanaltd/odyssean-anchor-mcp) is a separate MCP server providing the anchor ceremony (identity binding). The planned merger into hestai-core-mcp is tracked in hestai-workbench#1. Until merger, the ecosystem has six systems, not five."
+CURRENT_SEPARATION::[
+  "hestai-mcp: governance, memory, context steward, session lifecycle",
+  "odyssean-anchor-mcp: anchor ceremony (anchor_request, anchor_lock, anchor_commit, verify_permit)",
+  "PLANNED: merge into single hestai-core-mcp"
+]
+
 §1::WHAT_THIS_IS
 HESTAI::"Design-and-build system for AI-assisted software development with installed governance"
 OPERATOR::"Single developer + laptop + multiple terminals + multi-model AI orchestration"
@@ -16,10 +24,13 @@ ECOSYSTEM::"Five systems that together provide agent identity, governance, delib
 §2::THE_FIVE_SYSTEMS
 
 SYSTEM_1::HESTAI_CORE_MCP[
-  REPO::"elevanaltd/HestAI-MCP (merging with odyssean-anchor-mcp)",
+  REPO::"elevanaltd/HestAI-MCP",
+  NOTE::"odyssean-anchor-mcp is currently a separate server (elevanaltd/odyssean-anchor-mcp). Planned merger into hestai-core-mcp tracked in hestai-workbench#1.",
   ROLE::"The Operating System",
   OWNS::[agent_constitutions,skills_library,anchor_ceremony,context_steward,session_lifecycle,governance_rules],
-  TOOLS::[clock_in,clock_out,anchor_request,anchor_lock,anchor_commit,document_submit,context_update],
+  TOOLS::[clock_in,clock_out,bind,submit_review],
+  PLANNED_TOOLS::[document_submit,context_update],
+  ANCHOR_NOTE::"Anchor ceremony tools (anchor_request, anchor_lock, anchor_commit, verify_permit) are provided by odyssean-anchor-mcp.",
   KEY_PROPERTY::"Provider-agnostic. Knows WHO agents are and HOW they should behave. Does NOT spawn CLIs or know about models.",
   DEPENDS_ON::[octave-mcp],
   DATA::[".hestai-sys/[read-only governance]",".hestai/[mutable project context]","agent constitutions in .oct.md format","skills library"]
@@ -30,15 +41,14 @@ SYSTEM_2::DEBATE_HALL_MCP[
   ROLE::"The Deliberation Chamber",
   OWNS::[wind_wall_door_debates,governance_operations,decision_records,hash_chain_integrity],
   TOOLS::[init_debate,add_turn,close_debate,run_debate,resolve_question,search_decisions],
-  PLANNED_TOOLS::[governance_consult,governance_gate,governance_inform,governance_vote],
+  PLANNED_TOOLS::[convene,consult,governance_committee_operations],
   KEY_PROPERTY::"Standalone deliberation. Others can use for non-HestAI reasoning. Persistent transcripts with hash-chain integrity.",
   DEPENDS_ON::[octave-mcp],
-  CONSUMES::[hestai-core-mcp"for agent resolution when needed"],
   DATA::["debates/ directory with JSON state","OCTAVE-compressed transcripts","decision records with SHA-256 hash chain"]
 ]
 
 SYSTEM_3::OCTAVE_MCP[
-  REPO::"elevanaltd/octave-mcp (or OCTAVE/octave-mcp)",
+  REPO::"elevanaltd/octave-mcp",
   ROLE::"The Language",
   OWNS::[octave_format_spec,validation,generation,compression],
   TOOLS::[octave_validate,octave_write,octave_eject],
@@ -59,9 +69,9 @@ SYSTEM_4::HESTAI_WORKBENCH[
 ]
 
 SYSTEM_5::PAL_MCP[
-  REPO::"elevanaltd/pal-mcp-server (fork of BeehiveInnovations)",
+  REPO::"elevanaltd/pal-mcp-server (based on BeehiveInnovations/pal-mcp-server)",
   ROLE::"Transport Layer (being absorbed)",
-  CURRENT_STATE::"45 commits ahead of stalled upstream. Agent prompts duplicated from hestai-core. Being phased out.",
+  CURRENT_STATE::"Ahead of stalled upstream. Agent prompts duplicated from hestai-core. Being phased out.",
   DISPOSITION::[
     "clink (CLI dispatch) → moves to hestai-workbench",
     "chat (model API calls) → moves to hestai-workbench or hestai-core",
@@ -91,7 +101,7 @@ DATA_FLOW::"User→workbench[spawn CLI]→hestai-core[anchor bind+load context]�
 DEPENDENCY_DIRECTION::[
   "octave-mcp depends on: nothing (foundation layer)",
   "hestai-core-mcp depends on: octave-mcp",
-  "debate-hall-mcp depends on: octave-mcp, optionally consumes hestai-core",
+  "debate-hall-mcp depends on: octave-mcp (standalone, NOT dependent on hestai-core)",
   "hestai-workbench depends on: all three MCP servers",
   "pal-mcp: temporary, being absorbed into workbench + core"
 ]
@@ -111,6 +121,7 @@ CLEAR_SEPARATIONS::[
 
 LAYER_0::OCTAVE_MCP[semantics,validation,compression]
 LAYER_1::HESTAI_CORE_MCP[identity,governance,memory,agent_knowledge]
+LAYER_1_NOTE::"Currently spans two repos (hestai-mcp + odyssean-anchor-mcp) pending merger per hestai-workbench#1."
 LAYER_2::DEBATE_HALL_MCP[deliberation,decisions,consensus]
 LAYER_3::HESTAI_WORKBENCH[execution,ui,dispatch,session_management]
 INTEGRATION::"Each layer serves the one above. OCTAVE is foundation. Workbench is the surface."
@@ -123,7 +134,7 @@ HESTAI_CORE::[
 ]
 DEBATE_HALL::[
   STATUS::operational,
-  NEXT::"Issue #163 — five governance operations (consult, gate, inform, vote, defend). Issue #112 — desktop app becomes workbench panel instead."
+  NEXT::"Issue #163 — convene and consult as core governance operations. Issue #112 — desktop app becomes workbench panel instead."
 ]
 OCTAVE::[
   STATUS::operational,
