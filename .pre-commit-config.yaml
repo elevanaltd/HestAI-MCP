@@ -43,19 +43,13 @@ repos:
         pass_filenames: false
         always_run: true
 
-      - id: ruff
-        name: ruff (staged)
-        entry: ruff check
+      - id: validate-namespaces
+        name: Validate namespace declarations in governance docs
+        entry: python scripts/validate_namespaces.py
         language: system
-        types: [python]
-        files: ^(src|tests|scripts)/.*\.py$
-
-      - id: black
-        name: black --check (staged)
-        entry: black --check
-        language: system
-        types: [python]
-        files: ^(src|tests|scripts)/.*\.py$
+        files: '^(src/hestai_mcp/_bundled_hub/|\.hestai/).*\.(md|oct\.md)$'
+        pass_filenames: true
+        always_run: false
 
       - id: mypy
         name: mypy src (only when src staged)
@@ -73,3 +67,16 @@ repos:
       - id: check-added-large-files
         args: ['--maxkb=500']
         exclude: '^\.hestai/sessions/archive/.*\.jsonl$'
+
+  - repo: https://github.com/psf/black
+    rev: 26.1.0
+    hooks:
+      - id: black
+        files: ^(src|tests|scripts)/.*\.py$
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^(src|tests|scripts)/.*\.py$

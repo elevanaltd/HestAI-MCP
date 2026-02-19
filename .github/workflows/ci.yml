@@ -35,6 +35,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Install project
+        run: pip install -e .
       - name: Determine changed docs
         id: diff
         shell: bash
@@ -81,6 +83,18 @@ jobs:
             exit 0
           fi
           xargs -a changed_docs.txt python scripts/ci/validate_naming_visibility.py
+
+      - name: Validate namespace declarations in governance docs
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Find all .md and .oct.md files in governance directories
+          files=$(find src/hestai_mcp/_bundled_hub .hestai -name "*.md" -o -name "*.oct.md" 2>/dev/null | sort || true)
+          if [ -z "$files" ]; then
+            echo "SKIP namespace validation (no governance docs found)"
+            exit 0
+          fi
+          echo "$files" | xargs python scripts/validate_namespaces.py
 
   validate_doc_numbering:
     runs-on: ubuntu-latest
