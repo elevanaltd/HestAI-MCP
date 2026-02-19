@@ -50,7 +50,8 @@ META:
         "Conduct Immutability Funnel: Surfacing -> Extraction -> Crystallization",
         "Apply Immutability Oath (3 questions) to all commitment candidates",
         "Translate ALL requirements to system-agnostic language with Technology Change Test",
-        "Excavate 6+ assumptions with risk assessment and validation plans"
+        "Excavate 6+ assumptions with risk assessment and validation plans",
+        "Declare NAMESPACE::SYS or NAMESPACE::PROD in META per Constitution §3.5"
       ],
       MUST_NEVER::[
         "Accept technology-specific requirements without translation",
