@@ -29,7 +29,7 @@ This creates a paradox: The governance that should guide agents is invisible to 
 
 **They don't!** Currently agents rely on:
 - `.claude/` files (user-specific)
-- `.hestai/workflow/` (project-specific)
+- `.hestai/north-star/` (project-specific)
 - Hardcoded knowledge
 
 ## Proposed Solutions

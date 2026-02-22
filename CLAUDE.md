@@ -31,7 +31,7 @@ The `.venv` is created by the session startup hook (`uv sync --all-extras`).
 - `src/hestai_mcp/ai/` - AI client and provider abstractions
 - `src/hestai_mcp/schemas/` - Pydantic schemas
 - `tests/` - Test suite mirroring src/ structure
-- `.hestai/workflow/` - North Star and workflow docs
+- `.hestai/north-star/` - Project North Star and component North Stars
 - `docs/ARCHITECTURE.md` - System architecture reference
 
 ## Testing
