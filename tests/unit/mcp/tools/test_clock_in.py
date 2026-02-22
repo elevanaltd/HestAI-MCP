@@ -8,7 +8,7 @@ This test suite follows TDD discipline:
 
 Test Coverage:
 - Session creation (UUID generation, directory structure)
-- Context path resolution from .hestai/context/
+- Context path resolution from .hestai/state/context/
 - Focus conflict detection (warn on duplicate focus)
 - Security validation (path traversal, role format)
 
@@ -34,10 +34,11 @@ def mock_hestai_structure(tmp_path: Path) -> Path:
     project_root.mkdir()
 
     hestai_dir = project_root / ".hestai"
-    sessions_dir = hestai_dir / "sessions"
+    state_dir = hestai_dir / "state"
+    sessions_dir = state_dir / "sessions"
     active_dir = sessions_dir / "active"
     archive_dir = sessions_dir / "archive"
-    context_dir = hestai_dir / "context"
+    context_dir = state_dir / "context"
 
     active_dir.mkdir(parents=True)
     archive_dir.mkdir(parents=True)
@@ -66,7 +67,9 @@ class TestSessionCreation:
         assert uuid.UUID(session_id)  # Raises if invalid
 
         # Verify session directory exists
-        session_dir = mock_hestai_structure / ".hestai" / "sessions" / "active" / session_id
+        session_dir = (
+            mock_hestai_structure / ".hestai" / "state" / "sessions" / "active" / session_id
+        )
         assert session_dir.exists()
 
         # Verify session.json contains expected fields
@@ -93,7 +96,13 @@ class TestSessionCreation:
 
         session_id = result["session_id"]
         session_file = (
-            mock_hestai_structure / ".hestai" / "sessions" / "active" / session_id / "session.json"
+            mock_hestai_structure
+            / ".hestai"
+            / "state"
+            / "sessions"
+            / "active"
+            / session_id
+            / "session.json"
         )
         session_data = json.loads(session_file.read_text())
 
@@ -111,7 +120,13 @@ class TestSessionCreation:
 
         session_id = result["session_id"]
         session_file = (
-            mock_hestai_structure / ".hestai" / "sessions" / "active" / session_id / "session.json"
+            mock_hestai_structure
+            / ".hestai"
+            / "state"
+            / "sessions"
+            / "active"
+            / session_id
+            / "session.json"
         )
         session_data = json.loads(session_file.read_text())
 
@@ -127,7 +142,7 @@ class TestContextPathResolution:
         from hestai_mcp.modules.tools.clock_in import clock_in
 
         # Create some context files (.oct.md format)
-        context_dir = mock_hestai_structure / ".hestai" / "context"
+        context_dir = mock_hestai_structure / ".hestai" / "state" / "context"
         (context_dir / "PROJECT-CONTEXT.oct.md").write_text("# Context")
         # Create a non-.oct.md file which should be excluded
         (context_dir / "SYSTEM-STATE.md").write_text("# State")
@@ -264,7 +279,7 @@ class TestSecurityValidation:
         )
 
         # Verify sessions directory was created
-        assert (project_root / ".hestai" / "sessions" / "active").exists()
+        assert (project_root / ".hestai" / "state" / "sessions" / "active").exists()
         assert "session_id" in result
 
 
@@ -348,7 +363,7 @@ class TestFASTLayerPopulation:
         from hestai_mcp.modules.tools.clock_in import clock_in
 
         # Ensure state directory doesn't exist initially
-        state_dir = mock_hestai_structure / ".hestai" / "context" / "state"
+        state_dir = mock_hestai_structure / ".hestai" / "state" / "context" / "state"
         assert not state_dir.exists()
 
         clock_in(
@@ -387,7 +402,12 @@ class TestFASTLayerPopulation:
         )
 
         current_focus_path = (
-            mock_hestai_structure / ".hestai" / "context" / "state" / "current-focus.oct.md"
+            mock_hestai_structure
+            / ".hestai"
+            / "state"
+            / "context"
+            / "state"
+            / "current-focus.oct.md"
         )
         assert current_focus_path.exists()
 
@@ -420,7 +440,7 @@ class TestFASTLayerPopulation:
         )
 
         checklist_path = (
-            mock_hestai_structure / ".hestai" / "context" / "state" / "checklist.oct.md"
+            mock_hestai_structure / ".hestai" / "state" / "context" / "state" / "checklist.oct.md"
         )
         assert checklist_path.exists()
 
@@ -443,7 +463,7 @@ class TestFASTLayerPopulation:
         from hestai_mcp.modules.tools.clock_in import clock_in
 
         # Create state directory with existing blocker
-        state_dir = mock_hestai_structure / ".hestai" / "context" / "state"
+        state_dir = mock_hestai_structure / ".hestai" / "state" / "context" / "state"
         state_dir.mkdir(parents=True, exist_ok=True)
 
         existing_blockers = """===BLOCKERS===
@@ -488,7 +508,9 @@ ACTIVE:
             focus="test-new-blockers",
         )
 
-        blockers_path = mock_hestai_structure / ".hestai" / "context" / "state" / "blockers.oct.md"
+        blockers_path = (
+            mock_hestai_structure / ".hestai" / "state" / "context" / "state" / "blockers.oct.md"
+        )
         assert blockers_path.exists()
 
         content = blockers_path.read_text()
@@ -505,7 +527,7 @@ ACTIVE:
         from hestai_mcp.modules.tools.clock_in import clock_in
 
         # Create state directory with existing checklist containing incomplete items
-        state_dir = mock_hestai_structure / ".hestai" / "context" / "state"
+        state_dir = mock_hestai_structure / ".hestai" / "state" / "context" / "state"
         state_dir.mkdir(parents=True, exist_ok=True)
 
         existing_checklist = """===SESSION_CHECKLIST===
@@ -890,7 +912,9 @@ class TestRichContextSummary:
         )
 
         # Create PROJECT-CONTEXT.oct.md with recognizable content
-        project_context = mock_hestai_structure / ".hestai" / "context" / "PROJECT-CONTEXT.oct.md"
+        project_context = (
+            mock_hestai_structure / ".hestai" / "state" / "context" / "PROJECT-CONTEXT.oct.md"
+        )
         project_context.write_text("""===PROJECT_CONTEXT===
 META:
   TYPE::"PROJECT_CONTEXT"
@@ -984,7 +1008,7 @@ NEXT_ACTIONS::[
         )
 
         # Create blockers file with active blockers
-        state_dir = mock_hestai_structure / ".hestai" / "context" / "state"
+        state_dir = mock_hestai_structure / ".hestai" / "state" / "context" / "state"
         state_dir.mkdir(parents=True, exist_ok=True)
         blockers_file = state_dir / "blockers.oct.md"
         blockers_file.write_text("""===BLOCKERS===
@@ -1022,7 +1046,9 @@ ACTIVE:
         )
 
         # Create very large PROJECT-CONTEXT
-        project_context = mock_hestai_structure / ".hestai" / "context" / "PROJECT-CONTEXT.oct.md"
+        project_context = (
+            mock_hestai_structure / ".hestai" / "state" / "context" / "PROJECT-CONTEXT.oct.md"
+        )
         large_content = "X" * 10000  # Much larger than limit
         project_context.write_text(f"===PROJECT_CONTEXT===\n{large_content}\n===END===")
 
@@ -1061,7 +1087,9 @@ class TestFreshnessCheck:
         from hestai_mcp.modules.tools.clock_in import _check_context_freshness
 
         # Create PROJECT-CONTEXT
-        project_context = mock_hestai_structure / ".hestai" / "context" / "PROJECT-CONTEXT.oct.md"
+        project_context = (
+            mock_hestai_structure / ".hestai" / "state" / "context" / "PROJECT-CONTEXT.oct.md"
+        )
         project_context.write_text("===PROJECT_CONTEXT===\nTEST\n===END===")
 
         # Simulate stale file by checking without recent git commit
@@ -1107,7 +1135,9 @@ class TestFreshnessCheck:
         )
 
         # Create and commit PROJECT-CONTEXT
-        project_context = mock_hestai_structure / ".hestai" / "context" / "PROJECT-CONTEXT.oct.md"
+        project_context = (
+            mock_hestai_structure / ".hestai" / "state" / "context" / "PROJECT-CONTEXT.oct.md"
+        )
         project_context.write_text("===PROJECT_CONTEXT===\nTEST\n===END===")
         subprocess.run(["git", "add", "."], cwd=str(mock_hestai_structure), capture_output=True)
         subprocess.run(
@@ -1138,7 +1168,9 @@ class TestFreshnessCheck:
         )
 
         # Create PROJECT-CONTEXT without git (simulates stale)
-        project_context = mock_hestai_structure / ".hestai" / "context" / "PROJECT-CONTEXT.oct.md"
+        project_context = (
+            mock_hestai_structure / ".hestai" / "state" / "context" / "PROJECT-CONTEXT.oct.md"
+        )
         project_context.write_text("===PROJECT_CONTEXT===\nTEST\n===END===")
 
         context_paths = resolve_context_paths(mock_hestai_structure)
@@ -1174,7 +1206,7 @@ class TestNorthStarConstraintsExtraction:
         from hestai_mcp.modules.tools.clock_in import _extract_north_star_constraints
 
         # Create North Star with scope boundaries
-        workflow_dir = mock_hestai_structure / ".hestai" / "workflow"
+        workflow_dir = mock_hestai_structure / ".hestai" / "north-star"
         workflow_dir.mkdir(parents=True, exist_ok=True)
         north_star = workflow_dir / "000-MCP-PRODUCT-NORTH-STAR.oct.md"
         north_star.write_text("""===NORTH_STAR===
@@ -1203,7 +1235,7 @@ SCOPE_BOUNDARIES::[
         )
 
         # Create North Star
-        workflow_dir = mock_hestai_structure / ".hestai" / "workflow"
+        workflow_dir = mock_hestai_structure / ".hestai" / "north-star"
         workflow_dir.mkdir(parents=True, exist_ok=True)
         north_star = workflow_dir / "000-MCP-PRODUCT-NORTH-STAR.oct.md"
         north_star.write_text("""===NORTH_STAR===
@@ -1364,7 +1396,7 @@ class TestCoverageGaps:
         from hestai_mcp.modules.tools.clock_in import _find_north_star_file
 
         # Create workflow dir with only .md file (no .oct.md)
-        workflow_dir = tmp_path / ".hestai" / "workflow"
+        workflow_dir = tmp_path / ".hestai" / "north-star"
         workflow_dir.mkdir(parents=True)
         md_file = workflow_dir / "000-PROJECT-NORTH-STAR.md"
         md_file.write_text("North Star content")
@@ -1378,7 +1410,7 @@ class TestCoverageGaps:
         from hestai_mcp.modules.tools.clock_in import _find_north_star_file
 
         # Create workflow dir with both .md and .oct.md files
-        workflow_dir = tmp_path / ".hestai" / "workflow"
+        workflow_dir = tmp_path / ".hestai" / "north-star"
         workflow_dir.mkdir(parents=True)
         (workflow_dir / "000-PROJECT-NORTH-STAR.md").write_text("Plain MD")
         (workflow_dir / "000-PROJECT-NORTH-STAR.oct.md").write_text("OCTAVE MD")
@@ -1392,7 +1424,7 @@ class TestCoverageGaps:
         from hestai_mcp.modules.tools.clock_in import _find_north_star_file
 
         # Create workflow dir with only -SUMMARY file
-        workflow_dir = tmp_path / ".hestai" / "workflow"
+        workflow_dir = tmp_path / ".hestai" / "north-star"
         workflow_dir.mkdir(parents=True)
         (workflow_dir / "000-PROJECT-NORTH-STAR-SUMMARY.oct.md").write_text("Summary")
 
@@ -1411,7 +1443,7 @@ class TestCoverageGaps:
         """_find_north_star_file returns None when no matching files exist."""
         from hestai_mcp.modules.tools.clock_in import _find_north_star_file
 
-        workflow_dir = tmp_path / ".hestai" / "workflow"
+        workflow_dir = tmp_path / ".hestai" / "north-star"
         workflow_dir.mkdir(parents=True)
         # Create files that don't match the pattern
         (workflow_dir / "other-file.md").write_text("Not a north star")
@@ -1498,7 +1530,9 @@ class TestCoverageGaps:
         )
 
         # Create and commit PROJECT-CONTEXT
-        project_context = mock_hestai_structure / ".hestai" / "context" / "PROJECT-CONTEXT.oct.md"
+        project_context = (
+            mock_hestai_structure / ".hestai" / "state" / "context" / "PROJECT-CONTEXT.oct.md"
+        )
         project_context.write_text("test content")
         subprocess.run(["git", "add", "."], cwd=str(mock_hestai_structure), capture_output=True)
 
@@ -1592,11 +1626,12 @@ I4::IMMUTABLE_FOUR
         # Should return 'created' and create all subdirectories
         assert result == "created"
         assert (project_root / ".hestai").exists()
-        assert (project_root / ".hestai" / "sessions" / "active").exists()
-        assert (project_root / ".hestai" / "sessions" / "archive").exists()
-        assert (project_root / ".hestai" / "context").exists()
-        assert (project_root / ".hestai" / "workflow").exists()
-        assert (project_root / ".hestai" / "reports").exists()
+        assert (project_root / ".hestai" / "state" / "sessions" / "active").exists()
+        assert (project_root / ".hestai" / "state" / "sessions" / "archive").exists()
+        assert (project_root / ".hestai" / "state" / "context").exists()
+        assert (project_root / ".hestai" / "north-star").exists()
+        assert (project_root / ".hestai" / "state" / "reports").exists()
+        assert (project_root / ".hestai" / "decisions").exists()
 
     def test_ensure_hestai_structure_returns_present_when_exists(self, mock_hestai_structure: Path):
         """ensure_hestai_structure returns 'present' when .hestai already exists."""
@@ -1618,7 +1653,7 @@ I4::IMMUTABLE_FOUR
         )
 
         # Create PROJECT-CONTEXT
-        context_dir = mock_hestai_structure / ".hestai" / "context"
+        context_dir = mock_hestai_structure / ".hestai" / "state" / "context"
         project_context = context_dir / "PROJECT-CONTEXT.oct.md"
         project_context.write_text("test content")
 
@@ -1645,7 +1680,7 @@ I4::IMMUTABLE_FOUR
         )
 
         # Create blockers file
-        state_dir = mock_hestai_structure / ".hestai" / "context" / "state"
+        state_dir = mock_hestai_structure / ".hestai" / "state" / "context" / "state"
         state_dir.mkdir(parents=True, exist_ok=True)
         blockers_file = state_dir / "blockers.oct.md"
         blockers_file.write_text("ACTIVE: some blocker")
@@ -1729,7 +1764,7 @@ WORKFLOW_PHASES:
 
         # Verify constraints.oct.md was created
         constraints_path = (
-            mock_hestai_structure / ".hestai" / "context" / "state" / "constraints.oct.md"
+            mock_hestai_structure / ".hestai" / "state" / "context" / "state" / "constraints.oct.md"
         )
         assert constraints_path.exists(), "constraints.oct.md should be created"
 
@@ -1782,7 +1817,7 @@ WORKFLOW_PHASES:
 
         # Should use B1 as default
         constraints_path = (
-            mock_hestai_structure / ".hestai" / "context" / "state" / "constraints.oct.md"
+            mock_hestai_structure / ".hestai" / "state" / "context" / "state" / "constraints.oct.md"
         )
         assert constraints_path.exists()
 
@@ -1815,7 +1850,9 @@ class TestStructuredClockInOutput:
         from hestai_mcp.modules.services.ai.prompts.protocols import CLOCK_IN_SYNTHESIS_PROTOCOL
 
         # Create PROJECT-CONTEXT with recognizable content
-        project_context = mock_hestai_structure / ".hestai" / "context" / "PROJECT-CONTEXT.oct.md"
+        project_context = (
+            mock_hestai_structure / ".hestai" / "state" / "context" / "PROJECT-CONTEXT.oct.md"
+        )
         project_context.write_text("""===PROJECT_CONTEXT===
 META:
   TYPE::"PROJECT_CONTEXT"

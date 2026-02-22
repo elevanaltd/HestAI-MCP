@@ -94,10 +94,10 @@ RULE_1::PERMANENT_ARCHITECTURAL→docs/::[
   ]
 ]
 
-RULE_2::OPERATIONAL_STATE→.hestai/context/::[
+RULE_2::OPERATIONAL_STATE→.hestai/state/context/::[
   AUDIENCE::AI_agents+human_coordination,
   LIFECYCLE::living_documents+high_churn,
-  TRACKING::git_committed[agent_context_awareness],
+  TRACKING::shared_across_worktrees[symlinked_to_.hestai-state/],
 
   WHAT_GOES_HERE::[
     PROJECT-CONTEXT.md[system_dashboard],
@@ -107,24 +107,24 @@ RULE_2::OPERATIONAL_STATE→.hestai/context/::[
   ],
 
   STRUCTURE::[
-    .hestai/context/→[PROJECT-CONTEXT.md|PROJECT-CHECKLIST.md|PROJECT-HISTORY.md],
-    .hestai/context/apps/{app}/→[APP-CONTEXT.md|APP-CHECKLIST.md|APP-HISTORY.md],
-    .hestai/context/.archive/→gitignored[deprecated_docs]
+    .hestai/state/context/→[PROJECT-CONTEXT.md|PROJECT-CHECKLIST.md|PROJECT-HISTORY.md],
+    .hestai/state/context/apps/{app}/→[APP-CONTEXT.md|APP-CHECKLIST.md|APP-HISTORY.md],
+    .hestai/state/context/.archive/→deprecated_docs
   ],
 
-  WHY_.hestai_context::[
+  WHY_.hestai_state::[
     agents_need_fresh_context_per_invocation,
     dashboard_pattern[PROJECT→APP_details],
-    high_update_frequency→would_pollute_commits,
-    git_tracking→enables_agent_awareness,
+    high_update_frequency→no_PR_overhead,
+    shared_via_symlink→all_worktrees_see_same_state,
     separate_from_developer_docs
   ]
 ]
 
-RULE_3::SESSION_ARTIFACTS→.hestai/sessions/::[
+RULE_3::SESSION_ARTIFACTS→.hestai/state/sessions/::[
   AUDIENCE::session_continuity+audit_trail,
   LIFECYCLE::active→archived,
-  TRACKING::split_policy[active_ignored|archive_committed],
+  TRACKING::shared_across_worktrees[symlinked_to_.hestai-state/],
 
   WHAT_GOES_HERE::[
     active_session_working_state[in_progress],
@@ -133,41 +133,41 @@ RULE_3::SESSION_ARTIFACTS→.hestai/sessions/::[
   ],
 
   STRUCTURE::[
-    .hestai/sessions/active/{session_id}/→gitignored[session.json|anchor.json],
-    .hestai/sessions/archive/→committed[
+    .hestai/state/sessions/active/{session_id}/→[session.json|anchor.json],
+    .hestai/state/sessions/archive/→[
       YYYY-MM-DD-{focus}-{id}-raw.jsonl,
       YYYY-MM-DD-{focus}-{id}-octave.oct.md,
       YYYY-MM-DD-{focus}-{id}.verification.json
     ]
   ],
 
-  WHY_split_tracking::[
+  WHY_shared_state::[
     active→high_churn+partial_inconsistent_state,
     archive→durable_record[continuity+auditability],
-    prevents_commit_noise→keeps_immutable_trail
+    shared_via_symlink→visibility_across_worktrees
   ]
 ]
 
-RULE_4::WORKFLOW_METHODOLOGY→.hestai/workflow/::[
+RULE_4::PROJECT_GOVERNANCE→.hestai/::[
   AUDIENCE::AI_agents+system_governance,
-  LIFECYCLE::committed+stable_patterns,
-  TRACKING::git_history_tracks_methodology_evolution,
+  LIFECYCLE::committed+PR_controlled+stable_patterns,
+  TRACKING::git_history_tracks_governance_evolution,
 
   WHAT_GOES_HERE::[
     north_star_documents[immutable_requirements],
-    workflow_phase_definitions,
-    DECISIONS.md[architectural_rationale_tokens],
-    test_infrastructure_standards,
-    binding_patterns_protocols
+    architectural_decision_records,
+    project_rules_and_schemas,
+    test_infrastructure_standards
   ],
 
   STRUCTURE::[
-    .hestai/workflow/→000-{PROJECT}-NORTH-STAR.md,
-    .hestai/workflow/decisions/→DECISIONS.md,
-    .hestai/workflow/test-context/→[RULES.md|EXTRACTION-TESTING-POLICY.md|SUPABASE-HARNESS.md]
+    .hestai/north-star/→000-{PROJECT}-NORTH-STAR.md+components/,
+    .hestai/decisions/→architectural_decision_records,
+    .hestai/rules/→project_standards,
+    .hestai/schemas/→schema_definitions
   ],
 
-  WHY_.hestai_workflow::[
+  WHY_.hestai_governance::[
     methodology_governance≠implementation_docs,
     binding_patterns→agents_must_follow,
     stable_enough_for_git_tracking,
@@ -202,10 +202,10 @@ RULE_5::CLAUDE_CODE_CONFIG→.claude/::[
   ]
 ]
 
-RULE_6::REPORTS→.hestai/reports/::[
+RULE_6::REPORTS→.hestai/state/reports/::[
   AUDIENCE::humans+reviewers+governance,
   LIFECYCLE::durable+time_scoped_evidence,
-  TRACKING::committed[optional_gitignored_scratch_subdir],
+  TRACKING::shared_across_worktrees[symlinked_to_.hestai-state/],
 
   WHAT_GOES_HERE::[
     audit_reports[anchor_audits|gate_failures|integrity_checks],
@@ -215,17 +215,16 @@ RULE_6::REPORTS→.hestai/reports/::[
   ],
 
   STRUCTURE::[
-    .hestai/reports/→[
+    .hestai/state/reports/→[
       YYYY-MM-DD-anchor-audit-clockout-clean-on-success.md,
       YYYY-MM-DD-jsonl-secrets-scan-findings.json
-    ],
-    .hestai/reports/scratch/→gitignored[local_experiments]
+    ]
   ],
 
-  WHY_.hestai_reports::[
+  WHY_.hestai_state_reports::[
     evidence_discoverable≠polluting_docs,
-    separates_durable_evidence≠living_dashboard[.hestai/context/],
-    stable_location["what_happened_and_why"]
+    separates_durable_evidence≠living_dashboard[.hestai/state/context/],
+    shared_via_symlink→visibility_across_worktrees
   ]
 ]
 
@@ -250,15 +249,17 @@ PLACEMENT_TABLE::[
   API_docs→docs/api/[committed|developers|permanent],
   setup_guides→docs/development/[committed|developers|permanent],
 
-  // PRODUCT CONTEXT (.hestai/)
-  PROJECT-CONTEXT→.hestai/context/[committed|agents+human|living],
-  APP-CONTEXT→.hestai/context/apps/{app}/[committed|agents+human|living],
-  session_notes→.hestai/sessions/active/[ignored|session_only|ephemeral],
-  product_north_star→.hestai/workflow/[committed|governance|stable],
-  product_methodology→.hestai/workflow/[committed|governance|stable],
-  DECISIONS.md→.hestai/workflow/decisions/[committed|governance|stable],
-  test_standards→.hestai/workflow/test-context/[committed|governance|stable],
-  reports→.hestai/reports/[committed|humans+governance|durable_evidence],
+  // PROJECT GOVERNANCE (.hestai/ - committed, PR-controlled)
+  product_north_star→.hestai/north-star/[committed|governance|stable],
+  decisions→.hestai/decisions/[committed|governance|stable],
+  project_rules→.hestai/rules/[committed|governance|stable],
+  project_schemas→.hestai/schemas/[committed|governance|stable],
+
+  // PROJECT WORKING STATE (.hestai/state/ - shared via symlink, no PR)
+  PROJECT-CONTEXT→.hestai/state/context/[shared|agents+human|living],
+  APP-CONTEXT→.hestai/state/context/apps/{app}/[shared|agents+human|living],
+  session_notes→.hestai/state/sessions/active/[shared|session_only|ephemeral],
+  reports→.hestai/state/reports/[shared|humans+governance|durable_evidence],
 
   // DEBATE ARTIFACTS (debates/)
   debate_transcripts→debates/[split_tracking:json_ignored|octave_committed|cognitive_evidence|durable],
@@ -283,7 +284,7 @@ AVOID::[
 
   COMMIT_EPHEMERAL::[
     problem::session_handoffs_cluttering_git_history,
-    fix::.hestai/sessions/active/→gitignored
+    fix::.hestai/state/sessions/active/→shared_state
   ],
 
   DEVELOPER_DOCS_IN_HESTAI::[
@@ -297,20 +298,21 @@ AVOID::[
 QUESTION::"Was_this_needed_BEFORE_code_existed_or_discovered_AFTER?"
 
 TIMELINE_LOGIC::[
-  BEFORE_code::design_decisions+architecture→docs/|.hestai/workflow/,
-  AFTER_code::operational_state+progress_tracking→.hestai/context/,
-  DURING_session::handoffs+resumption→.hestai/sessions/[gitignored]
+  BEFORE_code::design_decisions+architecture→docs/|.hestai/north-star/,
+  AFTER_code::operational_state+progress_tracking→.hestai/state/context/,
+  DURING_session::handoffs+resumption→.hestai/state/sessions/
 ]
 
 ===MIGRATION_GUIDANCE===
 
-FROM_.hestai→TO_NEW_STRUCTURE::[
+FROM_OLD→TO_THREE_TIER::[
   ADRs::.hestai/architecture-decisions/→docs/architecture-decisions/,
-  contexts::.hestai/PROJECT-CONTEXT.md→.hestai/context/PROJECT-CONTEXT.md,
-  workflow::.hestai/workflow-docs/→.hestai/workflow/,
-  decisions::.hestai/DECISIONS.md→.hestai/workflow/decisions/DECISIONS.md,
-  sessions::.hestai/sessions/→.hestai/sessions/[keep_gitignored],
-  reports::.hestai/reports/→.hestai/reports/
+  contexts::.hestai/context/→.hestai/state/context/[shared_via_symlink],
+  north_star::.hestai/workflow/→.hestai/north-star/[committed_PR_controlled],
+  decisions::.hestai/workflow/decisions/→.hestai/decisions/[committed_PR_controlled],
+  sessions::.hestai/sessions/→.hestai/state/sessions/[shared_via_symlink],
+  reports::.hestai/reports/→.hestai/state/reports/[shared_via_symlink],
+  research::.hestai/research/→.hestai/state/research/[shared_via_symlink]
 ]
 
 ===FORMAT_RULES===
@@ -355,7 +357,7 @@ RETENTION_TABLE::[
 ]
 
 SESSION_ARCHIVES::[
-  LOCATION::.hestai/sessions/archive/,
+  LOCATION::.hestai/state/sessions/archive/,
   GITIGNORED::[
     *-raw.jsonl[full_transcript_machine_format],
     *.verification.json[validation_metadata]

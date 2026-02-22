@@ -24,7 +24,7 @@ INPUT YOU WILL RECEIVE:
 - Git State: Branch, recent commits, modified files
 
 OUTPUT FORMAT (use exactly this OCTAVE structure):
-CONTEXT_FILES::[@.hestai/context/PROJECT-CONTEXT.oct.md:L1-50, @.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md:L1-30]
+CONTEXT_FILES::[@.hestai/state/context/PROJECT-CONTEXT.oct.md:L1-50, @.hestai/north-star/000-MCP-PRODUCT-NORTH-STAR.md:L1-30]
 FOCUS::{focus_value_from_input}
 PHASE::{phase_from_context_or_UNKNOWN}
 BLOCKERS::[{blocker1}, {blocker2}] or BLOCKERS::[]

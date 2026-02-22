@@ -4,8 +4,8 @@ This module supports handshake-style protocols (e.g., OA5) where a session is cr
 as *pending* and only promoted to *active* after successful proof/commit.
 
 Directory model:
-- .hestai/sessions/pending/{token}/handshake.json
-- .hestai/sessions/active/{token}/  (created via promotion)
+- .hestai/state/sessions/pending/{token}/handshake.json
+- .hestai/state/sessions/active/{token}/  (created via promotion)
 
 Design goals:
 - Keep pending handshakes isolated from active session lifecycle tools (e.g., clock_out)
@@ -60,11 +60,11 @@ def validate_handshake_token(token: str) -> str:
 
 
 def pending_dir(working_dir: Path) -> Path:
-    return working_dir / ".hestai" / "sessions" / "pending"
+    return working_dir / ".hestai" / "state" / "sessions" / "pending"
 
 
 def active_dir(working_dir: Path) -> Path:
-    return working_dir / ".hestai" / "sessions" / "active"
+    return working_dir / ".hestai" / "state" / "sessions" / "active"
 
 
 def pending_session_dir(working_dir: Path, token: str) -> Path:
@@ -117,7 +117,7 @@ def promote_pending_to_active(*, working_dir: Path, token: str) -> Path:
     """Promote a pending handshake session to an active session.
 
     Promotion is implemented as a directory rename:
-    .hestai/sessions/pending/{token} -> .hestai/sessions/active/{token}
+    .hestai/state/sessions/pending/{token} -> .hestai/state/sessions/active/{token}
 
     This should be called only after the handshake is fully validated and
     anchor state has been persisted.

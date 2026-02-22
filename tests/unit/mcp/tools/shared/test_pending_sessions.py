@@ -24,7 +24,7 @@ class TestPendingSessionHelpers:
             handshake={"role": "implementation-lead", "mode": "full"},
         )
 
-        assert session_dir == working_dir / ".hestai" / "sessions" / "pending" / token
+        assert session_dir == working_dir / ".hestai" / "state" / "sessions" / "pending" / token
         handshake_path = session_dir / "handshake.json"
         assert handshake_path.exists()
 
@@ -88,8 +88,8 @@ class TestPendingSessionHelpers:
         assert result.removed == 1
         assert result.kept == 1
 
-        assert (working_dir / ".hestai" / "sessions" / "pending" / "fresh").exists()
-        assert not (working_dir / ".hestai" / "sessions" / "pending" / "stale").exists()
+        assert (working_dir / ".hestai" / "state" / "sessions" / "pending" / "fresh").exists()
+        assert not (working_dir / ".hestai" / "state" / "sessions" / "pending" / "stale").exists()
 
     def test_token_validation_rejects_path_traversal(self, tmp_path: Path) -> None:
         from hestai_mcp.modules.tools.shared.pending_sessions import create_pending_handshake

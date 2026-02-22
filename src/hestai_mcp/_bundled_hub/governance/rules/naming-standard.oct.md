@@ -216,11 +216,12 @@ PRINCIPLE::folders_carry_semantic_context→DO_NOT_repeat_in_filenames
 STANDARD_STRUCTURE::[
   .hestai-sys/governance/rules/→visibility-rules.oct.md+naming-standard.oct.md,
   .hestai-sys/governance/workflow/→000-SYSTEM-HESTAI-NORTH-STAR.md,
-  .hestai/context/→PROJECT-CONTEXT.md+PROJECT-CHECKLIST.md,
-  .hestai/workflow/→north-star.md+decisions/DECISIONS.md,
-  .hestai/sessions/active/→gitignored,
-  .hestai/sessions/archive/→committed,
-  .hestai/reports/→temporal_or_indexed_reports
+  .hestai/north-star/→000-*-NORTH-STAR.md+components/,
+  .hestai/decisions/→architectural_decision_records,
+  .hestai/state/context/→PROJECT-CONTEXT.md+PROJECT-CHECKLIST.md,
+  .hestai/state/sessions/active/→gitignored,
+  .hestai/state/sessions/archive/→shared,
+  .hestai/state/reports/→temporal_or_indexed_reports
 ]
 
 FOLDER_SEMANTICS::[
