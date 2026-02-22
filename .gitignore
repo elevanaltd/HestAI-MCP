@@ -11,16 +11,19 @@
 # System Governance (Delivered by MCP, NOT committed)
 .hestai-sys/
 
-# Active/Pending Sessions (Ephemeral)
-.hestai/sessions/pending/
-.hestai/sessions/active/
+# Shared State Directory (symlinked to .hestai-state/, shared across worktrees)
+.hestai-state/
 
-# Operational timestamps (session-specific state)
-.hestai/last_cleanup
+# Project Working State (symlinked from .hestai/state/ -> .hestai-state/)
+# Contains: context, reports, research, sessions, audit
+# Shared across worktrees, writable without PR
+.hestai/state
+.hestai/state/
+
+# Legacy state paths (pre-migration working state that may still exist on disk)
 .hestai/context/state/
-
-# Raw session archives (OCTAVE compressed versions are committed)
-.hestai/sessions/archive/*-raw.jsonl
+.hestai/sessions/active/
+.hestai/sessions/pending/
 
 # Raw debate transcripts (OCTAVE compressed versions are committed)
 debates/*.json
@@ -87,9 +90,6 @@ dmypy.json
 *.bak
 
 # Note: rfcs/ folder deleted per ADR-0060
-
-# HestAI report scratch area
-.hestai/reports/scratch/
 
 # Git worktrees (Crystal)
 /worktrees/

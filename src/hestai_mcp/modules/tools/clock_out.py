@@ -95,7 +95,7 @@ async def clock_out(
 
     # Verify .hestai directory structure
     hestai_dir = project_root / ".hestai"
-    sessions_dir = hestai_dir / "sessions"
+    sessions_dir = hestai_dir / "state" / "sessions"
     active_dir = sessions_dir / "active"
     archive_dir = sessions_dir / "archive"
 

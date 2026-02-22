@@ -71,8 +71,8 @@ class TestClockInSynthesisProtocol:
         """
         CONTEXT_FILES example must reference the actual North Star file.
 
-        The correct path is: .hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md
-        NOT: .hestai/workflow/000-NORTH-STAR.md
+        The correct path is: .hestai/north-star/000-MCP-PRODUCT-NORTH-STAR.md
+        NOT: .hestai/north-star/000-NORTH-STAR.md
         """
         from hestai_mcp.modules.services.ai.prompts.protocols import CLOCK_IN_SYNTHESIS_PROTOCOL
 

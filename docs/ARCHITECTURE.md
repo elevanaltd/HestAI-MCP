@@ -23,11 +23,17 @@ graph TD
         style SysDir fill:#f9f,stroke:#333,stroke-dasharray: 5 5
     end
 
-    subgraph "Project Context (Layer 2)"
-        Context[.hestai/context/]
-        Workflow[.hestai/workflow/]
-        Sessions[.hestai/sessions/]
-        style Context fill:#bbf,stroke:#333
+    subgraph "Project Governance (Tier 2)"
+        NorthStar[.hestai/north-star/]
+        Decisions[.hestai/decisions/]
+        style NorthStar fill:#bbf,stroke:#333
+    end
+
+    subgraph "Working State (Tier 3)"
+        Context[.hestai/state/context/]
+        Sessions[.hestai/state/sessions/]
+        Reports[.hestai/state/reports/]
+        style Context fill:#ddf,stroke:#333
     end
 
     subgraph "Product Code (Layer 3)"
@@ -37,7 +43,7 @@ graph TD
 
     Agent[AI Agent] -->|Reads| SysDir
     Agent -->|Reads| Context
-    Agent -->|Reads| Workflow
+    Agent -->|Reads| NorthStar
     Agent -->|Calls| MCPTools[MCP Tools]
     MCPTools -->|clock_in creates| Sessions
     MCPTools -->|clock_out archives| Sessions
@@ -46,9 +52,9 @@ graph TD
 
 | Layer | Content | Git Status | Who Writes |
 |-------|---------|------------|------------|
-| **System Governance** | Rules, agents, methodology in `.hestai-sys/` | Gitignored | MCP server (injected at runtime) |
-| **Project Context** | Planning docs in `.hestai/context/`, `.hestai/workflow/` | Committed | MCP tools only (not agents directly) |
-| **Sessions** | Active in `.hestai/sessions/active/`, Archive in `.hestai/sessions/archive/` | Active: gitignored, Archive: committed | `clock_in` and `clock_out` tools |
+| **Tier 1: System Governance** | Rules, agents, methodology in `.hestai-sys/` | Gitignored | MCP server (injected at runtime) |
+| **Tier 2: Project Governance** | North Stars in `.hestai/north-star/`, decisions in `.hestai/decisions/` | Committed (PR-controlled) | Human via PR |
+| **Tier 3: Working State** | Context, sessions, reports in `.hestai/state/` | Gitignored (shared via symlink) | MCP tools (clock_in, clock_out) |
 
 ---
 
@@ -70,7 +76,7 @@ Defined in [ADR-0035](adr/adr-0035-living-artifacts-auto-refresh.md).
 
 Context must never be stale. We use a **Split-Artifact Hybrid** approach:
 1.  **`docs/CHANGELOG.md`**: Updated by CI on every merge (audit trail).
-2.  **`.hestai/context/*.oct.md`**: Generated freshly on every `clock_in` by querying git state + changelog + tests.
+2.  **`.hestai/state/context/*.oct.md`**: Generated freshly on every `clock_in` by querying git state + changelog + tests.
 3.  **Local Warning**: Pre-commit hooks warn if context is >24h old.
 
 ### 2.3 Odyssean Anchor (Identity Binding)
@@ -119,10 +125,10 @@ The System Steward is the **single writer** for all `.hestai/` content. When an 
                           │
                           ▼
               ┌────────────────────────┐
-              │  .hestai/context/      │
-              │  .hestai/workflow/     │
-              │  .hestai/sessions/     │
-              │  .hestai/reports/      │
+              │  .hestai/state/context/      │
+              │  .hestai/north-star/     │
+              │  .hestai/state/sessions/     │
+              │  .hestai/state/reports/      │
               └────────────────────────┘
 ```
 
@@ -131,7 +137,7 @@ The System Steward is the **single writer** for all `.hestai/` content. When an 
 | Tool | Agent Calls | System Steward Does |
 |------|-------------|---------------------|
 | `clock_in` | Request session start | Validate, create session.json, return context paths |
-| `clock_out` | Request session end | Compress to OCTAVE, archive, **update `.hestai/context/` with learnings** |
+| `clock_out` | Request session end | Compress to OCTAVE, archive, **update `.hestai/state/context/` with learnings** |
 | `document_submit` | Submit a document | Check `visibility-rules.oct.md`, route to path, write via `octave_create` |
 | `context_update` | Request context change | Validate, write via `octave_create` or `octave_amend` |
 | `odyssean_anchor` | Submit identity binding | Validate against schema, store anchor |
@@ -142,7 +148,7 @@ The System Steward is the **single writer** for all `.hestai/` content. When an 
 ┌─────────────────────────────────────────────────────────────────┐
 │  clock_in (Agent calls → System Steward processes)              │
 │  ├── Validates request                                          │
-│  ├── Creates .hestai/sessions/active/{session_id}/session.json  │
+│  ├── Creates .hestai/state/sessions/active/{session_id}/session.json  │
 │  ├── Returns paths to context files for agent to read           │
 │  └── Detects focus conflicts with other active sessions         │
 └─────────────────────────────────────────────────────────────────┘
@@ -154,8 +160,8 @@ The System Steward is the **single writer** for all `.hestai/` content. When an 
 │  ├── Reads Claude's session JSONL                               │
 │  ├── Redacts sensitive data (API keys, tokens)                  │
 │  ├── Compresses to OCTAVE format via octave_create              │
-│  ├── Archives to .hestai/sessions/archive/                      │
-│  ├── Updates .hestai/context/ with session learnings            │
+│  ├── Archives to .hestai/state/sessions/archive/                      │
+│  ├── Updates .hestai/state/context/ with session learnings            │
 │  └── Removes active session directory                           │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -225,19 +231,20 @@ Per `src/hestai_mcp/_bundled_hub/governance/rules/hub-authoring-rules.oct.md`:
 
 ```
 your-project/
-├── .hestai/                         # Project context (mostly committed)
-│   ├── context/                     # Planning & state docs (committed)
-│   │   ├── PROJECT-CONTEXT.oct.md   # Current project state
-│   │   ├── PROJECT-ROADMAP.oct.md   # Phase planning
-│   │   └── PROJECT-CHECKLIST.oct.md # Active tasks
-│   ├── workflow/                    # Project-specific rules (committed)
+├── .hestai/                         # Project governance (Tier 2, committed)
+│   ├── north-star/                  # Project North Star and components
 │   │   └── 000-PROJECT-NORTH-STAR.oct.md
-│   ├── sessions/
-│   │   ├── active/                  # Current sessions (GITIGNORED)
-│   │   └── archive/                 # Completed sessions (committed)
-│   └── reports/                     # Generated reports (committed)
+│   ├── decisions/                   # Architectural Decision Records
+│   ├── rules/                       # Project-wide standards
+│   └── state/ → .hestai-state/     # Working state (Tier 3, symlinked)
+│       ├── context/                 # Planning & state docs
+│       ├── sessions/
+│       │   ├── active/             # Current sessions
+│       │   └── archive/            # Completed sessions
+│       ├── reports/                # Generated reports
+│       └── research/               # Investigation findings
 │
-├── .hestai-sys/                     # System governance (GITIGNORED)
+├── .hestai-sys/                     # System governance (Tier 1, GITIGNORED)
 │                                    # Injected by MCP server at runtime
 │
 ├── docs/
@@ -247,9 +254,10 @@ your-project/
 └── src/                             # Application code
 ```
 
-**What's committed vs gitignored:**
-- ✅ Committed: `.hestai/context/`, `.hestai/workflow/`, `.hestai/sessions/archive/`, `.hestai/reports/`
-- ❌ Gitignored: `.hestai/sessions/active/`, `.hestai-sys/`
+**Three-tier lifecycle:**
+- **Tier 1** `.hestai-sys/`: Gitignored, MCP-delivered, read-only
+- **Tier 2** `.hestai/`: Committed, PR-controlled (north-star, decisions, rules)
+- **Tier 3** `.hestai/state/`: Gitignored, symlinked to shared `.hestai-state/`, writable by tools
 
 ---
 

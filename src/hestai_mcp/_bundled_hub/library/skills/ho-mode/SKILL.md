@@ -22,7 +22,7 @@ CONFIRMATION::"HO Mode Active: Write/Edit for coordination docs only. Production
 §2::GOVERNANCE
 
 DIRECT_WRITE:
-  coordination::.coord/**/*.md
+  coordination::.hestai/state/**/*.md
   skills_commands::.claude/**/*.md
   agents::**/*.oct.md
   project_docs::[README.md, CLAUDE.md]

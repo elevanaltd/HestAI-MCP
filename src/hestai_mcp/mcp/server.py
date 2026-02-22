@@ -392,9 +392,9 @@ async def list_tools() -> list[Tool]:
             name="clock_in",
             description=(
                 "Register agent session start and return context paths. "
-                "Creates session directory in .hestai/sessions/active/ and "
-                "returns OCTAVE context file paths from .hestai/context/. "
-                "ADR-0007: Uses direct .hestai/ directory (no symlinks/worktrees)."
+                "Creates session directory in .hestai/state/sessions/active/ and "
+                "returns OCTAVE context file paths from .hestai/state/context/. "
+                "Three-tier architecture: governance (committed) + state (shared)."
             ),
             inputSchema={
                 "type": "object",
@@ -425,7 +425,7 @@ async def list_tools() -> list[Tool]:
             description=(
                 "Archive agent session transcript and extract learnings. "
                 "Compresses session transcript to OCTAVE format and "
-                "archives to .hestai/sessions/archive/. "
+                "archives to .hestai/state/sessions/archive/. "
                 "Cleans up active session directory."
             ),
             inputSchema={
@@ -601,7 +601,13 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             project_root = validate_working_dir(explicit_working_dir)
             _validate_project_identity(project_root)
             session_file = (
-                project_root / ".hestai" / "sessions" / "active" / session_id / "session.json"
+                project_root
+                / ".hestai"
+                / "state"
+                / "sessions"
+                / "active"
+                / session_id
+                / "session.json"
             )
             if not session_file.exists():
                 raise FileNotFoundError(f"Session {session_id} not found at {project_root}")
@@ -612,7 +618,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             project_root = None
             for root in possible_roots:
                 potential_session = (
-                    root / ".hestai" / "sessions" / "active" / session_id / "session.json"
+                    root / ".hestai" / "state" / "sessions" / "active" / session_id / "session.json"
                 )
                 if potential_session.exists():
                     session_file = potential_session

@@ -15,7 +15,7 @@ META:
 
 §1::PRIMARY_SOURCE_MANDATORY_FIRST
 
-SOURCE::.coord/test-context/RULES.md
+SOURCE::.hestai/state/context/test-context/RULES.md
 PRINCIPLE::"POC-proven pattern post-it note - ALWAYS consult BEFORE infrastructure decisions"
 
 CONTAINS::[
@@ -27,7 +27,7 @@ CONTAINS::[
 
 §2::DETAILED_DOCUMENTATION
 
-CI_PIPELINE::.coord/test-context/CI-PIPELINE-CONFIGURATION.md->[turborepo_config, github_actions, quality_gates[typecheck->lint->test], secret_management, parallel_execution, artifact_storage]
+CI_PIPELINE::.hestai/state/context/test-context/CI-PIPELINE-CONFIGURATION.md->[turborepo_config, github_actions, quality_gates[typecheck->lint->test], secret_management, parallel_execution, artifact_storage]
 
 §3::POC_REFERENCE_WHEN_NEEDED
 
@@ -118,17 +118,17 @@ CONSULT::[
 
 §9::KNOWLEDGE_BASE_REFERENCES
 
-PRIMARY::.coord/test-context/RULES.md[POC_proven_patterns]->CONSULT_FIRST
+PRIMARY::.hestai/state/context/test-context/RULES.md[POC_proven_patterns]->CONSULT_FIRST
 
 DOCUMENTATION::[
-  .coord/test-context/CI-PIPELINE-CONFIGURATION.md
+  .hestai/state/context/test-context/CI-PIPELINE-CONFIGURATION.md
 ]
 
 POC_REFERENCE::[
   /Volumes/HestAI-Projects/eav-ops/eav-apps/scripts-web/.github/workflows/ci.yml
 ]
 
-NORTH_STAR::.coord/workflow-docs/000-UNIVERSAL-EAV_SYSTEM-D1-NORTH-STAR.md[I7:TDD_RED_discipline, I8:production_grade_quality]
+NORTH_STAR::.hestai/north-star/000-UNIVERSAL-EAV_SYSTEM-D1-NORTH-STAR.md[I7:TDD_RED_discipline, I8:production_grade_quality]
 
 
 §10::WISDOM

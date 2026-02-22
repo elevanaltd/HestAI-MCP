@@ -1,7 +1,7 @@
 """
 FAST Layer Operations - Per ADR-0046 and ADR-0056.
 
-The FAST layer at .hestai/context/state/ contains session-specific state
+The FAST layer at .hestai/state/context/state/ contains session-specific state
 that changes hourly to daily. These files should be dynamically populated
 during clock_in and updated during clock_out.
 
@@ -86,7 +86,7 @@ def get_current_branch(working_dir: Path | None = None) -> str:
 
 def ensure_state_directory(working_dir: Path) -> Path:
     """
-    Ensure .hestai/context/state/ directory exists.
+    Ensure .hestai/state/context/state/ directory exists.
 
     Args:
         working_dir: Project root directory
@@ -94,7 +94,7 @@ def ensure_state_directory(working_dir: Path) -> Path:
     Returns:
         Path to state directory
     """
-    state_dir = working_dir / ".hestai" / "context" / "state"
+    state_dir = working_dir / ".hestai" / "state" / "context" / "state"
     state_dir.mkdir(parents=True, exist_ok=True)
     return state_dir
 
@@ -128,9 +128,9 @@ def populate_current_focus(
     safe_role = sanitize_octave_scalar(role)
     safe_focus = sanitize_octave_scalar(focus)
 
-    # Derive working_dir from state_dir (.hestai/context/state -> project root)
-    # state_dir is: working_dir / ".hestai" / "context" / "state"
-    working_dir = state_dir.parent.parent.parent
+    # Derive working_dir from state_dir (.hestai/state/context/state -> project root)
+    # state_dir is: working_dir / ".hestai" / "state" / "context" / "state"
+    working_dir = state_dir.parent.parent.parent.parent
     branch = get_current_branch(working_dir=working_dir)
 
     # Sanitize branch as well (could contain special chars from git)
@@ -432,7 +432,7 @@ def update_fast_layer_on_clock_out(
 
     Consolidated function called by clock_out tool.
     """
-    state_dir = working_dir / ".hestai" / "context" / "state"
+    state_dir = working_dir / ".hestai" / "state" / "context" / "state"
     if not state_dir.exists():
         logger.info("State directory does not exist, skipping FAST layer update")
         return
@@ -466,7 +466,7 @@ OPERATION: Session Context Synthesis (clock_in)
 Generate structured, actionable context for Claude Code agent session.
 
 OUTPUT FORMAT (use exactly this OCTAVE structure):
-CONTEXT_FILES::[@.hestai/context/PROJECT-CONTEXT.oct.md:L1-50]
+CONTEXT_FILES::[@.hestai/state/context/PROJECT-CONTEXT.oct.md:L1-50]
 FOCUS::{focus_value_from_input}
 PHASE::{phase_from_context_or_UNKNOWN}
 BLOCKERS::[]
@@ -590,7 +590,7 @@ async def synthesize_fast_layer_with_ai(
 
     # OCTAVE format matching CLOCK_IN_SYNTHESIS_PROTOCOL in protocols.py
     # Used for both AI failure AND invalid AI output (anti-fragility)
-    fallback_synthesis = f"""CONTEXT_FILES::[@.hestai/context/PROJECT-CONTEXT.oct.md, @.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md]
+    fallback_synthesis = f"""CONTEXT_FILES::[@.hestai/state/context/PROJECT-CONTEXT.oct.md, @.hestai/north-star/000-MCP-PRODUCT-NORTH-STAR.md]
 FOCUS::{focus}
 PHASE::UNKNOWN
 BLOCKERS::[]

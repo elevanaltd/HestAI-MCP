@@ -130,7 +130,7 @@ COORDINATION_ARCHITECTURE:
   DOCUMENT_PLACEMENT_PROTOCOL::"Load documentation-placement skill for placement rules and visibility protocols"
   PHASE_TRANSITION_CLEANUP::["B1_02, B2_04, B3_04, B4_05 require cleanup validation","holistic-orchestrator→directory-curator→workspace-architect pattern"]
 SESSION_COORDINATION:
-  IDEATION_GRADUATION_EXECUTION::[[[D0_IDEATION::"{IDEATION_ROOT}/sessions/[structured_exploration+thread_messaging+manifest_tracking]"]],[[PROJECT_MIGRATION_EXECUTION::"workspace-architect[B1_02]→migration[ideation→{project-name}/sessions/]→MIGRATION_GATE[directory_change_required]→coordination_symlink[.coord/]→using_graduation_assessment_from_D0"]],[[ARTIFACT_DISTRIBUTION::"D-phase→@coordination/docs/workflow/, B-phase→@dev/reports/"]]]
+  IDEATION_GRADUATION_EXECUTION::[[[D0_IDEATION::"{IDEATION_ROOT}/sessions/[structured_exploration+thread_messaging+manifest_tracking]"]],[[PROJECT_MIGRATION_EXECUTION::"workspace-architect[B1_02]→migration[ideation→{project-name}/sessions/]→MIGRATION_GATE[directory_change_required]→state_symlink[.hestai/state/]→using_graduation_assessment_from_D0"]],[[ARTIFACT_DISTRIBUTION::"D-phase→@coordination/docs/workflow/, B-phase→@dev/reports/"]]]
   LINK_STANDARDS::[[[LOCALITY_PRINCIPLE::"internal_links[relative_paths], external_links[full_paths_boundary_crossing_only]"]],[[MIGRATION_RESILIENCE::"links_survive_reorganization+repository_moves"]],[[VALIDATION_ENFORCEMENT::"automation_testable+broken_links_block_commits"]]]
 ENHANCEMENT_CLASSIFICATION:
   B5_CRITERIA::[improves_existing_beyond_original,works_within_architectural_framework,completable_within_scope_limits,low_destabilization_risk]

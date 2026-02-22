@@ -603,8 +603,8 @@ class TestListTools:
         project = tmp_path / "project"
         project.mkdir()
         (project / ".git").mkdir()
-        (project / ".hestai" / "sessions" / "active").mkdir(parents=True)
-        (project / ".hestai" / "context").mkdir(parents=True)
+        (project / ".hestai" / "state" / "sessions" / "active").mkdir(parents=True)
+        (project / ".hestai" / "state" / "context").mkdir(parents=True)
 
         # Bind without working_dir should work
         arguments = {
@@ -671,8 +671,8 @@ class TestCallTool:
         project = tmp_path / "project"
         project.mkdir()
         (project / ".git").mkdir()
-        (project / ".hestai" / "sessions" / "active").mkdir(parents=True)
-        (project / ".hestai" / "context").mkdir(parents=True)
+        (project / ".hestai" / "state" / "sessions" / "active").mkdir(parents=True)
+        (project / ".hestai" / "state" / "context").mkdir(parents=True)
 
         arguments = {
             "role": "test-role",
@@ -706,13 +706,13 @@ class TestCallTool:
         project = tmp_path / "project"
         project.mkdir()
         (project / ".git").mkdir()
-        (project / ".hestai" / "sessions" / "active").mkdir(parents=True)
-        (project / ".hestai" / "sessions" / "archive").mkdir(parents=True)
-        (project / ".hestai" / "context" / "state").mkdir(parents=True)
+        (project / ".hestai" / "state" / "sessions" / "active").mkdir(parents=True)
+        (project / ".hestai" / "state" / "sessions" / "archive").mkdir(parents=True)
+        (project / ".hestai" / "state" / "context" / "state").mkdir(parents=True)
 
         # Create a session manually for testing
         session_id = "test-session-123"
-        session_dir = project / ".hestai" / "sessions" / "active" / session_id
+        session_dir = project / ".hestai" / "state" / "sessions" / "active" / session_id
         session_dir.mkdir()
         session_data = {
             "session_id": session_id,
@@ -726,7 +726,9 @@ class TestCallTool:
             mock_clock_out.return_value = {
                 "status": "completed",
                 "session_id": session_id,
-                "archive_path": str(project / ".hestai" / "sessions" / "archive" / session_id),
+                "archive_path": str(
+                    project / ".hestai" / "state" / "sessions" / "archive" / session_id
+                ),
             }
 
             # Change to project directory for test
@@ -758,12 +760,12 @@ class TestCallTool:
         project = tmp_path / "project"
         project.mkdir()
         (project / ".git").mkdir()
-        (project / ".hestai" / "sessions" / "active").mkdir(parents=True)
-        (project / ".hestai" / "sessions" / "archive").mkdir(parents=True)
-        (project / ".hestai" / "context" / "state").mkdir(parents=True)
+        (project / ".hestai" / "state" / "sessions" / "active").mkdir(parents=True)
+        (project / ".hestai" / "state" / "sessions" / "archive").mkdir(parents=True)
+        (project / ".hestai" / "state" / "context" / "state").mkdir(parents=True)
 
         session_id = "working-dir-test-123"
-        session_dir = project / ".hestai" / "sessions" / "active" / session_id
+        session_dir = project / ".hestai" / "state" / "sessions" / "active" / session_id
         session_dir.mkdir()
         session_data = {
             "session_id": session_id,
@@ -825,7 +827,7 @@ class TestCallTool:
         # Create minimal structure but no session
         project = tmp_path / "project"
         project.mkdir()
-        (project / ".hestai" / "sessions" / "active").mkdir(parents=True)
+        (project / ".hestai" / "state" / "sessions" / "active").mkdir(parents=True)
 
         import os
 
@@ -872,8 +874,8 @@ class TestMCPClockInAISynthesisIntegration:
         # Create minimal hestai structure
         project = tmp_path / "project"
         project.mkdir()
-        (project / ".hestai" / "sessions" / "active").mkdir(parents=True)
-        (project / ".hestai" / "context").mkdir(parents=True)
+        (project / ".hestai" / "state" / "sessions" / "active").mkdir(parents=True)
+        (project / ".hestai" / "state" / "context").mkdir(parents=True)
 
         # Mock the AI synthesis to verify it's called
         with patch(
@@ -918,8 +920,8 @@ class TestMCPClockInAISynthesisIntegration:
         # Create minimal hestai structure
         project = tmp_path / "project"
         project.mkdir()
-        (project / ".hestai" / "sessions" / "active").mkdir(parents=True)
-        (project / ".hestai" / "context").mkdir(parents=True)
+        (project / ".hestai" / "state" / "sessions" / "active").mkdir(parents=True)
+        (project / ".hestai" / "state" / "context").mkdir(parents=True)
 
         # Mock AI synthesis to fail
         with patch(
@@ -977,8 +979,8 @@ class TestGovernanceIntegrityAtSessionBoundaries:
         project = tmp_path / "project"
         project.mkdir()
         (project / ".git").mkdir()
-        (project / ".hestai" / "sessions" / "active").mkdir(parents=True)
-        (project / ".hestai" / "context").mkdir(parents=True)
+        (project / ".hestai" / "state" / "sessions" / "active").mkdir(parents=True)
+        (project / ".hestai" / "state" / "context").mkdir(parents=True)
 
         # Create .hestai-sys with integrity hash
         hestai_sys = project / ".hestai-sys"
@@ -1022,8 +1024,8 @@ class TestGovernanceIntegrityAtSessionBoundaries:
         project = tmp_path / "project"
         project.mkdir()
         (project / ".git").mkdir()
-        (project / ".hestai" / "sessions" / "active").mkdir(parents=True)
-        (project / ".hestai" / "context").mkdir(parents=True)
+        (project / ".hestai" / "state" / "sessions" / "active").mkdir(parents=True)
+        (project / ".hestai" / "state" / "context").mkdir(parents=True)
 
         hestai_sys = project / ".hestai-sys"
         hestai_sys.mkdir()
@@ -1062,11 +1064,11 @@ class TestGovernanceIntegrityAtSessionBoundaries:
         project = tmp_path / "project"
         project.mkdir()
         (project / ".git").mkdir()
-        (project / ".hestai" / "sessions" / "active").mkdir(parents=True)
+        (project / ".hestai" / "state" / "sessions" / "active").mkdir(parents=True)
 
         # Create session
         session_id = "integrity-test-session"
-        session_dir = project / ".hestai" / "sessions" / "active" / session_id
+        session_dir = project / ".hestai" / "state" / "sessions" / "active" / session_id
         session_dir.mkdir()
         session_data = {
             "session_id": session_id,
@@ -1116,8 +1118,8 @@ class TestGovernanceIntegrityAtSessionBoundaries:
         project = tmp_path / "project"
         project.mkdir()
         (project / ".git").mkdir()
-        (project / ".hestai" / "sessions" / "active").mkdir(parents=True)
-        (project / ".hestai" / "context").mkdir(parents=True)
+        (project / ".hestai" / "state" / "sessions" / "active").mkdir(parents=True)
+        (project / ".hestai" / "state" / "context").mkdir(parents=True)
 
         # No .hestai-sys directory exists
         with (
@@ -1143,11 +1145,11 @@ class TestGovernanceIntegrityAtSessionBoundaries:
         project = tmp_path / "project"
         project.mkdir()
         (project / ".git").mkdir()
-        (project / ".hestai" / "sessions" / "active").mkdir(parents=True)
+        (project / ".hestai" / "state" / "sessions" / "active").mkdir(parents=True)
 
         # Create session
         session_id = "no-hestai-sys-session"
-        session_dir = project / ".hestai" / "sessions" / "active" / session_id
+        session_dir = project / ".hestai" / "state" / "sessions" / "active" / session_id
         session_dir.mkdir()
         session_data = {
             "session_id": session_id,

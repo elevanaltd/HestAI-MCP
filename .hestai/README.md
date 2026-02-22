@@ -1,18 +1,36 @@
 # .hestai/
 
-This folder is used for AI coordination and context management. It does not affect your application code and can be safely ignored if you're not using the HestAI system.
+AI coordination and context management. Does not affect application code.
 
-## What's here?
+## Three-Tier Architecture
 
-- **context/** - Operational state snapshots for AI agents
-- **workflow/** - Phase tracking and methodology documents
+### Tier 1: `.hestai-sys/` (System Governance)
+Read-only. Delivered by the MCP server at runtime. Gitignored.
+Contains: constitution, system north star, skills, agent definitions.
+
+### Tier 2: `.hestai/` (Project Governance) -- this directory
+Committed to git. Changes via PR only. Read-only at runtime.
+
+- **north-star/** - Project North Star and component North Stars
+- **decisions/** - Architectural Decision Records
+- **rules/** - Project-wide standards
+- **schemas/** - Schema definitions
+
+### Tier 3: `.hestai/state/` (Project Working State)
+Symlinked to `{main_repo}/.hestai-state/`. Shared across worktrees. Gitignored.
+Writable by agents and MCP tools without PR overhead.
+
+- **context/** - PROJECT-CONTEXT, checklist, roadmap, exemplars
 - **reports/** - Audit trails and evidence artifacts
-- **sessions/** - Session archives (when present)
+- **research/** - Investigation findings
+- **sessions/** - Session archives
+- **audit/** - Bypass logs and audit trail
 
 ## Should I commit this?
 
-Yes. The `.hestai/` folder should be committed to git. It contains coordination artifacts that help AI agents understand project context across sessions.
+The governance files (north-star, decisions, rules, schemas) are committed.
+The `state/` symlink and its contents are gitignored and shared across worktrees.
 
 ## Can I delete it?
 
-If you're not using HestAI **and no one else on your team is using it**, you can safely remove this folder. It won't affect your application. Check with your team first.
+If you're not using HestAI, you can safely remove this folder. Check with your team first.

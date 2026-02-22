@@ -228,9 +228,10 @@ def detect_focus_conflict(
 
 def resolve_context_paths(working_dir: Path) -> list[str]:
     """
-    Resolve context paths from .hestai/context/ directory.
+    Resolve context paths from .hestai/state/context/ directory.
 
-    ADR-0007: Returns OCTAVE format context files from committed .hestai/ structure.
+    Returns OCTAVE format context files from the working state directory.
+    In worktree setups, .hestai/state/ is symlinked to a shared location.
 
     Args:
         working_dir: Project root directory
@@ -239,7 +240,7 @@ def resolve_context_paths(working_dir: Path) -> list[str]:
         List of absolute paths to context files
     """
     context_paths = []
-    hestai_context = working_dir / ".hestai" / "context"
+    hestai_context = working_dir / ".hestai" / "state" / "context"
 
     # Standard OCTAVE context files (ADR-0007)
     standard_files = [
@@ -255,7 +256,7 @@ def resolve_context_paths(working_dir: Path) -> list[str]:
         if path.exists():
             context_paths.append(str(path))
 
-    # Also check for project north star in workflow/
+    # Also check for project north star in north-star/
     # Support multiple naming patterns per naming-standard.oct.md
     north_star_path = _find_north_star_file(working_dir)
     if north_star_path:
@@ -266,7 +267,7 @@ def resolve_context_paths(working_dir: Path) -> list[str]:
 
 def _find_north_star_file(working_dir: Path) -> Path | None:
     """
-    Find the North Star file in .hestai/workflow/ using flexible naming patterns.
+    Find the North Star file in .hestai/north-star/ using flexible naming patterns.
 
     Per naming-standard.oct.md, North Star files follow pattern:
     000-{PROJECT}-NORTH-STAR(-SUMMARY)?(.oct)?.md
@@ -277,16 +278,38 @@ def _find_north_star_file(working_dir: Path) -> Path | None:
     - 000-MCP-PRODUCT-NORTH-STAR.md (without .oct)
 
     Returns the first matching file, preferring .oct.md over .md.
+    Falls back to legacy .hestai/workflow/ path for backwards compatibility.
     """
-    workflow_dir = working_dir / ".hestai" / "workflow"
-    if not workflow_dir.exists():
+    # Try north-star/ first, fall back to legacy workflow/ if no matching files found
+    for dir_name in ("north-star", "workflow"):
+        north_star_dir = working_dir / ".hestai" / dir_name
+        if not north_star_dir.exists():
+            continue
+
+        # Priority order: .oct.md first, then .md
+        # Exclude -SUMMARY files (those are compressed versions)
+        candidates = _find_north_star_candidates(north_star_dir)
+        if candidates:
+            break
+    else:
         return None
 
-    # Priority order: .oct.md first, then .md
-    # Exclude -SUMMARY files (those are compressed versions)
+    if not candidates:
+        return None
+
+    # Sort: .oct.md before .md, then alphabetical
+    def sort_key(p: Path) -> tuple[int, str]:
+        return (0 if p.name.endswith(".oct.md") else 1, p.name)
+
+    candidates.sort(key=sort_key)
+    return candidates[0]
+
+
+def _find_north_star_candidates(north_star_dir: Path) -> list[Path]:
+    """Find North Star candidate files in the given directory."""
     try:
         candidates = []
-        for path in workflow_dir.iterdir():
+        for path in north_star_dir.iterdir():
             name = path.name
             if (
                 name.startswith("000-")
@@ -295,20 +318,9 @@ def _find_north_star_file(working_dir: Path) -> Path | None:
                 and name.endswith(".md")
             ):
                 candidates.append(path)
-
-        if not candidates:
-            return None
-
-        # Prefer .oct.md over .md
-        for candidate in candidates:
-            if candidate.name.endswith(".oct.md"):
-                return candidate
-
-        # Fall back to first .md
-        return candidates[0]
-
+        return candidates
     except OSError:
-        return None
+        return []
 
 
 def build_rich_context_summary(
@@ -335,7 +347,7 @@ def build_rich_context_summary(
     sections = []
 
     # 1. Read PROJECT-CONTEXT.oct.md (most important)
-    project_context_path = working_dir / ".hestai" / "context" / "PROJECT-CONTEXT.oct.md"
+    project_context_path = working_dir / ".hestai" / "state" / "context" / "PROJECT-CONTEXT.oct.md"
     if project_context_path.exists():
         try:
             content = project_context_path.read_text()
@@ -352,7 +364,7 @@ def build_rich_context_summary(
         sections.append(f"=== GIT STATE ===\n{git_state}")
 
     # 3. Check for blockers in state/ (if exists)
-    blockers_path = working_dir / ".hestai" / "context" / "state" / "blockers.oct.md"
+    blockers_path = working_dir / ".hestai" / "state" / "context" / "state" / "blockers.oct.md"
     if blockers_path.exists():
         try:
             content = blockers_path.read_text()
@@ -566,15 +578,15 @@ def _extract_north_star_constraints(north_star_path: Path) -> str | None:
 
 def ensure_hestai_structure(working_dir: Path) -> str:
     """
-    Ensure .hestai/ directory structure exists (ADR-0007).
+    Ensure .hestai/ directory structure exists.
 
-    Creates direct .hestai/ directory with required subdirectories.
-    No symlinks or worktrees - just plain directory structure.
+    Three-tier architecture:
+      Tier 2: .hestai/           - Project governance (committed, PR-controlled)
+      Tier 3: .hestai/state/     - Working state (shared via symlink in worktrees)
 
-    Sessions are split into lifecycle directories:
-    - .hestai/sessions/pending/  (handshake in progress; gitignored)
-    - .hestai/sessions/active/   (activated sessions; gitignored)
-    - .hestai/sessions/archive/  (durable archives; committed)
+    Working state directories (sessions, context, reports) live under state/.
+    In worktree setups, state/ is symlinked to a shared location by the
+    session startup hook. For non-worktree projects, state/ is a real directory.
 
     Args:
         working_dir: Project root directory
@@ -583,25 +595,36 @@ def ensure_hestai_structure(working_dir: Path) -> str:
         Status: 'present' or 'created'
     """
     hestai_dir = working_dir / ".hestai"
+    state_dir = hestai_dir / "state"
 
     if hestai_dir.exists() and hestai_dir.is_dir():
         # Already exists - ensure subdirectories
-        (hestai_dir / "sessions" / "pending").mkdir(parents=True, exist_ok=True)
-        (hestai_dir / "sessions" / "active").mkdir(parents=True, exist_ok=True)
-        (hestai_dir / "sessions" / "archive").mkdir(parents=True, exist_ok=True)
-        (hestai_dir / "context").mkdir(parents=True, exist_ok=True)
-        (hestai_dir / "workflow").mkdir(parents=True, exist_ok=True)
-        (hestai_dir / "reports").mkdir(parents=True, exist_ok=True)
+        # Only create state/ subdirs if state/ is not a symlink
+        # (if it's a symlink, the target already has the structure)
+        if not state_dir.is_symlink():
+            (state_dir / "sessions" / "pending").mkdir(parents=True, exist_ok=True)
+            (state_dir / "sessions" / "active").mkdir(parents=True, exist_ok=True)
+            (state_dir / "sessions" / "archive").mkdir(parents=True, exist_ok=True)
+            (state_dir / "context").mkdir(parents=True, exist_ok=True)
+            (state_dir / "reports").mkdir(parents=True, exist_ok=True)
+            (state_dir / "research").mkdir(parents=True, exist_ok=True)
+            (state_dir / "audit").mkdir(parents=True, exist_ok=True)
+        # Governance directories (committed)
+        (hestai_dir / "north-star").mkdir(parents=True, exist_ok=True)
+        (hestai_dir / "decisions").mkdir(parents=True, exist_ok=True)
         return "present"
 
     # Create new structure
     hestai_dir.mkdir(parents=True, exist_ok=True)
-    (hestai_dir / "sessions" / "pending").mkdir(parents=True, exist_ok=True)
-    (hestai_dir / "sessions" / "active").mkdir(parents=True, exist_ok=True)
-    (hestai_dir / "sessions" / "archive").mkdir(parents=True, exist_ok=True)
-    (hestai_dir / "context").mkdir(parents=True, exist_ok=True)
-    (hestai_dir / "workflow").mkdir(parents=True, exist_ok=True)
-    (hestai_dir / "reports").mkdir(parents=True, exist_ok=True)
+    (state_dir / "sessions" / "pending").mkdir(parents=True, exist_ok=True)
+    (state_dir / "sessions" / "active").mkdir(parents=True, exist_ok=True)
+    (state_dir / "sessions" / "archive").mkdir(parents=True, exist_ok=True)
+    (state_dir / "context").mkdir(parents=True, exist_ok=True)
+    (state_dir / "reports").mkdir(parents=True, exist_ok=True)
+    (state_dir / "research").mkdir(parents=True, exist_ok=True)
+    (state_dir / "audit").mkdir(parents=True, exist_ok=True)
+    (hestai_dir / "north-star").mkdir(parents=True, exist_ok=True)
+    (hestai_dir / "decisions").mkdir(parents=True, exist_ok=True)
 
     logger.info(f"Created .hestai/ directory structure at {working_dir}")
     return "created"
@@ -654,7 +677,7 @@ def clock_in(
     resolved_focus_value = focus_resolved["value"]
 
     # Get active sessions directory
-    active_dir = working_dir_path / ".hestai" / "sessions" / "active"
+    active_dir = working_dir_path / ".hestai" / "state" / "sessions" / "active"
 
     # Generate session ID
     session_id = str(uuid.uuid4())
@@ -717,7 +740,7 @@ def clock_in(
         constraints = steward.synthesize_active_state(phase)
 
         # Write constraints to FAST layer
-        state_dir = working_dir_path / ".hestai" / "context" / "state"
+        state_dir = working_dir_path / ".hestai" / "state" / "context" / "state"
         state_dir.mkdir(parents=True, exist_ok=True)
 
         constraints_path = state_dir / "constraints.oct.md"
@@ -757,7 +780,9 @@ SUBPHASES::{constraints_data.get('subphases', {})}
     context_paths = resolve_context_paths(working_dir_path)
 
     # Add constraints.oct.md to context paths if it exists (ADR-0184)
-    constraints_path = working_dir_path / ".hestai" / "context" / "state" / "constraints.oct.md"
+    constraints_path = (
+        working_dir_path / ".hestai" / "state" / "context" / "state" / "constraints.oct.md"
+    )
     if constraints_path.exists():
         context_paths.append(str(constraints_path))
 
@@ -822,7 +847,7 @@ async def clock_in_async(
     resolved_focus_value = focus_resolved["value"]
 
     # Get active sessions directory
-    active_dir = working_dir_path / ".hestai" / "sessions" / "active"
+    active_dir = working_dir_path / ".hestai" / "state" / "sessions" / "active"
 
     # Generate session ID
     session_id = str(uuid.uuid4())
@@ -893,7 +918,7 @@ async def clock_in_async(
             logger.warning(f"AI synthesis failed for session {session_id}: {e}")
 
             # OCTAVE format matching CLOCK_IN_SYNTHESIS_PROTOCOL in protocols.py
-            fallback_synthesis = f"""CONTEXT_FILES::[@.hestai/context/PROJECT-CONTEXT.oct.md, @.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md]
+            fallback_synthesis = f"""CONTEXT_FILES::[@.hestai/state/context/PROJECT-CONTEXT.oct.md, @.hestai/north-star/000-MCP-PRODUCT-NORTH-STAR.md]
 FOCUS::{resolved_focus_value}
 PHASE::UNKNOWN
 BLOCKERS::[]

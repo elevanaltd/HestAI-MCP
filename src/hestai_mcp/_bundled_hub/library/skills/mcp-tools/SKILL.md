@@ -46,10 +46,10 @@ META:
   ]
 
 §3::KEY_DIRECTORIES
-  CONTEXT::.hestai/context/["Living context files (PROJECT-CONTEXT, etc.)"]
-  ACTIVE::.hestai/sessions/active/["Current session data (gitignored)"]
-  ARCHIVE::.hestai/sessions/archive/["Compressed session archives (committed)"]
-  WORKFLOW::.hestai/workflow/["North Star and specs"]
+  CONTEXT::.hestai/state/context/["Living context files (PROJECT-CONTEXT, etc.)"]
+  ACTIVE::.hestai/state/sessions/active/["Current session data (gitignored)"]
+  ARCHIVE::.hestai/state/sessions/archive/["Compressed session archives"]
+  NORTH_STAR::.hestai/north-star/["North Star and specs (committed, PR-controlled)"]
 
 §4::SHARED_UTILITIES
   LOCATION::src/hestai_mcp/mcp/tools/shared/

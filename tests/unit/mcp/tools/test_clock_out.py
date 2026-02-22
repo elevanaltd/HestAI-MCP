@@ -69,7 +69,7 @@ class TestSessionValidation:
 
         # Create .hestai/sessions structure but no active session
         hestai_dir = tmp_path / ".hestai"
-        sessions_dir = hestai_dir / "sessions"
+        sessions_dir = hestai_dir / "state" / "sessions"
         active_dir = sessions_dir / "active"
         active_dir.mkdir(parents=True)
 
@@ -97,7 +97,7 @@ class TestSessionValidation:
         # Setup session structure
         session_id = "malicious-test"
         hestai_dir = tmp_path / ".hestai"
-        sessions_dir = hestai_dir / "sessions"
+        sessions_dir = hestai_dir / "state" / "sessions"
         active_dir = sessions_dir / "active"
         session_dir = active_dir / session_id
         session_dir.mkdir(parents=True)
@@ -132,7 +132,7 @@ class TestClaudeJsonlLensIntegration:
 
         # Setup session structure
         hestai_dir = tmp_path / ".hestai"
-        sessions_dir = hestai_dir / "sessions"
+        sessions_dir = hestai_dir / "state" / "sessions"
         active_dir = sessions_dir / "active"
         archive_dir = sessions_dir / "archive"
         active_dir.mkdir(parents=True)
@@ -208,7 +208,7 @@ class TestArchiveCreation:
 
         # Setup minimal session structure
         hestai_dir = tmp_path / ".hestai"
-        sessions_dir = hestai_dir / "sessions"
+        sessions_dir = hestai_dir / "state" / "sessions"
         active_dir = sessions_dir / "active"
         active_dir.mkdir(parents=True)
 
@@ -268,7 +268,7 @@ class TestSessionCleanup:
 
         # Setup session
         hestai_dir = tmp_path / ".hestai"
-        sessions_dir = hestai_dir / "sessions"
+        sessions_dir = hestai_dir / "state" / "sessions"
         active_dir = sessions_dir / "active"
         active_dir.mkdir(parents=True)
 
@@ -317,7 +317,7 @@ class TestErrorHandling:
 
         # Create session directory but no session.json
         hestai_dir = tmp_path / ".hestai"
-        sessions_dir = hestai_dir / "sessions"
+        sessions_dir = hestai_dir / "state" / "sessions"
         active_dir = sessions_dir / "active"
         session_dir = active_dir / "missing-metadata"
         session_dir.mkdir(parents=True)
@@ -341,7 +341,7 @@ class TestSecretRedaction:
 
         # Setup session with secret in transcript
         hestai_dir = tmp_path / ".hestai"
-        sessions_dir = hestai_dir / "sessions"
+        sessions_dir = hestai_dir / "state" / "sessions"
         active_dir = sessions_dir / "active"
         active_dir.mkdir(parents=True)
 
@@ -403,9 +403,10 @@ class TestFASTLayerUpdate:
         """
         # Setup session structure
         hestai_dir = tmp_path / ".hestai"
-        sessions_dir = hestai_dir / "sessions"
+        state_base = hestai_dir / "state"
+        sessions_dir = state_base / "sessions"
         active_dir = sessions_dir / "active"
-        state_dir = hestai_dir / "context" / "state"
+        state_dir = state_base / "context" / "state"
 
         active_dir.mkdir(parents=True)
         state_dir.mkdir(parents=True)
@@ -511,7 +512,9 @@ ACTIVE:
             project_root=project_root,
         )
 
-        current_focus_path = project_root / ".hestai" / "context" / "state" / "current-focus.oct.md"
+        current_focus_path = (
+            project_root / ".hestai" / "state" / "context" / "state" / "current-focus.oct.md"
+        )
         assert current_focus_path.exists()
 
         content = current_focus_path.read_text()
@@ -539,7 +542,9 @@ ACTIVE:
             project_root=project_root,
         )
 
-        checklist_path = project_root / ".hestai" / "context" / "state" / "checklist.oct.md"
+        checklist_path = (
+            project_root / ".hestai" / "state" / "context" / "state" / "checklist.oct.md"
+        )
         assert checklist_path.exists()
 
         content = checklist_path.read_text()
@@ -566,7 +571,7 @@ ACTIVE:
             project_root=project_root,
         )
 
-        blockers_path = project_root / ".hestai" / "context" / "state" / "blockers.oct.md"
+        blockers_path = project_root / ".hestai" / "state" / "context" / "state" / "blockers.oct.md"
         assert blockers_path.exists()
 
         content = blockers_path.read_text()
@@ -586,9 +591,10 @@ ACTIVE:
 
         # Setup session structure
         hestai_dir = tmp_path / ".hestai"
-        sessions_dir = hestai_dir / "sessions"
+        state_base = hestai_dir / "state"
+        sessions_dir = state_base / "sessions"
         active_dir = sessions_dir / "active"
-        state_dir = hestai_dir / "context" / "state"
+        state_dir = state_base / "context" / "state"
 
         active_dir.mkdir(parents=True)
         state_dir.mkdir(parents=True)
@@ -664,7 +670,7 @@ ACTIVE:
 
         # Setup session without FAST layer
         hestai_dir = tmp_path / ".hestai"
-        sessions_dir = hestai_dir / "sessions"
+        sessions_dir = hestai_dir / "state" / "sessions"
         active_dir = sessions_dir / "active"
         active_dir.mkdir(parents=True)
 
@@ -711,9 +717,10 @@ class TestArchiveVerification:
     def session_setup(self, tmp_path: Path):
         """Create a standard session structure for archive verification tests."""
         hestai_dir = tmp_path / ".hestai"
-        sessions_dir = hestai_dir / "sessions"
+        state_base = hestai_dir / "state"
+        sessions_dir = state_base / "sessions"
         active_dir = sessions_dir / "active"
-        state_dir = hestai_dir / "context" / "state"
+        state_dir = state_base / "context" / "state"
 
         active_dir.mkdir(parents=True)
         state_dir.mkdir(parents=True)
@@ -821,7 +828,7 @@ class TestFASTLayerGracefulDegradation:
 
         # Setup session
         hestai_dir = tmp_path / ".hestai"
-        sessions_dir = hestai_dir / "sessions"
+        sessions_dir = hestai_dir / "state" / "sessions"
         active_dir = sessions_dir / "active"
         active_dir.mkdir(parents=True)
 
@@ -875,7 +882,7 @@ class TestSessionDuration:
 
         # Setup session
         hestai_dir = tmp_path / ".hestai"
-        sessions_dir = hestai_dir / "sessions"
+        sessions_dir = hestai_dir / "state" / "sessions"
         active_dir = sessions_dir / "active"
         active_dir.mkdir(parents=True)
 
@@ -928,7 +935,7 @@ class TestSessionDuration:
 
         # Setup session without started_at
         hestai_dir = tmp_path / ".hestai"
-        sessions_dir = hestai_dir / "sessions"
+        sessions_dir = hestai_dir / "state" / "sessions"
         active_dir = sessions_dir / "active"
         active_dir.mkdir(parents=True)
 

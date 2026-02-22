@@ -1,0 +1,6 @@
+# Project-level Odyssean Anchor overrides for migrate-coord-to-hestai branch
+# Overrides north_star path from .hestai/workflow -> .hestai/north-star
+
+paths:
+  north_star: .hestai/north-star
+  context: .hestai/state/context

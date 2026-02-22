@@ -90,7 +90,7 @@ RULE_1::CONSUMER_FACING_ONLY::[
 
 RULE_2::INTERNAL_PROJECT_DOCS::[
   WHAT::HestAI-MCP_specific_development_docs,
-  WHERE::.hestai/workflow/_or_docs/,
+  WHERE::.hestai/north-star/_or_docs/,
   EXAMPLES::[
     internal_integration_notes,
     project_specific_assumptions,
@@ -154,15 +154,15 @@ CORRECT_PLACEMENT::[
   "Visibility Rules"→.hestai-sys/governance/rules/[consumer_needs_it],
   "Agent Templates"→.hestai-sys/agents/[consumer_needs_it],
   "OCTAVE Usage Guide"→.hestai-sys/library/octave/[consumer_needs_it],
-  "HestAI-MCP Product North Star"→.hestai/workflow/[internal_only],
-  "HestAI-MCP Build Phase Tracking"→.hestai/context/[internal_only],
+  "HestAI-MCP Product North Star"→.hestai/north-star/[internal_only],
+  "HestAI-MCP Build Phase Tracking"→.hestai/state/context/[internal_only],
   "HestAI-MCP ADRs"→docs/adr/[internal_architecture_decisions],
   "Proposals"→GitHub_Issues[per_ADR-0060]
 ]
 
 INCORRECT_PLACEMENT::[
-  "HestAI-MCP specific roadmap"→.hestai-sys/[WRONG→.hestai/workflow/],
-  "Internal assumption tracking"→.hestai-sys/[WRONG→.hestai/workflow/],
+  "HestAI-MCP specific roadmap"→.hestai-sys/[WRONG→.hestai/north-star/],
+  "Internal assumption tracking"→.hestai-sys/[WRONG→.hestai/north-star/],
   "System North Star"→.hestai/[WRONG→.hestai-sys/governance/]
 ]
 

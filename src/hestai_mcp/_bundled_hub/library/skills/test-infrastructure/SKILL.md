@@ -15,7 +15,7 @@ META:
 
 §1::PRIMARY_SOURCE_MANDATORY_FIRST
 
-SOURCE::.coord/test-context/RULES.md
+SOURCE::.hestai/state/context/test-context/RULES.md
 PRINCIPLE::"POC-proven pattern post-it note - ALWAYS consult BEFORE infrastructure decisions"
 
 CONTAINS::[
@@ -31,9 +31,9 @@ CONTAINS::[
 
 §2::DETAILED_DOCUMENTATION
 
-TEST_STANDARDS::.coord/test-context/STANDARDS.md->[file_naming[src/X.test.ts], coverage_thresholds[70%_min+80%_aspirational+90%_critical], test_categorization[unit/integration/e2e], violation_detection]
+TEST_STANDARDS::.hestai/state/context/test-context/STANDARDS.md->[file_naming[src/X.test.ts], coverage_thresholds[70%_min+80%_aspirational+90%_critical], test_categorization[unit/integration/e2e], violation_detection]
 
-MOCKING_PATTERNS::.coord/test-context/MOCKING-PATTERNS.md->[vitest_shared_config, testing_library_setup, supabase_client_mocking[unit], shared_utilities, mock_factories]
+MOCKING_PATTERNS::.hestai/state/context/test-context/MOCKING-PATTERNS.md->[vitest_shared_config, testing_library_setup, supabase_client_mocking[unit], shared_utilities, mock_factories]
 
 §3::POC_REFERENCE_WHEN_NEEDED
 
@@ -109,7 +109,7 @@ TARGETS::[
   90%+::critical_paths[auth+mutations+RLS]->enforced_via_code_review
 ]
 
-SOURCE::.coord/test-context/RULES.md
+SOURCE::.hestai/state/context/test-context/RULES.md
 
 §8::TURBOREPO_CONFIGURATION
 
@@ -132,16 +132,16 @@ CONSULT::[
 
 §10::KNOWLEDGE_BASE_REFERENCES
 
-PRIMARY::.coord/test-context/RULES.md[POC_proven_patterns]->CONSULT_FIRST
+PRIMARY::.hestai/state/context/test-context/RULES.md[POC_proven_patterns]->CONSULT_FIRST
 
 DOCUMENTATION::[
-  .coord/test-context/STANDARDS.md,
-  .coord/test-context/MOCKING-PATTERNS.md
+  .hestai/state/context/test-context/STANDARDS.md,
+  .hestai/state/context/test-context/MOCKING-PATTERNS.md
 ]
 
 POC_REFERENCE::/Volumes/HestAI-Projects/eav-ops/eav-apps/scripts-web/src/test/
 
-NORTH_STAR::.coord/workflow-docs/000-UNIVERSAL-EAV_SYSTEM-D1-NORTH-STAR.md[I7:TDD_RED_discipline, I8:production_grade_quality]
+NORTH_STAR::.hestai/north-star/000-UNIVERSAL-EAV_SYSTEM-D1-NORTH-STAR.md[I7:TDD_RED_discipline, I8:production_grade_quality]
 
 
 §11::WISDOM

@@ -130,4 +130,4 @@ Note: `ARM` is intentionally removed from runtime headers to avoid collision wit
 ## References
 
 - ADR-0036: Odyssean Anchor Binding Architecture
-- `.hestai/workflow/specs/odyssean-anchor-tool-spec.oct.md`
+- `.hestai/north-star/specs/odyssean-anchor-tool-spec.oct.md`
