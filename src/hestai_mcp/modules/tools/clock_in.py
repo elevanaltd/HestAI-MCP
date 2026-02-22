@@ -262,6 +262,13 @@ def resolve_context_paths(working_dir: Path) -> list[str]:
     if north_star_path:
         context_paths.append(str(north_star_path))
 
+    # Check for ecosystem dependency graph (graceful fallback for repos without .hestai-sys/)
+    ecosystem_graph = (
+        working_dir / ".hestai-sys" / "governance" / "HESTAI-ECOSYSTEM-DEPENDENCY-GRAPH.oct.md"
+    )
+    if ecosystem_graph.exists():
+        context_paths.append(str(ecosystem_graph))
+
     return context_paths
 
 
