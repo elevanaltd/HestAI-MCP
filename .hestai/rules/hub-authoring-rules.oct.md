@@ -81,20 +81,21 @@ SITUATION::[
 
 §3::PLACEMENT_RULES
 
-RULE_1::CONSUMER_FACING_ONLY::[
-  WHAT::only_content_useful_to_consumers_goes_in_.hestai-sys/,
-  WHY::.hestai-sys/_is_read_only_for_consumers_and_agents,
-  SOURCE::authored_in_src/hestai_mcp/_bundled_hub/_and_injected_as_.hestai-sys/,
-  TEST::"Would a project using HestAI need this?"→YES→.hestai-sys/|NO→.hestai/_or_docs/
+RULE_1::ECOSYSTEM_AND_CONSUMER_FACING::[
+  WHAT::content_useful_to_agents_across_any_HestAI_repo_goes_in_src/hestai_mcp/_bundled_hub/,
+  WHY::_bundled_hub_is_injected_as_.hestai-sys/_into_every_repo_at_startup,
+  SOURCE::authored_in_src/hestai_mcp/_bundled_hub/→injected_as::.hestai-sys/,
+  TEST::"Would an agent operating in any HestAI repo need this?"→YES→src/hestai_mcp/_bundled_hub/|NO→.hestai/_or_docs/,
+  NOTE::"This includes ecosystem-level coordination (dependency graphs, repo directories, ecosystem overviews) — not just consumer-facing docs. Agents developing the ecosystem ARE consumers of this context."
 ]
 
 RULE_2::INTERNAL_PROJECT_DOCS::[
-  WHAT::HestAI-MCP_specific_development_docs,
+  WHAT::HestAI-MCP_specific_development_docs[not_relevant_to_other_repos],
   WHERE::.hestai/north-star/_or_docs/,
   EXAMPLES::[
     internal_integration_notes,
     project_specific_assumptions,
-    development_roadmaps
+    single_repo_development_roadmaps
   ]
 ]
 
@@ -150,10 +151,13 @@ DECISION_TREE::[
 §5::EXAMPLES
 
 CORRECT_PLACEMENT::[
-  "System North Star"→.hestai-sys/governance/workflow/[consumer_needs_it],
-  "Visibility Rules"→.hestai-sys/governance/rules/[consumer_needs_it],
-  "Agent Templates"→.hestai-sys/agents/[consumer_needs_it],
-  "OCTAVE Usage Guide"→.hestai-sys/library/octave/[consumer_needs_it],
+  "System North Star"→src/hestai_mcp/_bundled_hub/governance/workflow/[agents_across_all_repos_need_it],
+  "Ecosystem Overview"→src/hestai_mcp/_bundled_hub/governance/[agents_across_all_repos_need_it],
+  "Ecosystem Dependency Graph"→src/hestai_mcp/_bundled_hub/governance/[agents_across_all_repos_need_it],
+  "Repo Directory"→src/hestai_mcp/_bundled_hub/governance/[agents_across_all_repos_need_it],
+  "Visibility Rules"→src/hestai_mcp/_bundled_hub/governance/rules/[agents_across_all_repos_need_it],
+  "Agent Templates"→src/hestai_mcp/_bundled_hub/agents/[agents_across_all_repos_need_it],
+  "OCTAVE Usage Guide"→src/hestai_mcp/_bundled_hub/library/octave/[agents_across_all_repos_need_it],
   "HestAI-MCP Product North Star"→.hestai/north-star/[internal_only],
   "HestAI-MCP Build Phase Tracking"→.hestai/state/context/[internal_only],
   "HestAI-MCP ADRs"→docs/adr/[internal_architecture_decisions],
@@ -161,9 +165,10 @@ CORRECT_PLACEMENT::[
 ]
 
 INCORRECT_PLACEMENT::[
-  "HestAI-MCP specific roadmap"→.hestai-sys/[WRONG→.hestai/north-star/],
-  "Internal assumption tracking"→.hestai-sys/[WRONG→.hestai/north-star/],
-  "System North Star"→.hestai/[WRONG→.hestai-sys/governance/]
+  "HestAI-MCP specific roadmap"→src/hestai_mcp/_bundled_hub/[WRONG→.hestai/north-star/],
+  "Internal assumption tracking"→src/hestai_mcp/_bundled_hub/[WRONG→.hestai/north-star/],
+  "System North Star"→.hestai/[WRONG→src/hestai_mcp/_bundled_hub/governance/],
+  "Ecosystem Dependency Graph"→.hestai/context/[WRONG→src/hestai_mcp/_bundled_hub/governance/]
 ]
 
 ---
