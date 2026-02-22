@@ -174,6 +174,50 @@ class TestContextPathResolution:
         context_paths = result["context_paths"]
         assert isinstance(context_paths, list)
 
+    def test_resolve_context_paths_includes_ecosystem_graph_when_present(
+        self, mock_hestai_structure: Path
+    ):
+        """resolve_context_paths includes ecosystem dependency graph path when file exists."""
+        from hestai_mcp.modules.tools.clock_in import resolve_context_paths
+
+        # Create the ecosystem dependency graph file
+        graph_dir = mock_hestai_structure / ".hestai-sys" / "governance"
+        graph_dir.mkdir(parents=True, exist_ok=True)
+        graph_file = graph_dir / "HESTAI-ECOSYSTEM-DEPENDENCY-GRAPH.oct.md"
+        graph_file.write_text("===ECOSYSTEM_DEPENDENCY_GRAPH===\n===END===")
+
+        context_paths = resolve_context_paths(mock_hestai_structure)
+
+        assert any(
+            "HESTAI-ECOSYSTEM-DEPENDENCY-GRAPH.oct.md" in path for path in context_paths
+        ), "Ecosystem dependency graph path must appear in context_paths when file exists"
+        # Verify it is an absolute path
+        matching = [p for p in context_paths if "HESTAI-ECOSYSTEM-DEPENDENCY-GRAPH.oct.md" in p]
+        assert Path(matching[0]).is_absolute()
+
+    def test_resolve_context_paths_silent_skip_when_ecosystem_graph_absent(
+        self, mock_hestai_structure: Path
+    ):
+        """resolve_context_paths does not raise and omits graph path when file is absent."""
+        from hestai_mcp.modules.tools.clock_in import resolve_context_paths
+
+        # Explicitly ensure the graph file does NOT exist
+        graph_file = (
+            mock_hestai_structure
+            / ".hestai-sys"
+            / "governance"
+            / "HESTAI-ECOSYSTEM-DEPENDENCY-GRAPH.oct.md"
+        )
+        assert not graph_file.exists(), "Precondition: graph file must not exist for this test"
+
+        # Must not raise
+        context_paths = resolve_context_paths(mock_hestai_structure)
+
+        assert isinstance(context_paths, list)
+        assert not any(
+            "HESTAI-ECOSYSTEM-DEPENDENCY-GRAPH.oct.md" in path for path in context_paths
+        ), "Graph path must NOT appear when file is absent"
+
 
 @pytest.mark.unit
 class TestFocusConflictDetection:
