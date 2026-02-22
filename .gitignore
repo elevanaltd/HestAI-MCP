@@ -17,6 +17,7 @@
 # Project Working State (symlinked from .hestai/state/ -> .hestai-state/)
 # Contains: context, reports, research, sessions, audit
 # Shared across worktrees, writable without PR
+.hestai/state
 .hestai/state/
 
 # Legacy state paths (pre-migration working state that may still exist on disk)

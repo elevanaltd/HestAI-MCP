@@ -280,15 +280,33 @@ def _find_north_star_file(working_dir: Path) -> Path | None:
     Returns the first matching file, preferring .oct.md over .md.
     Falls back to legacy .hestai/workflow/ path for backwards compatibility.
     """
-    north_star_dir = working_dir / ".hestai" / "north-star"
-    if not north_star_dir.exists():
-        # Fallback to legacy path
-        north_star_dir = working_dir / ".hestai" / "workflow"
-    if not north_star_dir.exists():
+    # Try north-star/ first, fall back to legacy workflow/ if no matching files found
+    for dir_name in ("north-star", "workflow"):
+        north_star_dir = working_dir / ".hestai" / dir_name
+        if not north_star_dir.exists():
+            continue
+
+        # Priority order: .oct.md first, then .md
+        # Exclude -SUMMARY files (those are compressed versions)
+        candidates = _find_north_star_candidates(north_star_dir)
+        if candidates:
+            break
+    else:
         return None
 
-    # Priority order: .oct.md first, then .md
-    # Exclude -SUMMARY files (those are compressed versions)
+    if not candidates:
+        return None
+
+    # Sort: .oct.md before .md, then alphabetical
+    def sort_key(p: Path) -> tuple[int, str]:
+        return (0 if p.name.endswith(".oct.md") else 1, p.name)
+
+    candidates.sort(key=sort_key)
+    return candidates[0]
+
+
+def _find_north_star_candidates(north_star_dir: Path) -> list[Path]:
+    """Find North Star candidate files in the given directory."""
     try:
         candidates = []
         for path in north_star_dir.iterdir():
@@ -300,20 +318,9 @@ def _find_north_star_file(working_dir: Path) -> Path | None:
                 and name.endswith(".md")
             ):
                 candidates.append(path)
-
-        if not candidates:
-            return None
-
-        # Prefer .oct.md over .md
-        for candidate in candidates:
-            if candidate.name.endswith(".oct.md"):
-                return candidate
-
-        # Fall back to first .md
-        return candidates[0]
-
+        return candidates
     except OSError:
-        return None
+        return []
 
 
 def build_rich_context_summary(
