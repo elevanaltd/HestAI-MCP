@@ -15,14 +15,39 @@
 
 ### The Current State
 
-Odyssean Anchor MCP (`odyssean-anchor-mcp`) is a standalone MCP server implementing the agent identity binding protocol. It consists of:
+Odyssean Anchor MCP (`odyssean-anchor-mcp`) is a standalone MCP server implementing the agent identity binding protocol. The codebase contains **two co-existing protocol implementations**:
 
-- **Steward class**: 2,158 lines — protocol state machine, proof validation orchestration, capability resolution
+1. **Legacy three-stage handshake** (`REQUEST → LOCK → COMMIT`) — the original protocol from ADR-0036, still present in steward.py methods but superseded.
+2. **Progressive interrogation** (`REQUEST → SEA → SHANK → ARM → COMMIT`) — the active protocol since ADR-0003, with four focused proof stages. **This is the protocol we will port.**
+
+Core module breakdown:
+
+- **Steward class**: 2,158 lines — protocol state machine, proof validation orchestration, capability resolution (includes both legacy and progressive paths)
 - **Proof validation**: 1,039 lines — tier-aware cognitive proof validators (SEA/SHANK/ARM/FLUKES)
 - **ARM computation**: 388 lines — git state reading, PHASE extraction, security validation
 - **MCP server**: 649 lines — 5 tool handlers
 - **Storage layer**: 242 lines — session and permit persistence
-- **Total**: ~4,476 lines across core modules, with 1,235 tests
+
+Additional modules not in the critical path but part of the total codebase:
+
+| Module | LOC | Disposition |
+|--------|-----|-------------|
+| extraction.py | ~1,030 | Context extraction logic — evaluate for shared use |
+| config.py | ~783 | Standalone config — replaced by hestai-mcp config |
+| validator.py | ~569 | Input validation — port relevant validators |
+| models.py | ~267 | Data models — port protocol-relevant models |
+| protocol_models.py | ~182 | Progressive protocol types — **essential, port intact** |
+| skill_loader.py | ~252 | Skill loading — partially duplicated in hestai-mcp |
+| instruction_generator.py | ~173 | Instruction generation — evaluate for port |
+| middleware.py | ~144 | MCP middleware — not needed (native integration) |
+| instruction_loader.py | ~116 | Instruction loading — evaluate for port |
+| constants.py | ~106 | Constants — merge into hestai-mcp constants |
+| north_star_loader.py | ~89 | NS loading — duplicated in hestai-mcp |
+| constitution_loader.py | ~80 | Constitution loading — partially duplicated |
+| primer_reference.py | ~82 | Primer refs — evaluate for port |
+| startup_primer_sync.py | ~130 | Primer sync — evaluate for port |
+
+**Total codebase**: ~9,148 lines across all `src/` modules, with **987 tests** across 61 test files.
 
 ### Forces Driving This Decision
 
@@ -43,20 +68,26 @@ Both systems independently implement:
 
 The `bind` tool returns a 7-step TODO list where step T5 is "call anchor_request." The two systems are already one workflow split across two process boundaries.
 
-**3. ~40% of OA's code is standalone scaffolding**
+**3. ~50% of OA's code is standalone scaffolding or duplication**
 
 | Category | LOC | Disposition |
 |----------|-----|-------------|
-| Protocol state machine | ~400 | **Essential** — the core innovation |
+| Protocol state machine (progressive) | ~400 | **Essential** — the core innovation |
 | Proof validation | ~1,039 | **Essential** — anti-theater enforcement |
+| Protocol models | ~182 | **Essential** — progressive protocol types |
+| Instruction generation | ~173 | **Essential** — anchor output formatting |
 | ARM computation | ~388 | **Duplicated** — clock_in does this |
 | Agent file parsing | ~200 | **Duplicated** — OA's is better than bind.py's |
 | Context file discovery | ~100 | **Duplicated** |
-| Skill/pattern loading | ~300 | **Partially duplicated** |
+| Skill/pattern loading | ~252 | **Partially duplicated** |
+| Extraction logic | ~1,030 | **Evaluate** — may be partially needed |
+| Input validators | ~569 | **Evaluate** — port protocol-relevant subset |
 | Session/permit storage | ~242 | **Accidental** — standalone storage model |
-| Config loading | ~150 | **Accidental** — separate config system |
+| Config loading | ~783 | **Accidental** — separate config system |
 | Path security | ~200 | **Duplicated** |
-| Legacy three-stage handshake | ~300 | **Dead code** — superseded by ADR-0003 |
+| Middleware | ~144 | **Not needed** — native integration replaces this |
+| Legacy three-stage handshake | ~430-500 | **Dead code** — superseded by progressive interrogation |
+| Loaders (constitution, NS, primer) | ~299 | **Duplicated** — hestai-mcp already has these |
 
 **4. MCP-to-MCP runtime hop adds latency**
 
@@ -76,19 +107,36 @@ The Ecosystem Overview (v1.0) describes the target as three repos: hestai-core-m
 - Pro: No migration work required.
 - Con: Perpetuates duplication, latency, deployment complexity. Blocks ecosystem convergence.
 
-**Option B: Naive Code Merge** — Copy the 4,476 lines of OA source + 1,235 tests into hestai-mcp.
+**Option B: Naive Code Merge** — Copy the ~9,148 lines of OA source + 987 tests into hestai-mcp.
 - Pro: Fast execution, proven code moves intact.
-- Con: Carries ~300 lines of dead code, perpetuates duplication (two git readers, two agent parsers, two config loaders), creates a Franken-codebase with two mental models.
+- Con: Carries ~500 lines of dead code, perpetuates duplication (two git readers, two agent parsers, two config loaders), creates a Franken-codebase with two mental models.
 
-**Option C: Rebuild Inside hestai-mcp** — Port the essential protocol (~1,200-1,400 lines), create shared infrastructure modules, eliminate duplication.
-- Pro: Clean architecture, shared modules, ~70% less code, unified mental model.
+**Option C: Rebuild Inside hestai-mcp** — Port the essential protocol, create shared infrastructure modules, eliminate duplication.
+- Pro: Clean architecture, shared modules, ~40-55% code reduction, unified mental model.
 - Con: Slower execution, new code needs new tests, risk of regression on edge cases.
+
+**Option D: Library Import** — Make OA a Python package dependency, import `Steward` directly: `from odyssean_anchor.core.steward import Steward`.
+- Pro: Eliminates MCP-to-MCP hop immediately. Zero regression risk. All 987 tests stay in place.
+- Con: **Rejected.** This is a velocity optimization that perpetuates the fundamental problem: two separate codebases with duplicated infrastructure, separate config systems, and separate mental models. Per I2 (STRUCTURAL_INTEGRITY_PRIORITY), correctness and clean architecture take precedence over velocity. Option D would create a hidden coupling — hestai-mcp would depend on OA's internal class structure while OA continues to maintain its own standalone scaffolding. The right answer is to do this properly and thoroughly, not to bridge with shortcuts.
 
 ## Decision
 
 **We will rebuild the Odyssean Anchor binding protocol natively inside hestai-mcp (Option C).**
 
+Specifically, we port the **progressive interrogation protocol** (REQUEST → SEA → SHANK → ARM → COMMIT) as defined in OA's `protocol_models.py` and the progressive path through `Steward`. The legacy three-stage handshake is **not ported** — it is dead code superseded by ADR-0003.
+
 The protocol state machine and proof validation are the essential innovations. Everything else is scaffolding that hestai-mcp already provides or should provide as shared infrastructure.
+
+**Guiding principle**: Structural integrity over velocity (I2). This rebuild will be done thoroughly and completely. No short-term bridges, no MVP-to-migrate-later. The target architecture is the final architecture.
+
+### Shared Infrastructure Location
+
+The existing codebase has shared modules at `src/hestai_mcp/modules/tools/shared/` (containing `path_resolution.py`, `security.py`, `context_extraction.py`). The new shared infrastructure modules (`git_context.py`, `agent_parser.py`, `path_security.py`) are placed in `src/hestai_mcp/core/` to establish a clear architectural boundary:
+
+- **`core/`** — foundational modules consumed by multiple tools and the binding protocol. These are infrastructure, not tool-specific helpers.
+- **`modules/tools/shared/`** — tool-specific shared utilities (formatting, extraction patterns).
+
+Phase 1 will begin with confirming this boundary. If analysis reveals that existing `shared/` modules should migrate to `core/`, or vice versa, that consolidation happens in Phase 1 before new modules are created.
 
 ### Target Architecture
 
@@ -110,73 +158,139 @@ src/hestai_mcp/
                              # Provides: traversal prevention, symlink detection, TOCTOU protection
 
     binding_protocol.py      # Protocol state machine + nonce chain
-                             # Ported from: OA Steward (essential ~400 lines)
+                             # Ported from: OA Steward progressive path (~400 lines)
                              # Provides: ProgressiveSession, stage transitions, nonce generation
-                             # State: In-memory dict (progressive sessions are ephemeral)
+                             # State: In-memory dict (see Session Durability below)
+                             # Does NOT port: legacy three-stage handshake
 
     proof_validation.py      # Cognitive proof validators
                              # Ported from: OA proof_validation.py (~800 lines, trimmed)
                              # Provides: validate_sea_proof, validate_shank_proof,
                              #           validate_arm_proof, validate_flukes_proof
+                             # Enhancement: ARM validation strengthened (see Improvements)
                              # Removes: Legacy three-stage validation code
 
     permit_store.py          # Simplified permit persistence
                              # Replaces: OA PermitStore + HandshakeStore
                              # Storage: .hestai/state/permits/ (project-local, not ~/.odyssean-anchor/)
 
+    anchor_generator.py      # Pre-filled anchor artifact generation
+                             # Enhancement: Server generates complete anchor alongside template
+                             # Eliminates: Agent template-filling as a failure point
+
   modules/tools/
     anchor_request.py        # MCP tool: Start binding ceremony
     anchor_lock.py           # MCP tool: Progressive stage validation (SEA/SHANK/ARM)
-    anchor_commit.py         # MCP tool: Finalize binding, issue permit
+    anchor_commit.py         # MCP tool: Finalize binding, issue permit + pre-filled anchor
     anchor_micro.py          # MCP tool: Lightweight permit for trivial tasks
+    anchor_renew.py          # MCP tool: Permit renewal for stable sessions (see Improvements)
     verify_permit.py         # MCP tool: Tool gating check
 
     clock_in.py              # SIMPLIFIED: calls git_context instead of inline git ops
     bind.py                  # SIMPLIFIED: calls agent_parser, ceremony is now internal
 ```
 
+### Design Decisions
+
+#### Session Durability
+
+Progressive ceremony sessions are stored in an **in-memory dict**. This means a server restart mid-ceremony destroys in-progress bindings. This is **explicitly acceptable** because:
+
+- Ceremonies are short-lived (5 tool calls in rapid succession)
+- A server restart already disrupts the agent's context window
+- The agent simply re-starts the ceremony — no data loss, just re-validation
+- Persisting ephemeral ceremony state adds complexity without security benefit
+
+Issued **permits** are persisted to disk (`.hestai/state/permits/`) and survive restarts.
+
+#### Permit Storage and Worktrees
+
+Permits are stored in `.hestai/state/permits/`. Since `.hestai/state/` is symlinked across worktrees (confirmed in clock_in.py), permits are **shared across worktrees by default**. This is correct because:
+
+- A permit is bound to a role + project, not a worktree
+- The agent's identity doesn't change across worktrees of the same project
+- The git state in the permit (branch, commit) is worktree-specific and validated at `verify_permit` time
+
+### Improvements Over Standalone OA
+
+**1. Pre-filled anchor generation** — `anchor_commit` returns both the template AND a pre-filled anchor artifact. The agent receives the complete anchor ready to use, eliminating template-filling as a failure point. The template is still provided for agents that need to customize.
+
+**2. Permit renewal** (`anchor_renew`) — A new tool that validates an existing recent permit against the current git state. If the role hasn't changed and the project state is stable, it issues a renewed permit without requiring a full ceremony. This addresses the common "terminal restart" case where the agent has the same role and context but lost its in-memory permit reference. Security constraints:
+  - Original permit must be less than 4 hours old (configurable)
+  - Renewal preserves the original tier (no escalation)
+  - Maximum 3 renewals per original ceremony — after that, full ceremony required
+  - Git branch must match the original permit's branch
+  - These constraints prevent anti-theater bypass: renewal is a convenience for continuity, not a substitute for cognitive proof
+
+**3. Strengthened ARM validation** — OA's current ARM validation uses keyword matching (checking for words like "rule" and "phase") which is trivially gameable. The rebuild requires citing specific `context_selectors` file paths and referencing actual project state values from git_context.
+
+**4. bind.py identity sequencing fix** — Current bind.py leaks the agent's role and file path before the ceremony starts (line 179: `T1::CONSTITUTION->Read(".hestai-sys/library/agents/{role}.oct.md")`). The rebuild fixes this: the SEA proof validates constitutional comprehension at the project level (CONSTITUTION.md is shared, not role-specific). The role is provided to `anchor_request` to initiate the ceremony, but role-specific agent file content (identity, conduct, capabilities) is only revealed after SEA passes. The agent reads the CONSTITUTION first (T1), proves comprehension (SEA), and only then receives its agent-specific instructions. This preserves the anti-theater property: constitutional understanding is proven before identity-specific information could influence the proof.
+
 ### What Gets Cut
 
-- ~300 lines: Legacy three-stage handshake (superseded by progressive interrogation)
+- ~430-500 lines: Legacy three-stage handshake (superseded by progressive interrogation)
 - ~388 lines: arm.py (replaced by shared git_context.py)
 - ~200 lines: agent_loader.py (replaced by shared agent_parser.py)
-- ~150 lines: Independent config loading (uses hestai-mcp's config)
+- ~783 lines: Independent config loading (uses hestai-mcp's config)
 - ~242 lines: HandshakeStore + PermitStore (simplified to single permit_store.py)
 - ~200 lines: Duplicated path security (shared module)
-- **Total cut: ~1,480 lines of duplication/dead code**
+- ~144 lines: MCP middleware (not needed for native integration)
+- ~299 lines: Loaders (constitution, NS, primer — duplicated in hestai-mcp)
+- **Total eliminated: ~2,700-2,800 lines of duplication/dead code/standalone scaffolding**
 
-### What Ports Intact
+### What Ports (With Adaptation)
 
-- Protocol state machine: stage ordering, nonce chain, I2 enforcement (~400 lines)
-- Proof validation: SEA/SHANK/ARM/FLUKES validators, anti-theater checks (~800 lines)
+- Protocol state machine (progressive path only): stage ordering, nonce chain, I2 enforcement (~400 lines)
+- Protocol models: ProgressiveSession, stage types, proof requirements (~182 lines)
+- Proof validation: SEA/SHANK/ARM/FLUKES validators, anti-theater checks (~800 lines, with ARM strengthening)
 - Permit model: session_id, role, tier, validated, timestamp
 - Tool gating: verify_permit check before work tools execute
 - Capability tier selection: capability_mode parameter, §3::CAPABILITIES extraction
+- Instruction generation: anchor artifact formatting (~173 lines, enhanced with pre-fill)
+- Input validators: protocol-relevant subset (~200 lines from validator.py)
+- Constants: merged into hestai-mcp constants (~106 lines)
+
+### What Gets Evaluated During Phase 1
+
+These modules require hands-on analysis during implementation to determine what subset is needed:
+
+- extraction.py (~1,030 lines) — may overlap with hestai-mcp context resolution
+- skill_loader.py (~252 lines) — may overlap with hestai-mcp skill loading
+- primer_reference.py (~82 lines) — evaluate relevance to rebuilt protocol
+- startup_primer_sync.py (~130 lines) — evaluate relevance
 
 ### Execution Phases
 
 **Phase 1 — Shared Infrastructure**
+- **Task Zero (time-boxed)**: Evaluate the 4 "evaluate" modules (extraction.py, skill_loader.py, primer_reference.py, startup_primer_sync.py). Deliverable: concrete checklist — port, discard, or partial port for each. Also confirm the `core/` vs `modules/tools/shared/` boundary decision.
+- Define `git_context.py` public API contract first (data structures and method signatures), reviewed against both clock_in needs and Phase 2 ARM proof requirements. This prevents disruptive mid-build API changes.
 - Create `git_context.py` (unified git state)
-- Create `agent_parser.py` (OA's AST parser)
-- Create `path_security.py` (shared validation)
+- Create `agent_parser.py` (OA's AST parser, using octave_mcp.Parser)
+- Create `path_security.py` (shared validation with TOCTOU protection)
 - Refactor `clock_in.py` to use `git_context`
-- Tests for all shared modules
+- Tests for all shared modules (behavioral tests, not unit-for-unit ports)
 
 **Phase 2 — Port the Protocol**
-- Port `binding_protocol.py` (state machine + nonce chain)
-- Port `proof_validation.py` (cognitive proof validators)
-- Register 5 anchor tools
-- Write tests referencing OA's 1,235 tests as specification
+- Port `binding_protocol.py` (progressive interrogation state machine + nonce chain)
+- Port `proof_validation.py` (cognitive proof validators, with ARM strengthening)
+- Port `protocol_models.py` (progressive session types)
+- Create `anchor_generator.py` (pre-filled anchor generation)
+- Create `permit_store.py` (simplified permit persistence)
+- Register 6 anchor tools (5 existing + anchor_renew)
+- Write tests using OA's 987 tests as behavioral specification
 
-**Phase 3 — Unify Sessions**
+**Phase 3 — Integration and Unification**
 - Permits stored in `.hestai/state/permits/`
-- Ceremony sessions ephemeral (in-memory dict)
 - Simplify `bind.py` to orchestrate the now-internal ceremony
+- Fix bind.py identity sequencing (SEA before role reveal)
+- End-to-end ceremony tests (full REQUEST → SEA → SHANK → ARM → COMMIT flow)
+- Verify permit renewal flow (anchor_renew)
 
 **Phase 4 — Archive OA Repo**
 - Archive odyssean-anchor-mcp (keep for reference + git history)
 - Update ecosystem docs and dependency graph
 - Update MCP server configurations
+- Final verification: all anchor ceremony flows produce equivalent permits
 
 ### North Star Alignment
 
@@ -196,26 +310,46 @@ All seven immutables (I1-I7) are preserved:
 
 ### Positive
 
-- **~70% code reduction**: ~1,200-1,400 lines vs 4,476 in standalone OA
+- **~40-55% effective code reduction**: Rebuilt anchor protocol is ~2,000-2,500 lines vs ~9,148 in standalone OA. The reduction is honest: it accounts for all modules, not just the 5 largest.
 - **Eliminates MCP-to-MCP latency**: Ceremony becomes internal function calls
 - **Single git context module**: clock_in and binding ceremony share one implementation
 - **Single agent parser**: OA's superior AST parser replaces bind.py's minimal parsing
 - **Unified storage**: Permits in `.hestai/state/` alongside sessions
 - **Simpler deployment**: One MCP server, one pip install, one config
 - **Unblocks critical path**: Ecosystem Build Order Steps 2-6 can proceed
+- **Protocol improvements**: Pre-filled anchors, permit renewal, strengthened ARM validation, identity sequencing fix
 
 ### Negative
 
-- **Test migration effort**: 1,235 OA tests must be referenced (not blindly ported) to write new tests
-- **Regression risk**: New code may miss edge cases that battle-tested OA code handles
-- **Temporary feature gap**: During rebuild, the standalone OA remains operational. Transition period requires both to work.
-- **ADR-0036 partially superseded**: The protocol design is preserved but the deployment architecture changes
+- **Test effort**: OA's 987 tests must be studied as behavioral specification to write new tests. This is deliberate — we test the rebuilt behavior, not port test code.
+- **Regression risk**: New code may miss edge cases that battle-tested OA code handles. Mitigated by using OA tests as specification and Phase 4 equivalence verification.
+- **Temporary dual operation**: During rebuild, the standalone OA remains operational. Both must work until Phase 4 archival.
+- **ADR-0036 partially superseded**: The protocol design is preserved but the deployment architecture changes.
 
 ### Neutral
 
 - **odyssean-anchor-mcp repo archived, not deleted**: Git history preserved for reference
 - **Issue migration**: 6 OA issues transfer/redesign, 2 closed, 1 likely superseded
-- **OA's 16 worktrees**: Become irrelevant once rebuild is complete. Active development moves to hestai-mcp.
+- **OA's worktrees**: Become irrelevant once rebuild is complete. Active development moves to hestai-mcp.
+
+## Success Metrics
+
+The rebuild is correct when:
+
+1. **Functional equivalence**: All progressive interrogation ceremony flows (anchor_request → anchor_lock x3 → anchor_commit) produce equivalent permits and anchors to standalone OA.
+2. **Permit structure equivalence**: A permit generated by the rebuilt implementation is structurally identical and interchangeable with one generated by standalone OA. Downstream tooling (verify_permit consumers) sees no difference.
+3. **Shared infrastructure adoption**: clock_in.py uses git_context.py (no inline git operations remain).
+4. **Test coverage**: Behavioral tests cover all proof validation paths, tier variations, and error conditions documented in OA's 987 tests.
+5. **Quality gates green**: ruff, black, mypy, pytest all pass with ≥89% coverage threshold.
+6. **No standalone dependency**: hestai-mcp's `claude_mcp_config.json` no longer references `odyssean-anchor` as a separate server.
+
+## Rollback Plan
+
+**Phase 1-3**: Standalone OA remains fully operational throughout. If the rebuild fails at any phase, we simply continue using OA as-is. No user-facing impact.
+
+**Phase 4 (archival)**: Only executed after Phase 3 passes all success metrics. If post-archival issues are discovered, OA can be unarchived and re-enabled in MCP config within minutes.
+
+**Risk assessment**: Low. The rebuild is additive until Phase 4. At no point is functionality removed before its replacement is verified.
 
 ## Related Documents
 
