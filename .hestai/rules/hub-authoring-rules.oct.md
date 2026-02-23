@@ -9,8 +9,7 @@ META:
   DOMAIN::governance
   OWNERS::[system-steward]
   CREATED::2025-12-23
-  CANONICAL::.hestai-sys/governance/rules/hub-authoring-rules.oct.md
-  SOURCE::src/hestai_mcp/_bundled_hub/governance/rules/hub-authoring-rules.oct.md
+  CANONICAL::.hestai/rules/hub-authoring-rules.oct.md
   TAGS::[hestai-sys, system, authoring, bundled-hub]
 
 ---
