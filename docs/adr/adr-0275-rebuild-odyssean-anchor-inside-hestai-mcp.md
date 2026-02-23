@@ -245,6 +245,8 @@ During the rebuild, both standalone OA and the in-progress native implementation
   - I7-compliant: renewal preserves the original tier's rigor level
   - I2-compliant: the original cognitive proof remains valid — only the permit reference is refreshed, not the identity binding
 
+**Session cache disposition**: OA's current implementation includes a session cache (Issue #88) that fast-tracks past SEA+SHANK for repeated ceremonies with the same role within a 600-second TTL. This is distinct from `anchor_renew` — the cache optimizes fresh ceremonies, while renewal refreshes existing permits. Decision: defer session cache to post-rebuild. `anchor_renew` covers the most common restart case. If ceremony latency proves problematic without the cache, it can be added as a follow-up without architectural changes.
+
 **3. Strengthened ARM validation** — OA's current ARM validation uses keyword matching (checking for words like "rule" and "phase") which is trivially gameable. The rebuild requires citing specific `context_selectors` file paths and referencing actual project state values from git_context.
 
 **4. bind.py identity sequencing fix** — Current bind.py leaks the agent's role and file path before the ceremony starts (line 179: `T1::CONSTITUTION->Read(".hestai-sys/library/agents/{role}.oct.md")`). The rebuild fixes this: the SEA proof validates constitutional comprehension at the project level (CONSTITUTION.md is shared, not role-specific). The role is provided to `anchor_request` to initiate the ceremony, but role-specific agent file content (identity, conduct, capabilities) is only revealed after SEA passes. The agent reads the CONSTITUTION first (T1), proves comprehension (SEA), and only then receives its agent-specific instructions. This preserves the anti-theater property: constitutional understanding is proven before identity-specific information could influence the proof.
@@ -292,7 +294,7 @@ These modules require hands-on analysis during implementation to determine what 
 - **Task Zero (time-boxed: 1-2 days max)**: Evaluate the 4 "evaluate" modules (extraction.py, skill_loader.py, primer_reference.py, startup_primer_sync.py). Method: trace which functions are called by the progressive path in `steward.py` — if a function isn't on the progressive call path, it's discarded without further analysis. Deliverable: written checklist with `{module → decision: port|partial|discard, rationale, test note}`. Also confirm the `core/` vs `modules/tools/shared/` boundary decision. Exit criteria: if no clear win after timebox, default to discard and create follow-up issues for anything deferred — do not block Phase 1 infrastructure creation.
 - Define `git_context.py` public API contract first (data structures and method signatures), reviewed against both clock_in needs and Phase 2 ARM proof requirements. This prevents disruptive mid-build API changes.
 - Create `git_context.py` (unified git state)
-- Create `agent_parser.py` (OA's AST parser, using octave_mcp.Parser)
+- Create `agent_parser.py` (OA's AST parser, using octave_mcp.Parser). Dependency check: verify octave-mcp version alignment between OA (pins 1.2.1) and hestai-mcp before building against the Parser API.
 - Create `path_security.py` (shared validation with TOCTOU protection)
 - Refactor `clock_in.py` to use `git_context`
 - Performance benchmark: `git_context.py` must perform within 110% of the combined individual implementations it replaces
@@ -313,12 +315,18 @@ These modules require hands-on analysis during implementation to determine what 
 - Ensure identity sequencing: `anchor_request` provides constitutional context first, role-specific content only after SEA passes
 - End-to-end ceremony tests (full REQUEST → SEA → SHANK → ARM → COMMIT flow)
 - Verify permit renewal flow (anchor_renew)
+- **Tool name migration** (breaking change): all references to `mcp__odyssean-anchor__anchor_request`, `mcp__odyssean-anchor__anchor_lock`, etc. become `mcp__hestai__anchor_request`, `mcp__hestai__anchor_lock`, etc. This affects:
+  - `~/.claude/CLAUDE.md` — ODYSSEAN_ANCHOR_DIRECTIVES section
+  - `.hestai-sys/library/skills/subagent-rules/SKILL.md`
+  - `.hestai-sys/library/agents/*.oct.md` — any agent files referencing OA tool names
+  - `oa-router` subagent type invocation patterns
+  - Any documentation referencing the old tool prefix
 - Update CLAUDE.md and agent instructions to reference `anchor_request` instead of `bind`
 
 **Phase 4 — Archive OA Repo**
 - Verify downstream consumer compatibility before archival:
   - All MCP server configs (e.g., `claude_mcp_config.json`) referencing standalone `odyssean-anchor`
-  - Any CLAUDE.md or agent instructions referencing `mcp__odyssean-anchor__*` tool names
+  - Cross-check tool name migration completeness: grep all repos for `mcp__odyssean-anchor__` — must return zero results
   - Note: `debate-hall-mcp` and `hestai-workbench` do **not** currently consume OA permits (verified). Future permit-gated tool access in those repos is a separate feature, not a rebuild dependency.
 - Update Ecosystem Build Order (Project #15): mark Order 10 (#269) as Done, update Order 20 (#270) scope
 - Archive odyssean-anchor-mcp (keep for reference + git history)
@@ -339,6 +347,10 @@ All seven immutables (I1-I7) are preserved:
 | I5: TOOL_GATING_ENFORCEMENT | Preserved — verify_permit ports intact |
 | I6: COGNITIVE_BINDING_PERSISTENCE | Preserved — anchor returned to agent context |
 | I7: TIERED_RIGOR | Preserved — micro/quick/default/deep tiers port intact |
+
+**Constrained variable BINDING_SCHEMA**: The North Star defines `BINDING_SCHEMA::IMMUTABLE::RAPH_Structure_Request_Lock_Commit`. The progressive protocol (REQUEST → SEA → SHANK → ARM → COMMIT) uses four stages between Request and Commit. This is already an accepted interpretation per ADR-0003: SEA/SHANK/ARM are sub-stages of the "Lock" phase, each validating a different proof dimension. No North Star amendment required.
+
+**Assumption A1 (LATENCY_ACCEPTABILITY)**: Currently at 80% confidence, PENDING. This rebuild directly addresses A1 by eliminating the MCP-to-MCP transport hop. Post-rebuild, A1 confidence should increase significantly and can be moved toward VALIDATED once Phase 3 performance benchmarks confirm latency improvement.
 
 ## Consequences
 
