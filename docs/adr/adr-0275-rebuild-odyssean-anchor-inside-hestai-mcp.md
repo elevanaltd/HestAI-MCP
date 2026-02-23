@@ -211,6 +211,25 @@ Permits are stored in `.hestai/state/permits/`. Since `.hestai/state/` is symlin
 - The agent's identity doesn't change across worktrees of the same project
 - The git state in the permit (branch, commit) is worktree-specific and validated at `verify_permit` time
 
+#### Permit Directory Security
+
+The `.hestai/state/permits/` directory stores identity permits that gate tool access. File-system security is enforced:
+
+- Directory permissions: `0700` (owner read/write/execute only)
+- Permit file permissions: `0600` (owner read/write only)
+- `permit_store.py` enforces these permissions on creation and validates them on read
+- If permissions are found to be too open, `verify_permit` warns and optionally rejects the permit
+
+This prevents unauthorized modification of permits by other processes or users on the same system.
+
+#### Parallel Run Strategy (Phase 1-3)
+
+During the rebuild, both standalone OA and the in-progress native implementation exist. To prevent developer confusion:
+
+- **Routing**: Standalone OA remains the active implementation until Phase 3 integration tests pass. The native implementation is exercised only via its own test suite until cutover.
+- **Divergence policy**: If outputs differ between OA and native, native must match OA unless a deliberate design improvement (documented in this ADR's Improvements section) explains the difference.
+- **No dual-server operation**: At no point do both implementations serve anchor_* tools simultaneously. The MCP config points to exactly one implementation at a time.
+
 ### Improvements Over Standalone OA
 
 **1. Pre-filled anchor generation** — `anchor_commit` returns both the template AND a pre-filled anchor artifact. The agent receives the complete anchor ready to use, eliminating template-filling as a failure point. The template is still provided for agents that need to customize.
@@ -262,12 +281,13 @@ These modules require hands-on analysis during implementation to determine what 
 ### Execution Phases
 
 **Phase 1 — Shared Infrastructure**
-- **Task Zero (time-boxed)**: Evaluate the 4 "evaluate" modules (extraction.py, skill_loader.py, primer_reference.py, startup_primer_sync.py). Deliverable: concrete checklist — port, discard, or partial port for each. Also confirm the `core/` vs `modules/tools/shared/` boundary decision.
+- **Task Zero (time-boxed: 1-2 days max)**: Evaluate the 4 "evaluate" modules (extraction.py, skill_loader.py, primer_reference.py, startup_primer_sync.py). Deliverable: written checklist with `{module → decision: port|partial|discard, rationale, test note}`. Also confirm the `core/` vs `modules/tools/shared/` boundary decision. Exit criteria: if no clear win after timebox, default to discard and create follow-up issues for anything deferred — do not block Phase 1 infrastructure creation.
 - Define `git_context.py` public API contract first (data structures and method signatures), reviewed against both clock_in needs and Phase 2 ARM proof requirements. This prevents disruptive mid-build API changes.
 - Create `git_context.py` (unified git state)
 - Create `agent_parser.py` (OA's AST parser, using octave_mcp.Parser)
 - Create `path_security.py` (shared validation with TOCTOU protection)
 - Refactor `clock_in.py` to use `git_context`
+- Performance benchmark: `git_context.py` must perform within 110% of the combined individual implementations it replaces
 - Tests for all shared modules (behavioral tests, not unit-for-unit ports)
 
 **Phase 2 — Port the Protocol**
@@ -287,6 +307,11 @@ These modules require hands-on analysis during implementation to determine what 
 - Verify permit renewal flow (anchor_renew)
 
 **Phase 4 — Archive OA Repo**
+- Verify downstream consumer compatibility before archival:
+  - `debate-hall-mcp`: verify_permit consumer / tool gating path
+  - `hestai-workbench`: local dev UX, reads `.hestai/state/permits/`
+  - `octave-mcp`: indirect — confirm no permit path/schema assumptions
+  - All MCP server configs referencing standalone `odyssean-anchor`
 - Archive odyssean-anchor-mcp (keep for reference + git history)
 - Update ecosystem docs and dependency graph
 - Update MCP server configurations
@@ -323,6 +348,7 @@ All seven immutables (I1-I7) are preserved:
 
 - **Test effort**: OA's 987 tests must be studied as behavioral specification to write new tests. This is deliberate — we test the rebuilt behavior, not port test code.
 - **Regression risk**: New code may miss edge cases that battle-tested OA code handles. Mitigated by using OA tests as specification and Phase 4 equivalence verification.
+- **Criticality concentration**: The new `core/` modules become shared critical infrastructure. A bug in `git_context.py` affects both clock_in and the binding ceremony. Mitigated by rigorous testing and Phase 1 performance benchmarks.
 - **Temporary dual operation**: During rebuild, the standalone OA remains operational. Both must work until Phase 4 archival.
 - **ADR-0036 partially superseded**: The protocol design is preserved but the deployment architecture changes.
 
@@ -341,7 +367,8 @@ The rebuild is correct when:
 3. **Shared infrastructure adoption**: clock_in.py uses git_context.py (no inline git operations remain).
 4. **Test coverage**: Behavioral tests cover all proof validation paths, tier variations, and error conditions documented in OA's 987 tests.
 5. **Quality gates green**: ruff, black, mypy, pytest all pass with ≥89% coverage threshold.
-6. **No standalone dependency**: hestai-mcp's `claude_mcp_config.json` no longer references `odyssean-anchor` as a separate server.
+6. **Performance parity**: `git_context.py` performs within 110% of the combined individual implementations it replaces (clock_in inline git ops + OA arm.py).
+7. **No standalone dependency**: hestai-mcp's `claude_mcp_config.json` no longer references `odyssean-anchor` as a separate server.
 
 ## Rollback Plan
 
