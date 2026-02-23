@@ -66,7 +66,7 @@ Both systems independently implement:
 
 **2. HestAI-MCP's bind.py already orchestrates the OA ceremony**
 
-The `bind` tool returns a 7-step TODO list where step T5 is "call anchor_request." The two systems are already one workflow split across two process boundaries.
+The `bind` tool is a bootstrap sequencer/placeholder: it discovers the agent's `.oct.md` file, lightly parses cognition/archetype metadata, and returns a 7-step TODO list where step T5 is "call `mcp__odyssean-anchor__anchor_request`." It performs zero actual identity binding — it exists solely because the ceremony lives in a separate server and needs an instruction bridge. The two systems are already one workflow split across two process boundaries, with bind.py as the duct tape between them.
 
 **3. ~50% of OA's code is standalone scaffolding or duplication**
 
@@ -187,8 +187,10 @@ src/hestai_mcp/
     verify_permit.py         # MCP tool: Tool gating check
 
     clock_in.py              # SIMPLIFIED: calls git_context instead of inline git ops
-    bind.py                  # SIMPLIFIED: calls agent_parser, ceremony is now internal
+                             # bind.py is REMOVED — see "What Gets Replaced" below
 ```
+
+> **bind.py disposition**: The `bind` tool is **removed**, not simplified. Its agent file discovery moves into `anchor_request.py` (via `agent_parser.py`). Its 7-step TODO list is no longer needed — the anchor tools ARE the workflow. The `bind` MCP tool name is retired; agents call `anchor_request` directly to start the ceremony.
 
 ### Design Decisions
 
@@ -245,7 +247,11 @@ During the rebuild, both standalone OA and the in-progress native implementation
 
 **4. bind.py identity sequencing fix** — Current bind.py leaks the agent's role and file path before the ceremony starts (line 179: `T1::CONSTITUTION->Read(".hestai-sys/library/agents/{role}.oct.md")`). The rebuild fixes this: the SEA proof validates constitutional comprehension at the project level (CONSTITUTION.md is shared, not role-specific). The role is provided to `anchor_request` to initiate the ceremony, but role-specific agent file content (identity, conduct, capabilities) is only revealed after SEA passes. The agent reads the CONSTITUTION first (T1), proves comprehension (SEA), and only then receives its agent-specific instructions. This preserves the anti-theater property: constitutional understanding is proven before identity-specific information could influence the proof.
 
-### What Gets Cut
+### What Gets Replaced
+
+- **bind.py** (~290 lines in hestai-mcp): Removed entirely. Agent file discovery moves into `anchor_request` via `agent_parser.py`. The 7-step TODO orchestration list is replaced by the native ceremony tools themselves. The `bind` MCP tool is retired.
+
+### What Gets Cut (from OA codebase)
 
 - ~430-500 lines: Legacy three-stage handshake (superseded by progressive interrogation)
 - ~388 lines: arm.py (replaced by shared git_context.py)
@@ -301,10 +307,11 @@ These modules require hands-on analysis during implementation to determine what 
 
 **Phase 3 — Integration and Unification**
 - Permits stored in `.hestai/state/permits/`
-- Simplify `bind.py` to orchestrate the now-internal ceremony
-- Fix bind.py identity sequencing (SEA before role reveal)
+- Remove `bind.py` — its agent file discovery moves into `anchor_request`, its TODO orchestration is replaced by the native ceremony tools
+- Ensure identity sequencing: `anchor_request` provides constitutional context first, role-specific content only after SEA passes
 - End-to-end ceremony tests (full REQUEST → SEA → SHANK → ARM → COMMIT flow)
 - Verify permit renewal flow (anchor_renew)
+- Update CLAUDE.md and agent instructions to reference `anchor_request` instead of `bind`
 
 **Phase 4 — Archive OA Repo**
 - Verify downstream consumer compatibility before archival:
