@@ -294,7 +294,7 @@ These modules require hands-on analysis during implementation to determine what 
 - **Task Zero (time-boxed: 1-2 days max)**: Evaluate the 4 "evaluate" modules (extraction.py, skill_loader.py, primer_reference.py, startup_primer_sync.py). Method: trace which functions are called by the progressive path in `steward.py` — if a function isn't on the progressive call path, it's discarded without further analysis. Deliverable: written checklist with `{module → decision: port|partial|discard, rationale, test note}`. Also confirm the `core/` vs `modules/tools/shared/` boundary decision. Exit criteria: if no clear win after timebox, default to discard and create follow-up issues for anything deferred — do not block Phase 1 infrastructure creation.
 - Define `git_context.py` public API contract first (data structures and method signatures), reviewed against both clock_in needs and Phase 2 ARM proof requirements. This prevents disruptive mid-build API changes.
 - Create `git_context.py` (unified git state)
-- Create `agent_parser.py` (OA's AST parser, using octave_mcp.Parser). Dependency check: verify octave-mcp version alignment between OA (pins 1.2.1) and hestai-mcp before building against the Parser API.
+- Create `agent_parser.py` (OA's AST parser, using octave_mcp.Parser). Dependency note: octave-mcp will be aligned to v1.5 across both OA and hestai-mcp before rebuild begins (operator-confirmed). No version conflict expected.
 - Create `path_security.py` (shared validation with TOCTOU protection)
 - Refactor `clock_in.py` to use `git_context`
 - Performance benchmark: `git_context.py` must perform within 110% of the combined individual implementations it replaces
@@ -307,7 +307,12 @@ These modules require hands-on analysis during implementation to determine what 
 - Create `anchor_generator.py` (pre-filled anchor generation)
 - Create `permit_store.py` (simplified permit persistence)
 - Register 6 anchor tools (5 existing + anchor_renew)
-- Write tests using OA's 987 tests as behavioral specification
+- Write tests using **contract-mined TDD** (see Test Strategy below)
+- Novel test design required for the 4 improvements (no existing OA test spec to reference):
+  - Pre-filled anchor generation: deterministic prefill output, template coexistence, schema-valid artifact
+  - `anchor_renew`: TTL enforcement, max-renewal count, same role/tier/branch, no escalation, tamper/fail-closed
+  - Strengthened ARM validation: reject keyword-only receipts, require real `context_selectors` paths + git_context state
+  - Identity sequencing fix: no role-specific content leak before SEA passes, availability only after SEA success
 
 **Phase 3 — Integration and Unification**
 - Permits stored in `.hestai/state/permits/`
@@ -315,7 +320,7 @@ These modules require hands-on analysis during implementation to determine what 
 - Ensure identity sequencing: `anchor_request` provides constitutional context first, role-specific content only after SEA passes
 - End-to-end ceremony tests (full REQUEST → SEA → SHANK → ARM → COMMIT flow)
 - Verify permit renewal flow (anchor_renew)
-- **Tool name migration** (breaking change): all references to `mcp__odyssean-anchor__anchor_request`, `mcp__odyssean-anchor__anchor_lock`, etc. become `mcp__hestai__anchor_request`, `mcp__hestai__anchor_lock`, etc. This affects:
+- **Tool name migration** (hard cutover, no deprecation period): all references to `mcp__odyssean-anchor__anchor_request`, `mcp__odyssean-anchor__anchor_lock`, etc. become `mcp__hestai__anchor_request`, `mcp__hestai__anchor_lock`, etc. Single-operator system — no backwards-compatibility shim needed, just a clean rename across all files. This affects:
   - `~/.claude/CLAUDE.md` — ODYSSEAN_ANCHOR_DIRECTIVES section
   - `.hestai-sys/library/skills/subagent-rules/SKILL.md`
   - `.hestai-sys/library/agents/*.oct.md` — any agent files referencing OA tool names
@@ -333,6 +338,36 @@ These modules require hands-on analysis during implementation to determine what 
 - Update ecosystem docs and dependency graph
 - Update MCP server configurations
 - Final verification: all anchor ceremony flows produce equivalent permits
+
+### Test Strategy
+
+**Approach: Contract-Mined TDD** (recommended by Test Methodology Guardian via Codex clink)
+
+Neither pure test-porting nor greenfield TDD. Instead: mine OA's 987 tests into behavioral contracts, then implement via RED→GREEN→REFACTOR in hestai-mcp. Do not port test code 1:1. Do not build code-first and backfill tests later.
+
+**OA test triage matrix:**
+
+| Status | Criteria | Examples |
+|--------|----------|---------|
+| PORT_BEHAVIOR | Tests representing user-visible protocol behavior | Progressive stage machine, proof validation, anti-theater, nonce/state, path security, permit semantics |
+| REWRITE | Tests tied to old layout/config but representing real behavior | Tests bound to OA's standalone config loading, file layout assumptions |
+| DROP | Tests for removed architecture | Legacy handshake compat, standalone middleware, HandshakeStore internals, standalone config plumbing |
+
+**Edge case preservation:**
+- Build a parity harness that runs unchanged scenarios against OA and native; require match except for ADR-declared improvements
+- Prioritize migration of high-density OA behavior suites first: `proof_validation`, `steward_progressive`, `progressive_flow`, security tests
+- Convert every historical OA bugfix test into an explicit regression test in the native suite before cutover
+
+**Test markers** (uses existing hestai-mcp markers, no sprawl):
+
+| Marker | Scope |
+|--------|-------|
+| `smoke` | One happy-path ceremony + one renew happy path |
+| `unit` | Pure validators, parsers, nonce logic, generator logic |
+| `behavior` | Stage transitions, tier rules, new-feature behavior |
+| `contract` | OA-vs-native parity + permit schema compatibility |
+| `integration` | Full REQUEST→SEA→SHANK→ARM→COMMIT with real temp git repo/worktree context |
+| `security` | Anti-theater, path traversal, symlink/TOCTOU, permit tamper/fail-closed |
 
 ### North Star Alignment
 
