@@ -11,9 +11,9 @@ Contains: constitution, system north star, skills, agent definitions.
 ### Tier 2: `.hestai/` (Project Governance) -- this directory
 Committed to git. Changes via PR only. Read-only at runtime.
 
-- **north-star/** - Project North Star and component North Stars
+- **north-star/** - Project North Star and component North Stars only
 - **decisions/** - Architectural Decision Records
-- **rules/** - Project-wide standards
+- **rules/** - Project-wide standards, methodology guides, and workflow standards
 - **schemas/** - Schema definitions
 
 ### Tier 3: `.hestai/state/` (Project Working State)

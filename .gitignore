@@ -20,11 +20,6 @@
 .hestai/state
 .hestai/state/
 
-# Legacy state paths (pre-migration working state that may still exist on disk)
-.hestai/context/state/
-.hestai/sessions/active/
-.hestai/sessions/pending/
-
 # Raw debate transcripts (OCTAVE compressed versions are committed)
 debates/*.json
 debates/*.lock
