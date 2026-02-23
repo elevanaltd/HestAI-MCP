@@ -3,20 +3,20 @@
 META:
   TYPE::STANDARD
   ID::visibility-rules
-  VERSION::"1.4"
+  VERSION::"1.5"
   STATUS::ACTIVE
   PURPOSE::"Placement and lifecycle rules for artifacts to ensure discoverability"
   DOMAIN::governance
   OWNERS::[system-steward]
   CREATED::2025-12-09
-  UPDATED::2025-12-27
+  UPDATED::2026-02-23
   CANONICAL::.hestai-sys/governance/rules/visibility-rules.oct.md
   SOURCE::src/hestai_mcp/_bundled_hub/governance/rules/visibility-rules.oct.md
   TAGS::[placement, visibility, documentation, lifecycle, hestai-sys, bundled-hub]
 
 ===CORE_PRINCIPLE===
 
-LOCATION=VISIBILITY+PERMANENCE
+LOCATION_RULE::VISIBILITY+PERMANENCE
 
 PLACEMENT_LOGIC::[
   developer_docs→git_visibility[committed],
@@ -157,13 +157,14 @@ RULE_4::PROJECT_GOVERNANCE→.hestai/::[
     north_star_documents[immutable_requirements],
     architectural_decision_records,
     project_rules_and_schemas,
-    test_infrastructure_standards
+    test_infrastructure_standards,
+    methodology_guides_and_workflow_standards
   ],
 
   STRUCTURE::[
-    .hestai/north-star/→000-{PROJECT}-NORTH-STAR.md+components/,
+    .hestai/north-star/→000-{PROJECT}-NORTH-STAR.md+components/[ONLY_north_stars],
     .hestai/decisions/→architectural_decision_records,
-    .hestai/rules/→project_standards,
+    .hestai/rules/→project_standards+methodology+workflow_guidance,
     .hestai/schemas/→schema_definitions
   ],
 
@@ -254,6 +255,8 @@ PLACEMENT_TABLE::[
   decisions→.hestai/decisions/[committed|governance|stable],
   project_rules→.hestai/rules/[committed|governance|stable],
   project_schemas→.hestai/schemas/[committed|governance|stable],
+  implementation_specs[active]→.hestai/rules/specs/[committed|governance|phase_scoped],
+  implementation_specs[superseded]→.hestai/state/context/.archive/specs/[shared|ephemeral|archived],
 
   // PROJECT WORKING STATE (.hestai/state/ - shared via symlink, no PR)
   PROJECT-CONTEXT→.hestai/state/context/[shared|agents+human|living],
@@ -290,6 +293,11 @@ AVOID::[
   DEVELOPER_DOCS_IN_HESTAI::[
     problem::developers_wont_find_setup_guides_in_.hestai,
     fix::developer_facing_docs→docs/
+  ],
+
+  NON_NORTH_STAR_IN_NORTH_STAR_FOLDER::[
+    problem::workflow_specs_methodology_docs_in_.hestai/north-star/,
+    fix::only_000-*-NORTH-STAR*_files_and_components/_subfolder_belong_in_north-star/
   ]
 ]
 
@@ -413,6 +421,7 @@ COMPANION::naming-standard.md[naming+frontmatter_logic]
 
 ===CHANGELOG===
 
+v1.5::2026-02-23→clarified_north-star_folder_strict_contents+expanded_rules_folder_scope+added_implementation_spec_placement+anti-pattern_for_north-star_contamination
 v1.4::2025-12-27→added_FILE_RETENTION_POLICY_section[ADR-0060_ratification]
 v1.3::2025-12-23→added_FORMAT_RULES_section+linked_HUB_AUTHORING_RULES
 v1.2::2025-12-23→added_RULE_0_hub/_system_governance+clarified_hub_vs_.hestai_distinction
