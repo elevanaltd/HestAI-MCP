@@ -10,7 +10,7 @@ META:
   OWNERS::[system-steward]
   CREATED::2025-12-21
   UPDATED::2025-12-23
-  CANONICAL::.hestai/workflow/octave-integration-guide.oct.md
+  CANONICAL::.hestai/rules/octave-integration-guide.oct.md
   TAGS::[octave, internal, hestai-mcp]
 
 ---

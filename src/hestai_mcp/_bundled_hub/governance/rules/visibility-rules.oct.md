@@ -409,7 +409,7 @@ WITH_NAMING_STANDARD::[
 
 WITH_HUB_AUTHORING_RULES::[
   .hestai-sys/governance/rules/visibility-rules.oct.md→answers["WHERE in PRODUCT?"],
-  .hestai-sys/governance/rules/hub-authoring-rules.oct.md→answers["WHERE in SYSTEM governance payload?" ]
+  .hestai/rules/hub-authoring-rules.oct.md→answers["WHERE in SYSTEM governance payload?" ]
 ]
 
 ===AUTHORITY===
