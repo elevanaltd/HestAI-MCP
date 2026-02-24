@@ -383,7 +383,7 @@ requires-dist = [
     { name = "keyring", specifier = ">=24.0.0" },
     { name = "mcp", specifier = ">=0.1.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.7.0" },
-    { name = "octave-mcp", specifier = ">=1.2.1" },
+    { name = "octave-mcp", specifier = ">=1.5.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.4.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.21.0" },
@@ -709,7 +709,7 @@ wheels = [
 
 [[package]]
 name = "octave-mcp"
-version = "1.2.1"
+version = "1.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -718,9 +718,9 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "pyyaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/4a/b9/3e9bff18da3ba2e6423877266dd9467369068308a83078a6ea7bb61d1e6b/octave_mcp-1.2.1.tar.gz", hash = "sha256:788820f1ef7a86c36ada0c441c9633860ed6505ed51a8fd09ea8dbb051226c22", size = 194858, upload-time = "2026-02-15T13:16:07.478Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/96/0b/9770c57bfe586ce00299540bdaa9b8b3b8409fd2866210672689e62171fd/octave_mcp-1.5.0.tar.gz", hash = "sha256:7e78c467d3c25b8e486ab18b0d3a981fbedc8b16899ae1094a823b5c6cbf5085", size = 227091, upload-time = "2026-02-24T08:50:51.281Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/49/bb/854e7f5c00af02b8cda6d0dbc71f0f0a5e24926e6340e0feb98fbe73024a/octave_mcp-1.2.1-py3-none-any.whl", hash = "sha256:840f43092289a58ceeefa4bbc01e00676d42c740a2c76dc85f94387c9d7640a4", size = 218022, upload-time = "2026-02-15T13:16:05.951Z" },
+    { url = "https://files.pythonhosted.org/packages/e8/07/312da02e3d9254d2f7d5fc4f96a3b89463f880b7a3dc1671253bb34d0bd5/octave_mcp-1.5.0-py3-none-any.whl", hash = "sha256:cc7d5e61e6379d4f1ab4a62831446179dba66747a5de3fe3f521c2df03f8765d", size = 246314, upload-time = "2026-02-24T08:50:49.542Z" },
 ]
 
 [[package]]
