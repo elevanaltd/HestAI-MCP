@@ -219,7 +219,7 @@ MCP server starts (bootstrap_system_governance)
 
 ### What Goes in Hub?
 
-Per `src/hestai_mcp/_bundled_hub/governance/rules/hub-authoring-rules.oct.md`:
+Per `.hestai/rules/hub-authoring-rules.oct.md`:
 - **System governance** - Rules that apply to ALL HestAI consumers
 - **Agent constitutions** - Templates for agent roles
 - **Reusable components** - Commands, skills, patterns

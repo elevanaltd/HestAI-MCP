@@ -8,7 +8,7 @@ META:
   TYPE::WORKFLOW
   STATUS::ACTIVE
   PURPOSE::"Define NOW/SOON/LATER test routing and required CI gates"
-  CANONICAL::.hestai/workflow/test-context/ci-progressive-testing.oct.md
+  CANONICAL::.hestai/rules/ci-progressive-testing.oct.md
 
 FOUNDATION::[
   NORTH_STAR::docs/workflow/000-MCP-PRODUCT-NORTH-STAR.md
