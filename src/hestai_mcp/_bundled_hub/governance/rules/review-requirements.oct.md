@@ -13,22 +13,19 @@ TIER_0_EXEMPT::[
   "**/*.lock"
 ]
 TIER_1_SELF_REVIEW::[
-  TRIGGER::"lines_changed<50 AND single_file AND no_architecture",
+  TRIGGER::"non_exempt_lines<50 AND single_non_exempt_file",
   PROOF::"PR_comment[IL SELF-REVIEWED: {rationale}]",
   ENFORCEMENT::check_pr_comment_exists
 ]
 TIER_2_STANDARD_REVIEW::[
-  TRIGGER::"src/**/*.py[lines:50-500] AND single_component",
+  TRIGGER::"non_exempt_lines[50-500] OR default_when_ambiguous",
   PROOF::["PR_comment[CRS APPROVED: {assessment}]","PR_comment[CE APPROVED: {assessment}]"],
   ENFORCEMENT::check_crs_and_ce_approval
 ]
 TIER_3_STRICT_REVIEW::[
   TRIGGER::[
-    "src/*/architecture/**",
     "**/*.sql",
-    "lines_changed>500",
-    crosses_component_boundary,
-    adds_external_dependency
+    "non_exempt_lines>500"
   ],
   PROOF::[
     "PR_comment[CRS (Gemini) APPROVED: {assessment}]",

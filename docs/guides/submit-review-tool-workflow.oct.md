@@ -61,7 +61,7 @@ META:
     EXAMPLES::[features,bug_fixes,refactoring]
 
   TIER_3_STRICT:
-    TRIGGER::[lines_gt_500_or_architecture_or_database_or_cross_module]
+    TRIGGER::[lines_gt_500_or_sql_changes]
     REQUIRED::[CRS_GEMINI_APPROVED∧CRS_CODEX_APPROVED∧CE_APPROVED]
     EXAMPLES::[major_features,redesigns,security_critical]
 

@@ -84,13 +84,11 @@ exempt_patterns = [
 ]
 ```
 
-**Line 81-86**: Tier 3 triggers
+**Line 88-91**: Tier 3 triggers
 ```python
 tier3_triggers = [
-    any("architecture" in path for path in changed_paths),
     any(path.endswith(".sql") for path in changed_paths),
     total_lines > 500,
-    len({Path(p).parts[0] for p in changed_paths if "/" in p}) > 1,
 ]
 ```
 
@@ -117,13 +115,13 @@ pre-commit install
 - **Enforcement**: Automatic
 
 ### Tier 1: Self-Review
-- **Trigger**: < 50 lines in single file, no architecture changes
+- **Trigger**: < 50 non-exempt lines in single non-exempt file
 - **Review**: Implementation Lead (IL) self-review
 - **Proof**: PR comment: `IL SELF-REVIEWED: [rationale]`
 - **Example**: `IL SELF-REVIEWED: Fixed typo in error message`
 
 ### Tier 2: Standard Review
-- **Trigger**: 50-500 lines OR multiple files in single component
+- **Trigger**: 50-500 non-exempt lines, or default when ambiguous
 - **Review**: CRS + Critical Engineer (CE) approval
 - **Proof**:
   - `CRS APPROVED: [assessment]`
@@ -132,10 +130,8 @@ pre-commit install
 
 ### Tier 3: Strict Review
 - **Trigger**:
-  - \> 500 lines changed
-  - Architecture files modified
-  - SQL changes
-  - Multiple components affected
+  - \> 500 non-exempt lines changed
+  - SQL files modified
 - **Review**: Dual CRS (Gemini + Codex) + Critical Engineer (CE)
 - **Proof**:
   - `CRS (Gemini) APPROVED: [assessment]`

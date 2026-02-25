@@ -138,7 +138,7 @@ The system has three review tiers based on change complexity:
 - **Example changes**: Feature additions, bug fixes, refactoring
 
 ### Tier 3: Strict Review (Dual CRS + CE Roles)
-- **When**: 500+ lines, architecture changes, database changes, cross-module changes
+- **When**: 500+ non-exempt lines, or SQL file changes
 - **Required**: CRS (Gemini) APPROVED + CRS (Codex) APPROVED + CE APPROVED comments
 - **Example changes**: Major features, system redesigns, security-critical code
 
