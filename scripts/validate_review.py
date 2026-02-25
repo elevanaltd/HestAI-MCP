@@ -119,6 +119,9 @@ try:
         has_crs_model_approval as _has_crs_model_approval,
     )
     from hestai_mcp.modules.tools.shared.review_formats import (
+        has_ho_review as _has_ho_review,
+    )
+    from hestai_mcp.modules.tools.shared.review_formats import (
         matches_approval_pattern as _matches_approval_pattern,
     )
 except (ImportError, ModuleNotFoundError):
@@ -142,6 +145,7 @@ except (ImportError, ModuleNotFoundError):
     _has_crs_approval = _review_formats.has_crs_approval
     _has_crs_model_approval = _review_formats.has_crs_model_approval
     _has_ce_approval = _review_formats.has_ce_approval
+    _has_ho_review = _review_formats.has_ho_review
 
 
 def _has_approval(texts: list[str], prefix: str, keyword: str) -> bool:
@@ -199,9 +203,11 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
         if tier == "TIER_1_SELF":
             if _has_approval(searchable_texts, "IL", "SELF-REVIEWED"):
                 return True, "✓ Self-review found"
+            if _has_approval(searchable_texts, "HO", "REVIEWED"):
+                return True, "✓ HO supervisory review found"
             if _has_crs_approval(searchable_texts):
                 return True, "✓ CRS approval satisfies self-review requirement"
-            return False, "❌ Missing: IL SELF-REVIEWED comment"
+            return False, "❌ Missing: IL SELF-REVIEWED or HO REVIEWED comment"
 
         elif tier == "TIER_2_STANDARD":
             has_crs = _has_crs_approval(searchable_texts)
@@ -340,6 +346,8 @@ def main() -> int:
         print("\n⚠️  Review Requirements:")
         if tier == "TIER_1_SELF":
             print("   Add comment: 'IL SELF-REVIEWED: [your rationale]'")
+            print("   -- or --")
+            print("   Add comment: 'HO REVIEWED: [rationale after delegated implementation]'")
             print("   Example: 'IL SELF-REVIEWED: Fixed typo in error message'")
         elif tier == "TIER_2_STANDARD":
             print("   Need comments:")

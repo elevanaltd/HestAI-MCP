@@ -127,9 +127,11 @@ gh pr ready {pr_number}
 
 The system has three review tiers based on change complexity:
 
-### Tier 1: Self-Review (IL Role)
+### Tier 1: Self-Review (IL or HO Role)
 - **When**: Under 50 non-exempt lines in a single non-exempt file
-- **Required**: IL SELF-REVIEWED comment (Note: IL uses "SELF-REVIEWED" not "APPROVED")
+- **Required**: IL SELF-REVIEWED or HO REVIEWED comment
+- **IL**: Uses "SELF-REVIEWED" keyword (not "APPROVED")
+- **HO**: Uses "REVIEWED" keyword (supervisory review after delegated implementation)
 - **Example changes**: README updates, config tweaks, small fixes
 
 ### Tier 2: Standard Review (CRS + CE Roles)

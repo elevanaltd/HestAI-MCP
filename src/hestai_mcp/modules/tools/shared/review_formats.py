@@ -17,7 +17,7 @@ TIER_2_STANDARD = "TIER_2_STANDARD"
 TIER_3_STRICT = "TIER_3_STRICT"
 
 # --- Valid roles and verdicts ---
-VALID_ROLES: frozenset[str] = frozenset({"CRS", "CE", "IL"})
+VALID_ROLES: frozenset[str] = frozenset({"CRS", "CE", "IL", "HO"})
 VALID_VERDICTS: frozenset[str] = frozenset({"APPROVED", "BLOCKED", "CONDITIONAL"})
 
 # --- IL uses SELF-REVIEWED keyword instead of APPROVED ---
@@ -144,6 +144,25 @@ def has_il_self_review(texts: list[str]) -> bool:
         True if IL SELF-REVIEWED found.
     """
     return _has_approval(texts, "IL", _IL_APPROVED_KEYWORD)
+
+
+def has_ho_review(texts: list[str]) -> bool:
+    """Check if any text contains an HO supervisory review.
+
+    When HO delegates to IL and then reviews the work, this constitutes
+    a supervisory review (higher authority than self-review) and satisfies T1.
+
+    Matches patterns like:
+      - 'HO REVIEWED: delegated to IL, verified output'
+      - 'HO (Claude): REVIEWED: verified'
+
+    Args:
+        texts: List of comment/body texts to search.
+
+    Returns:
+        True if HO REVIEWED found.
+    """
+    return _has_approval(texts, "HO", "REVIEWED")
 
 
 def format_review_comment(

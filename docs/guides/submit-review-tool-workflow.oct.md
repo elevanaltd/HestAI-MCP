@@ -52,7 +52,7 @@ META:
 §4::REVIEW_TIERS
   TIER_1_SELF:
     TRIGGER::[non_exempt_lines_lt_50_and_single_non_exempt_file]
-    REQUIRED::IL_SELF_REVIEWED
+    REQUIRED::[IL_SELF_REVIEWED∨HO_REVIEWED]
     EXAMPLES::[README,config,small_fixes]
 
   TIER_2_STANDARD:

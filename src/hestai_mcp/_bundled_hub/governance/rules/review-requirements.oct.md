@@ -14,7 +14,7 @@ TIER_0_EXEMPT::[
 ]
 TIER_1_SELF_REVIEW::[
   TRIGGER::"non_exempt_lines<50 AND single_non_exempt_file",
-  PROOF::"PR_comment[IL SELF-REVIEWED: {rationale}]",
+  PROOF::"PR_comment[IL SELF-REVIEWED: {rationale}] OR PR_comment[HO REVIEWED: {rationale}]",
   ENFORCEMENT::check_pr_comment_exists
 ]
 TIER_2_STANDARD_REVIEW::[
@@ -37,6 +37,7 @@ TIER_3_STRICT_REVIEW::[
 §2::ENFORCEMENT_MECHANISM
 PR_COMMENT_MAGIC::[
   IL_SELF_REVIEWED::"IL SELF-REVIEWED:",
+  HO_REVIEWED::"HO REVIEWED:",
   CRS_APPROVED::"CRS APPROVED:",
   CRS_GEMINI_APPROVED::"CRS (Gemini) APPROVED:",
   CRS_CODEX_APPROVED::"CRS (Codex) APPROVED:",
