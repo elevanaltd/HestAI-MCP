@@ -135,7 +135,7 @@ The system has three review tiers based on change complexity:
 - **Example changes**: README updates, config tweaks, small fixes
 
 ### Tier 2: Standard Review (CRS + CE Roles)
-- **When**: 50-500 lines of code changes
+- **When**: 50-500 non-exempt lines, or default when ambiguous
 - **Required**: CRS APPROVED + CE APPROVED comments
 - **Example changes**: Feature additions, bug fixes, refactoring
 
