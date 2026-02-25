@@ -51,7 +51,7 @@ META:
 
 §4::REVIEW_TIERS
   TIER_1_SELF:
-    TRIGGER::[lines_lt_50_or_docs_only]
+    TRIGGER::[non_exempt_lines_lt_50_and_single_non_exempt_file]
     REQUIRED::IL_SELF_REVIEWED
     EXAMPLES::[README,config,small_fixes]
 

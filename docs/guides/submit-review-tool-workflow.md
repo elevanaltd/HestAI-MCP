@@ -128,7 +128,7 @@ gh pr ready {pr_number}
 The system has three review tiers based on change complexity:
 
 ### Tier 1: Self-Review (IL Role)
-- **When**: Changes under 50 lines, documentation/config only
+- **When**: Under 50 non-exempt lines in a single non-exempt file
 - **Required**: IL SELF-REVIEWED comment (Note: IL uses "SELF-REVIEWED" not "APPROVED")
 - **Example changes**: README updates, config tweaks, small fixes
 
