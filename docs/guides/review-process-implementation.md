@@ -97,7 +97,7 @@ tier3_triggers = [
 **Line 92-100**: Tier thresholds
 ```python
 if 50 <= total_lines <= 500:
-    return "TIER_2_CRS", f"CRS review required - {total_lines} lines changed"
+    return "TIER_2_STANDARD", f"CRS review required - {total_lines} lines changed"
 
 if total_lines < 50 and len(files) == 1:
     return "TIER_1_SELF", f"Self-review sufficient - {total_lines} lines in single file"
@@ -122,21 +122,24 @@ pre-commit install
 - **Proof**: PR comment: `IL SELF-REVIEWED: [rationale]`
 - **Example**: `IL SELF-REVIEWED: Fixed typo in error message`
 
-### Tier 2: CRS Review
+### Tier 2: Standard Review
 - **Trigger**: 50-500 lines OR multiple files in single component
-- **Review**: Code Review Specialist (CRS) approval
-- **Proof**: PR comment: `CRS APPROVED: [assessment]`
+- **Review**: CRS + Critical Engineer (CE) approval
+- **Proof**:
+  - `CRS APPROVED: [assessment]`
+  - `CE APPROVED: [critical assessment]`
 - **Example**: `CRS APPROVED: Logic correct, tests pass, no security issues`
 
-### Tier 3: Full Review
+### Tier 3: Strict Review
 - **Trigger**:
   - \> 500 lines changed
   - Architecture files modified
   - SQL changes
   - Multiple components affected
-- **Review**: Both CRS + Critical Engineer (CE)
+- **Review**: Dual CRS (Gemini + Codex) + Critical Engineer (CE)
 - **Proof**:
-  - `CRS APPROVED: [assessment]`
+  - `CRS (Gemini) APPROVED: [assessment]`
+  - `CRS (Codex) APPROVED: [assessment]`
   - `CE APPROVED: [critical assessment]`
 - **Example**: `CE APPROVED: Architecture sound, performance acceptable`
 

@@ -13,8 +13,8 @@ import re
 # --- Review tier constants ---
 TIER_0_EXEMPT = "TIER_0_EXEMPT"
 TIER_1_SELF = "TIER_1_SELF"
-TIER_2_CRS = "TIER_2_CRS"
-TIER_3_FULL = "TIER_3_FULL"
+TIER_2_STANDARD = "TIER_2_STANDARD"
+TIER_3_STRICT = "TIER_3_STRICT"
 
 # --- Valid roles and verdicts ---
 VALID_ROLES: frozenset[str] = frozenset({"CRS", "CE", "IL"})

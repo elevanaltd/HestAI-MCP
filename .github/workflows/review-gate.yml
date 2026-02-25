@@ -188,14 +188,14 @@ jobs:
 
               // Extract required reviews from output
               if (tier === 'TIER_1_SELF') {
-                message += '**Required**: Add a comment with:\n';
-                message += '```\nIL SELF-REVIEWED: [your rationale for this change]\n```\n';
-              } else if (tier === 'TIER_2_CRS') {
-                message += '**Required**: Code Review Specialist approval with:\n';
-                message += '```\nCRS APPROVED: [assessment of change]\n```\n';
-              } else if (tier === 'TIER_3_FULL') {
-                message += '**Required**: Both approvals with:\n';
-                message += '```\nCRS APPROVED: [assessment]\nCE APPROVED: [critical assessment]\n```\n';
+                message += '**Required**: Author self-review with:\n';
+                message += '```\nIL SELF-REVIEWED: [your rationale]\n```\n';
+              } else if (tier === 'TIER_2_STANDARD') {
+                message += '**Required**: CRS + CE approval:\n';
+                message += '```\nCRS APPROVED: [assessment of change]\nCE APPROVED: [critical assessment]\n```\n';
+              } else if (tier === 'TIER_3_STRICT') {
+                message += '**Required**: Dual CRS + CE approval:\n';
+                message += '```\nCRS (Gemini) APPROVED: [assessment]\nCRS (Codex) APPROVED: [assessment]\nCE APPROVED: [critical assessment]\n```\n';
               }
 
               message += '\n<details><summary>📋 Full Validation Output</summary>\n\n';

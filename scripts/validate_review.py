@@ -91,18 +91,18 @@ def determine_review_tier(files: list[dict[str, Any]]) -> tuple[str, str]:
     ]
 
     if any(tier3_triggers):
-        return "TIER_3_FULL", f"Full review required - {total_lines} lines, critical paths"
+        return "TIER_3_STRICT", f"Strict review required - {total_lines} lines, critical paths"
 
     # Check for Tier 2
     if 50 <= total_lines <= 500:
-        return "TIER_2_CRS", f"CRS + CE review required - {total_lines} lines changed"
+        return "TIER_2_STANDARD", f"CRS + CE review required - {total_lines} lines changed"
 
     # Check for Tier 1
     if total_lines < 50 and len(non_exempt_files) == 1:
         return "TIER_1_SELF", f"Self-review sufficient - {total_lines} lines in single file"
 
     # Default to Tier 2 if unsure
-    return "TIER_2_CRS", "CRS + CE review required - default tier"
+    return "TIER_2_STANDARD", "CRS + CE review required - default tier"
 
 
 # Import shared review format utilities (single source of truth).
@@ -194,8 +194,8 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
         # Check for required approvals based on tier.
         # Higher-tier reviews satisfy lower-tier requirements (hierarchy rule):
         #   TIER_1_SELF: IL SELF-REVIEWED OR CRS OR CRS+CE
-        #   TIER_2_CRS:  CRS + CE
-        #   TIER_3_FULL: CRS(Gemini) + CRS(Codex) + CE
+        #   TIER_2_STANDARD:  CRS + CE
+        #   TIER_3_STRICT: CRS(Gemini) + CRS(Codex) + CE
         if tier == "TIER_1_SELF":
             if _has_approval(searchable_texts, "IL", "SELF-REVIEWED"):
                 return True, "✓ Self-review found"
@@ -203,7 +203,7 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
                 return True, "✓ CRS approval satisfies self-review requirement"
             return False, "❌ Missing: IL SELF-REVIEWED comment"
 
-        elif tier == "TIER_2_CRS":
+        elif tier == "TIER_2_STANDARD":
             has_crs = _has_crs_approval(searchable_texts)
             has_ce = _has_ce_approval(searchable_texts)
 
@@ -217,7 +217,7 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
                 missing.append("CE APPROVED or CE GO")
             return False, f"❌ Missing: {', '.join(missing)}"
 
-        elif tier == "TIER_3_FULL":
+        elif tier == "TIER_3_STRICT":
             has_crs_gemini = _has_crs_model_approval(searchable_texts, "Gemini")
             has_crs_codex = _has_crs_model_approval(searchable_texts, "Codex")
             has_ce = _has_ce_approval(searchable_texts)
@@ -341,12 +341,12 @@ def main() -> int:
         if tier == "TIER_1_SELF":
             print("   Add comment: 'IL SELF-REVIEWED: [your rationale]'")
             print("   Example: 'IL SELF-REVIEWED: Fixed typo in error message'")
-        elif tier == "TIER_2_CRS":
+        elif tier == "TIER_2_STANDARD":
             print("   Need comments:")
             print("   - 'CRS APPROVED: [assessment]' (or CRS (Gemini) APPROVED:)")
             print("   - 'CE APPROVED: [critical assessment]'")
             print("   Example: 'CRS APPROVED: Logic correct, tests pass, no security issues'")
-        elif tier == "TIER_3_FULL":
+        elif tier == "TIER_3_STRICT":
             print("   Need comments:")
             print("   - 'CRS (Gemini) APPROVED: [assessment]'")
             print("   - 'CRS (Codex) APPROVED: [assessment]'")

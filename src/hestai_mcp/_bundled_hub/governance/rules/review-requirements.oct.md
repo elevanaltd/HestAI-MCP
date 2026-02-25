@@ -20,13 +20,13 @@ TIER_1_SELF_REVIEW::[
   ENFORCEMENT::check_pr_comment_exists
 ]
 
-TIER_2_CRS_REVIEW::[
+TIER_2_STANDARD_REVIEW::[
   TRIGGER::src/**/*.py[lines:50-500] AND single_component,
   PROOF::PR_comment["CRS APPROVED: {assessment}"],
   ENFORCEMENT::check_crs_approval
 ]
 
-TIER_3_FULL_REVIEW::[
+TIER_3_STRICT_REVIEW::[
   TRIGGER::[
     src/*/architecture/**,
     **/*.sql,

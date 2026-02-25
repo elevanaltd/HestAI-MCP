@@ -55,14 +55,14 @@ META:
     REQUIRED::IL_SELF_REVIEWED
     EXAMPLES::[README,config,small_fixes]
 
-  TIER_2_CRS:
+  TIER_2_STANDARD:
     TRIGGER::[lines_50_to_500]
-    REQUIRED::CRS_APPROVED
+    REQUIRED::[CRS_APPROVED∧CE_APPROVED]
     EXAMPLES::[features,bug_fixes,refactoring]
 
-  TIER_3_FULL:
+  TIER_3_STRICT:
     TRIGGER::[lines_gt_500_or_architecture_or_database_or_cross_module]
-    REQUIRED::[CRS_APPROVED∧CE_APPROVED]
+    REQUIRED::[CRS_GEMINI_APPROVED∧CRS_CODEX_APPROVED∧CE_APPROVED]
     EXAMPLES::[major_features,redesigns,security_critical]
 
 §5::WORKFLOWS
