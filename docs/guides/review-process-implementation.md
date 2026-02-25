@@ -97,7 +97,7 @@ tier3_triggers = [
 **Line 92-100**: Tier thresholds
 ```python
 if 50 <= total_lines <= 500:
-    return "TIER_2_STANDARD", f"CRS review required - {total_lines} lines changed"
+    return "TIER_2_STANDARD", f"CRS + CE review required - {total_lines} lines changed"
 
 if total_lines < 50 and len(files) == 1:
     return "TIER_1_SELF", f"Self-review sufficient - {total_lines} lines in single file"

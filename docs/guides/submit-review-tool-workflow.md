@@ -218,7 +218,7 @@ The tool returns a structured response:
   "comment_url": "https://github.com/owner/repo/pull/123#issuecomment-456",
   "validation": {
     "would_clear_gate": true,
-    "tier_requirements": "TIER_2_STANDARD: CRS APPROVED comment required"
+    "tier_requirements": "TIER_2_STANDARD: CRS + CE APPROVED comments required"
   },
   "formatted_comment": "CRS APPROVED: Code meets all quality standards"
 }
