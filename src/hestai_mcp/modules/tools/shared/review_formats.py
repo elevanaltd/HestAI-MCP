@@ -17,11 +17,14 @@ TIER_2_STANDARD = "TIER_2_STANDARD"
 TIER_3_STRICT = "TIER_3_STRICT"
 
 # --- Valid roles and verdicts ---
-VALID_ROLES: frozenset[str] = frozenset({"CRS", "CE", "IL"})
+VALID_ROLES: frozenset[str] = frozenset({"CRS", "CE", "IL", "HO"})
 VALID_VERDICTS: frozenset[str] = frozenset({"APPROVED", "BLOCKED", "CONDITIONAL"})
 
 # --- IL uses SELF-REVIEWED keyword instead of APPROVED ---
 _IL_APPROVED_KEYWORD = "SELF-REVIEWED"
+
+# --- HO uses REVIEWED keyword instead of APPROVED ---
+_HO_APPROVED_KEYWORD = "REVIEWED"
 
 
 def matches_approval_pattern(text: str, prefix: str, keyword: str) -> bool:
@@ -146,6 +149,25 @@ def has_il_self_review(texts: list[str]) -> bool:
     return _has_approval(texts, "IL", _IL_APPROVED_KEYWORD)
 
 
+def has_ho_review(texts: list[str]) -> bool:
+    """Check if any text contains an HO supervisory review.
+
+    When HO delegates to IL and then reviews the work, this constitutes
+    a supervisory review (higher authority than self-review) and satisfies T1.
+
+    Matches patterns like:
+      - 'HO REVIEWED: delegated to IL, verified output'
+      - 'HO (Claude): REVIEWED: verified'
+
+    Args:
+        texts: List of comment/body texts to search.
+
+    Returns:
+        True if HO REVIEWED found.
+    """
+    return _has_approval(texts, "HO", "REVIEWED")
+
+
 def format_review_comment(
     role: str,
     verdict: str,
@@ -158,6 +180,7 @@ def format_review_comment(
     will accept. This ensures submit_review produces gate-clearing comments.
 
     For IL role with APPROVED verdict, the keyword is mapped to SELF-REVIEWED.
+    For HO role with APPROVED verdict, the keyword is mapped to REVIEWED.
     For BLOCKED/CONDITIONAL verdicts, the comment uses the verdict directly
     (these don't clear the gate but are valid review comments).
 
@@ -170,8 +193,13 @@ def format_review_comment(
     Returns:
         Formatted review comment string.
     """
-    # Map IL APPROVED to SELF-REVIEWED keyword
-    keyword = _IL_APPROVED_KEYWORD if role == "IL" and verdict == "APPROVED" else verdict
+    # Map IL APPROVED to SELF-REVIEWED, HO APPROVED to REVIEWED
+    if role == "IL" and verdict == "APPROVED":
+        keyword = _IL_APPROVED_KEYWORD
+    elif role == "HO" and verdict == "APPROVED":
+        keyword = _HO_APPROVED_KEYWORD
+    else:
+        keyword = verdict
 
     # Build the prefix with optional model annotation
     prefix = f"{role} ({model_annotation})" if model_annotation else role

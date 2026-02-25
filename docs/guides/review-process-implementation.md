@@ -116,9 +116,10 @@ pre-commit install
 
 ### Tier 1: Self-Review
 - **Trigger**: < 50 non-exempt lines in single non-exempt file
-- **Review**: Implementation Lead (IL) self-review
-- **Proof**: PR comment: `IL SELF-REVIEWED: [rationale]`
+- **Review**: Implementation Lead (IL) self-review or HO supervisory review
+- **Proof**: PR comment: `IL SELF-REVIEWED: [rationale]` or `HO REVIEWED: [rationale]`
 - **Example**: `IL SELF-REVIEWED: Fixed typo in error message`
+- **Alternative**: `HO REVIEWED: delegated to IL, verified output` (when HO delegates then reviews)
 
 ### Tier 2: Standard Review
 - **Trigger**: 50-500 non-exempt lines, or default when ambiguous

@@ -188,8 +188,8 @@ jobs:
 
               // Extract required reviews from output
               if (tier === 'TIER_1_SELF') {
-                message += '**Required**: Author self-review with:\n';
-                message += '```\nIL SELF-REVIEWED: [your rationale]\n```\n';
+                message += '**Required**: Self-review or HO supervisory review:\n';
+                message += '```\nIL SELF-REVIEWED: [your rationale]\n-- or --\nHO REVIEWED: [rationale after delegated implementation]\n```\n';
               } else if (tier === 'TIER_2_STANDARD') {
                 message += '**Required**: CRS + CE approval:\n';
                 message += '```\nCRS APPROVED: [assessment of change]\nCE APPROVED: [critical assessment]\n```\n';

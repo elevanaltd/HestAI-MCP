@@ -836,6 +836,146 @@ class TestErrorClassification:
 
 
 @pytest.mark.unit
+class TestCrsModelAnnotationAdvisory:
+    """Test that CRS reviews without model_annotation receive an advisory."""
+
+    @pytest.mark.asyncio
+    async def test_crs_without_annotation_gets_advisory(self) -> None:
+        """CRS review without model_annotation includes advisory in response."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        result = await submit_review(
+            repo="elevanaltd/HestAI-MCP",
+            pr_number=123,
+            role="CRS",
+            verdict="APPROVED",
+            assessment="All tests pass",
+            dry_run=True,
+        )
+        assert result["success"] is True
+        assert "advisory" in result
+        assert "TIER_3_STRICT" in result["advisory"]
+        assert "model_annotation" in result["advisory"]
+
+    @pytest.mark.asyncio
+    async def test_crs_with_annotation_no_advisory(self) -> None:
+        """CRS review with model_annotation does NOT include advisory."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        result = await submit_review(
+            repo="elevanaltd/HestAI-MCP",
+            pr_number=123,
+            role="CRS",
+            verdict="APPROVED",
+            assessment="All tests pass",
+            model_annotation="Gemini",
+            dry_run=True,
+        )
+        assert result["success"] is True
+        assert "advisory" not in result
+
+    @pytest.mark.asyncio
+    async def test_ce_without_annotation_no_advisory(self) -> None:
+        """CE review without model_annotation does NOT include advisory."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        result = await submit_review(
+            repo="elevanaltd/HestAI-MCP",
+            pr_number=123,
+            role="CE",
+            verdict="APPROVED",
+            assessment="Architecture is sound",
+            dry_run=True,
+        )
+        assert result["success"] is True
+        assert "advisory" not in result
+
+    @pytest.mark.asyncio
+    async def test_il_without_annotation_no_advisory(self) -> None:
+        """IL review without model_annotation does NOT include advisory."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        result = await submit_review(
+            repo="elevanaltd/HestAI-MCP",
+            pr_number=123,
+            role="IL",
+            verdict="APPROVED",
+            assessment="Self-reviewed",
+            dry_run=True,
+        )
+        assert result["success"] is True
+        assert "advisory" not in result
+
+    @pytest.mark.asyncio
+    async def test_crs_advisory_on_successful_post(self) -> None:
+        """CRS advisory is included even on successful GitHub post."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = (
+            "HTTP/2 201 Created\r\n"
+            "content-type: application/json\r\n"
+            "\r\n"
+            '{"html_url": "https://github.com/elevanaltd/HestAI-MCP/pull/123#issuecomment-789"}'
+        )
+
+        with (
+            patch("subprocess.run", return_value=mock_result),
+            patch.dict("os.environ", {"GITHUB_TOKEN": "test-token"}),
+        ):
+            result = await submit_review(
+                repo="elevanaltd/HestAI-MCP",
+                pr_number=123,
+                role="CRS",
+                verdict="APPROVED",
+                assessment="All quality gates pass",
+            )
+
+        assert result["success"] is True
+        assert "advisory" in result
+        assert "TIER_3_STRICT" in result["advisory"]
+
+
+@pytest.mark.unit
+class TestHoRoleHandling:
+    """Test HO (Holistic Orchestrator) role handling for T1 supervisory reviews."""
+
+    @pytest.mark.asyncio
+    async def test_ho_dry_run_formats_as_reviewed(self) -> None:
+        """HO + APPROVED dry-run produces 'HO REVIEWED:' comment."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        result = await submit_review(
+            repo="elevanaltd/HestAI-MCP",
+            pr_number=123,
+            role="HO",
+            verdict="APPROVED",
+            assessment="Delegated to IL, verified output",
+            dry_run=True,
+        )
+        assert result["success"] is True
+        assert "HO REVIEWED:" in result["formatted_comment"]
+        assert result["validation"]["would_clear_gate"] is True
+
+    @pytest.mark.asyncio
+    async def test_ho_will_clear_gate(self) -> None:
+        """HO REVIEWED clears the review gate."""
+        from hestai_mcp.modules.tools.submit_review import _check_would_clear_gate
+
+        assert _check_would_clear_gate("HO REVIEWED: verified output", "HO", "APPROVED")
+
+    @pytest.mark.asyncio
+    async def test_ho_tier_requirements(self) -> None:
+        """HO gets correct tier requirement text."""
+        from hestai_mcp.modules.tools.submit_review import _get_tier_requirements
+
+        req = _get_tier_requirements("HO")
+        assert "TIER_1_SELF" in req
+        assert "HO REVIEWED" in req
+
+
+@pytest.mark.unit
 class TestFailClosed:
     """Test fail-closed behavior: invalid format must not post."""
 

@@ -299,7 +299,7 @@ class TestPRCommentValidation:
     """Validate PR comment checking logic."""
 
     def test_tier_1_requires_self_review_comment(self, ci_environment, monkeypatch):
-        """TIER_1_SELF requires 'IL SELF-REVIEWED:' comment."""
+        """TIER_1_SELF requires 'IL SELF-REVIEWED:' or 'HO REVIEWED:' comment."""
 
         # Mock gh CLI to return comments without self-review
         def mock_run(cmd, *args, **kwargs):
@@ -313,7 +313,7 @@ class TestPRCommentValidation:
 
         approved, message = validate_review.check_pr_comments("TIER_1_SELF")
         assert approved is False
-        assert "SELF-REVIEWED" in message
+        assert "SELF-REVIEWED" in message or "HO REVIEWED" in message
 
     def test_tier_2_requires_crs_and_ce_approval(self, ci_environment, monkeypatch):
         """TIER_2_STANDARD requires both 'CRS APPROVED:' and 'CE APPROVED:' comments."""
@@ -503,6 +503,119 @@ class TestPRBodyScanning:
 
         approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, "Null PR body should not block comment-based approval"
+
+
+@pytest.mark.behavior
+class TestHOSupervisoryReview:
+    """Validate that HO REVIEWED is accepted as an alternative T1 approval.
+
+    When HO delegates to IL and then reviews the work, it's a supervisory
+    review (higher authority than self-review) and should satisfy T1.
+    """
+
+    def test_tier_1_ho_reviewed_passes(self, ci_environment, monkeypatch):
+        """'HO REVIEWED: delegated to IL, verified output' should pass T1."""
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [{"body": "HO REVIEWED: delegated to IL, verified output"}],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments("TIER_1_SELF")
+        assert approved is True, "'HO REVIEWED' should satisfy T1"
+        assert "HO supervisory review found" in message
+
+    def test_tier_1_ho_reviewed_with_model_format(self, ci_environment, monkeypatch):
+        """'HO (Claude): REVIEWED: verified' should also pass T1."""
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [{"body": "HO (Claude): REVIEWED: verified"}],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments("TIER_1_SELF")
+        assert approved is True, "'HO (Claude): REVIEWED' should satisfy T1"
+        assert "HO supervisory review found" in message
+
+    def test_tier_1_il_self_reviewed_still_passes(self, ci_environment, monkeypatch):
+        """Existing IL SELF-REVIEWED must still pass T1 after HO REVIEWED addition."""
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [{"body": "IL SELF-REVIEWED: Fixed typo in error message"}],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments("TIER_1_SELF")
+        assert approved is True, "IL SELF-REVIEWED must still pass T1"
+        assert "Self-review found" in message
+
+    def test_tier_1_ho_reviewed_in_pr_body(self, ci_environment, monkeypatch):
+        """HO REVIEWED in PR body should also satisfy T1."""
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "HO REVIEWED: delegated implementation verified",
+                        "comments": [],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments("TIER_1_SELF")
+        assert approved is True, "HO REVIEWED in PR body should satisfy T1"
+
+    def test_tier_1_crs_still_satisfies_after_ho_addition(self, ci_environment, monkeypatch):
+        """CRS approval should still satisfy T1 (hierarchy rule preserved)."""
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [{"body": "CRS APPROVED: Logic correct, tests pass"}],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments("TIER_1_SELF")
+        assert approved is True, "CRS approval should still satisfy T1"
+        assert "CRS approval satisfies" in message
 
 
 @pytest.mark.behavior
