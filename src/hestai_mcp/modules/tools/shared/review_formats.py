@@ -23,6 +23,9 @@ VALID_VERDICTS: frozenset[str] = frozenset({"APPROVED", "BLOCKED", "CONDITIONAL"
 # --- IL uses SELF-REVIEWED keyword instead of APPROVED ---
 _IL_APPROVED_KEYWORD = "SELF-REVIEWED"
 
+# --- HO uses REVIEWED keyword instead of APPROVED ---
+_HO_APPROVED_KEYWORD = "REVIEWED"
+
 
 def matches_approval_pattern(text: str, prefix: str, keyword: str) -> bool:
     """Check if text matches a flexible approval pattern.
@@ -177,6 +180,7 @@ def format_review_comment(
     will accept. This ensures submit_review produces gate-clearing comments.
 
     For IL role with APPROVED verdict, the keyword is mapped to SELF-REVIEWED.
+    For HO role with APPROVED verdict, the keyword is mapped to REVIEWED.
     For BLOCKED/CONDITIONAL verdicts, the comment uses the verdict directly
     (these don't clear the gate but are valid review comments).
 
@@ -189,8 +193,13 @@ def format_review_comment(
     Returns:
         Formatted review comment string.
     """
-    # Map IL APPROVED to SELF-REVIEWED keyword
-    keyword = _IL_APPROVED_KEYWORD if role == "IL" and verdict == "APPROVED" else verdict
+    # Map IL APPROVED to SELF-REVIEWED, HO APPROVED to REVIEWED
+    if role == "IL" and verdict == "APPROVED":
+        keyword = _IL_APPROVED_KEYWORD
+    elif role == "HO" and verdict == "APPROVED":
+        keyword = _HO_APPROVED_KEYWORD
+    else:
+        keyword = verdict
 
     # Build the prefix with optional model annotation
     prefix = f"{role} ({model_annotation})" if model_annotation else role

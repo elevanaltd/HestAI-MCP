@@ -395,3 +395,18 @@ class TestFormatReviewComment:
             model_annotation="Claude",
         )
         assert has_crs_approval([comment])
+
+    def test_ho_approved_formats_as_ho_reviewed(self) -> None:
+        """Format HO with APPROVED verdict produces HO REVIEWED."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            format_review_comment,
+            has_ho_review,
+            matches_approval_pattern,
+        )
+
+        comment = format_review_comment(
+            role="HO", verdict="APPROVED", assessment="Delegated to IL, verified output"
+        )
+        assert matches_approval_pattern(comment, "HO", "REVIEWED")
+        assert has_ho_review([comment])
+        assert "Delegated to IL, verified output" in comment

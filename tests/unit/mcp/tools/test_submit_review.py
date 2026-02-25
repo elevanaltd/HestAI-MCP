@@ -938,6 +938,44 @@ class TestCrsModelAnnotationAdvisory:
 
 
 @pytest.mark.unit
+class TestHoRoleHandling:
+    """Test HO (Holistic Orchestrator) role handling for T1 supervisory reviews."""
+
+    @pytest.mark.asyncio
+    async def test_ho_dry_run_formats_as_reviewed(self) -> None:
+        """HO + APPROVED dry-run produces 'HO REVIEWED:' comment."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        result = await submit_review(
+            repo="elevanaltd/HestAI-MCP",
+            pr_number=123,
+            role="HO",
+            verdict="APPROVED",
+            assessment="Delegated to IL, verified output",
+            dry_run=True,
+        )
+        assert result["success"] is True
+        assert "HO REVIEWED:" in result["formatted_comment"]
+        assert result["validation"]["would_clear_gate"] is True
+
+    @pytest.mark.asyncio
+    async def test_ho_will_clear_gate(self) -> None:
+        """HO REVIEWED clears the review gate."""
+        from hestai_mcp.modules.tools.submit_review import _check_would_clear_gate
+
+        assert _check_would_clear_gate("HO REVIEWED: verified output", "HO", "APPROVED")
+
+    @pytest.mark.asyncio
+    async def test_ho_tier_requirements(self) -> None:
+        """HO gets correct tier requirement text."""
+        from hestai_mcp.modules.tools.submit_review import _get_tier_requirements
+
+        req = _get_tier_requirements("HO")
+        assert "TIER_1_SELF" in req
+        assert "HO REVIEWED" in req
+
+
+@pytest.mark.unit
 class TestFailClosed:
     """Test fail-closed behavior: invalid format must not post."""
 

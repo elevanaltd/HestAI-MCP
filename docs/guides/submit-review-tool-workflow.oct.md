@@ -38,7 +38,7 @@ META:
   REQUIRED::[
     repo::"STRING[owner/name format]",
     pr_number::"INTEGER[existing_PR_only]",
-    role::"ENUM[IL,CRS,CE]",
+    role::"ENUM[IL,HO,CRS,CE]",
     verdict::"ENUM[APPROVED,BLOCKED,CONDITIONAL]",
     assessment::"STRING[non_empty,detailed_reasoning]"
   ]
@@ -81,7 +81,7 @@ META:
   ]
 §5::WORKFLOWS
   SIMPLE_TIER_1::"IL_implements→create_PR→submit_review[role:IL]→CI_validates→merge"
-  HO_TIER_1::"HO_delegates_to_IL→IL_implements→create_PR→HO_submit_review[role:IL,keyword:REVIEWED]→CI_validates→merge"
+  HO_TIER_1::"HO_delegates_to_IL→IL_implements→create_PR→HO_submit_review[role:HO,verdict:APPROVED→REVIEWED]→CI_validates→merge"
   MULTI_AGENT::"IL_implements→create_PR→CRS_reviews→CE_reviews→IF[both_APPROVED]→merge ELSE→rework→re_review"
   DRAFT_STRATEGY::"create_draft→incremental_reviews→mark_ready→final_approvals→merge"
 §6::USAGE_EXAMPLES

@@ -27,6 +27,7 @@ from hestai_mcp.modules.tools.shared.review_formats import (
     format_review_comment,
     has_ce_approval,
     has_crs_approval,
+    has_ho_review,
     has_il_self_review,
 )
 
@@ -82,6 +83,8 @@ def _check_would_clear_gate(comment: str, role: str, verdict: str) -> bool:
         return has_ce_approval([comment])
     elif role == "IL":
         return has_il_self_review([comment])
+    elif role == "HO":
+        return has_ho_review([comment])
 
     return False
 
@@ -92,6 +95,7 @@ def _get_tier_requirements(role: str) -> str:
         "CRS": "TIER_2_STANDARD+: CRS APPROVED comment required (with CE at TIER_2, dual CRS at TIER_3)",
         "CE": "TIER_2_STANDARD+: CE APPROVED comment required (alongside CRS)",
         "IL": "TIER_1_SELF: IL SELF-REVIEWED comment required",
+        "HO": "TIER_1_SELF: HO REVIEWED comment required (supervisory review)",
     }
     return requirements.get(role, "Unknown tier requirement")
 
