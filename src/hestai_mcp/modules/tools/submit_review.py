@@ -329,6 +329,18 @@ async def submit_review(
     if error:
         return {"success": False, "error": error, "error_type": "validation"}
 
+    # Step 1.5: Compute CRS model_annotation advisory
+    # CRS reviews should include model_annotation for TIER_3_STRICT compatibility.
+    # This is advisory-only and does NOT block the submission.
+    advisory: str | None = None
+    if role == "CRS" and not model_annotation:
+        advisory = (
+            "Advisory: CRS reviews should include model_annotation "
+            "(e.g., 'Gemini' or 'Codex') for TIER_3_STRICT compatibility. "
+            "Without annotation, this comment will satisfy TIER_2_STANDARD "
+            "but may not satisfy TIER_3_STRICT dual-CRS requirements."
+        )
+
     # Step 2: Format the comment using shared module
     formatted_comment = format_review_comment(
         role=role,
@@ -361,12 +373,15 @@ async def submit_review(
 
     # Step 4: If dry_run, return without posting
     if dry_run:
-        return {
+        result: dict[str, Any] = {
             "success": True,
             "comment_url": None,
             "validation": validation,
             "formatted_comment": formatted_comment,
         }
+        if advisory:
+            result["advisory"] = advisory
+        return result
 
     # Step 5: Post via GitHub API
     post_result = _post_comment(repo, pr_number, formatted_comment)
@@ -380,9 +395,12 @@ async def submit_review(
             "validation": validation,
         }
 
-    return {
+    post_success_result: dict[str, Any] = {
         "success": True,
         "comment_url": post_result["comment_url"],
         "validation": validation,
         "formatted_comment": formatted_comment,
     }
+    if advisory:
+        post_success_result["advisory"] = advisory
+    return post_success_result
