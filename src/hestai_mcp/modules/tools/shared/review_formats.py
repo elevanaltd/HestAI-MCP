@@ -93,8 +93,10 @@ def has_crs_model_approval(texts: list[str], model: str) -> bool:
     """Check if any text contains a CRS approval from a specific model.
 
     Matches patterns like 'CRS (Gemini) APPROVED:' or 'CRS (Gemini): GO'.
-    The model name must appear in parentheses after CRS on the same line
-    as the approval keyword.
+    The model tag must be directly followed by the approval keyword with only
+    separator characters (whitespace, colon, dashes) in between. This prevents
+    spoofing where a single APPROVED keyword satisfies multiple model checks,
+    or where intervening tokens like BLOCKED are ignored.
 
     Args:
         texts: List of comment/body texts to search.
@@ -103,18 +105,20 @@ def has_crs_model_approval(texts: list[str], model: str) -> bool:
     Returns:
         True if model-specific CRS approval found.
     """
-    model_re = re.compile(rf"\bCRS\s*\(\s*{re.escape(model)}\s*\)", re.IGNORECASE)
-    keyword_re = re.compile(r"\b(?:APPROVED|GO)\b")
+    # Strict pattern: CRS(model) followed by only separator chars then APPROVED|GO.
+    # Allowed separators: whitespace, colon, em dash, en dash, hyphen.
+    # No arbitrary tokens (like "and CRS (Codex)" or "BLOCKED") permitted between.
+    pattern = re.compile(
+        rf"\bCRS\s*\(\s*{re.escape(model)}\s*\)\s*[:—–\-]?\s*(?:APPROVED|GO)\b",
+        re.IGNORECASE,
+    )
 
     for text in texts:
         # Strip markdown bold/italic markers
         cleaned = re.sub(r"\*{1,2}([^*]+)\*{1,2}", r"\1", text)
         for line in cleaned.splitlines():
-            model_match = model_re.search(line)
-            if model_match:
-                keyword_match = keyword_re.search(line, model_match.end())
-                if keyword_match:
-                    return True
+            if pattern.search(line):
+                return True
     return False
 
 

@@ -962,3 +962,78 @@ class TestFlexibleSeparatorMatching:
         """'CRS \u2014 GOING' must NOT match as GO."""
         result = validate_review._matches_approval_pattern("CRS \u2014 GOING ahead", "CRS", "GO")
         assert result is False, "Word boundary must still prevent GOING matching as GO"
+
+
+@pytest.mark.security
+class TestCRSModelApprovalSpoofing:
+    """Regression tests for CE review finding: approval-spoofing bypass.
+
+    has_crs_model_approval() must not allow:
+    1. Single-line dual-model spoof: one APPROVED keyword satisfying two model checks
+    2. BLOCKED-then-APPROVED on same line: intervening BLOCKED before APPROVED
+    """
+
+    def test_single_line_dual_model_spoof_does_not_satisfy_both(self):
+        """SECURITY: 'CRS (Gemini) and CRS (Codex) APPROVED' must NOT satisfy both models.
+
+        A single APPROVED keyword at the end of a line must not count as approval
+        for both CRS (Gemini) and CRS (Codex) when both appear earlier on that line.
+        """
+        texts = ["CRS (Gemini) and CRS (Codex) APPROVED"]
+        gemini_approved = validate_review._has_crs_model_approval(texts, "Gemini")
+        codex_approved = validate_review._has_crs_model_approval(texts, "Codex")
+        assert not (
+            gemini_approved and codex_approved
+        ), "Single APPROVED must not satisfy both CRS (Gemini) and CRS (Codex)"
+
+    def test_blocked_then_approved_on_same_line_does_not_pass(self):
+        """SECURITY: 'CRS (Gemini) BLOCKED but later APPROVED' must NOT pass.
+
+        If BLOCKED appears between the model tag and APPROVED, the function must
+        not treat this as an approval. Only direct CRS(model) -> APPROVED with
+        separator-only tokens in between should count.
+        """
+        texts = ["CRS (Gemini) BLOCKED but later APPROVED"]
+        result = validate_review._has_crs_model_approval(texts, "Gemini")
+        assert result is False, "BLOCKED-then-APPROVED must not count as model approval"
+
+    def test_legitimate_separate_line_approvals_still_work(self):
+        """Sanity: Separate per-model approval lines must still pass."""
+        texts = [
+            "CRS (Gemini) APPROVED: Logic correct",
+            "CRS (Codex) APPROVED: Verified",
+        ]
+        assert validate_review._has_crs_model_approval(
+            texts, "Gemini"
+        ), "Separate Gemini approval line must pass"
+        assert validate_review._has_crs_model_approval(
+            texts, "Codex"
+        ), "Separate Codex approval line must pass"
+
+    def test_model_approval_with_separator_still_works(self):
+        """Sanity: 'CRS (Gemini): APPROVED' with colon separator must still pass."""
+        texts = ["CRS (Gemini): APPROVED - Logic verified"]
+        assert validate_review._has_crs_model_approval(
+            texts, "Gemini"
+        ), "Colon-separated model approval must pass"
+
+    def test_model_approval_with_go_keyword_still_works(self):
+        """Sanity: 'CRS (Gemini) GO' must still pass."""
+        texts = ["CRS (Gemini) GO (9/10)"]
+        assert validate_review._has_crs_model_approval(
+            texts, "Gemini"
+        ), "GO keyword model approval must pass"
+
+    def test_model_approval_with_dash_separator_still_works(self):
+        """Sanity: 'CRS (Gemini) - APPROVED' with dash separator must still pass."""
+        texts = ["CRS (Gemini) - APPROVED: Architecture sound"]
+        assert validate_review._has_crs_model_approval(
+            texts, "Gemini"
+        ), "Dash-separated model approval must pass"
+
+    def test_model_approval_with_em_dash_still_works(self):
+        """Sanity: 'CRS (Gemini) \u2014 APPROVED' with em dash must still pass."""
+        texts = ["CRS (Gemini) \u2014 APPROVED (98/100)"]
+        assert validate_review._has_crs_model_approval(
+            texts, "Gemini"
+        ), "Em dash-separated model approval must pass"
