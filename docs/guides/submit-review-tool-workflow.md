@@ -128,18 +128,18 @@ gh pr ready {pr_number}
 The system has three review tiers based on change complexity:
 
 ### Tier 1: Self-Review (IL Role)
-- **When**: Changes under 50 lines, documentation/config only
+- **When**: Under 50 non-exempt lines in a single non-exempt file
 - **Required**: IL SELF-REVIEWED comment (Note: IL uses "SELF-REVIEWED" not "APPROVED")
 - **Example changes**: README updates, config tweaks, small fixes
 
-### Tier 2: Code Review (CRS Role)
+### Tier 2: Standard Review (CRS + CE Roles)
 - **When**: 50-500 lines of code changes
-- **Required**: CRS APPROVED comment
+- **Required**: CRS APPROVED + CE APPROVED comments
 - **Example changes**: Feature additions, bug fixes, refactoring
 
-### Tier 3: Full Review (CRS + CE Roles)
-- **When**: 500+ lines, architecture changes, database changes, cross-module changes
-- **Required**: Both CRS APPROVED and CE APPROVED comments
+### Tier 3: Strict Review (Dual CRS + CE Roles)
+- **When**: 500+ non-exempt lines, or SQL file changes
+- **Required**: CRS (Gemini) APPROVED + CRS (Codex) APPROVED + CE APPROVED comments
 - **Example changes**: Major features, system redesigns, security-critical code
 
 ## Tool Usage Examples
@@ -218,7 +218,7 @@ The tool returns a structured response:
   "comment_url": "https://github.com/owner/repo/pull/123#issuecomment-456",
   "validation": {
     "would_clear_gate": true,
-    "tier_requirements": "TIER_2_CRS: CRS APPROVED comment required"
+    "tier_requirements": "TIER_2_STANDARD: CRS + CE APPROVED comments required"
   },
   "formatted_comment": "CRS APPROVED: Code meets all quality standards"
 }

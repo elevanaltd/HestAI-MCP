@@ -89,8 +89,8 @@ def _check_would_clear_gate(comment: str, role: str, verdict: str) -> bool:
 def _get_tier_requirements(role: str) -> str:
     """Get human-readable tier requirement description for a role."""
     requirements = {
-        "CRS": "TIER_2_CRS: CRS APPROVED comment required",
-        "CE": "TIER_3_FULL: CE APPROVED comment required (alongside CRS)",
+        "CRS": "TIER_2_STANDARD+: CRS APPROVED comment required (with CE at TIER_2, dual CRS at TIER_3)",
+        "CE": "TIER_2_STANDARD+: CE APPROVED comment required (alongside CRS)",
         "IL": "TIER_1_SELF: IL SELF-REVIEWED comment required",
     }
     return requirements.get(role, "Unknown tier requirement")

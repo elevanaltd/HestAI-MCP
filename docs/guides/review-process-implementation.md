@@ -84,22 +84,20 @@ exempt_patterns = [
 ]
 ```
 
-**Line 81-86**: Tier 3 triggers
+**Line 88-91**: Tier 3 triggers
 ```python
 tier3_triggers = [
-    any("architecture" in path for path in changed_paths),
     any(path.endswith(".sql") for path in changed_paths),
     total_lines > 500,
-    len({Path(p).parts[0] for p in changed_paths if "/" in p}) > 1,
 ]
 ```
 
 **Line 92-100**: Tier thresholds
 ```python
 if 50 <= total_lines <= 500:
-    return "TIER_2_CRS", f"CRS review required - {total_lines} lines changed"
+    return "TIER_2_STANDARD", f"CRS + CE review required - {total_lines} lines changed"
 
-if total_lines < 50 and len(files) == 1:
+if total_lines < 50 and len(non_exempt_files) == 1:
     return "TIER_1_SELF", f"Self-review sufficient - {total_lines} lines in single file"
 ```
 
@@ -117,26 +115,27 @@ pre-commit install
 - **Enforcement**: Automatic
 
 ### Tier 1: Self-Review
-- **Trigger**: < 50 lines in single file, no architecture changes
+- **Trigger**: < 50 non-exempt lines in single non-exempt file
 - **Review**: Implementation Lead (IL) self-review
 - **Proof**: PR comment: `IL SELF-REVIEWED: [rationale]`
 - **Example**: `IL SELF-REVIEWED: Fixed typo in error message`
 
-### Tier 2: CRS Review
-- **Trigger**: 50-500 lines OR multiple files in single component
-- **Review**: Code Review Specialist (CRS) approval
-- **Proof**: PR comment: `CRS APPROVED: [assessment]`
-- **Example**: `CRS APPROVED: Logic correct, tests pass, no security issues`
-
-### Tier 3: Full Review
-- **Trigger**:
-  - \> 500 lines changed
-  - Architecture files modified
-  - SQL changes
-  - Multiple components affected
-- **Review**: Both CRS + Critical Engineer (CE)
+### Tier 2: Standard Review
+- **Trigger**: 50-500 non-exempt lines, or default when ambiguous
+- **Review**: CRS + Critical Engineer (CE) approval
 - **Proof**:
   - `CRS APPROVED: [assessment]`
+  - `CE APPROVED: [critical assessment]`
+- **Example**: `CRS APPROVED: Logic correct, tests pass, no security issues`
+
+### Tier 3: Strict Review
+- **Trigger**:
+  - \> 500 non-exempt lines changed
+  - SQL files modified
+- **Review**: Dual CRS (Gemini + Codex) + Critical Engineer (CE)
+- **Proof**:
+  - `CRS (Gemini) APPROVED: [assessment]`
+  - `CRS (Codex) APPROVED: [assessment]`
   - `CE APPROVED: [critical assessment]`
 - **Example**: `CE APPROVED: Architecture sound, performance acceptable`
 

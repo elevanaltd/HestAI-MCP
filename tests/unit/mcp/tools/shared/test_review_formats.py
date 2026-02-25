@@ -32,16 +32,16 @@ class TestReviewTierConstants:
         assert TIER_1_SELF == "TIER_1_SELF"
 
     def test_tier_2_crs_value(self) -> None:
-        """TIER_2_CRS constant exists and has correct value."""
-        from hestai_mcp.modules.tools.shared.review_formats import TIER_2_CRS
+        """TIER_2_STANDARD constant exists and has correct value."""
+        from hestai_mcp.modules.tools.shared.review_formats import TIER_2_STANDARD
 
-        assert TIER_2_CRS == "TIER_2_CRS"
+        assert TIER_2_STANDARD == "TIER_2_STANDARD"
 
     def test_tier_3_full_value(self) -> None:
-        """TIER_3_FULL constant exists and has correct value."""
-        from hestai_mcp.modules.tools.shared.review_formats import TIER_3_FULL
+        """TIER_3_STRICT constant exists and has correct value."""
+        from hestai_mcp.modules.tools.shared.review_formats import TIER_3_STRICT
 
-        assert TIER_3_FULL == "TIER_3_FULL"
+        assert TIER_3_STRICT == "TIER_3_STRICT"
 
     def test_valid_roles_contains_expected(self) -> None:
         """VALID_ROLES includes CRS, CE, IL."""

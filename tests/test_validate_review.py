@@ -70,7 +70,7 @@ class TestFailClosedBehavior:
         monkeypatch.setattr(subprocess, "run", mock_run)
 
         # In CI context, comment check failures should return False
-        approved, message = validate_review.check_pr_comments("TIER_2_CRS")
+        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is False, "Comment check failure in CI must return False"
         assert "error" in message.lower() or "failed" in message.lower()
 
@@ -117,7 +117,7 @@ class TestLocalModePermissiveness:
 
     def test_check_pr_comments_skips_in_local_mode(self, local_environment):
         """Local mode: PR comment checks are skipped."""
-        approved, message = validate_review.check_pr_comments("TIER_2_CRS")
+        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, "Local mode should skip PR comment checks"
         assert "local" in message.lower() or "skip" in message.lower()
 
@@ -273,16 +273,16 @@ class TestReviewTierLogic:
         assert tier == "TIER_1_SELF"
 
     def test_tier_2_crs_for_medium_changes(self):
-        """TIER_2_CRS for 50-500 lines."""
+        """TIER_2_STANDARD for 50-500 lines."""
         files = [{"path": "src/core.py", "added": 100, "deleted": 50, "total_changed": 150}]
         tier, reason = validate_review.determine_review_tier(files)
-        assert tier == "TIER_2_CRS"
+        assert tier == "TIER_2_STANDARD"
 
     def test_tier_3_full_for_large_changes(self):
-        """TIER_3_FULL for >500 lines."""
+        """TIER_3_STRICT for >500 lines."""
         files = [{"path": "src/core.py", "added": 400, "deleted": 200, "total_changed": 600}]
         tier, reason = validate_review.determine_review_tier(files)
-        assert tier == "TIER_3_FULL"
+        assert tier == "TIER_3_STRICT"
 
     def test_tier_0_exempt_for_architecture_markdown(self):
         """TIER_0_EXEMPT for architecture markdown (all .md exempt)."""
@@ -316,7 +316,7 @@ class TestPRCommentValidation:
         assert "SELF-REVIEWED" in message
 
     def test_tier_2_requires_crs_and_ce_approval(self, ci_environment, monkeypatch):
-        """TIER_2_CRS requires both 'CRS APPROVED:' and 'CE APPROVED:' comments."""
+        """TIER_2_STANDARD requires both 'CRS APPROVED:' and 'CE APPROVED:' comments."""
 
         # Mock gh CLI to return comments with both CRS and CE approval
         def mock_run(cmd, *args, **kwargs):
@@ -336,12 +336,12 @@ class TestPRCommentValidation:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_CRS")
+        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True
         assert "CRS and CE approvals found" in message
 
     def test_tier_2_missing_ce_fails(self, ci_environment, monkeypatch):
-        """TIER_2_CRS with only CRS approval (no CE) should fail."""
+        """TIER_2_STANDARD with only CRS approval (no CE) should fail."""
 
         def mock_run(cmd, *args, **kwargs):
             return MagicMock(
@@ -354,12 +354,12 @@ class TestPRCommentValidation:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_CRS")
+        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is False
         assert "CE APPROVED" in message or "CE GO" in message
 
     def test_tier_3_requires_dual_crs_and_ce(self, ci_environment, monkeypatch):
-        """TIER_3_FULL requires CRS (Gemini) + CRS (Codex) + CE approvals."""
+        """TIER_3_STRICT requires CRS (Gemini) + CRS (Codex) + CE approvals."""
 
         # Mock gh CLI to return comments with only one CRS approval
         def mock_run(cmd, *args, **kwargs):
@@ -378,7 +378,7 @@ class TestPRCommentValidation:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_3_FULL")
+        approved, message = validate_review.check_pr_comments("TIER_3_STRICT")
         assert approved is False
         assert "CRS (Codex)" in message or "CE" in message
 
@@ -404,7 +404,7 @@ class TestPRBodyScanning:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_CRS")
+        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, "CRS and CE approval in PR body should be accepted"
         assert "CRS and CE approvals found" in message
 
@@ -446,7 +446,7 @@ class TestPRBodyScanning:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_3_FULL")
+        approved, message = validate_review.check_pr_comments("TIER_3_STRICT")
         assert approved is True, "Approvals split between body and comments should pass"
         assert "Dual CRS" in message and "CE" in message
 
@@ -472,7 +472,7 @@ class TestPRBodyScanning:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        validate_review.check_pr_comments("TIER_2_CRS")
+        validate_review.check_pr_comments("TIER_2_STANDARD")
 
         # Verify gh pr view fetches both body and comments
         assert len(captured_cmds) > 0
@@ -501,7 +501,7 @@ class TestPRBodyScanning:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_CRS")
+        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, "Null PR body should not block comment-based approval"
 
 
@@ -526,7 +526,7 @@ class TestFlexiblePatternMatching:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_CRS")
+        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, "'CRS (Gemini): APPROVED' + CE should be recognized"
 
     def test_ce_parenthetical_model_format(self, ci_environment, monkeypatch):
@@ -550,7 +550,7 @@ class TestFlexiblePatternMatching:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_3_FULL")
+        approved, message = validate_review.check_pr_comments("TIER_3_STRICT")
         assert approved is True, "'CE (Claude): APPROVED' with dual CRS should be recognized"
 
     def test_crs_with_extra_whitespace(self, ci_environment, monkeypatch):
@@ -570,7 +570,7 @@ class TestFlexiblePatternMatching:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_CRS")
+        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, "CRS APPROVED with extra whitespace should match"
 
     def test_il_parenthetical_model_format(self, ci_environment, monkeypatch):
@@ -613,7 +613,7 @@ class TestFlexiblePatternMatching:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_CRS")
+        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, "Original exact format must continue to work"
 
 
@@ -714,7 +714,7 @@ class TestGoKeywordApproval:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_CRS")
+        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, "'CRS (Gemini): GO' + CE should be recognized"
 
     def test_ce_go_after_fix_matches_as_ce_approval(self, ci_environment, monkeypatch):
@@ -738,7 +738,7 @@ class TestGoKeywordApproval:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_3_FULL")
+        approved, message = validate_review.check_pr_comments("TIER_3_STRICT")
         assert approved is True, "'CE (Codex): GO after fix' with dual CRS should pass"
 
     def test_crs_go_with_score_matches(self, ci_environment, monkeypatch):
@@ -758,11 +758,11 @@ class TestGoKeywordApproval:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_CRS")
+        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, "'CRS (Gemini): GO (9/10)' + CE should pass"
 
     def test_tier_3_dual_crs_go_plus_ce_approved_passes(self, ci_environment, monkeypatch):
-        """TIER_3_FULL with dual CRS GO + CE APPROVED should pass."""
+        """TIER_3_STRICT with dual CRS GO + CE APPROVED should pass."""
 
         def mock_run(cmd, *args, **kwargs):
             return MagicMock(
@@ -782,12 +782,12 @@ class TestGoKeywordApproval:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_3_FULL")
-        assert approved is True, "Dual CRS GO + CE APPROVED should satisfy TIER_3_FULL"
+        approved, message = validate_review.check_pr_comments("TIER_3_STRICT")
+        assert approved is True, "Dual CRS GO + CE APPROVED should satisfy TIER_3_STRICT"
         assert "Dual CRS" in message
 
     def test_tier_3_dual_crs_approved_plus_ce_go_passes(self, ci_environment, monkeypatch):
-        """TIER_3_FULL with dual CRS APPROVED + CE GO should pass."""
+        """TIER_3_STRICT with dual CRS APPROVED + CE GO should pass."""
 
         def mock_run(cmd, *args, **kwargs):
             return MagicMock(
@@ -807,8 +807,8 @@ class TestGoKeywordApproval:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_3_FULL")
-        assert approved is True, "Dual CRS APPROVED + CE GO should satisfy TIER_3_FULL"
+        approved, message = validate_review.check_pr_comments("TIER_3_STRICT")
+        assert approved is True, "Dual CRS APPROVED + CE GO should satisfy TIER_3_STRICT"
         assert "Dual CRS" in message
 
     def test_go_substring_does_not_false_positive(self):
@@ -817,7 +817,7 @@ class TestGoKeywordApproval:
         assert result is False, "GOING must not match as GO - suffix substring false positive"
 
     def test_tier_3_missing_all_mentions_models_in_error(self, ci_environment, monkeypatch):
-        """Error message for TIER_3_FULL missing approvals should mention model names."""
+        """Error message for TIER_3_STRICT missing approvals should mention model names."""
 
         def mock_run(cmd, *args, **kwargs):
             return MagicMock(
@@ -833,14 +833,14 @@ class TestGoKeywordApproval:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_3_FULL")
+        approved, message = validate_review.check_pr_comments("TIER_3_STRICT")
         assert approved is False
         assert "Gemini" in message, "Error message should mention Gemini model"
         assert "Codex" in message, "Error message should mention Codex model"
         assert "CE" in message, "Error message should mention CE"
 
     def test_tier_2_missing_mentions_go_in_error(self, ci_environment, monkeypatch):
-        """Error message for TIER_2_CRS missing approval should mention GO as alternative."""
+        """Error message for TIER_2_STANDARD missing approval should mention GO as alternative."""
 
         def mock_run(cmd, *args, **kwargs):
             return MagicMock(
@@ -856,7 +856,7 @@ class TestGoKeywordApproval:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_CRS")
+        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is False
         assert "GO" in message, "Error message should mention GO as an accepted format"
 
