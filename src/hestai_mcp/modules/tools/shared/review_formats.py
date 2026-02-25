@@ -89,6 +89,39 @@ def has_crs_approval(texts: list[str]) -> bool:
     return _has_approval(texts, "CRS", "APPROVED") or _has_approval(texts, "CRS", "GO")
 
 
+def has_crs_model_approval(texts: list[str], model: str) -> bool:
+    """Check if any text contains a CRS approval from a specific model.
+
+    Matches patterns like 'CRS (Gemini) APPROVED:' or 'CRS (Gemini): GO'.
+    The model tag must be directly followed by the approval keyword with only
+    separator characters (whitespace, colon, dashes) in between. This prevents
+    spoofing where a single APPROVED keyword satisfies multiple model checks,
+    or where intervening tokens like BLOCKED are ignored.
+
+    Args:
+        texts: List of comment/body texts to search.
+        model: The model name to match (e.g., 'Gemini', 'Codex').
+
+    Returns:
+        True if model-specific CRS approval found.
+    """
+    # Strict pattern: CRS(model) followed by only separator chars then APPROVED|GO.
+    # Allowed separators: whitespace, colon, em dash, en dash, hyphen (0 or more).
+    # No arbitrary tokens (like "and CRS (Codex)" or "BLOCKED") permitted between.
+    pattern = re.compile(
+        rf"\bCRS\s*\(\s*{re.escape(model)}\s*\)\s*[:—–\-]*\s*(?:APPROVED|GO)\b",
+        re.IGNORECASE,
+    )
+
+    for text in texts:
+        # Strip markdown bold/italic markers
+        cleaned = re.sub(r"\*{1,2}([^*]+)\*{1,2}", r"\1", text)
+        for line in cleaned.splitlines():
+            if pattern.search(line):
+                return True
+    return False
+
+
 def has_ce_approval(texts: list[str]) -> bool:
     """Check if any text contains a CE approval (APPROVED or GO).
 
