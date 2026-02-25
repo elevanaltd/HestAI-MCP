@@ -1,7 +1,7 @@
 ===SUBMIT_REVIEW_GUIDE===
 META:
   TYPE::AGENT_GUIDE
-  VERSION::"2.0.0"
+  VERSION::"2.1.0"
   PURPOSE::"Agent instructions for submit_review MCP tool usage"
   COMPRESSION_TIER::CONSERVATIVE
   LOSS_PROFILE::"~15% verbose phrasing, repetition"
@@ -84,11 +84,39 @@ META:
   HO_TIER_1::"HO_delegates_to_IL→IL_implements→create_PR→HO_submit_review[role:IL,keyword:REVIEWED]→CI_validates→merge"
   MULTI_AGENT::"IL_implements→create_PR→CRS_reviews→CE_reviews→IF[both_APPROVED]→merge ELSE→rework→re_review"
   DRAFT_STRATEGY::"create_draft→incremental_reviews→mark_ready→final_approvals→merge"
-§6::USAGE_PATTERNS
-  IL_SELF_REVIEW::"submit_review(repo,pr,role:IL,verdict:APPROVED,assessment,model_annotation:Claude)"
-  CRS_WITH_ANNOTATION::"submit_review(repo,pr,role:CRS,verdict:APPROVED,assessment,model_annotation:Gemini)"
-  CE_BLOCKING::"submit_review(repo,pr,role:CE,verdict:BLOCKED,assessment)"
-  DRY_RUN_TEST::"submit_review(repo,pr,role:CRS,verdict:APPROVED,assessment,dry_run:true)"
+§6::USAGE_EXAMPLES
+compatibility:
+  ```python
+await submit_review(
+    repo="elevanaltd/HestAI-MCP",
+    pr_number=123,
+    role="CRS",
+    verdict="APPROVED",
+    assessment="Logic correct, tests pass, no security issues",
+    model_annotation="Gemini"
+)
+  ```
+review:
+  ```python
+await submit_review(
+    repo="elevanaltd/HestAI-MCP",
+    pr_number=123,
+    role="CE",
+    verdict="BLOCKED",
+    assessment="Security vulnerability: SQL injection risk at line 45"
+)
+  ```
+GitHub:
+  ```python
+await submit_review(
+    repo="elevanaltd/HestAI-MCP",
+    pr_number=123,
+    role="CRS",
+    verdict="APPROVED",
+    assessment="Test review",
+    dry_run=True
+)
+  ```
 §7::RESPONSE_STRUCTURE
   SUCCESS::[
     success::true,
@@ -108,6 +136,20 @@ META:
     rate_limit::"retry_backoff[wait_60s,exponential]",
     github_api::"check_PR_exists[404_or_other]"
   ]
+errors:
+  ```python
+result = await submit_review(repo=repo, pr_number=pr, role="CRS",
+                             verdict="APPROVED", assessment="...")
+if not result["success"]:
+    error = result["error_type"]
+    if error == "rate_limit":
+        await asyncio.sleep(60)
+        result = await submit_review(...)
+    elif error == "network":
+        result = await submit_review(...)
+    else:
+        raise ReviewError(result["error"])
+  ```
 §9::CRITICAL_CONSTRAINTS
   RULES::[
     "PR_MUST_EXIST[cannot review commits outside PR]",
@@ -134,4 +176,8 @@ META:
     review_templates,
     structured_metadata_blocks
   ]
+§12::TROUBLESHOOTING
+  REVIEW_NOT_RECOGNIZED::"check_format[dry_run:true]→verify_no_extra_chars→validate_role_and_verdict"
+  RATE_LIMITING::"implement_exponential_backoff→monitor_x_ratelimit_headers→consider_batching"
+  AUTH_ERRORS::"verify_GITHUB_TOKEN_set→check_repo_scope→ensure_not_expired"
 ===END===
