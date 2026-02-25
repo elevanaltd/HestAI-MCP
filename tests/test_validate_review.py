@@ -1037,3 +1037,10 @@ class TestCRSModelApprovalSpoofing:
         assert validate_review._has_crs_model_approval(
             texts, "Gemini"
         ), "Em dash-separated model approval must pass"
+
+    def test_model_approval_with_double_dash_still_works(self):
+        """Sanity: 'CRS (Gemini) -- APPROVED' with double dash must still pass."""
+        texts = ["CRS (Gemini) -- APPROVED: Logic verified"]
+        assert validate_review._has_crs_model_approval(
+            texts, "Gemini"
+        ), "Double-dash-separated model approval must pass"

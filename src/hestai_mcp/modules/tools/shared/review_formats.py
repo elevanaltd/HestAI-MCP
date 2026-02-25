@@ -106,10 +106,10 @@ def has_crs_model_approval(texts: list[str], model: str) -> bool:
         True if model-specific CRS approval found.
     """
     # Strict pattern: CRS(model) followed by only separator chars then APPROVED|GO.
-    # Allowed separators: whitespace, colon, em dash, en dash, hyphen.
+    # Allowed separators: whitespace, colon, em dash, en dash, hyphen (0 or more).
     # No arbitrary tokens (like "and CRS (Codex)" or "BLOCKED") permitted between.
     pattern = re.compile(
-        rf"\bCRS\s*\(\s*{re.escape(model)}\s*\)\s*[:—–\-]?\s*(?:APPROVED|GO)\b",
+        rf"\bCRS\s*\(\s*{re.escape(model)}\s*\)\s*[:—–\-]*\s*(?:APPROVED|GO)\b",
         re.IGNORECASE,
     )
 
