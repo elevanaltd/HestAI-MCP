@@ -116,6 +116,9 @@ try:
         has_crs_approval as _has_crs_approval,
     )
     from hestai_mcp.modules.tools.shared.review_formats import (
+        has_crs_model_approval as _has_crs_model_approval,
+    )
+    from hestai_mcp.modules.tools.shared.review_formats import (
         matches_approval_pattern as _matches_approval_pattern,
     )
 except (ImportError, ModuleNotFoundError):
@@ -137,6 +140,7 @@ except (ImportError, ModuleNotFoundError):
     _spec.loader.exec_module(_review_formats)
     _matches_approval_pattern = _review_formats.matches_approval_pattern
     _has_crs_approval = _review_formats.has_crs_approval
+    _has_crs_model_approval = _review_formats.has_crs_model_approval
     _has_ce_approval = _review_formats.has_ce_approval
 
 
@@ -190,8 +194,8 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
         # Check for required approvals based on tier.
         # Higher-tier reviews satisfy lower-tier requirements (hierarchy rule):
         #   TIER_1_SELF: IL SELF-REVIEWED OR CRS OR CRS+CE
-        #   TIER_2_CRS:  CRS OR CRS+CE
-        #   TIER_3_FULL: CRS+CE (unchanged)
+        #   TIER_2_CRS:  CRS + CE
+        #   TIER_3_FULL: CRS(Gemini) + CRS(Codex) + CE
         if tier == "TIER_1_SELF":
             if _has_approval(searchable_texts, "IL", "SELF-REVIEWED"):
                 return True, "✓ Self-review found"
@@ -200,20 +204,32 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
             return False, "❌ Missing: IL SELF-REVIEWED comment"
 
         elif tier == "TIER_2_CRS":
-            if _has_crs_approval(searchable_texts):
-                return True, "✓ CRS approval found"
-            return False, "❌ Missing: CRS APPROVED or CRS GO comment"
-
-        elif tier == "TIER_3_FULL":
             has_crs = _has_crs_approval(searchable_texts)
             has_ce = _has_ce_approval(searchable_texts)
 
             if has_crs and has_ce:
-                return True, "✓ Both CRS and CE approvals found"
+                return True, "✓ CRS and CE approvals found"
 
             missing = []
             if not has_crs:
                 missing.append("CRS APPROVED or CRS GO")
+            if not has_ce:
+                missing.append("CE APPROVED or CE GO")
+            return False, f"❌ Missing: {', '.join(missing)}"
+
+        elif tier == "TIER_3_FULL":
+            has_crs_gemini = _has_crs_model_approval(searchable_texts, "Gemini")
+            has_crs_codex = _has_crs_model_approval(searchable_texts, "Codex")
+            has_ce = _has_ce_approval(searchable_texts)
+
+            if has_crs_gemini and has_crs_codex and has_ce:
+                return True, "✓ Dual CRS (Gemini + Codex) and CE approvals found"
+
+            missing = []
+            if not has_crs_gemini:
+                missing.append("CRS (Gemini) APPROVED or CRS (Gemini) GO")
+            if not has_crs_codex:
+                missing.append("CRS (Codex) APPROVED or CRS (Codex) GO")
             if not has_ce:
                 missing.append("CE APPROVED or CE GO")
             return False, f"❌ Missing: {', '.join(missing)}"
@@ -326,13 +342,16 @@ def main() -> int:
             print("   Add comment: 'IL SELF-REVIEWED: [your rationale]'")
             print("   Example: 'IL SELF-REVIEWED: Fixed typo in error message'")
         elif tier == "TIER_2_CRS":
-            print("   Need comment: 'CRS APPROVED: [assessment]'")
+            print("   Need comments:")
+            print("   - 'CRS APPROVED: [assessment]' (or CRS (Gemini) APPROVED:)")
+            print("   - 'CE APPROVED: [critical assessment]'")
             print("   Example: 'CRS APPROVED: Logic correct, tests pass, no security issues'")
         elif tier == "TIER_3_FULL":
             print("   Need comments:")
-            print("   - 'CRS APPROVED: [assessment]'")
+            print("   - 'CRS (Gemini) APPROVED: [assessment]'")
+            print("   - 'CRS (Codex) APPROVED: [assessment]'")
             print("   - 'CE APPROVED: [critical assessment]'")
-            print("   Example: 'CE APPROVED: Architecture sound, performance acceptable'")
+            print("   Example: 'CRS (Gemini) APPROVED: Logic verified, patterns sound'")
 
         # Only block in CI context
         if "CI" in os.environ:
