@@ -1,6 +1,6 @@
 ---
 name: documentation-placement
-description: Document placement using timeline test (before-code vs after-code). Defines repository structure for dev/docs/ vs coordination/ with phase artifact rules and documentation-first protocols.
+description: Document placement using timeline test and HestAI visibility rules. Maps artifacts to .hestai/, docs/, .hestai/state/ with phase artifact rules and documentation-first protocols.
 allowed-tools: ["Read", "Write", "Bash"]
 triggers: ["documentation placement", "ADR placement", "phase artifact", "documentation first", "B1 migration gate"]
 ---
@@ -8,7 +8,7 @@ triggers: ["documentation placement", "ADR placement", "phase artifact", "docume
 ===DOCUMENTATION_PLACEMENT===
 META:
   TYPE::SKILL
-  VERSION::1.0
+  VERSION::2.0
   STATUS::ACTIVE
   COMPRESSION_TIER::AGGRESSIVE
   DOMAIN::HERMES[communication]⊕HESTIA[structure]
@@ -16,40 +16,59 @@ META:
 §1::CORE_PRINCIPLE
 
 TIMELINE_TEST::[
-  IF[document_before_code]->coordination/workflow-docs/,
-  IF[document_describes_implementation]->dev/docs/,
-  IF[document_guides_implementation]->dev/docs/
+  IF[document_before_code]→.hestai/north-star/|.hestai/rules/,
+  IF[document_describes_implementation]→docs/,
+  IF[document_guides_implementation]→docs/,
+  IF[operational_state_or_tracking]→.hestai/state/context/,
+  IF[session_or_handoff]→.hestai/state/sessions/
 ]
 
-RATIONALE::"Timeline→placement: planning=coordination/, implementation=dev/"
+RATIONALE::"Timeline→placement: planning=.hestai/, implementation=docs/, operational=.hestai/state/"
+
+CANONICAL_REFERENCE::.hestai-sys/governance/rules/visibility-rules.oct.md
 
 §2::REPOSITORY_STRUCTURE
 
-COORDINATION::[
-  workflow-docs/::"Phase artifacts (D1, D2, B0)",
-  phase-reports/::"Phase gates (B1-B4)",
-  planning-docs/::"CHARTER, ASSIGNMENTS, PROJECT-CONTEXT",
-  ACTIVE-WORK.md::"Status board for worktree visibility"
+// Per visibility-rules.oct.md v1.6
+
+PROJECT_GOVERNANCE[.hestai/]::[
+  north-star/→"North Star documents (000-*-NORTH-STAR.md + components/)",
+  decisions/→"Compiled governance decisions (debate outcomes, NOT ADRs)",
+  rules/→"Project standards, methodology, workflow guidance, specs",
+  schemas/→"Schema definitions"
 ]
 
-DEV::[
-  architecture/::"D3-BLUEPRINT-ORIGINAL, ARCHITECTURE-AS-BUILT, DEVIATIONS",
-  adr/::"ADR-XXXX-{slug} (GitHub issue-based numbering)",
-  api/::"API endpoint documentation",
-  guides/::"Technical guides"
+DEVELOPER_DOCS[docs/]::[
+  adr/→"ADR-NNNN-topic.md (GitHub issue-based numbering per ADR-0031)",
+  api/→"API endpoint documentation",
+  development/→"Setup guides",
+  deployment/→"Deployment guides"
+]
+
+OPERATIONAL_STATE[.hestai/state/]::[
+  context/→"PROJECT-CONTEXT.md, PROJECT-CHECKLIST.md, PROJECT-HISTORY.md",
+  context/apps/{app}/→"APP-CONTEXT.md, APP-CHECKLIST.md, APP-HISTORY.md",
+  sessions/active/→"Active session working state",
+  sessions/archive/→"Archived session transcripts",
+  reports/→"Audit reports, scan outputs, quality gate evidence"
+]
+
+DEBATE_ARTIFACTS[debates/]::[
+  *.json→GITIGNORED[full_debate_machine_format],
+  *.oct.md→COMMITTED[compressed_debate_synthesis]
 ]
 
 §3::PHASE_ARTIFACT_MAPPING
 
 PLACEMENT::[
-  D1_NORTH_STAR::coordination/workflow-docs/,
-  D2_DESIGN::coordination/workflow-docs/,
-  D3_BLUEPRINT::dev/docs/architecture/D3-BLUEPRINT-ORIGINAL.md,
-  B0_VALIDATION::coordination/workflow-docs/,
-  B1_B4_REPORTS::coordination/phase-reports/
+  D1_NORTH_STAR::.hestai/north-star/,
+  D2_DESIGN::.hestai/rules/specs/,
+  D3_BLUEPRINT::docs/[architecture_documentation],
+  B0_VALIDATION::.hestai/rules/specs/,
+  B1_B4_REPORTS::.hestai/state/reports/
 ]
 
-CRITICAL::"D3 migrates FROM coordination TO dev/ at B1 gate"
+CRITICAL::"D3 blueprint migrates to docs/ at B1 gate"
 
 §4::DOCUMENTATION_FIRST_PROTOCOL
 
@@ -74,21 +93,23 @@ MERGE_STRATEGY::[
 §5::B1_MIGRATION_GATE
 
 CONTEXT_REQUIREMENTS::[
-  B1_01_B1_02::ideation_directory,
-  MIGRATION_GATE::manual_checkpoint[verify D3→dev/],
-  B1_03_B1_05::dev_directory
+  B1_01_B1_02::.hestai/rules/specs/[design_phase_artifacts],
+  MIGRATION_GATE::manual_checkpoint[verify_D3→docs/],
+  B1_03_B1_05::docs/[implementation_documentation]
 ]
 
-CRITICAL::"B1_02 in ideation/, B1_03 in dev/ after manual migration"
+CRITICAL::"B1_02 in .hestai/rules/specs/, B1_03 in docs/ after manual migration"
 
 
-§6::ACTIVE_WORK_MD_STATUS_BOARD
+§6::PROJECT_CONTEXT_STATUS
 
 PURPOSE::"Mitigate worktree isolation with visible project status"
 
+LOCATION::.hestai/state/context/PROJECT-CONTEXT.md
+
 SECTIONS::[
   feature_name_and_branch,
-  blueprint_link::dev/docs/architecture/,
+  blueprint_link::docs/,
   ADR_status::[MERGED,IN_REVIEW],
   current_phase::[B1,B2,B3,B4],
   PR_link[with_WIP_marker],
@@ -123,6 +144,7 @@ ADR_DOCS::[
 ]
 
 NUMBERING_RULE::"ADR-{GITHUB_ISSUE_NUMBER}-{slug}.md with zero-padded 4 digits"
+LOCATION::docs/adr/
 VALIDATION::scripts/ci/validate-doc-numbering.sh[enforced_on_push]
 
 
@@ -149,7 +171,7 @@ WISDOMS::[
   "Documentation_is_prerequisite_not_side_effect",
   "Timeline_determines_placement",
   "B1_migration_is_critical_checkpoint",
-  "ACTIVE-WORK.md_prevents_worktree_blindness"
+  "PROJECT-CONTEXT.md_prevents_worktree_blindness"
 ]
 
 ===END===

@@ -64,10 +64,13 @@ SITUATION::[
 ]
 
 .hestai-sys/library/::[
-  PURPOSE::"Reference materials and guides",
+  PURPOSE::"Reference materials, skills, agent definitions, and guides",
   CONTENT::[
-    octave/→OCTAVE_usage_guide_for_consumers,
-    patterns/→common_patterns_and_examples
+    skills/→ecosystem_wide_operational_skills,
+    agents/→agent_definitions[.oct.md],
+    patterns/→common_patterns_and_examples,
+    schemas/→schema_definitions,
+    octave/→OCTAVE_usage_guide_for_consumers
   ]
 ]
 
@@ -185,15 +188,22 @@ CONSUMER_DIRECTORY_STRUCTURE::[
     library/→reference_materials,
     tools/→utility_scripts
   ],
-  ".hestai/[their_mutable_context]"::[
-    context/→PROJECT-CONTEXT+CHECKLIST+ROADMAP,
-    sessions/→session_artifacts,
-    workflow/→product_north_star+methodology,
-    reports/→evidence_archives
+  ".hestai/[their_mutable_governance+state]"::[
+    north-star/→product_north_star[000-*-NORTH-STAR.md+components/],
+    decisions/→compiled_governance_decisions[debate_outcomes],
+    rules/→project_standards+methodology+workflow_guidance,
+    schemas/→schema_definitions,
+    state/context/→PROJECT-CONTEXT+CHECKLIST+HISTORY[shared_via_symlink],
+    state/sessions/→session_artifacts[active+archive|shared_via_symlink],
+    state/reports/→evidence_archives[shared_via_symlink]
   ],
   "docs/[their_developer_docs]"::[
     adr/→architecture_decisions,
     development/→setup_guides
+  ],
+  "debates/[cognitive_evidence]"::[
+    *.json→GITIGNORED[full_debate_machine_format],
+    *.oct.md→COMMITTED[compressed_debate_synthesis]
   ]
 ]
 
