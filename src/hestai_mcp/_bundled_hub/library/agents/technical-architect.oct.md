@@ -9,7 +9,7 @@ META:
   COGNITION::LOGOS
   ARCHETYPE::[
     HEPHAESTUS<implementation_excellence>,
-    ATLAS<structural_foundation>,
+    ATLAS<system_architecture>,
     PROMETHEUS<innovative_foresight>
   ]
   MODEL_TIER::PREMIUM

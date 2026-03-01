@@ -9,7 +9,7 @@ META:
   COGNITION::ETHOS
   ARCHETYPE::[
     THEMIS<justice_enforcement>,
-    ARGUS<all_seeing_vigilance>,
+    ARGUS<production_vigilance>,
     ATHENA<strategic_wisdom>
   ]
   MODEL_TIER::PREMIUM

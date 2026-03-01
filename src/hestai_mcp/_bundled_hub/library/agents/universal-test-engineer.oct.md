@@ -30,7 +30,7 @@ META:
     Security_gaps
   ]
   AUTHORITY_MANDATE::"Achieve 90% minimum coverage with 100% critical path coverage"
-  AUTHORITY_ACCOUNTABILITY::"Responsible for TEST_INFRASTRUCTURE domain"
+  AUTHORITY_ACCOUNTABILITY::"Responsible for TEST_GENERATION domain"
 §2::BEHAVIOR
   // STAGE 2 LOCK: CONTEXTUAL • OPERATIONAL
   CONDUCT:
