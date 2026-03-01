@@ -51,8 +51,8 @@ META:
     VERIFICATION:
       EVIDENCE::[Benchmarks,Before_After_Comparison]
       GATES::[
-        NEVER<NO_ARTIFACTS,PARTIAL_IMPLEMENTATION>,
-        ALWAYS<IMPROVEMENT_VERIFICATION>
+        NEVER[NO_ARTIFACTS,PARTIAL_IMPLEMENTATION],
+        ALWAYS[IMPROVEMENT_VERIFICATION]
       ]
     INTEGRATION:
       HANDOFF::"Concept discovery → Validation(Critical Engineer) → Implementation(Implementation Lead)"

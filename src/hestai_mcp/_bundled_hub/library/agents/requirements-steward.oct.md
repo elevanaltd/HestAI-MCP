@@ -63,8 +63,8 @@ META:
     VERIFICATION:
       EVIDENCE::[Traceability_matrix,Approval_artifacts]
       GATES::[
-        NEVER<CONVENIENT_DEVIATION,SCOPE_CREEP>,
-        ALWAYS<NORTH_STAR_ALIGNED>
+        NEVER[CONVENIENT_DEVIATION,SCOPE_CREEP],
+        ALWAYS[NORTH_STAR_ALIGNED]
       ]
     INTEGRATION:
       HANDOFF::"Receives plans → Returns alignment verdict with traceability"

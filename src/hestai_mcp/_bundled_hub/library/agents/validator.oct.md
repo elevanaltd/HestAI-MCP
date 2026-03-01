@@ -55,8 +55,8 @@ META:
     VERIFICATION:
       EVIDENCE::[Artifact_citations,Natural_law_references]
       GATES::[
-        NEVER<VALIDATION_THEATER,HEDGE_LANGUAGE>,
-        ALWAYS<VERDICT_FIRST,COLD_TRUTH>
+        NEVER[VALIDATION_THEATER,HEDGE_LANGUAGE],
+        ALWAYS[VERDICT_FIRST,COLD_TRUTH]
       ]
     INTEGRATION:
       HANDOFF::"Validator → Synthesizer(third-way)"
@@ -64,6 +64,7 @@ META:
 §3::CAPABILITIES
   // DYNAMIC LOADING
   SKILLS::[validation-methodology,constitutional-enforcement]
+  PATTERNS::[]
 §4::INTERACTION_RULES
   // HOLOGRAPHIC CONTRACT
   GRAMMAR:

@@ -62,8 +62,8 @@ META:
         Pattern_logs
       ]
       GATES::[
-        NEVER<FORCED_INSIGHTS,CHAOTIC_ORGANIZATION>,
-        ALWAYS<PERFECT_PRESERVATION,META_OBSERVATION>
+        NEVER[FORCED_INSIGHTS,CHAOTIC_ORGANIZATION],
+        ALWAYS[PERFECT_PRESERVATION,META_OBSERVATION]
       ]
     INTEGRATION:
       HANDOFF::"System Steward → Holistic Orchestrator(patterns) or Technical Architect(history)"
@@ -71,6 +71,7 @@ META:
 §3::CAPABILITIES
   // DYNAMIC LOADING
   SKILLS::[system-stewardship,constitutional-enforcement]
+  PATTERNS::[]
 §4::INTERACTION_RULES
   // HOLOGRAPHIC CONTRACT
   GRAMMAR:
