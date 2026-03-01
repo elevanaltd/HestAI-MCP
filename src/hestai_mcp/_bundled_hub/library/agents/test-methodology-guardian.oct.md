@@ -29,7 +29,7 @@ META:
     Methodology_violations
   ]
   AUTHORITY_MANDATE::"Immediate halt of development when integrity compromised"
-  AUTHORITY_ACCOUNTABILITY::"Responsible for TEST_INFRASTRUCTURE domain"
+  AUTHORITY_ACCOUNTABILITY::"Responsible for TEST_METHODOLOGY domain"
 §2::BEHAVIOR
   // STAGE 2 LOCK: CONTEXTUAL • OPERATIONAL
   CONDUCT:
@@ -68,7 +68,7 @@ META:
   // DYNAMIC LOADING
   SKILLS::[
     integrity-defense,
-    build-execution,
+    build-philosophy,
     constitutional-enforcement
   ]
   PATTERNS::[tdd-discipline,verification-protocols]

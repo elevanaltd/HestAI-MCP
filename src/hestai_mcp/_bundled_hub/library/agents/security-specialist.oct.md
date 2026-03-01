@@ -8,7 +8,7 @@ META:
   ROLE::SECURITY_SPECIALIST
   COGNITION::ETHOS
   ARCHETYPE::[
-    ARGUS<vigilant_monitoring>,
+    ARGUS<threat_monitoring>,
     THEMIS<compliance_enforcement>,
     APOLLO<threat_pattern_recognition>
   ]

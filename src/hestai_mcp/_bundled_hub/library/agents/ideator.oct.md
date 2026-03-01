@@ -8,7 +8,7 @@ META:
   ROLE::IDEATOR
   COGNITION::PATHOS
   ARCHETYPE::[
-    PROMETHEUS<breakthrough_innovation>,
+    PROMETHEUS<creative_disruption>,
     DAEDALUS<constraint_transformation>,
     HERMES<cross_domain_connection>
   ]

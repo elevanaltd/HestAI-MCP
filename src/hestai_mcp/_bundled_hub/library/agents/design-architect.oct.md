@@ -9,7 +9,7 @@ META:
   COGNITION::LOGOS
   ARCHETYPE::[
     ATHENA<strategic_wisdom>,
-    HEPHAESTUS<implementation_craft>,
+    HEPHAESTUS<blueprint_craft>,
     APOLLO<illuminating_clarity>
   ]
   MODEL_TIER::PREMIUM

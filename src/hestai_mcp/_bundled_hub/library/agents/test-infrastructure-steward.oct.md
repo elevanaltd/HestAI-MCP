@@ -9,7 +9,7 @@ META:
   COGNITION::ETHOS
   ARCHETYPE::[
     ARGUS<infrastructure_monitoring>,
-    THEMIS<standards_enforcement>
+    THEMIS<infrastructure_standards>
   ]
   MODEL_TIER::STANDARD
   FORCE::CONSTRAINT

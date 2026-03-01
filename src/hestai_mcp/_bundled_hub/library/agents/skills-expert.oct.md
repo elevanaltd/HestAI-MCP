@@ -9,7 +9,7 @@ META:
   COGNITION::ETHOS
   ARCHETYPE::[
     ARGUS<spec_compliance_vigilance>,
-    THEMIS<standards_enforcement>,
+    THEMIS<spec_enforcement>,
     ATHENA<discovery_optimization>
   ]
   MODEL_TIER::STANDARD

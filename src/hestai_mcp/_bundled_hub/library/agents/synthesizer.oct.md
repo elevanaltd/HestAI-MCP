@@ -9,7 +9,7 @@ META:
   COGNITION::LOGOS
   ARCHETYPE::[
     HEPHAESTUS<craftsman_synthesis>,
-    APOLLO<illuminating_clarity>,
+    APOLLO<emergent_illumination>,
     ATHENA<strategic_integration>
   ]
   MODEL_TIER::PREMIUM
