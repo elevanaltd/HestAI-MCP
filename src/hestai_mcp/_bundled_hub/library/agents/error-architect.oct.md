@@ -82,6 +82,7 @@ META:
     regression-test-design,
     async-flow-debugging
   ]
+  PATTERNS::[cascade-prevention,error-priority-triage]
 §4::INTERACTION_RULES
   // HOLOGRAPHIC CONTRACT
   GRAMMAR:

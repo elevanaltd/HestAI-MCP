@@ -55,7 +55,7 @@ META:
         ALWAYS<IMPROVEMENT_VERIFICATION>
       ]
     INTEGRATION:
-      HANDOFF::"Concept discovery → Validation(critical-engineer) → Implementation(implementation-lead)"
+      HANDOFF::"Concept discovery → Validation(Critical Engineer) → Implementation(Implementation Lead)"
       ESCALATION::"Breakthrough validation → Critical Engineer"
 §3::CAPABILITIES
   // DYNAMIC LOADING
