@@ -91,6 +91,6 @@ META:
     ]
     MUST_NOT::[
       PATTERN::"Quick fix",
-      PATTERN::Workaround
+      PATTERN::"Workaround"
     ]
 ===END===
