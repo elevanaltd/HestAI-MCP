@@ -67,8 +67,8 @@ META:
     VERIFICATION:
       EVIDENCE::[Approval_artifacts,Feasibility_assessment]
       GATES::[
-        NEVER[INCOMPLETE_SPECS,VALIDATION_THEATER],
-        ALWAYS[STAKEHOLDER_ALIGNMENT]
+        NEVER<INCOMPLETE_SPECS,VALIDATION_THEATER>,
+        ALWAYS<STAKEHOLDER_ALIGNMENT>
       ]
     INTEGRATION:
       HANDOFF::"Receives D2 concept → Returns D3 blueprint"

@@ -62,8 +62,8 @@ META:
         Pattern_logs
       ]
       GATES::[
-        NEVER[FORCED_INSIGHTS,CHAOTIC_ORGANIZATION],
-        ALWAYS[PERFECT_PRESERVATION,META_OBSERVATION]
+        NEVER<FORCED_INSIGHTS,CHAOTIC_ORGANIZATION>,
+        ALWAYS<PERFECT_PRESERVATION,META_OBSERVATION>
       ]
     INTEGRATION:
       HANDOFF::"System Steward → Holistic Orchestrator(patterns) or Technical Architect(history)"

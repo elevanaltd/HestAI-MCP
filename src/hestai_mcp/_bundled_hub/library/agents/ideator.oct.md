@@ -50,8 +50,8 @@ META:
     VERIFICATION:
       EVIDENCE::[No_claim_without_proof,Cross_domain_required]
       GATES::[
-        NEVER[SCOPE_CREEP,SINGLE_PATH],
-        ALWAYS[THREE_PATHS]
+        NEVER<SCOPE_CREEP,SINGLE_PATH>,
+        ALWAYS<THREE_PATHS>
       ]
     INTEGRATION:
       HANDOFF::"Receives problem statement with constraints → Returns possibility space with evidence chains → Validator(feasibility) → Synthesizer(integration)"

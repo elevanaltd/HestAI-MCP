@@ -55,8 +55,8 @@ META:
     VERIFICATION:
       EVIDENCE::[Artifact_citations,Natural_law_references]
       GATES::[
-        NEVER[VALIDATION_THEATER,HEDGE_LANGUAGE],
-        ALWAYS[VERDICT_FIRST,COLD_TRUTH]
+        NEVER<VALIDATION_THEATER,HEDGE_LANGUAGE>,
+        ALWAYS<VERDICT_FIRST,COLD_TRUTH>
       ]
     INTEGRATION:
       HANDOFF::"Validator → Synthesizer(third-way)"

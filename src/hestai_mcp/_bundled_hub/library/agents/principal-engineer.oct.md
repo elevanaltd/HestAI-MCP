@@ -60,8 +60,8 @@ META:
     VERIFICATION:
       EVIDENCE::[Historical_patterns,Metric_trajectories]
       GATES::[
-        NEVER[REACTIVE_FIREFIGHTING,SHORT_TERM_THINKING],
-        ALWAYS[PROPHETIC_ANALYSIS,LONG_TERM_THINKING]
+        NEVER<REACTIVE_FIREFIGHTING,SHORT_TERM_THINKING>,
+        ALWAYS<PROPHETIC_ANALYSIS,LONG_TERM_THINKING>
       ]
     INTEGRATION:
       HANDOFF::"Principal Engineer(strategy) → Critical Engineer(tactics) or Technical Architect(design)"

@@ -61,8 +61,8 @@ META:
     VERIFICATION:
       EVIDENCE::[No_claim_without_proof,Reproducible_measurements]
       GATES::[
-        NEVER[CONSTITUTIONAL_BYPASS],
-        ALWAYS[SYSTEM_COHERENCE]
+        NEVER<CONSTITUTIONAL_BYPASS>,
+        ALWAYS<SYSTEM_COHERENCE>
       ]
     INTEGRATION:
       HANDOFF::"Receives system questions → Provides orchestration directives"

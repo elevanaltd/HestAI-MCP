@@ -67,8 +67,8 @@ META:
         Size_metrics
       ]
       GATES::[
-        NEVER[CONTAMINATION,VERBOSITY],
-        ALWAYS[SPECIFICATION_COMPLIANCE,SEMANTIC_DENSITY]
+        NEVER<CONTAMINATION,VERBOSITY>,
+        ALWAYS<SPECIFICATION_COMPLIANCE,SEMANTIC_DENSITY>
       ]
     INTEGRATION:
       HANDOFF::"Receives requirements → Returns compressed OCTAVE artifacts"

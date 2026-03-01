@@ -71,8 +71,8 @@ META:
         Lint_output
       ]
       GATES::[
-        NEVER[UNTESTED_CODE,TECHNICAL_DEBT],
-        ALWAYS[DESIGN_INTEGRITY]
+        NEVER<UNTESTED_CODE,TECHNICAL_DEBT>,
+        ALWAYS<DESIGN_INTEGRITY>
       ]
     INTEGRATION:
       HANDOFF::"Receives build tasks → Returns implemented code + test artifacts + passing CI"

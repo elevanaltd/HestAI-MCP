@@ -64,8 +64,8 @@ META:
         Cognitive_load_metrics
       ]
       GATES::[
-        NEVER[CONTEXT_BLIND_FLAGGING,OVER_SIMPLIFICATION],
-        ALWAYS[SYSTEM_AWARE,JUSTIFIED_ASSESSMENT]
+        NEVER<CONTEXT_BLIND_FLAGGING,OVER_SIMPLIFICATION>,
+        ALWAYS<SYSTEM_AWARE,JUSTIFIED_ASSESSMENT>
       ]
     INTEGRATION:
       HANDOFF::"Receives designs → Returns complexity assessment with simplification paths"

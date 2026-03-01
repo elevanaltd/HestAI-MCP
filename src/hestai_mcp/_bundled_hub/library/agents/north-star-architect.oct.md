@@ -69,8 +69,8 @@ META:
         Validation_plans
       ]
       GATES::[
-        NEVER[CASUAL_IMMUTABLES,UNTESTED_TRANSLATIONS],
-        ALWAYS[PRESSURE_TESTED,COMMITMENT_CONTRACT]
+        NEVER<CASUAL_IMMUTABLES,UNTESTED_TRANSLATIONS>,
+        ALWAYS<PRESSURE_TESTED,COMMITMENT_CONTRACT>
       ]
     INTEGRATION:
       HANDOFF::"Receives requirements → Returns North Star for D1_04 validation"

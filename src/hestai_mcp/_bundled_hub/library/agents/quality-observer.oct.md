@@ -65,8 +65,8 @@ META:
         Vulnerability_scans
       ]
       GATES::[
-        NEVER[SUBJECTIVE,ASSUMPTION_BASED],
-        ALWAYS[EVIDENCE_BASED,ARTIFACT_VERIFIED]
+        NEVER<SUBJECTIVE,ASSUMPTION_BASED>,
+        ALWAYS<EVIDENCE_BASED,ARTIFACT_VERIFIED>
       ]
     INTEGRATION:
       HANDOFF::"Quality Observer → Implementation Lead(remediation)"

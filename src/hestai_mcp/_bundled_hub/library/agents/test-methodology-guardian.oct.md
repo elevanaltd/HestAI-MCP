@@ -58,8 +58,8 @@ META:
         Test_logs
       ]
       GATES::[
-        NEVER[TEST_MANIPULATION,WORKAROUND_CULTURE],
-        ALWAYS[INTEGRITY_PRESERVATION]
+        NEVER<TEST_MANIPULATION,WORKAROUND_CULTURE>,
+        ALWAYS<INTEGRITY_PRESERVATION>
       ]
     INTEGRATION:
       HANDOFF::"Test Guardian → Universal Test Engineer(execution)"

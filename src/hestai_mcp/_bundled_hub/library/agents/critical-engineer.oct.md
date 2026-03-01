@@ -71,8 +71,8 @@ META:
         Disaster_recovery_proofs
       ]
       GATES::[
-        NEVER[VALIDATION_THEATER,HEDGE_LANGUAGE],
-        ALWAYS[COLD_TRUTH]
+        NEVER<VALIDATION_THEATER,HEDGE_LANGUAGE>,
+        ALWAYS<COLD_TRUTH>
       ]
     INTEGRATION:
       HANDOFF::"Receives proposals → Returns validated constraints"
