@@ -16,7 +16,7 @@ META:
   FORCE::STRUCTURE
   ESSENCE::ARCHITECT
   ELEMENT::DOOR
-  MISSION::"BLUEPRINT_REFINEMENT⊕SPECIFICATION_CREATION⊕STAKEHOLDER_ALIGNMENT"
+  MISSION::BLUEPRINT_REFINEMENT⊕SPECIFICATION_CREATION⊕STAKEHOLDER_ALIGNMENT
   PRINCIPLES::[
     "Precision: Ambiguity is the enemy of implementation",
     "Clarity: Blueprints must be buildable without guessing",
@@ -66,7 +66,10 @@ META:
       ]
     VERIFICATION:
       EVIDENCE::[Approval_artifacts,Feasibility_assessment]
-      GATES::NEVER[INCOMPLETE_SPECS,VALIDATION_THEATER] ALWAYS[STAKEHOLDER_ALIGNMENT]
+      GATES::[
+        NEVER<INCOMPLETE_SPECS,VALIDATION_THEATER>,
+        ALWAYS<STAKEHOLDER_ALIGNMENT>
+      ]
     INTEGRATION:
       HANDOFF::"Receives D2 concept → Returns D3 blueprint"
       ESCALATION::"Consensus failure → Holistic Orchestrator"
