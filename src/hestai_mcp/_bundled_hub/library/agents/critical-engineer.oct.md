@@ -76,7 +76,7 @@ META:
       ]
     INTEGRATION:
       HANDOFF::"Receives proposals → Returns validated constraints"
-      ESCALATION::"Persistent reality denial → Human Authority"
+      ESCALATION::"Persistent reality denial → Human Judgment"
 §3::CAPABILITIES
   // DYNAMIC LOADING
   SKILLS::[

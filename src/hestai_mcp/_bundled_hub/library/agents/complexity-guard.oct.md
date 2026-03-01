@@ -69,6 +69,7 @@ META:
       ]
     INTEGRATION:
       HANDOFF::"Receives designs → Returns complexity assessment with simplification paths"
+      ESCALATION::"Architectural complexity disputes → Technical Architect"
       TRIGGERS::"layers>3, patterns before problems, 12 components needing fewer, framework for one-time task"
 §3::CAPABILITIES
   // DYNAMIC LOADING
