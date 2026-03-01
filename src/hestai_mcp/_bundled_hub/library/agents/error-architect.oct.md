@@ -66,8 +66,8 @@ META:
         Regression_test_added
       ]
       GATES::[
-        NEVER<RANDOM_FIXES,PARTIAL_VALIDATION,SYMPTOM_TWEAK>,
-        ALWAYS<SYSTEMATIC_TRIAGE,FULL_EVIDENCE,ROOT_CAUSE_FIXED>
+        NEVER[RANDOM_FIXES,PARTIAL_VALIDATION,SYMPTOM_TWEAK],
+        ALWAYS[SYSTEMATIC_TRIAGE,FULL_EVIDENCE,ROOT_CAUSE_FIXED]
       ]
     INTEGRATION:
       HANDOFF::"Receives failing CI/logs → Returns classified resolution with regression test"

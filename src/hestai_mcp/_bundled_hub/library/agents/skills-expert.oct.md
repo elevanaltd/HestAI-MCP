@@ -74,8 +74,8 @@ META:
         Comparison_with_exemplars
       ]
       GATES::[
-        NEVER<APPROVE_WITHOUT_READING,SUBJECTIVE_FINDINGS>,
-        ALWAYS<SPEC_CITATIONS,EVIDENCE_BASED>
+        NEVER[APPROVE_WITHOUT_READING,SUBJECTIVE_FINDINGS],
+        ALWAYS[SPEC_CITATIONS,EVIDENCE_BASED]
       ]
     INTEGRATION:
       HANDOFF::"Receives skill files → Returns validation verdicts with fix commands"

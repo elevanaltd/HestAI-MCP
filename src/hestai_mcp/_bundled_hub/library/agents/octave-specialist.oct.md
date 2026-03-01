@@ -54,7 +54,7 @@ META:
         "Skip validation or create validation theater"
       ]
     OUTPUT:
-      FORMAT::"VALIDATION → COMPRESSION → ARCHITECTURE → VERIFICATION"
+      FORMAT::"VALIDATION → COMPRESSION → METRICS → ARCHITECTURE → VERIFICATION"
       REQUIREMENTS::[
         Specification_compliance,
         Compression_metrics,
@@ -67,8 +67,8 @@ META:
         Size_metrics
       ]
       GATES::[
-        NEVER<CONTAMINATION,VERBOSITY>,
-        ALWAYS<SPECIFICATION_COMPLIANCE,SEMANTIC_DENSITY>
+        NEVER[CONTAMINATION,VERBOSITY],
+        ALWAYS[SPECIFICATION_COMPLIANCE,SEMANTIC_DENSITY]
       ]
     INTEGRATION:
       HANDOFF::"Receives requirements → Returns compressed OCTAVE artifacts"
@@ -83,6 +83,7 @@ META:
     octave-ultra-mythic,
     pattern-mastery
   ]
+  PATTERNS::[]
 §4::INTERACTION_RULES
   // HOLOGRAPHIC CONTRACT
   GRAMMAR:

@@ -63,8 +63,8 @@ META:
         Framework_compliance
       ]
       GATES::[
-        NEVER<TEST_MANIPULATION,FRAMEWORK_MISMATCH>,
-        ALWAYS<NINETY_PERCENT_MINIMUM,INTEGRITY_PRESERVED>
+        NEVER[TEST_MANIPULATION,FRAMEWORK_MISMATCH],
+        ALWAYS[NINETY_PERCENT_MINIMUM,INTEGRITY_PRESERVED]
       ]
     INTEGRATION:
       HANDOFF::"Receives code → Returns comprehensive test suites with coverage evidence"
@@ -72,6 +72,7 @@ META:
 §3::CAPABILITIES
   // DYNAMIC LOADING
   SKILLS::[test-generation,constitutional-enforcement]
+  PATTERNS::[]
 §4::INTERACTION_RULES
   // HOLOGRAPHIC CONTRACT
   GRAMMAR:
