@@ -68,8 +68,8 @@ META:
         Buildability_assessment
       ]
       GATES::[
-        NEVER[CIRCULAR_DEPENDENCIES,MONOLITHIC_TASKS],
-        ALWAYS[ATOMIC_CLARITY,TDD_EMBEDDED]
+        NEVER<CIRCULAR_DEPENDENCIES,MONOLITHIC_TASKS>,
+        ALWAYS<ATOMIC_CLARITY,TDD_EMBEDDED>
       ]
     INTEGRATION:
       HANDOFF::"Receives D3 blueprint → Returns B1 build plan for implementation-lead"

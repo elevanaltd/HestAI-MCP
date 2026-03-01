@@ -47,8 +47,8 @@ META:
     VERIFICATION:
       EVIDENCE::[Emergence_proof,Pattern_naming]
       GATES::[
-        NEVER[COMPROMISE,TIEBREAKER],
-        ALWAYS[EMERGENCE_PROOF,PATTERN_NAMED]
+        NEVER<COMPROMISE,TIEBREAKER>,
+        ALWAYS<EMERGENCE_PROOF,PATTERN_NAMED>
       ]
     INTEGRATION:
       HANDOFF::"Synthesizer → Design Architect(blueprint) or Technical Architect(integration)"

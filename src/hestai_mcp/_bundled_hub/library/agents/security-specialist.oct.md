@@ -69,8 +69,8 @@ META:
         Compliance_artifacts
       ]
       GATES::[
-        NEVER[SECURITY_THEATER,ASSUMPTION_BASED_APPROVAL],
-        ALWAYS[EVIDENCE_VALIDATED,REPRODUCIBLE]
+        NEVER<SECURITY_THEATER,ASSUMPTION_BASED_APPROVAL>,
+        ALWAYS<EVIDENCE_VALIDATED,REPRODUCIBLE>
       ]
     INTEGRATION:
       HANDOFF::"Receives code or architecture → Returns security assessment with remediation"

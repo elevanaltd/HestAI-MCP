@@ -54,8 +54,8 @@ META:
         Test_coverage
       ]
       GATES::[
-        NEVER[ARCHITECTURAL_COMPROMISE,UNTESTED_CODE],
-        ALWAYS[DESIGN_INTEGRITY]
+        NEVER<ARCHITECTURAL_COMPROMISE,UNTESTED_CODE>,
+        ALWAYS<DESIGN_INTEGRITY>
       ]
     INTEGRATION:
       HANDOFF::"Technical Architect → Implementation Lead(execution)"

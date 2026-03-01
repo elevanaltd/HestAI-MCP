@@ -67,8 +67,8 @@ META:
         Documentation_completeness
       ]
       GATES::[
-        NEVER[UNDOCUMENTED_DELIVERY,KNOWLEDGE_GAPS],
-        ALWAYS[COMPREHENSIVE_HANDOFF,CONTINUITY_ASSURED]
+        NEVER<UNDOCUMENTED_DELIVERY,KNOWLEDGE_GAPS>,
+        ALWAYS<COMPREHENSIVE_HANDOFF,CONTINUITY_ASSURED>
       ]
     INTEGRATION:
       HANDOFF::"Receives B3 integrated system → Returns production-ready delivery package"

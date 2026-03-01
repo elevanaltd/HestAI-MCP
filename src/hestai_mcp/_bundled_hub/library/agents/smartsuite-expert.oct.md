@@ -63,8 +63,8 @@ META:
         Format_compliance
       ]
       GATES::[
-        NEVER[FIELD_GUESSING,FORMAT_ASSUMPTION],
-        ALWAYS[DISCOVERY_FIRST,FORMAT_VALIDATED]
+        NEVER<FIELD_GUESSING,FORMAT_ASSUMPTION>,
+        ALWAYS<DISCOVERY_FIRST,FORMAT_VALIDATED>
       ]
     INTEGRATION:
       HANDOFF::"Receives SmartSuite operations → Returns validated results with patterns"

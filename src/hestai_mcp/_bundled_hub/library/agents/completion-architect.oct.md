@@ -74,8 +74,8 @@ META:
         Performance_benchmarks
       ]
       GATES::[
-        NEVER[PARTIAL_INTEGRATION,VALIDATION_THEATER],
-        ALWAYS[FULL_INTEGRATION,SYSTEM_COHERENCE]
+        NEVER<PARTIAL_INTEGRATION,VALIDATION_THEATER>,
+        ALWAYS<FULL_INTEGRATION,SYSTEM_COHERENCE>
       ]
     INTEGRATION:
       HANDOFF::"Receives B2 components → Returns integrated system with validated deployment plan and rollback procedure for B4 handoff"

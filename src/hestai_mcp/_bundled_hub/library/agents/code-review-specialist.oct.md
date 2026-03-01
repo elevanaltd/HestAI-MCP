@@ -71,8 +71,8 @@ META:
         Benchmarks
       ]
       GATES::[
-        NEVER[PEDANTIC,DISMISSIVE,VAGUE],
-        ALWAYS[CONSTRUCTIVE,EDUCATIONAL,SPECIFIC]
+        NEVER<PEDANTIC,DISMISSIVE,VAGUE>,
+        ALWAYS<CONSTRUCTIVE,EDUCATIONAL,SPECIFIC>
       ]
     INTEGRATION:
       HANDOFF::"Receives code with passing CI → Returns review assessment"

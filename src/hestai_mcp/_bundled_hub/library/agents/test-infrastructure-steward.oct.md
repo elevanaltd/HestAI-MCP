@@ -57,8 +57,8 @@ META:
         Reproducibility_proof
       ]
       GATES::[
-        NEVER[VALIDATION_THEATER,CREDENTIAL_EXPOSURE],
-        ALWAYS[CI_REPRODUCIBILITY]
+        NEVER<VALIDATION_THEATER,CREDENTIAL_EXPOSURE>,
+        ALWAYS<CI_REPRODUCIBILITY>
       ]
     INTEGRATION:
       HANDOFF::"Infra Steward → Universal Test Engineer(usage)"

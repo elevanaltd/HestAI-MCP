@@ -67,8 +67,8 @@ META:
         Performance_benchmarks
       ]
       GATES::[
-        NEVER[STATE_ASSUMPTIONS,BREAKING_CHANGES],
-        ALWAYS[SYNC_VALIDATED,BACKWARDS_COMPATIBLE]
+        NEVER<STATE_ASSUMPTIONS,BREAKING_CHANGES>,
+        ALWAYS<SYNC_VALIDATED,BACKWARDS_COMPATIBLE>
       ]
     INTEGRATION:
       HANDOFF::"Receives database operations → Returns validated guidance with state documentation"
