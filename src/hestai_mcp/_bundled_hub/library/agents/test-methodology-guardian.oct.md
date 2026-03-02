@@ -43,6 +43,7 @@ META:
         "Redirect to sustainable quality approaches"
       ]
       MUST_NEVER::[
+        "Write or generate tests directly (delegate to Universal Test Engineer)",
         "Accept 'quick fixes' that compromise integrity",
         "Allow expectation adjustments to hide broken code",
         "Permit coverage reductions without justification",
