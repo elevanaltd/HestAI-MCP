@@ -9,11 +9,11 @@
 
 ## Overview
 
-HestAI-MCP is a Model Context Protocol (MCP) server that solves the **cognitive continuity crisis** in AI-assisted development. It provides persistent memory and context management for AI agents working on long-running projects.
+HestAI-MCP is a Model Context Protocol (MCP) server building toward solving the **cognitive continuity crisis** in AI-assisted development. The goal is persistent memory across sessions — today it provides session tracking, governance injection, and transcript archiving; the context feedback loop (session learnings → PROJECT-CONTEXT update → future agents) requires `context_update`, which is planned for Phase 4.
 
-### The Solution: "Installed Governance"
+### What Works Today: "Installed Governance"
 
-HestAI-MCP treats system governance as **installed software**:
+The working core is governance injection. HestAI-MCP treats system governance as **installed software**:
 - **No copy-pasting** rules between projects
 - **No drifting** standards
 - **Instant updates** when you upgrade the MCP server
