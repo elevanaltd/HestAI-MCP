@@ -1,6 +1,6 @@
 # HestAI-MCP
 
-**Model Context Protocol server implementing dual-layer context architecture for AI agent coordination**
+**Governance and session management layer of the HestAI ecosystem — pre-release, B1 Foundation phase**
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
@@ -9,14 +9,19 @@
 
 ## Overview
 
-HestAI-MCP is a Model Context Protocol (MCP) server building toward solving the **cognitive continuity crisis** in AI-assisted development. The goal is persistent memory across sessions — today it provides session tracking, governance injection, and transcript archiving; the context feedback loop (session learnings → PROJECT-CONTEXT update → future agents) requires `context_update`, which is planned for Phase 4.
+HestAI-MCP is the governance and session management layer of the HestAI ecosystem — a five-system stack for AI-assisted software development. It is currently **pre-release at B1 (Foundation phase)**: functional and in daily use, but still discovering its full scope.
 
-### What Works Today: "Installed Governance"
+Its role in the ecosystem: **knows WHO agents are and HOW they should behave** — provider-agnostic. It does not spawn CLIs or know which model runs underneath; that is the workbench's job.
 
-The working core is governance injection. HestAI-MCP treats system governance as **installed software**:
-- **No copy-pasting** rules between projects
-- **No drifting** standards
-- **Instant updates** when you upgrade the MCP server
+**What it does today:**
+- Injects system governance (`.hestai-sys/`) into projects at runtime — agent constitutions, skills, rules — without copy-pasting between projects
+- Tracks sessions (`clock_in`/`clock_out`) and archives transcripts in OCTAVE format
+- Bootstraps agent binding (`bind`)
+- Posts structured review comments to GitHub PRs (`submit_review`)
+
+**What it's building toward:** persistent memory across sessions (the context feedback loop requires `context_update`, planned Phase 4), Orchestra Map dependency tracking (ADR-0034 MVP validated, automation not yet built), and document routing (`document_submit`, Phase 4).
+
+**Where it fits:** built on `octave-mcp` (document format foundation), works alongside `odyssean-anchor-mcp` (identity binding ceremony, merger planned), `debate-hall-mcp` (structured deliberation), and `hestai-workbench` (execution/UI layer).
 
 ## Architecture
 
