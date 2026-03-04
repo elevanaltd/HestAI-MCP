@@ -15,14 +15,17 @@ This creates a paradox: The governance that should guide agents is invisible to 
 ```
 .hestai-sys/
 ├── governance/       # Rules agents should follow
-│   ├── rules/       # Naming standards, visibility rules
-│   └── workflow/    # North Stars, methodology
-├── agents/          # Agent constitutions
-├── library/         # Commands, skills, specs
-│   ├── commands/    # Like /bind command
-│   ├── skills/      # Reusable patterns
-│   └── specs/       # Protocols (Odyssean Anchor, etc)
-└── templates/       # Project templates
+│   ├── rules/       # Naming standards, visibility rules, test standards
+│   └── workflow/    # System North Star, operational workflow
+├── agents/          # Agent constitution templates
+├── library/         # Skills, agents, patterns, schemas, OCTAVE guides
+│   ├── skills/      # Ecosystem-wide operational skills
+│   ├── agents/      # Agent definitions (.oct.md)
+│   ├── patterns/    # Reusable patterns and examples
+│   ├── schemas/     # Schema definitions
+│   └── octave/      # OCTAVE usage guides
+├── templates/       # Project scaffolding templates
+└── tools/           # System utility scripts (validators, checkers)
 ```
 
 ### How Agents Currently Access Governance
@@ -70,7 +73,7 @@ def discover_governance(working_dir: str) -> dict:
     Returns paths to:
     - System rules
     - Agent constitutions
-    - Commands and skills
+    - Skills and patterns
     - North Stars
     """
     hestai_sys = Path(working_dir) / ".hestai-sys"
@@ -82,8 +85,8 @@ def discover_governance(working_dir: str) -> dict:
         "governance_root": str(hestai_sys),
         "rules": list((hestai_sys / "governance/rules").glob("*.md")),
         "agent_constitutions": list((hestai_sys / "agents").glob("*.oct.md")),
-        "commands": list((hestai_sys / "library/commands").glob("*.md")),
         "skills": list((hestai_sys / "library/skills").glob("*/SKILL.md")),
+        "agents": list((hestai_sys / "library/agents").glob("*.oct.md")),
         "note": "These files are read-only system governance"
     }
 ```
@@ -103,7 +106,7 @@ if [ -d ".hestai-sys" ]; then
     echo "Key files:"
     echo "  • .hestai-sys/governance/rules/ - System rules"
     echo "  • .hestai-sys/agents/ - Agent constitutions"
-    echo "  • .hestai-sys/library/commands/bind.md - Binding ceremony"
+    echo "  • .hestai-sys/library/skills/ - Ecosystem-wide skills"
     echo "Note: These are read-only, delivered by MCP server"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 fi
@@ -124,8 +127,9 @@ These files are automatically managed and will be replaced on server restart.
 ## Contents
 - `governance/` - System rules and workflows
 - `agents/` - Agent constitutions
-- `library/` - Commands, skills, and specs
-- `templates/` - Project templates
+- `library/` - Skills, agents, patterns, schemas, OCTAVE guides
+- `templates/` - Project scaffolding templates
+- `tools/` - System utility scripts
 
 ## For Agents
 Use `Read` tool to access these files for governance guidance.

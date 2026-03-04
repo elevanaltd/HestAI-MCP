@@ -8,7 +8,7 @@ triggers: ["documentation placement", "ADR placement", "phase artifact", "docume
 ===DOCUMENTATION_PLACEMENT===
 META:
   TYPE::SKILL
-  VERSION::"2.1"
+  VERSION::"2.2"
   STATUS::ACTIVE
   COMPRESSION_TIER::AGGRESSIVE
   DOMAIN::HERMES[communication]+HESTIA[structure]
@@ -29,7 +29,7 @@ CANONICAL_REFERENCE::.hestai-sys/governance/rules/visibility-rules.oct.md
 
 §2::REPOSITORY_STRUCTURE
 
-// Per visibility-rules.oct.md v1.6
+// Per visibility-rules.oct.md v1.7
 
 SYSTEM_GOVERNANCE[.hestai-sys/]::[
   READ_ONLY[injected_from_src/hestai_mcp/_bundled_hub/],
@@ -85,15 +85,31 @@ NOTE::.claude/skills/→project_specific|.hestai-sys/library/skills/→ecosystem
 
 §3::PHASE_ARTIFACT_MAPPING
 
+// Lifecycle: Spec (the plan) → Report (the evidence) → Doc (the product)
+// Artifacts graduate through the lifecycle as phases progress
+
 PLACEMENT::[
-  D1_NORTH_STAR::.hestai/north-star/,
-  D2_DESIGN::.hestai/rules/specs/,
-  D3_BLUEPRINT::docs/[architecture_documentation],
-  B0_VALIDATION::.hestai/rules/specs/,
-  B1_B4_REPORTS::.hestai/state/reports/
+  D1_NORTH_STAR::.hestai/north-star/[immutable_anchor],
+  D2_IDEAS_CONSTRAINTS_DESIGN::.hestai/rules/specs/[active_spec],
+  D3_BLUEPRINT::.hestai/rules/specs/[spec_MIGRATES_to_docs/_at_B1_gate],
+  B0_VALIDATION::.hestai/state/reports/[gate_evidence],
+  B1_BUILD_PLAN::.hestai/rules/specs/[task_breakdown_for_B2],
+  B2_IMPLEMENTATION_LOG::.hestai/state/reports/[evidence_stream],
+  B3_QA_SECURITY::.hestai/state/reports/[audit_trail],
+  B4_HANDOFF_USER_GUIDE::docs/[graduated_permanent_documentation]
 ]
 
-CRITICAL::"D3 blueprint migrates to docs/ at B1 gate"
+GRADUATION_RULES::[
+  D3_blueprint→migrates_from_.hestai/rules/specs/_to_docs/_at_B1_gate,
+  B0_architectural_decisions→recorded_as_ADRs_in_docs/adr/,
+  B4_handoff_docs→graduate_from_draft_to_docs/_at_delivery
+]
+
+ADR_SUPREMACY::[
+  RULE::"When in doubt between .hestai/decisions/ and docs/adr/ → choose docs/adr/",
+  .hestai/decisions/→reserved_for_meta-governance[constitutional_amendments_only],
+  docs/adr/→all_architecture_implementation_design_decisions
+]
 
 §4::FORMAT_SELECTION
 

@@ -7,7 +7,7 @@ META:
   DOMAIN::workflow
   OWNERS::["system-steward"]
   CREATED::"2026 -01 -08"
-  UPDATED::"2026 -01 -13"
+  UPDATED::"2026-03-04"
   CANONICAL::".hestai-sys/governance/workflow/OPERATIONAL-WORKFLOW.oct.md"
   SOURCE::"src/hestai_mcp/_bundled_hub/governance/workflow/OPERATIONAL-WORKFLOW.oct.md"
   FORMAT::octave
@@ -40,28 +40,28 @@ NATURAL_FLOW::"D1 maintains natural conversational flow rather than artificial s
 RACI::"R[phase_specialists]→A[critical-engineer:North_Star_complete+correct]→C[none:not_building_yet]→I[none:no_implementation_teams]"
 DELIVERABLE::"0xx-PROJECT[-NAME]-NORTH-STAR.md+immutable_requirements[7±2]+assumption_audit+commitment_ceremony_approval"
 NORTH_STAR_ARCHITECTURE::"4-layer structure: immutable_core[5-9] + constrained_variables + assumption_register + explicit_non-requirements"
-LOCATION::"@coordination/docs/workflow/[post-graduation_distribution]"
+LOCATION::".hestai/north-star/"
 D2_ATHENA_INNOVATION::SOLUTION_APPROACHES
 SUBPHASES::"D2_01[ideator+edge-optimizer:creative_breakthrough]→D2_02[validator:feasibility_constraints]→D2_02B[edge-optimizer:additional_exploration:OPTIONAL]→D2_03[synthesizer:unified_approach]"
 DUAL_ROLE_EDGE::"edge-optimizer contributes to D2_01 for breakthrough creative exploration AND D2_02B for boundary exploration"
 RACI::"R[phase_specialists, edge-optimizer:D2_01+D2_02B_optional]→A[critical-engineer:synthesis_completeness+feasibility]→C[requirements-steward:North_Star, technical-architect:feasibility]→I[none:design_phase]"
 DELIVERABLES::["D2_01-IDEAS.md","D2_02-CONSTRAINTS.md","D2_02B-EDGE_DISCOVERIES.md:optional","D2_03-DESIGN.md"]
 EDGE_INTEGRATION::"D2_02B_discoveries→optional_input_to_D2_03_synthesis"
-LOCATION::"@coordination/docs/workflow/"
+LOCATION::".hestai/rules/specs/"
 SIGNOFF_REQUIRED::"D2_01[ideator]+D2_02[validator] approve D2_03[synthesis] before D3"
 D3_DAEDALUS_CONSTRUCTION::TECHNICAL_BLUEPRINT
 SUBPHASES::"D3_01[design-architect:technical_architecture]→D3_02[visual-architect:mockups+user_validation]→D3_03[technical-architect:validation]→D3_04[security-specialist:security+compliance]"
 VISUAL_VALIDATION::"create_mockups→user_validation→IF[significant_changes]→CONSULT[design-architect+requirements-steward]→iterate→approval"
 RACI::"R[phase_specialists]→A[critical-engineer:completeness+production_readiness]→C[requirements-steward:alignment, design-architect:changes]→I[implementation-lead:build_prep]"
 DELIVERABLES::["D3-BLUEPRINT.md⊕complete_spec","D3-MOCKUPS.md⊕validation","D3-VISUAL-DECISIONS.md⊕rationale"]
-LOCATION::"@coordination/docs/workflow/"
+LOCATION::".hestai/rules/specs/[migrates_to_docs/_at_B1_gate]"
 B0_THEMIS_JUDGMENT::VALIDATION_GATE
 PURPOSE::"Critical design validation→GO/NO-GO decision for build phase"
 SUBPHASES::"B0_01[critical-design-validator:completeness+failure_modes]→B0_02[requirements-steward:North_Star_alignment]→B0_03[technical-architect:feasibility+scalability]→B0_04[critical-engineer:GO/NO-GO_decision]"
 RACI::"R[validation_specialists]→A[critical-engineer:final_GO/NO-GO_authority]→C[security-specialist:security, error-architect:failure_modes, principal-engineer:long_term_viability]→I[implementation-lead, solution-steward, task-decomposer]"
 ENTRY_REQUIREMENTS::["NORTH-STAR.md⊕approved⊕immutable","D2-DESIGN.md⊕validated","D3-BLUEPRINT.md⊕complete",assumption_audits_complete]
 DELIVERABLE::"B0-VALIDATION.md+GO/NO-GO_decision"
-LOCATION::"@dev/reports/"
+LOCATION::".hestai/state/reports/[gate_evidence|architectural_decisions→docs/adr/]"
 VALIDATION_CRITERIA::[North_Star_alignment,"architecture_sound⊕scalable⊕implementable",security_addressed,assumptions_validated,resources_realistic,no_blocking_risks]
 EXIT::"GO[proceed_B1] | NO-GO[return_D-phase]"
 B1_HERMES_COORDINATION::BUILD_EXECUTION_ROADMAP
@@ -72,7 +72,7 @@ MIGRATION_GATE::"B1_02_completion→STOP→HUMAN_MIGRATION_POINT"
 RESTART_IN_NEW_LOCATION::"cd ${PROJECT_ROOT}/build/VERIFY_pwd→RESUME_B1_03"
 QUALITY_GATE_MANDATORY::"⚠️ Load workspace-setup skill for stack-specific gates. NO src/ FILES WITHOUT PASSING quality gates per project stack: python[ruff_check,black_check,mypy,pytest] | node[npm_run_lint,npm_run_typecheck,npm_test] | generic[lint,typecheck,test]"
 DELIVERABLES::["B1-BUILD-PLAN.md⊕task_breakdown","B1-WORKSPACE.md⊕environment⊕CI/CD_setup⊕QUALITY_GATE_EVIDENCE","B1-DEPENDENCIES.md⊕critical_path",TRACED_artifacts]
-LOCATION::"@dev/reports/"
+LOCATION::".hestai/rules/specs/[build_plan]+.hestai/state/reports/[gate_evidence]"
 CRITERIA::[all_components_have_tasks,"dependencies_mapped⊕sequenced",test_requirements_identified,QUALITY_GATES_OPERATIONAL,resources_defined,risks_mitigated,"timeline_realistic⊕buffered"]
 CONTEXT7_LIBRARY_RESEARCH::[[[PATTERN::"mcp__Context7__resolve-library-id→mcp__Context7__get-library-docs"]],[[D1_USAGE::"Research for problem understanding and existing solutions"]],[[B0_USAGE::"Architecture validation against current library capabilities"]],[[B1_USAGE::"Dependency versions and integration patterns"]],[[B2_USAGE::"API references and implementation examples during TDD"]],[[B3_USAGE::"Integration best practices and compatibility validation"]]]
 B2_HEPHAESTUS_FORGE::CODE_CONSTRUCTION
@@ -83,7 +83,7 @@ B2_00_REQUIREMENTS::[test_strategy_aligned,coverage_requirements_defined,complia
 IMPLEMENTATION_STANDARDS::["TEST_STRATEGY_FIRST→TEST_FIRST→TRACED_METHODOLOGY",Context7_consultation_libraries,code_review_every_change,CI_immediate_failure_resolution,architecture_compliance,security_scanning]
 QUALITY_GATES::["coverage_80%+",tests_passing_CI,code_review_approval,no_critical_vulnerabilities,performance_benchmarks_met,docs_updated]
 DELIVERABLES::["B2-IMPLEMENTATION-LOG.md","B2-TEST-STRATEGY.md","source_code⊕tests","CI_pipeline⊕quality_gates",TRACED_compliance_artifacts]
-LOCATION::"@dev/reports/"
+LOCATION::".hestai/state/reports/"
 B3_HARMONIA_UNIFICATION::SYSTEM_UNIFICATION
 PURPOSE::"Unify components→cohesive system+validate end-to-end functionality+production readiness"
 SUBPHASES::"B3_01[completion-architect:integration+coherence]→B3_02[universal-test-engineer:integration+E2E+performance]→B3_02B[edge-optimizer:breakthrough_optimization:OPTIONAL]→B3_03[security-specialist:security_audit+penetration]→B3_04[coherence-oracle:cross-system_consistency]"
@@ -92,14 +92,14 @@ INTEGRATION_VALIDATION::[component_interface_compatibility,"data_flow⊕state_ma
 SYSTEM_TESTING::[integration_tests_all_interactions,E2E_user_journey_validation,performance_benchmarks_achieved,security_penetration_passed,disaster_recovery_validated,"monitoring⊕observability_confirmed"]
 DELIVERABLES::["B3-INTEGRATION-REPORT.md","B3-PERFORMANCE.md","B3-BREAKTHROUGH_OPTIMIZATIONS.md:optional","B3-SECURITY.md","fully_integrated_system⊕E2E_tests"]
 BREAKTHROUGH_INTEGRATION::"B3_02B_optimizations→evaluated_by_completion-architect_for_system_integration"
-LOCATION::"@dev/reports/"
+LOCATION::".hestai/state/reports/"
 B4_IRIS_HANDOFF::PRODUCTION_HANDOFF
 PURPOSE::"Complete solution preparation for production deployment+comprehensive documentation+operational readiness"
 SUBPHASES::"B4_01[solution-steward:package+docs+handoff]→B4_02[system-steward:architecture+operations+maintenance]→B4_03[workspace-architect:cleanup+publication_readiness]→B4_04[security-specialist:final_review+hardening]→B4_05[critical-engineer:production_readiness+signoff]"
 DEPLOY_PHASES::"B4_D1[staging+validation]→B4_D2[live+production]→B4_D3[post-deployment+monitoring]"
 RACI::"R[delivery_specialists, critical-engineer:deployment_phases]→A[critical-engineer:production_release+deployment_authority]→C[technical-architect:architecture_docs, implementation-lead:knowledge_transfer, principal-engineer:operational_sustainability]→I[completion-architect, requirements-steward]"
 DELIVERABLES::["B4-HANDOFF.md","B4-OPERATIONS.md⊕runbooks","B4-USER-GUIDE.md","B4-MAINTENANCE.md","B4-WORKSPACE.md⊕publication_ready","deployment_packages⊕config",training_materials]
-LOCATION::"@dev/reports/"
+LOCATION::"docs/[graduated_permanent_documentation]"
 PRODUCTION_READINESS::["infrastructure_provisioned⊕tested",deployment_procedures_validated,rollback_tested,"monitoring⊕alerting_active",security_scanning_complete,load_testing_passed,docs_approved,support_trained]
 B5_PROMETHEUS_EVOLUTION::POST_DELIVERY_ENHANCEMENT
 PURPOSE::"Feature expansion+architectural enhancement without full D1→B4 restart"
@@ -125,12 +125,13 @@ POST_MORTEM_ANALYSIS:
   COLLABORATION_PATTERN::"critical-engineer produces incident analysis→principal-engineer consumes for pattern extraction→joint recommendations (tactical fixes + strategic prevention)"
   DELIVERABLE::"Post-mortem report with tactical remediation AND strategic architectural recommendations"
   INVOCATION::"MANDATORY for CRITICAL incidents, HIGH-priority recurring failures, architectural erosion signals"
-COORDINATION_ARCHITECTURE:
-  TWO_REPOSITORY_PATTERN::[[[DEV_REPOSITORY::"docs/*[ALL_technical_docs], src/, tests/"]],[[COORDINATION_REPOSITORY::"workflow-docs/[phase_artifacts], phase-reports/[B1-B4], planning-docs/[CHARTER,ASSIGNMENTS], ACTIVE-WORK.md[visibility]"]]]
+ARTIFACT_PLACEMENT:
+  LIFECYCLE_MODEL::"Spec[.hestai/rules/specs/]→Report[.hestai/state/reports/]→Doc[docs/]"
   DOCUMENT_PLACEMENT_PROTOCOL::"Load documentation-placement skill for placement rules and visibility protocols"
+  CANONICAL_REFERENCE::".hestai-sys/governance/rules/visibility-rules.oct.md"
   PHASE_TRANSITION_CLEANUP::["B1_02, B2_04, B3_04, B4_05 require cleanup validation","holistic-orchestrator→directory-curator→workspace-architect pattern"]
 SESSION_COORDINATION:
-  IDEATION_GRADUATION_EXECUTION::[[[D0_IDEATION::"{IDEATION_ROOT}/sessions/[structured_exploration+thread_messaging+manifest_tracking]"]],[[PROJECT_MIGRATION_EXECUTION::"workspace-architect[B1_02]→migration[ideation→{project-name}/sessions/]→MIGRATION_GATE[directory_change_required]→state_symlink[.hestai/state/]→using_graduation_assessment_from_D0"]],[[ARTIFACT_DISTRIBUTION::"D-phase→@coordination/docs/workflow/, B-phase→@dev/reports/"]]]
+  IDEATION_GRADUATION_EXECUTION::[[[D0_IDEATION::".hestai/state/sessions/[structured_exploration+thread_messaging+manifest_tracking]"]],[[PROJECT_MIGRATION_EXECUTION::"workspace-architect[B1_02]→migration[ideation→project/sessions/]→MIGRATION_GATE[directory_change_required]→state_symlink[.hestai/state/]→using_graduation_assessment_from_D0"]],[[ARTIFACT_DISTRIBUTION::"D1→.hestai/north-star/, D2-D3→.hestai/rules/specs/, B0-B3→.hestai/state/reports/, B4→docs/"]]]
   LINK_STANDARDS::[[[LOCALITY_PRINCIPLE::"internal_links[relative_paths], external_links[full_paths_boundary_crossing_only]"]],[[MIGRATION_RESILIENCE::"links_survive_reorganization+repository_moves"]],[[VALIDATION_ENFORCEMENT::"automation_testable+broken_links_block_commits"]]]
 ENHANCEMENT_CLASSIFICATION:
   B5_CRITERIA::[improves_existing_beyond_original,works_within_architectural_framework,completable_within_scope_limits,low_destabilization_risk]
