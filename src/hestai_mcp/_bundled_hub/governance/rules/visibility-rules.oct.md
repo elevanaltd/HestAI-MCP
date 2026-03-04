@@ -3,13 +3,13 @@
 META:
   TYPE::STANDARD
   ID::visibility-rules
-  VERSION::"1.6"
+  VERSION::"1.7"
   STATUS::ACTIVE
   PURPOSE::"Placement and lifecycle rules for artifacts to ensure discoverability"
   DOMAIN::governance
   OWNERS::[system-steward]
   CREATED::2025-12-09
-  UPDATED::2026-02-26
+  UPDATED::2026-03-04
   CANONICAL::.hestai-sys/governance/rules/visibility-rules.oct.md
   SOURCE::src/hestai_mcp/_bundled_hub/governance/rules/visibility-rules.oct.md
   TAGS::[placement, visibility, documentation, lifecycle, hestai-sys, bundled-hub]
@@ -225,6 +225,7 @@ RULE_6::REPORTS→.hestai/state/reports/::[
   TRACKING::shared_across_worktrees[symlinked_to_.hestai-state/],
 
   WHAT_GOES_HERE::[
+    phase_gate_evidence[B0_validation|B1-B3_reports|implementation_logs],
     audit_reports[anchor_audits|gate_failures|integrity_checks],
     security_scan_outputs[redaction_summaries|findings],
     operational_diagnostics["why_clock_out_failed"],
@@ -272,7 +273,9 @@ PLACEMENT_TABLE::[
   governance_decisions→.hestai/decisions/[committed|governance|stable],
   project_rules→.hestai/rules/[committed|governance|stable],
   project_schemas→.hestai/schemas/[committed|governance|stable],
-  implementation_specs[active]→.hestai/rules/specs/[committed|governance|phase_scoped],
+  phase_specs[D2+D3+B1]→.hestai/rules/specs/[committed|governance|phase_scoped],
+  phase_reports[B0-B3]→.hestai/state/reports/[shared|evidence|timestamped],
+  phase_docs[B4_graduated]→docs/[committed|developers|permanent],
   implementation_specs[superseded]→.hestai/state/context/.archive/specs/[shared|ephemeral|archived],
 
   // PROJECT WORKING STATE (.hestai/state/ - shared via symlink, no PR)
@@ -287,6 +290,41 @@ PLACEMENT_TABLE::[
   // CLAUDE CODE INFRASTRUCTURE (.claude/)
   agent_constitutions→.claude/agents/[committed|Claude_Code|infrastructure],
   project_skills→.claude/skills/[committed|Claude_Code|infrastructure]
+]
+
+===PHASE_DELIVERABLES===
+
+// Lifecycle model: Spec (the plan) → Report (the evidence) → Doc (the product)
+// Artifacts graduate through the lifecycle as phases progress
+
+LIFECYCLE_PRIMITIVE::[
+  SPEC[the_plan]→.hestai/rules/specs/[active_mutable_guidance],
+  REPORT[the_evidence]→.hestai/state/reports/[timestamped_immutable_evidence],
+  DOC[the_product]→docs/[permanent_developer_facing]
+]
+
+PHASE_MAPPING::[
+  D1_NORTH_STAR→.hestai/north-star/[immutable_anchor],
+  D2_IDEAS_CONSTRAINTS_DESIGN→.hestai/rules/specs/[active_spec],
+  D3_BLUEPRINT→.hestai/rules/specs/[spec_MIGRATES_to_docs/_at_B1_gate],
+  B0_VALIDATION→.hestai/state/reports/[gate_evidence|architectural_reasoning→docs/adr/],
+  B1_BUILD_PLAN→.hestai/rules/specs/[task_breakdown_for_B2],
+  B2_IMPLEMENTATION_LOG→.hestai/state/reports/[evidence_stream],
+  B3_QA_SECURITY→.hestai/state/reports/[audit_trail],
+  B4_HANDOFF_USER_GUIDE→docs/[graduated_permanent_documentation]
+]
+
+GRADUATION_RULES::[
+  D3_blueprint→migrates_from_.hestai/rules/specs/_to_docs/_at_B1_gate,
+  B0_architectural_decisions→recorded_as_ADRs_in_docs/adr/,
+  B4_handoff_docs→graduate_from_draft_to_docs/_at_delivery
+]
+
+ADR_SUPREMACY::[
+  RULE::"When in doubt between .hestai/decisions/ and docs/adr/ → choose docs/adr/",
+  .hestai/decisions/→reserved_for_meta-governance[constitutional_amendments_only],
+  docs/adr/→all_architecture_implementation_design_decisions,
+  .hestai/state/reports/→gate_passage_evidence[B0-B3]
 ]
 
 ===ANTI_PATTERNS===
@@ -443,6 +481,7 @@ COMPANION::naming-standard.md[naming+frontmatter_logic]
 
 ===CHANGELOG===
 
+v1.7::2026-03-04→added_PHASE_DELIVERABLES_section[lifecycle_model:Spec→Report→Doc]+phase_mapping_D1-B4+graduation_rules+ADR_SUPREMACY_policy+phase_deliverables_in_PLACEMENT_TABLE+phase_gate_evidence_in_RULE_6
 v1.6::2026-02-26→fixed_ADR_path_to_docs/adr/[per_ADR-0031]+clarified_.hestai/decisions/_as_compiled_governance_decisions[not_ADRs]+expanded_.hestai-sys/library/_structure[skills/agents/patterns/schemas/octave]+added_system_skills_to_RULE_0+added_skill_distinction_NOTE_to_RULE_5+added_CONFUSE_DECISIONS_WITH_ADRS_anti-pattern+added_system_skills_to_PLACEMENT_TABLE
 v1.5::2026-02-23→clarified_north-star_folder_strict_contents+expanded_rules_folder_scope+added_implementation_spec_placement+anti-pattern_for_north-star_contamination
 v1.4::2025-12-27→added_FILE_RETENTION_POLICY_section[ADR-0060_ratification]
