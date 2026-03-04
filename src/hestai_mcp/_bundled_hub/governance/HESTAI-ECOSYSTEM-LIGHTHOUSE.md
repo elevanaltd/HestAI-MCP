@@ -263,7 +263,7 @@ As of 2026-03-04:
 | **Debate Hall** | v0.4.0, 17 tools, consult/convene shipped | Medium | Governance Hall (#163), RACI mode (#159) |
 | **Workbench** | Phase 2 complete, Phase 3 (agent registry) open | Far | Agent registry (#32), clink extraction (#33), governance chat UI (#16/#34) |
 | **OA (to be absorbed)** | Operational, ADR-0275 accepted | Being replaced | Rebuild phases not started |
-| **PAL (to be absorbed)** | Operational, daily use, dormant since Jan 2026 | Being replaced | clink extraction (#33), then gradual absorption (#36) |
+| **PAL (to be absorbed)** | Operational, actively used daily (clink, chat, apilookup) | Being replaced | clink extraction (#33), then gradual absorption (#36) |
 
 ### The Critical Path
 
