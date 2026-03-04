@@ -1,10 +1,10 @@
 # ADR-0275: Rebuild Odyssean Anchor Protocol Inside hestai-mcp
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Type**: ADR
 - **Author**: holistic-orchestrator (HO session, PERMIT_SID: 5a38555c)
 - **Created**: 2026-02-23
-- **Updated**: 2026-02-23
+- **Updated**: 2026-03-04
 - **GitHub Issue**: [#275](https://github.com/elevanaltd/HestAI-MCP/issues/275)
 - **Phase**: B1
 - **Supersedes**: ADR-0036 (deployment assumption only — protocol design preserved)
