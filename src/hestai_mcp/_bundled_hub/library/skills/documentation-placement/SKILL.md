@@ -8,7 +8,7 @@ triggers: ["documentation placement", "ADR placement", "phase artifact", "docume
 ===DOCUMENTATION_PLACEMENT===
 META:
   TYPE::SKILL
-  VERSION::"2.2"
+  VERSION::"2.3"
   STATUS::ACTIVE
   COMPRESSION_TIER::AGGRESSIVE
   DOMAIN::HERMES[communication]+HESTIA[structure]
@@ -107,8 +107,9 @@ GRADUATION_RULES::[
 
 ADR_SUPREMACY::[
   RULE::"When in doubt between .hestai/decisions/ and docs/adr/ → choose docs/adr/",
-  .hestai/decisions/→reserved_for_meta-governance[constitutional_amendments_only],
-  docs/adr/→all_architecture_implementation_design_decisions
+  .hestai/decisions/→compiled_debate_decisions[agent_facing_OCTAVE_governance_outcomes],
+  docs/adr/→all_architecture_implementation_design_decisions[developer_facing_markdown],
+  DISTINCTION::"debate-hall exports→.hestai/decisions/[.oct.md] | developer decisions→docs/adr/[.md]"
 ]
 
 §4::FORMAT_SELECTION
@@ -118,18 +119,22 @@ ADR_SUPREMACY::[
 OCTAVE_FORMAT[.oct.md]::[
   agent_constitutions,
   governance_rules,
-  north_stars,
+  north_star_summaries[agent_consumed],
   methodology_docs,
   context_files[PROJECT-CONTEXT_etc],
-  session_archives[compressed_semantic]
+  session_archives[compressed_semantic],
+  compiled_debate_decisions
 ]
 
 MARKDOWN_FORMAT[.md]::[
+  north_star_full[human_authored_strategic_vision],
   developer_guides[setup_deployment],
   ADRs[architecture_decisions],
   READMEs[navigation_pointers],
   human_first_documentation
 ]
+
+NOTE::"Full North Stars (.md) are human-authored vision; summaries (.oct.md) are agent-optimized"
 
 FORMAT_DECISION_TREE::[
   "Primary audience AI agents?"→YES→.oct.md,

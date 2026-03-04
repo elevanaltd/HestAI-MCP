@@ -3,7 +3,7 @@
 META:
   TYPE::STANDARD
   ID::visibility-rules
-  VERSION::"1.7"
+  VERSION::"1.8"
   STATUS::ACTIVE
   PURPOSE::"Placement and lifecycle rules for artifacts to ensure discoverability"
   DOMAIN::governance
@@ -322,9 +322,10 @@ GRADUATION_RULES::[
 
 ADR_SUPREMACY::[
   RULE::"When in doubt between .hestai/decisions/ and docs/adr/ → choose docs/adr/",
-  .hestai/decisions/→reserved_for_meta-governance[constitutional_amendments_only],
-  docs/adr/→all_architecture_implementation_design_decisions,
-  .hestai/state/reports/→gate_passage_evidence[B0-B3]
+  .hestai/decisions/→compiled_debate_decisions[agent_facing_OCTAVE_format_governance_outcomes],
+  docs/adr/→all_architecture_implementation_design_decisions[developer_facing_markdown],
+  .hestai/state/reports/→gate_passage_evidence[B0-B3],
+  DISTINCTION::"debate-hall exports→.hestai/decisions/[.oct.md] | developer decisions→docs/adr/[.md]"
 ]
 
 ===ANTI_PATTERNS===
@@ -390,17 +391,25 @@ FROM_OLD→TO_THREE_TIER::[
 OCTAVE_FORMAT[.oct.md]::[
   agent_constitutions,
   governance_rules,
-  north_stars,
+  north_star_summaries[agent_consumed_compressed],
   methodology_docs,
   context_files[PROJECT-CONTEXT_etc],
-  session_archives
+  session_archives,
+  compiled_debate_decisions
 ]
 
 MARKDOWN_FORMAT[.md]::[
+  north_star_full[human_authored_strategic_vision],
   developer_guides[setup_deployment],
   ADRs[architecture_decisions],
   READMEs[navigation_pointers],
   human_first_documentation
+]
+
+NOTE_NORTH_STAR_FORMAT::[
+  000-*-NORTH-STAR.md→.md[human_authored_founding_document],
+  000-*-NORTH-STAR-SUMMARY.oct.md→.oct.md[agent_optimized_extraction],
+  RATIONALE::"Full North Stars are strategic vision prose written by humans; summaries are compressed for agent consumption"
 ]
 
 FORMAT_DECISION_TREE::[
@@ -481,6 +490,7 @@ COMPANION::naming-standard.md[naming+frontmatter_logic]
 
 ===CHANGELOG===
 
+v1.8::2026-03-04→clarified_north_star_format[full_.md_summary_.oct.md]+harmonized_RULE_4_and_ADR_SUPREMACY[.hestai/decisions/_is_compiled_debate_decisions_not_constitutional_amendments_only]+added_DISTINCTION_to_ADR_SUPREMACY[debate-hall_exports_vs_developer_ADRs]
 v1.7::2026-03-04→added_PHASE_DELIVERABLES_section[lifecycle_model:Spec→Report→Doc]+phase_mapping_D1-B4+graduation_rules+ADR_SUPREMACY_policy+phase_deliverables_in_PLACEMENT_TABLE+phase_gate_evidence_in_RULE_6
 v1.6::2026-02-26→fixed_ADR_path_to_docs/adr/[per_ADR-0031]+clarified_.hestai/decisions/_as_compiled_governance_decisions[not_ADRs]+expanded_.hestai-sys/library/_structure[skills/agents/patterns/schemas/octave]+added_system_skills_to_RULE_0+added_skill_distinction_NOTE_to_RULE_5+added_CONFUSE_DECISIONS_WITH_ADRS_anti-pattern+added_system_skills_to_PLACEMENT_TABLE
 v1.5::2026-02-23→clarified_north-star_folder_strict_contents+expanded_rules_folder_scope+added_implementation_spec_placement+anti-pattern_for_north-star_contamination
