@@ -306,6 +306,7 @@ async def submit_review(
     assessment: str,
     model_annotation: str | None = None,
     dry_run: bool = False,
+    commit_sha: str | None = None,
 ) -> dict[str, Any]:
     """Submit a structured review comment on a GitHub PR.
 
@@ -322,6 +323,7 @@ async def submit_review(
         assessment: Review assessment content.
         model_annotation: Optional model name (e.g., 'Gemini') for annotation.
         dry_run: If True, validate format without posting.
+        commit_sha: Optional PR head SHA the reviewer verified.
 
     Returns:
         Dict with success status, comment URL, validation info, and
@@ -351,6 +353,7 @@ async def submit_review(
         verdict=verdict,
         assessment=assessment,
         model_annotation=model_annotation,
+        commit_sha=commit_sha,
     )
 
     # Step 3: Self-validate against gate patterns
@@ -382,6 +385,7 @@ async def submit_review(
             "comment_url": None,
             "validation": validation,
             "formatted_comment": formatted_comment,
+            "commit_sha": commit_sha,
         }
         if advisory:
             result["advisory"] = advisory
@@ -404,6 +408,7 @@ async def submit_review(
         "comment_url": post_result["comment_url"],
         "validation": validation,
         "formatted_comment": formatted_comment,
+        "commit_sha": commit_sha,
     }
     if advisory:
         post_success_result["advisory"] = advisory

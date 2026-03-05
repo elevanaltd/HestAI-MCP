@@ -4,6 +4,7 @@ All notable changes to HestAI-MCP.
 
 ## Features
 
+- add structured machine-readable metadata to review comments (#290) - 2026-03-05
 - trigger codex review after review gate passes ([#303](https://github.com/elevanaltd/HestAI-MCP/pull/303)) - 2026-03-05
 - HO REVIEWED, CRS model_annotation advisory, and doc normalization (#276) ([#292](https://github.com/elevanaltd/HestAI-MCP/pull/292)) - 2026-02-25
 - dual-model CRS and CE coverage for review tiers (#276) ([#286](https://github.com/elevanaltd/HestAI-MCP/pull/286)) - 2026-02-25

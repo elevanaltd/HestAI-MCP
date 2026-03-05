@@ -410,3 +410,148 @@ class TestFormatReviewComment:
         assert matches_approval_pattern(comment, "HO", "REVIEWED")
         assert has_ho_review([comment])
         assert "Delegated to IL, verified output" in comment
+
+
+@pytest.mark.unit
+class TestReviewMetadata:
+    """Test structured machine-readable metadata in review comments."""
+
+    def test_format_includes_metadata_block(self) -> None:
+        """Formatted comment contains <!-- review: JSON --> metadata."""
+        from hestai_mcp.modules.tools.shared.review_formats import format_review_comment
+
+        comment = format_review_comment(
+            role="CRS",
+            verdict="APPROVED",
+            assessment="All tests pass",
+            model_annotation="Gemini",
+            commit_sha="abc1234def5678",
+        )
+        assert "<!-- review:" in comment
+        assert "-->" in comment
+
+    def test_format_metadata_parseable(self) -> None:
+        """Roundtrip: format -> parse returns correct dict."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            format_review_comment,
+            parse_review_metadata,
+        )
+
+        comment = format_review_comment(
+            role="CRS",
+            verdict="APPROVED",
+            assessment="All tests pass",
+            model_annotation="Gemini",
+            commit_sha="abc1234def5678",
+        )
+        meta = parse_review_metadata(comment)
+        assert meta is not None
+        assert meta["role"] == "CRS"
+        assert meta["provider"] == "gemini"
+        assert meta["verdict"] == "APPROVED"
+        assert meta["sha"] == "abc1234"
+
+    def test_format_without_sha(self) -> None:
+        """SHA is null when not provided."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            format_review_comment,
+            parse_review_metadata,
+        )
+
+        comment = format_review_comment(
+            role="CRS",
+            verdict="APPROVED",
+            assessment="All tests pass",
+            model_annotation="Gemini",
+        )
+        meta = parse_review_metadata(comment)
+        assert meta is not None
+        assert meta["sha"] is None
+
+    def test_format_il_maps_verdict_in_metadata(self) -> None:
+        """IL verdict becomes SELF-REVIEWED in metadata."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            format_review_comment,
+            parse_review_metadata,
+        )
+
+        comment = format_review_comment(
+            role="IL",
+            verdict="APPROVED",
+            assessment="Fixed typo",
+        )
+        meta = parse_review_metadata(comment)
+        assert meta is not None
+        assert meta["verdict"] == "SELF-REVIEWED"
+
+    def test_format_ho_maps_verdict_in_metadata(self) -> None:
+        """HO verdict becomes REVIEWED in metadata."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            format_review_comment,
+            parse_review_metadata,
+        )
+
+        comment = format_review_comment(
+            role="HO",
+            verdict="APPROVED",
+            assessment="Verified output",
+        )
+        meta = parse_review_metadata(comment)
+        assert meta is not None
+        assert meta["verdict"] == "REVIEWED"
+
+    def test_parse_returns_none_for_no_metadata(self) -> None:
+        """Plain text returns None."""
+        from hestai_mcp.modules.tools.shared.review_formats import parse_review_metadata
+
+        assert parse_review_metadata("CRS APPROVED: All good") is None
+
+    def test_parse_returns_none_for_invalid_json(self) -> None:
+        """Malformed JSON returns None."""
+        from hestai_mcp.modules.tools.shared.review_formats import parse_review_metadata
+
+        assert parse_review_metadata("<!-- review: {broken json -->") is None
+
+    def test_formatted_comment_still_clears_regex_gate(self) -> None:
+        """Metadata line doesn't break existing regex matching."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            format_review_comment,
+            has_crs_approval,
+        )
+
+        comment = format_review_comment(
+            role="CRS",
+            verdict="APPROVED",
+            assessment="All tests pass",
+            model_annotation="Gemini",
+            commit_sha="abc1234",
+        )
+        assert has_crs_approval([comment])
+
+    def test_extract_multiple_metadata(self) -> None:
+        """Batch extraction from multiple comments."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            extract_review_metadata,
+            format_review_comment,
+        )
+
+        comments = [
+            format_review_comment(
+                role="CRS",
+                verdict="APPROVED",
+                assessment="Good",
+                model_annotation="Gemini",
+                commit_sha="abc1234",
+            ),
+            "Plain comment with no metadata",
+            format_review_comment(
+                role="CE",
+                verdict="APPROVED",
+                assessment="Sound",
+                commit_sha="def5678",
+            ),
+        ]
+        results = extract_review_metadata(comments)
+        assert len(results) == 2
+        assert results[0]["role"] == "CRS"
+        assert results[1]["role"] == "CE"

@@ -8,6 +8,7 @@ Single source of truth for review comment formats used by both:
 Extracted from validate_review.py to prevent format drift (I2 tension).
 """
 
+import json
 import re
 
 # --- Review tier constants ---
@@ -173,6 +174,7 @@ def format_review_comment(
     verdict: str,
     assessment: str,
     model_annotation: str | None = None,
+    commit_sha: str | None = None,
 ) -> str:
     """Format a review comment that will clear the review gate.
 
@@ -184,14 +186,18 @@ def format_review_comment(
     For BLOCKED/CONDITIONAL verdicts, the comment uses the verdict directly
     (these don't clear the gate but are valid review comments).
 
+    Appends a machine-readable metadata HTML comment on a second line for
+    structured audit trail parsing.
+
     Args:
-        role: Reviewer role (CRS, CE, IL).
+        role: Reviewer role (CRS, CE, IL, HO).
         verdict: Review verdict (APPROVED, BLOCKED, CONDITIONAL).
         assessment: Review assessment content.
         model_annotation: Optional model name (e.g., 'Gemini') for annotation.
+        commit_sha: Optional PR head SHA the reviewer verified.
 
     Returns:
-        Formatted review comment string.
+        Formatted review comment string with metadata on line 2.
     """
     # Map IL APPROVED to SELF-REVIEWED, HO APPROVED to REVIEWED
     if role == "IL" and verdict == "APPROVED":
@@ -204,4 +210,57 @@ def format_review_comment(
     # Build the prefix with optional model annotation
     prefix = f"{role} ({model_annotation})" if model_annotation else role
 
-    return f"{prefix} {keyword}: {assessment}"
+    human_line = f"{prefix} {keyword}: {assessment}"
+
+    # Build metadata dict
+    metadata: dict[str, str | None] = {
+        "role": role,
+        "provider": model_annotation.lower() if model_annotation else None,
+        "verdict": keyword,
+        "sha": commit_sha[:7] if commit_sha else None,
+    }
+    meta_json = json.dumps(metadata, separators=(",", ":"))
+    meta_line = f"<!-- review: {meta_json} -->"
+
+    return f"{human_line}\n{meta_line}"
+
+
+# --- Metadata regex for parsing structured review metadata ---
+_METADATA_RE = re.compile(r"<!-- review: (\{.*?\}) -->")
+
+
+def parse_review_metadata(text: str) -> dict[str, str | None] | None:
+    """Extract structured metadata from a review comment.
+
+    Looks for ``<!-- review: {...} -->`` HTML comment and parses the JSON.
+
+    Args:
+        text: Review comment text to parse.
+
+    Returns:
+        Parsed metadata dict or None if not found or invalid.
+    """
+    match = _METADATA_RE.search(text)
+    if not match:
+        return None
+    try:
+        return json.loads(match.group(1))  # type: ignore[no-any-return]
+    except (json.JSONDecodeError, ValueError):
+        return None
+
+
+def extract_review_metadata(texts: list[str]) -> list[dict[str, str | None]]:
+    """Batch extraction of metadata from multiple comments.
+
+    Args:
+        texts: List of comment texts to scan.
+
+    Returns:
+        List of parsed metadata dicts (only for comments that have metadata).
+    """
+    results: list[dict[str, str | None]] = []
+    for text in texts:
+        meta = parse_review_metadata(text)
+        if meta is not None:
+            results.append(meta)
+    return results

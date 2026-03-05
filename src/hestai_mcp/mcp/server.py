@@ -521,6 +521,13 @@ async def list_tools() -> list[Tool]:
                         "type": "string",
                         "description": ("Optional model name (e.g., 'Gemini') for annotation"),
                     },
+                    "commit_sha": {
+                        "type": "string",
+                        "description": (
+                            "PR head SHA the reviewer verified. "
+                            "Pinned in metadata for audit trail."
+                        ),
+                    },
                     "dry_run": {
                         "type": "boolean",
                         "description": "If true, validate format without posting",
@@ -692,6 +699,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             assessment=arguments["assessment"],
             model_annotation=arguments.get("model_annotation"),
             dry_run=arguments.get("dry_run", False),
+            commit_sha=arguments.get("commit_sha"),
         )
 
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
