@@ -976,6 +976,49 @@ class TestHoRoleHandling:
 
 
 @pytest.mark.unit
+class TestCommitShaPassthrough:
+    """Test commit_sha parameter passthrough to formatted comment."""
+
+    @pytest.mark.asyncio
+    async def test_dry_run_with_sha(self) -> None:
+        """SHA appears in formatted comment metadata."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        result = await submit_review(
+            repo="elevanaltd/HestAI-MCP",
+            pr_number=123,
+            role="CRS",
+            verdict="APPROVED",
+            assessment="All tests pass",
+            model_annotation="Gemini",
+            commit_sha="abc1234def5678",
+            dry_run=True,
+        )
+        assert result["success"] is True
+        assert "<!-- review:" in result["formatted_comment"]
+        assert "abc1234" in result["formatted_comment"]
+        assert result.get("commit_sha") == "abc1234def5678"
+
+    @pytest.mark.asyncio
+    async def test_dry_run_without_sha(self) -> None:
+        """Comment still works without SHA, sha is null in metadata."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        result = await submit_review(
+            repo="elevanaltd/HestAI-MCP",
+            pr_number=123,
+            role="CRS",
+            verdict="APPROVED",
+            assessment="All tests pass",
+            dry_run=True,
+        )
+        assert result["success"] is True
+        assert "<!-- review:" in result["formatted_comment"]
+        # sha should be null in metadata
+        assert '"sha":null' in result["formatted_comment"]
+
+
+@pytest.mark.unit
 class TestFailClosed:
     """Test fail-closed behavior: invalid format must not post."""
 

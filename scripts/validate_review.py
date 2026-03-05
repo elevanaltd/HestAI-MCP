@@ -124,6 +124,9 @@ try:
     from hestai_mcp.modules.tools.shared.review_formats import (
         matches_approval_pattern as _matches_approval_pattern,
     )
+    from hestai_mcp.modules.tools.shared.review_formats import (
+        parse_review_metadata as _parse_review_metadata,
+    )
 except (ImportError, ModuleNotFoundError):
     # CI fallback: load the module file directly via importlib
     import importlib.util
@@ -146,6 +149,7 @@ except (ImportError, ModuleNotFoundError):
     _has_crs_model_approval = _review_formats.has_crs_model_approval
     _has_ce_approval = _review_formats.has_ce_approval
     _has_ho_review = _review_formats.has_ho_review
+    _parse_review_metadata = _review_formats.parse_review_metadata
 
 
 def _has_approval(texts: list[str], prefix: str, keyword: str) -> bool:
@@ -195,12 +199,73 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
             if "<!-- review-gate-status -->" not in c["body"]
         )
 
+        # --- Metadata extraction and cross-validation ---
+        # Extract structured metadata from all texts for machine-readable checks.
+        # When metadata IS present, also run regex on the same comment.
+        # If regex-extracted verdict contradicts metadata verdict, FAIL
+        # (prevents spoofing: visible "BLOCKED" with hidden metadata "APPROVED").
+        metadata_entries: list[dict[str, str | None]] = []
+        for text in searchable_texts:
+            meta = _parse_review_metadata(text)
+            if meta is not None:
+                metadata_entries.append(meta)
+                # CROSS-VALIDATION: If metadata says a role gave an approval
+                # verdict, the visible text in the same comment MUST also
+                # match that approval via regex. Otherwise reject.
+                meta_role = meta.get("role")
+                meta_verdict = meta.get("verdict")
+                if meta_role and meta_verdict:
+                    # Only cross-validate approval verdicts (not BLOCKED/CONDITIONAL)
+                    approval_keywords = {"APPROVED", "SELF-REVIEWED", "REVIEWED", "GO"}
+                    if meta_verdict in approval_keywords:
+                        # Strip metadata HTML comment lines before regex check so
+                        # the hidden JSON tokens don't satisfy the pattern match.
+                        visible_text = re.sub(r"<!--\s*review:.*?-->\s*", "", text)
+                        # Strip fenced code blocks and inline code so that
+                        # approval text inside code examples cannot spoof the
+                        # cross-validation regex.
+                        visible_text = re.sub(r"```.*?```", "", visible_text, flags=re.DOTALL)
+                        visible_text = re.sub(r"`[^`]+`", "", visible_text)
+                        regex_agrees = _matches_approval_pattern(
+                            visible_text, meta_role, meta_verdict
+                        )
+                        if not regex_agrees:
+                            return (
+                                False,
+                                f"❌ Cross-validation failure: metadata says "
+                                f"{meta_role} {meta_verdict} but visible text "
+                                f"does not match. Possible spoofing detected.",
+                            )
+
+        def _meta_has(
+            role: str,
+            verdict: str,
+            provider: str | None = None,
+        ) -> bool:
+            """Check if metadata entries contain a matching approval."""
+            for entry in metadata_entries:
+                if (
+                    entry.get("role") == role
+                    and entry.get("verdict") == verdict
+                    and (provider is None or entry.get("provider") == provider.lower())
+                ):
+                    return True
+            return False
+
         # Check for required approvals based on tier.
         # Higher-tier reviews satisfy lower-tier requirements (hierarchy rule):
         #   TIER_1_SELF: IL SELF-REVIEWED OR CRS OR CRS+CE
         #   TIER_2_STANDARD:  CRS + CE
         #   TIER_3_STRICT: CRS(Gemini) + CRS(Codex) + CE
         if tier == "TIER_1_SELF":
+            # Try metadata first, then regex fallback
+            if _meta_has("IL", "SELF-REVIEWED"):
+                return True, "✓ Self-review found (metadata)"
+            if _meta_has("HO", "REVIEWED"):
+                return True, "✓ HO supervisory review found (metadata)"
+            if _meta_has("CRS", "APPROVED"):
+                return True, "✓ CRS approval satisfies self-review (metadata)"
+            # Regex fallback for old comments without metadata
             if _has_approval(searchable_texts, "IL", "SELF-REVIEWED"):
                 return True, "✓ Self-review found"
             if _has_approval(searchable_texts, "HO", "REVIEWED"):
@@ -210,6 +275,13 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
             return False, "❌ Missing: IL SELF-REVIEWED or HO REVIEWED comment"
 
         elif tier == "TIER_2_STANDARD":
+            # Try metadata first
+            meta_crs = _meta_has("CRS", "APPROVED")
+            meta_ce = _meta_has("CE", "APPROVED")
+            if meta_crs and meta_ce:
+                return True, "✓ CRS and CE approvals found (metadata)"
+
+            # Regex fallback
             has_crs = _has_crs_approval(searchable_texts)
             has_ce = _has_ce_approval(searchable_texts)
 
@@ -217,13 +289,21 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
                 return True, "✓ CRS and CE approvals found"
 
             missing = []
-            if not has_crs:
+            if not (meta_crs or has_crs):
                 missing.append("CRS APPROVED or CRS GO")
-            if not has_ce:
+            if not (meta_ce or has_ce):
                 missing.append("CE APPROVED or CE GO")
             return False, f"❌ Missing: {', '.join(missing)}"
 
         elif tier == "TIER_3_STRICT":
+            # Try metadata first
+            meta_gemini = _meta_has("CRS", "APPROVED", provider="gemini")
+            meta_codex = _meta_has("CRS", "APPROVED", provider="codex")
+            meta_ce = _meta_has("CE", "APPROVED")
+            if meta_gemini and meta_codex and meta_ce:
+                return True, "✓ Dual CRS + CE approvals found (metadata)"
+
+            # Regex fallback
             has_crs_gemini = _has_crs_model_approval(searchable_texts, "Gemini")
             has_crs_codex = _has_crs_model_approval(searchable_texts, "Codex")
             has_ce = _has_ce_approval(searchable_texts)
@@ -232,11 +312,11 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
                 return True, "✓ Dual CRS (Gemini + Codex) and CE approvals found"
 
             missing = []
-            if not has_crs_gemini:
+            if not (meta_gemini or has_crs_gemini):
                 missing.append("CRS (Gemini) APPROVED or CRS (Gemini) GO")
-            if not has_crs_codex:
+            if not (meta_codex or has_crs_codex):
                 missing.append("CRS (Codex) APPROVED or CRS (Codex) GO")
-            if not has_ce:
+            if not (meta_ce or has_ce):
                 missing.append("CE APPROVED or CE GO")
             return False, f"❌ Missing: {', '.join(missing)}"
 

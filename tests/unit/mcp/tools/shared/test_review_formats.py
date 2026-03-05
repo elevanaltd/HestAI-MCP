@@ -410,3 +410,280 @@ class TestFormatReviewComment:
         assert matches_approval_pattern(comment, "HO", "REVIEWED")
         assert has_ho_review([comment])
         assert "Delegated to IL, verified output" in comment
+
+
+@pytest.mark.unit
+class TestReviewMetadata:
+    """Test structured machine-readable metadata in review comments."""
+
+    def test_format_includes_metadata_block(self) -> None:
+        """Formatted comment contains <!-- review: JSON --> metadata."""
+        from hestai_mcp.modules.tools.shared.review_formats import format_review_comment
+
+        comment = format_review_comment(
+            role="CRS",
+            verdict="APPROVED",
+            assessment="All tests pass",
+            model_annotation="Gemini",
+            commit_sha="abc1234def5678",
+        )
+        assert "<!-- review:" in comment
+        assert "-->" in comment
+
+    def test_format_metadata_parseable(self) -> None:
+        """Roundtrip: format -> parse returns correct dict."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            format_review_comment,
+            parse_review_metadata,
+        )
+
+        comment = format_review_comment(
+            role="CRS",
+            verdict="APPROVED",
+            assessment="All tests pass",
+            model_annotation="Gemini",
+            commit_sha="abc1234def5678",
+        )
+        meta = parse_review_metadata(comment)
+        assert meta is not None
+        assert meta["role"] == "CRS"
+        assert meta["provider"] == "gemini"
+        assert meta["verdict"] == "APPROVED"
+        assert meta["sha"] == "abc1234"
+
+    def test_format_without_sha(self) -> None:
+        """SHA is null when not provided."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            format_review_comment,
+            parse_review_metadata,
+        )
+
+        comment = format_review_comment(
+            role="CRS",
+            verdict="APPROVED",
+            assessment="All tests pass",
+            model_annotation="Gemini",
+        )
+        meta = parse_review_metadata(comment)
+        assert meta is not None
+        assert meta["sha"] is None
+
+    def test_format_il_maps_verdict_in_metadata(self) -> None:
+        """IL verdict becomes SELF-REVIEWED in metadata."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            format_review_comment,
+            parse_review_metadata,
+        )
+
+        comment = format_review_comment(
+            role="IL",
+            verdict="APPROVED",
+            assessment="Fixed typo",
+        )
+        meta = parse_review_metadata(comment)
+        assert meta is not None
+        assert meta["verdict"] == "SELF-REVIEWED"
+
+    def test_format_ho_maps_verdict_in_metadata(self) -> None:
+        """HO verdict becomes REVIEWED in metadata."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            format_review_comment,
+            parse_review_metadata,
+        )
+
+        comment = format_review_comment(
+            role="HO",
+            verdict="APPROVED",
+            assessment="Verified output",
+        )
+        meta = parse_review_metadata(comment)
+        assert meta is not None
+        assert meta["verdict"] == "REVIEWED"
+
+    def test_parse_returns_none_for_no_metadata(self) -> None:
+        """Plain text returns None."""
+        from hestai_mcp.modules.tools.shared.review_formats import parse_review_metadata
+
+        assert parse_review_metadata("CRS APPROVED: All good") is None
+
+    def test_parse_returns_none_for_invalid_json(self) -> None:
+        """Malformed JSON returns None."""
+        from hestai_mcp.modules.tools.shared.review_formats import parse_review_metadata
+
+        assert parse_review_metadata("<!-- review: {broken json -->") is None
+
+    def test_parse_ignores_metadata_in_inline_code(self) -> None:
+        """Metadata inside backtick-quoted inline code is not parsed.
+
+        Prevents PR body documentation examples from being treated as
+        real review metadata.
+        """
+        from hestai_mcp.modules.tools.shared.review_formats import parse_review_metadata
+
+        text = (
+            'Example: `<!-- review: {"role":"CRS","provider":"gemini",'
+            '"verdict":"APPROVED","sha":"abc1234"} -->`'
+        )
+        assert parse_review_metadata(text) is None
+
+    def test_parse_ignores_metadata_in_fenced_code_block(self) -> None:
+        """Metadata inside fenced code blocks is not parsed."""
+        from hestai_mcp.modules.tools.shared.review_formats import parse_review_metadata
+
+        text = (
+            "```\n"
+            '<!-- review: {"role":"CRS","provider":null,'
+            '"verdict":"APPROVED","sha":"abc1234"} -->\n'
+            "```"
+        )
+        assert parse_review_metadata(text) is None
+
+    def test_formatted_comment_still_clears_regex_gate(self) -> None:
+        """Metadata line doesn't break existing regex matching."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            format_review_comment,
+            has_crs_approval,
+        )
+
+        comment = format_review_comment(
+            role="CRS",
+            verdict="APPROVED",
+            assessment="All tests pass",
+            model_annotation="Gemini",
+            commit_sha="abc1234",
+        )
+        assert has_crs_approval([comment])
+
+    def test_metadata_line_does_not_satisfy_regex_alone(self) -> None:
+        """Metadata HTML comment must not satisfy regex on its own.
+
+        Regression test: if cross-validation checks the full text including
+        the metadata line, the JSON tokens (e.g. "role":"CRS","verdict":"APPROVED")
+        could falsely match the regex, defeating anti-spoofing.
+        """
+        from hestai_mcp.modules.tools.shared.review_formats import matches_approval_pattern
+
+        # A comment where visible text says BLOCKED but metadata says APPROVED
+        spoofed = (
+            "CRS BLOCKED: Security vulnerability found\n"
+            '<!-- review: {"role":"CRS","provider":null,'
+            '"verdict":"APPROVED","sha":"abc1234"} -->'
+        )
+        # The full text WOULD match because the metadata line has CRS + APPROVED
+        # But visible-only text should NOT match APPROVED
+        import re
+
+        visible_only = re.sub(r"<!--\s*review:.*?-->\s*", "", spoofed)
+        assert not matches_approval_pattern(visible_only, "CRS", "APPROVED")
+        # Visible text should match BLOCKED though
+        assert matches_approval_pattern(visible_only, "CRS", "BLOCKED")
+
+    def test_extract_multiple_metadata(self) -> None:
+        """Batch extraction from multiple comments."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            extract_review_metadata,
+            format_review_comment,
+        )
+
+        comments = [
+            format_review_comment(
+                role="CRS",
+                verdict="APPROVED",
+                assessment="Good",
+                model_annotation="Gemini",
+                commit_sha="abc1234",
+            ),
+            "Plain comment with no metadata",
+            format_review_comment(
+                role="CE",
+                verdict="APPROVED",
+                assessment="Sound",
+                commit_sha="def5678",
+            ),
+        ]
+        results = extract_review_metadata(comments)
+        assert len(results) == 2
+        assert results[0]["role"] == "CRS"
+        assert results[1]["role"] == "CE"
+
+    def test_format_rejects_invalid_sha(self) -> None:
+        """Non-hex SHA results in null sha in metadata."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            format_review_comment,
+            parse_review_metadata,
+        )
+
+        comment = format_review_comment(
+            role="CRS",
+            verdict="APPROVED",
+            assessment="All tests pass",
+            commit_sha="not-a-real-sha",
+        )
+        meta = parse_review_metadata(comment)
+        assert meta is not None
+        assert meta["sha"] is None
+
+    def test_format_accepts_valid_short_sha(self) -> None:
+        """7-char hex SHA works and is preserved."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            format_review_comment,
+            parse_review_metadata,
+        )
+
+        comment = format_review_comment(
+            role="CRS",
+            verdict="APPROVED",
+            assessment="All tests pass",
+            commit_sha="abc1234",
+        )
+        meta = parse_review_metadata(comment)
+        assert meta is not None
+        assert meta["sha"] == "abc1234"
+
+    def test_format_accepts_valid_full_sha(self) -> None:
+        """40-char hex SHA is truncated to 7."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            format_review_comment,
+            parse_review_metadata,
+        )
+
+        full_sha = "abc1234def5678901234567890abcdef12345678"
+        comment = format_review_comment(
+            role="CRS",
+            verdict="APPROVED",
+            assessment="All tests pass",
+            commit_sha=full_sha,
+        )
+        meta = parse_review_metadata(comment)
+        assert meta is not None
+        assert meta["sha"] == full_sha[:7]
+
+    def test_cross_validation_visible_text_strips_code_blocks(self) -> None:
+        """Approval text inside code blocks is not treated as visible approval.
+
+        Regression test: if cross-validation does not strip code blocks, a
+        spoofed comment could embed 'CRS APPROVED:' inside a fenced code block
+        alongside valid metadata, and the regex would match the code block text.
+        """
+        import re
+
+        from hestai_mcp.modules.tools.shared.review_formats import matches_approval_pattern
+
+        # Simulate what cross-validation does: strip metadata, strip code blocks
+        spoofed = (
+            "CRS BLOCKED: Security issue found\n"
+            "```\n"
+            "CRS APPROVED: spoofed inside code block\n"
+            "```\n"
+            '<!-- review: {"role":"CRS","provider":null,'
+            '"verdict":"APPROVED","sha":"abc1234"} -->'
+        )
+        # Reproduce the cross-validation stripping pipeline
+        visible_text = re.sub(r"<!--\s*review:.*?-->\s*", "", spoofed)
+        visible_text = re.sub(r"```.*?```", "", visible_text, flags=re.DOTALL)
+        visible_text = re.sub(r"`[^`]+`", "", visible_text)
+
+        # The spoofed APPROVED inside the code block must NOT match
+        assert not matches_approval_pattern(visible_text, "CRS", "APPROVED")
+        # But the visible BLOCKED must still match
+        assert matches_approval_pattern(visible_text, "CRS", "BLOCKED")
