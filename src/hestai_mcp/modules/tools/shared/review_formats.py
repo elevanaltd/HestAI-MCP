@@ -240,7 +240,11 @@ def parse_review_metadata(text: str) -> dict[str, str | None] | None:
     Returns:
         Parsed metadata dict or None if not found or invalid.
     """
-    match = _METADATA_RE.search(text)
+    # Strip markdown code blocks and inline code to avoid matching
+    # example metadata in documentation (e.g., PR body with backtick-quoted examples).
+    stripped = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
+    stripped = re.sub(r"`[^`]+`", "", stripped)
+    match = _METADATA_RE.search(stripped)
     if not match:
         return None
     try:

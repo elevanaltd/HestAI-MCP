@@ -512,6 +512,32 @@ class TestReviewMetadata:
 
         assert parse_review_metadata("<!-- review: {broken json -->") is None
 
+    def test_parse_ignores_metadata_in_inline_code(self) -> None:
+        """Metadata inside backtick-quoted inline code is not parsed.
+
+        Prevents PR body documentation examples from being treated as
+        real review metadata.
+        """
+        from hestai_mcp.modules.tools.shared.review_formats import parse_review_metadata
+
+        text = (
+            'Example: `<!-- review: {"role":"CRS","provider":"gemini",'
+            '"verdict":"APPROVED","sha":"abc1234"} -->`'
+        )
+        assert parse_review_metadata(text) is None
+
+    def test_parse_ignores_metadata_in_fenced_code_block(self) -> None:
+        """Metadata inside fenced code blocks is not parsed."""
+        from hestai_mcp.modules.tools.shared.review_formats import parse_review_metadata
+
+        text = (
+            "```\n"
+            '<!-- review: {"role":"CRS","provider":null,'
+            '"verdict":"APPROVED","sha":"abc1234"} -->\n'
+            "```"
+        )
+        assert parse_review_metadata(text) is None
+
     def test_formatted_comment_still_clears_regex_gate(self) -> None:
         """Metadata line doesn't break existing regex matching."""
         from hestai_mcp.modules.tools.shared.review_formats import (
