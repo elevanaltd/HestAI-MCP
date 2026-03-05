@@ -221,6 +221,11 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
                         # Strip metadata HTML comment lines before regex check so
                         # the hidden JSON tokens don't satisfy the pattern match.
                         visible_text = re.sub(r"<!--\s*review:.*?-->\s*", "", text)
+                        # Strip fenced code blocks and inline code so that
+                        # approval text inside code examples cannot spoof the
+                        # cross-validation regex.
+                        visible_text = re.sub(r"```.*?```", "", visible_text, flags=re.DOTALL)
+                        visible_text = re.sub(r"`[^`]+`", "", visible_text)
                         regex_agrees = _matches_approval_pattern(
                             visible_text, meta_role, meta_verdict
                         )

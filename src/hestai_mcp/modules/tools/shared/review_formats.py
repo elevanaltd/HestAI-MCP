@@ -199,6 +199,11 @@ def format_review_comment(
     Returns:
         Formatted review comment string with metadata on line 2.
     """
+    # Validate commit_sha: must be 7-40 hex characters, silently drop invalid
+    if commit_sha is not None:
+        clean_sha = commit_sha.strip()
+        commit_sha = clean_sha if re.fullmatch(r"[0-9a-fA-F]{7,40}", clean_sha) else None
+
     # Map IL APPROVED to SELF-REVIEWED, HO APPROVED to REVIEWED
     if role == "IL" and verdict == "APPROVED":
         keyword = _IL_APPROVED_KEYWORD
