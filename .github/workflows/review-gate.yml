@@ -26,12 +26,20 @@ on:
 jobs:
   check-review:
     runs-on: ubuntu-latest
-    # Only run on PR comments or PR events
-    # workflow_call does not set issue_comment context, so we also allow it through
+    # Only run on PR events, workflow_call, or PR comments containing review verdicts.
+    # Filters out irrelevant comments (discussion, bot noise) that can't change gate outcome.
+    # Keywords match review_formats.py: APPROVED, REVIEWED (covers SELF-REVIEWED), GO.
+    # Also matches markdown-bold variants (**APPROVED**, **GO**) since review_formats.py
+    # strips bold markers before pattern matching.
     if: >-
       github.event_name == 'pull_request'
       || github.event_name == 'workflow_call'
-      || github.event.issue.pull_request
+      || (github.event.issue.pull_request
+          && (contains(github.event.comment.body, 'APPROVED')
+              || contains(github.event.comment.body, 'REVIEWED')
+              || contains(github.event.comment.body, ' GO')
+              || contains(github.event.comment.body, ' GO:')
+              || contains(github.event.comment.body, '**GO**')))
 
     # Required for PR commenting
     permissions:
