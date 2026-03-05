@@ -218,7 +218,12 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
                     # Only cross-validate approval verdicts (not BLOCKED/CONDITIONAL)
                     approval_keywords = {"APPROVED", "SELF-REVIEWED", "REVIEWED", "GO"}
                     if meta_verdict in approval_keywords:
-                        regex_agrees = _matches_approval_pattern(text, meta_role, meta_verdict)
+                        # Strip metadata HTML comment lines before regex check so
+                        # the hidden JSON tokens don't satisfy the pattern match.
+                        visible_text = re.sub(r"<!--\s*review:.*?-->\s*", "", text)
+                        regex_agrees = _matches_approval_pattern(
+                            visible_text, meta_role, meta_verdict
+                        )
                         if not regex_agrees:
                             return (
                                 False,
