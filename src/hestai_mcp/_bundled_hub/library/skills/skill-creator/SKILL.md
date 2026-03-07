@@ -3,17 +3,16 @@ name: skill-creator
 description: Create and validate OCTAVE hub skills and patterns with spec-compliant structure. Skills use YAML frontmatter plus OCTAVE envelope; patterns use OCTAVE envelope only. Use when creating new skills or patterns, validating structure, checking spec compliance, or authoring anchor kernels. Triggers on create skill, create pattern, skill structure, pattern structure, skill validation, spec compliance, anchor kernel, YAML frontmatter, skill template, hub skill, hub pattern.
 allowed-tools: ["Read", "Grep", "Glob"]
 triggers: ["create skill", "new skill", "create pattern", "new pattern", "skill structure", "pattern structure", "skill validation", "spec compliance", "anchor kernel", "YAML frontmatter", "skill template", "hub skill", "hub pattern", "skill creator"]
-version: "2.0.0"
+version: "2.1.0"
 ---
 
 ===SKILL_CREATOR===
 META:
   TYPE::SKILL
-  VERSION::"2.0.0"
+  VERSION::"2.1.0"
   STATUS::ACTIVE
-  PURPOSE::"Create and validate OCTAVE hub skills and patterns per octave-skills-spec and octave-patterns-spec"
-  SPEC_REFERENCE::octave-skills-spec.oct.md
-  SPEC_REFERENCE_2::octave-patterns-spec.oct.md
+  PURPOSE::"Create and validate OCTAVE hub skills and patterns per octave-skills-spec v9 and octave-patterns-spec v2"
+  SPEC_REFERENCE::[octave-skills-spec.oct.md,octave-patterns-spec.oct.md]
 
 §1::CORE
 MISSION::"Produce spec-compliant skills and patterns with correct structure, compression, and discovery metadata"
