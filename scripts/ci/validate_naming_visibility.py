@@ -21,7 +21,9 @@ ALLOWED_ROOTS = (
     "docs/",
     "src/hestai_mcp/_bundled_hub/",
     ".hestai/",
+    ".hestai-sys/",
     ".claude/",
+    ".github/",
     "debates/",
 )
 FORBIDDEN_FOLDERS = {".archive", ".sources", "_legacy", "legacy"}
