@@ -307,30 +307,16 @@ jobs:
               '/review'
             );
 
-            // 3. Cubic Dev AI - auto-reviews on PR open, but we can
-            //    also nudge it by requesting a review if the app is installed.
-            //    Cubic listens for review requests on the PR itself.
-            try {
-              await github.rest.pulls.requestReviewers({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: prNumber,
-                reviewers: ['cubic-dev-ai[bot]']
-              });
-              console.log(`Requested Cubic review for ${headSha}`);
-            } catch (e) {
-              console.log(`Cubic reviewer request failed (app may not be installed): ${e.message}`);
-            }
+            // 3. Cubic Dev AI - auto-reviews on PR open; no explicit
+            //    trigger needed. Cubic watches for PR events directly.
+            console.log('Cubic Dev AI reviews automatically on PR activity');
 
-            // 4. GitHub Copilot - triggered by adding as PR reviewer
-            try {
-              await github.rest.pulls.requestReviewers({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: prNumber,
-                reviewers: ['copilot-pull-request-reviewer[bot]']
-              });
-              console.log(`Requested Copilot review for ${headSha}`);
-            } catch (e) {
-              console.log(`Copilot reviewer request failed (may not be available): ${e.message}`);
-            }
+      - name: Request Copilot Review
+        if: steps.review_check.outputs.exit_code == '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: |
+          # gh CLI supports adding bot accounts as reviewers (REST API does not)
+          gh pr edit "$PR_NUMBER" --add-reviewer "copilot-pull-request-reviewer[bot]" || \
+            echo "Copilot reviewer request failed (may not be available)"
