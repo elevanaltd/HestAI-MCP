@@ -2,6 +2,7 @@
 name: subagent-rules
 description: Proper delegation patterns for Task() invocations with governance context injection
 allowed-tools: ["Task", "Read", "Bash"]
+triggers: ["subagent", "oa-router", "Task delegation", "anchor ceremony", "subagent rules", "delegate task", "spawn agent", "tier selection"]
 ---
 
 ===SKILL:SUBAGENT_RULES===
@@ -33,7 +34,7 @@ META:
 
 §3::TIER_SELECTION
   TIERS::[
-    micro::trivial_read_only_tasks[0_tensions,bypass],
+    micro::trivial_read_only_tasks[0_tensions,tension_bypass],
     quick::fast_iteration_single_constraint[1_tension],
     default::standard_work[2_tensions],
     deep::critical_decisions_production_impact[3_tensions]
