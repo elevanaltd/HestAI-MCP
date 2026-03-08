@@ -5,8 +5,8 @@ reviews:
   # Auto-review on PR open — CodeRabbit reviews alongside the review gate
   auto_review:
     enabled: true
-  # Review profile: CHILL = fewer nitpicks, focused on real issues
-  profile: CHILL
+  # Review profile: assertive = thorough, flags real issues
+  profile: assertive
   # Request changes when issues found (not just comments)
   request_changes_workflow: true
 

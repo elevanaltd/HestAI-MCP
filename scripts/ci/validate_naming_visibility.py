@@ -117,7 +117,7 @@ def main(argv: list[str]) -> int:
             if not RE_WHITELIST.match(name):
                 raise SystemExit(
                     f"ERROR visibility-rules: Root-level doc '{p}' not allowed. "
-                    f"Move to docs/, .hestai/, .claude/, debates/, or src/hestai_mcp/_bundled_hub/ per .hestai-sys/governance/rules/visibility-rules.oct.md"
+                    f"Move to docs/, .hestai/, .hestai-sys/, .claude/, .github/, debates/, or src/hestai_mcp/_bundled_hub/ per .hestai-sys/governance/rules/visibility-rules.oct.md"
                 )
             # Whitelisted root files pass without further validation
             continue
