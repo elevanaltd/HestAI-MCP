@@ -1,6 +1,0 @@
-# CodeRabbit configuration
-# Reviews are triggered explicitly by the review-gate workflow,
-# not automatically on PR open/update.
-reviews:
-  auto_review:
-    enabled: false
