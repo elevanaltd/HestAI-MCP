@@ -8,14 +8,14 @@ META:
   DOMAIN::workflow
   OWNERS::[system-steward]
   CREATED::"2025 -12 -21"
-  UPDATED::"2026-03-07"
+  UPDATED::"2026-03-08"
   CANONICAL::".hestai/rules/octave-integration-guide.oct.md"
   TAGS::[
     octave,
     internal,
     hestai-mcp
   ]
-  OCTAVE_VERSION::"1.9.0"
+  OCTAVE_VERSION::"1.9.1"
 ---
 // This file is HestAI-MCP INTERNAL documentation.
 // Consumer-facing OCTAVE guide: .hestai-sys/library/octave/octave-usage-guide.oct.md
