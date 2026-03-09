@@ -21,7 +21,6 @@ ALLOWED_ROOTS = (
     "docs/",
     "src/hestai_mcp/_bundled_hub/",
     ".hestai/",
-    ".hestai-sys/",
     ".claude/",
     ".github/",
     "debates/",
@@ -115,9 +114,7 @@ def main(argv: list[str]) -> int:
             # Root-level doc file - check if whitelisted
             name = Path(p).name
             if not RE_WHITELIST.match(name):
-                # .hestai-sys/ is gitignored (read-only governance) — don't
-                # advertise it as a destination contributors can write to.
-                allowed = ", ".join(r for r in ALLOWED_ROOTS if r != ".hestai-sys/")
+                allowed = ", ".join(ALLOWED_ROOTS)
                 raise SystemExit(
                     f"ERROR visibility-rules: Root-level doc '{p}' not allowed. "
                     f"Move to {allowed} per "

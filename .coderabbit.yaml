@@ -21,9 +21,10 @@ reviews:
         Test files mirror src/ structure. Check test coverage of edge cases,
         proper use of pytest markers (smoke, unit, behavior, contract).
         Do not suggest restructuring test file layout.
-    - path: ".hestai-sys/**"
+    - path: "src/hestai_mcp/_bundled_hub/**"
       instructions: |
-        Governance files. Review for structural correctness only.
+        Bundled governance files (mirrored to .hestai-sys/ at install time).
+        Review for structural correctness only.
         Do not flag OCTAVE format (*.oct.md) for markdown issues —
         these use intentionally non-standard notation.
     - path: "**/*.oct.md"
