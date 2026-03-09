@@ -22,6 +22,7 @@ ALLOWED_ROOTS = (
     "src/hestai_mcp/_bundled_hub/",
     ".hestai/",
     ".claude/",
+    ".github/",
     "debates/",
 )
 FORBIDDEN_FOLDERS = {".archive", ".sources", "_legacy", "legacy"}
@@ -113,9 +114,11 @@ def main(argv: list[str]) -> int:
             # Root-level doc file - check if whitelisted
             name = Path(p).name
             if not RE_WHITELIST.match(name):
+                allowed = ", ".join(ALLOWED_ROOTS)
                 raise SystemExit(
                     f"ERROR visibility-rules: Root-level doc '{p}' not allowed. "
-                    f"Move to docs/, .hestai/, .claude/, debates/, or src/hestai_mcp/_bundled_hub/ per .hestai-sys/governance/rules/visibility-rules.oct.md"
+                    f"Move to {allowed} per "
+                    f".hestai-sys/governance/rules/visibility-rules.oct.md"
                 )
             # Whitelisted root files pass without further validation
             continue

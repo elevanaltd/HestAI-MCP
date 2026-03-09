@@ -1,0 +1,38 @@
+# CodeRabbit configuration
+# Docs: https://docs.coderabbit.ai/guides/configure-coderabbit
+
+reviews:
+  # Auto-review on PR open — CodeRabbit reviews alongside the review gate
+  auto_review:
+    enabled: true
+  # Review profile: assertive = thorough, flags real issues
+  profile: assertive
+  # Request changes when issues found (not just comments)
+  request_changes_workflow: true
+
+  path_instructions:
+    - path: "src/**/*.py"
+      instructions: |
+        Focus on: security, correctness, type safety, error handling.
+        All public functions must have docstrings. Line length 100 chars.
+        This project uses ruff for linting and mypy for type checking.
+    - path: "tests/**/*.py"
+      instructions: |
+        Test files mirror src/ structure. Check test coverage of edge cases,
+        proper use of pytest markers (smoke, unit, behavior, contract).
+        Do not suggest restructuring test file layout.
+    - path: "src/hestai_mcp/_bundled_hub/**"
+      instructions: |
+        Bundled governance files (mirrored to .hestai-sys/ at install time).
+        Review for structural correctness only.
+        Do not flag OCTAVE format (*.oct.md) for markdown issues —
+        these use intentionally non-standard notation.
+    - path: "**/*.oct.md"
+      instructions: |
+        OCTAVE format files use domain-specific notation. Do not flag
+        for markdown lint, missing headers, or unconventional formatting.
+        Review for structural completeness and semantic correctness only.
+    - path: ".github/workflows/**"
+      instructions: |
+        GitHub Actions workflows. Check for: correct event triggers,
+        proper secret handling, job dependency chains, shell injection risks.
