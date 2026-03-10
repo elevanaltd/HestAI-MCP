@@ -1,15 +1,7 @@
----
-name: skill-creator
-description: Create and validate OCTAVE hub skills and patterns per octave-skills-spec v9.1 and octave-patterns-spec v2. Use when creating new skills or patterns, validating structure, checking spec compliance, or authoring anchor kernels. Triggers on create skill, create pattern, skill validation, spec compliance, anchor kernel, hub skill, hub pattern.
-allowed-tools: ["Read", "Grep", "Glob"]
-triggers: ["create skill", "new skill", "create pattern", "new pattern", "skill structure", "pattern structure", "skill validation", "spec compliance", "anchor kernel", "skill template", "hub skill", "hub pattern", "skill creator"]
-version: "3.1.0"
----
-
 ===SKILL_CREATOR===
 META:
   TYPE::SKILL
-  VERSION::"3.1.0"
+  VERSION::"3.2.0"
   STATUS::ACTIVE
   PURPOSE::"Spec-compliant skill and pattern creation per octave-skills-spec v9.1 and octave-patterns-spec v2"
   SPEC_REFERENCE::[octave-skills-spec.oct.md,octave-patterns-spec.oct.md]
