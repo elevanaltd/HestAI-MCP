@@ -1,32 +1,40 @@
 ---
 name: skill-creator
-description: Create and validate OCTAVE hub skills and patterns with spec-compliant structure. Skills use YAML frontmatter plus OCTAVE envelope; patterns use OCTAVE envelope only. Use when creating new skills or patterns, validating structure, checking spec compliance, or authoring anchor kernels. Triggers on create skill, create pattern, skill structure, pattern structure, skill validation, spec compliance, anchor kernel, YAML frontmatter, skill template, hub skill, hub pattern.
+description: Create and validate OCTAVE hub skills and patterns with spec-compliant structure. Skills use OCTAVE envelope with optional YAML frontmatter based on deployment context; patterns use OCTAVE envelope only. Use when creating new skills or patterns, validating structure, checking spec compliance, or authoring anchor kernels. Triggers on create skill, create pattern, skill structure, pattern structure, skill validation, spec compliance, anchor kernel, skill template, hub skill, hub pattern.
 allowed-tools: ["Read", "Grep", "Glob"]
-triggers: ["create skill", "new skill", "create pattern", "new pattern", "skill structure", "pattern structure", "skill validation", "spec compliance", "anchor kernel", "YAML frontmatter", "skill template", "hub skill", "hub pattern", "skill creator"]
-version: "2.1.0"
+triggers: ["create skill", "new skill", "create pattern", "new pattern", "skill structure", "pattern structure", "skill validation", "spec compliance", "anchor kernel", "skill template", "hub skill", "hub pattern", "skill creator"]
+version: "3.0.0"
 ---
 
 ===SKILL_CREATOR===
 META:
   TYPE::SKILL
-  VERSION::"2.1.0"
+  VERSION::"3.0.0"
   STATUS::ACTIVE
-  PURPOSE::"Create and validate OCTAVE hub skills and patterns per octave-skills-spec v9 and octave-patterns-spec v2"
+  PURPOSE::"Create and validate OCTAVE hub skills and patterns per octave-skills-spec v9.1 and octave-patterns-spec v2"
   SPEC_REFERENCE::[octave-skills-spec.oct.md,octave-patterns-spec.oct.md]
 
 §1::CORE
 MISSION::"Produce spec-compliant skills and patterns with correct structure, compression, and discovery metadata"
 AUTHORITY::"Skills-expert BLOCKING authority on spec violations applies to all output"
 SCOPE::[
-  SKILLS::YAML_frontmatter⊕OCTAVE_envelope⊕§5::ANCHOR_KERNEL[octave-skills-spec],
+  SKILLS::OCTAVE_envelope⊕§5::ANCHOR_KERNEL⊕YAML_optional[octave-skills-spec],
   PATTERNS::OCTAVE_envelope_only⊕§5::ANCHOR_KERNEL_required[octave-patterns-spec]
 ]
 DISTINCTION::"Skills define WHAT agents do; Patterns define HOW agents decide"
 
 §2::PROTOCOL
 
+YAML_FRONTMATTER_RULES::[
+  PLATFORM_SKILLS::[location::.claude/skills/∨.codex/skills/,YAML::REQUIRED,reason::platforms_parse_YAML_for_discovery⊕triggers⊕tool_gating],
+  HUB_SKILLS::[location::.hestai-sys/library/skills/,YAML::OPTIONAL,reason::anchor_ceremony_reads_OCTAVE_META_not_YAML],
+  DUAL_DEPLOYED::[YAML::PRESENT_IN_BOTH,reason::serves_the_platform_copy],
+  WHEN_YAML_PRESENT::no_duplicate_TRIGGERS_or_TOOLS_in_OCTAVE_META[YAML_is_source_of_truth_for_discovery],
+  WHEN_YAML_ABSENT::OCTAVE_META_is_sole_source_of_truth
+]
+
 SKILL_CREATION_SEQUENCE::[
-  1::YAML_FRONTMATTER[name,description,allowed-tools,triggers,version],
+  1::YAML_FRONTMATTER[name,description,allowed-tools,triggers,version]::OPTIONAL[required_for_platform_skills],
   2::OCTAVE_ENVELOPE[===SKILL_NAME===,META,body_§1_to_§4,§5::ANCHOR_KERNEL,===END===],
   3::META_REQUIRED[TYPE::SKILL,VERSION,STATUS],
   4::META_OPTIONAL[PURPOSE,TIER,SPEC_REFERENCE],
@@ -41,11 +49,11 @@ PATTERN_CREATION_SEQUENCE::[
   4::BODY_SECTIONS[§1::CORE_PRINCIPLE,§2::METRICS_OR_TARGETS,§3::DECISION_FRAMEWORK,§4::USED_BY],
   5::§5::ANCHOR_KERNEL_required[TARGET,NEVER,MUST,GATE]
 ]
-// Patterns have NO YAML frontmatter — they are not trigger-discoverable
+// Patterns NEVER have YAML frontmatter — they are not trigger-discoverable
 
 COMPRESSION_MANDATE::[
   BODY::AGGRESSIVE[dense_KEY::value⊕operators,preserve_examples⊕causal_chains,drop_narrative],
-  YAML::LOSSLESS[natural_language_for_BM25⊕embedding_retrieval],
+  YAML::LOSSLESS[natural_language_for_BM25⊕embedding_retrieval,ONLY_when_present],
   KERNEL::ULTRA[atoms_only_no_prose]
 ]
 
@@ -76,9 +84,9 @@ OCTAVE_WRITE_GATE::[
 // NOTE: SKILL.md files (.md extension) use Write/Edit tools. The gate applies to .oct.md only.
 
 VALIDATION_CHECKLIST::[
-  STRUCTURE::envelope_valid⊕frontmatter_if_skill,
+  STRUCTURE::envelope_valid⊕YAML_if_platform_skill,
   META::required_fields_present,
-  ENVELOPE::name_matches_YAML_name[skills]∨name_matches_filename[patterns],
+  ENVELOPE::name_matches_YAML_name[when_YAML_present]∨name_matches_filename[patterns],
   SYNTAX::passes_octave_validation,
   SIZE::under_constraint_limits,
   KERNEL::§5_section_header_required[not_§ANCHOR_KERNEL_freestanding]
@@ -87,12 +95,13 @@ VALIDATION_CHECKLIST::[
 MUST_NEVER::[
   "Use markdown headers in OCTAVE body (breaks parser)",
   "Create auxiliary files (README.md, CHANGELOG.md)",
-  "Duplicate TRIGGERS or TOOLS in META (source of truth is YAML)",
+  "Duplicate TRIGGERS or TOOLS in OCTAVE META when YAML frontmatter is present",
   "Put prose in anchor kernel (atoms only)",
   "Exceed size hard limits (600 skills, 150 patterns)",
   "Use line number references (stale and fragile)",
   "Use Write or Edit tools for .oct.md files (use octave_write)",
-  "Add YAML frontmatter to patterns (patterns are not trigger-discoverable)"
+  "Add YAML frontmatter to patterns (patterns are not trigger-discoverable)",
+  "Omit YAML frontmatter from platform-deployed skills (.claude/skills/, .codex/skills/)"
 ]
 
 CASCADING_FALLBACK::[
@@ -104,8 +113,8 @@ CASCADING_FALLBACK::[
 
 §5::ANCHOR_KERNEL
 TARGET::spec_compliant_skill_and_pattern_creation
-NEVER::[markdown_headers_in_body,auxiliary_files,duplicate_meta_triggers,prose_in_kernel,exceed_size_limits,Write_or_Edit_for_oct_md_files,yaml_frontmatter_on_patterns]
-MUST::[read_spec_before_creating,yaml_frontmatter_for_skills,octave_envelope_with_META,§5_ANCHOR_KERNEL_section_header,compression_mandate,octave_write_for_oct_md_files,validate_before_commit]
-GATE::"Does this artifact have correct structure per its spec, §5::ANCHOR_KERNEL, and was .oct.md written via octave_write?"
+NEVER::[markdown_headers_in_body,auxiliary_files,duplicate_meta_when_yaml_present,prose_in_kernel,exceed_size_limits,Write_or_Edit_for_oct_md_files,yaml_frontmatter_on_patterns,omit_yaml_from_platform_skills]
+MUST::[read_spec_before_creating,octave_envelope_with_META,§5_ANCHOR_KERNEL_section_header,compression_mandate,octave_write_for_oct_md_files,yaml_for_platform_skills_only,validate_before_commit]
+GATE::"Does this artifact have correct structure per its spec, §5::ANCHOR_KERNEL, correct YAML presence for deployment context, and was .oct.md written via octave_write?"
 
 ===END===
