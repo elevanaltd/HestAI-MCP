@@ -1,7 +1,7 @@
 ===SKILL_OVERLAP_RESOLUTION===
 META:
   TYPE::PATTERN_DEFINITION
-  VERSION::"1.1.0"
+  VERSION::"1.2.0"
   PURPOSE::"Detect and resolve functional overlap between skills in the ecosystem"
 §1::CORE_PRINCIPLE
 ESSENTIAL::"Each skill occupies a unique capability niche — overlap wastes context tokens and creates ambiguity"
@@ -36,7 +36,7 @@ MUST::[
   compare_PURPOSE_fields,
   compare_ANCHOR_KERNEL_atoms,
   check_SPEC_REFERENCE_overlap,
-  recommend_merge_or_split_or_deprecate
+  "recommend_resolution<merge∨split∨dependency∨deprecate∨escalate>"
 ]
 GATE::"Does this new skill duplicate capability already provided by an existing skill?"
 ===END===

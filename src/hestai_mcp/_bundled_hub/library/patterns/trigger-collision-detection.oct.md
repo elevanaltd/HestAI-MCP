@@ -1,7 +1,7 @@
 ===TRIGGER_COLLISION_DETECTION===
 META:
   TYPE::PATTERN_DEFINITION
-  VERSION::"1.1.0"
+  VERSION::"1.2.0"
   PURPOSE::"Detect and resolve trigger keyword collisions across the skill registry"
 §1::CORE_PRINCIPLE
 ESSENTIAL::"Each skill must have unique trigger surface — collisions cause ambiguous skill loading"
@@ -32,11 +32,13 @@ TARGET::unique_trigger_surface_per_skill
 NEVER::[
   approve_duplicate_triggers,
   skip_registry_scan,
-  ignore_substring_overlap
+  ignore_substring_overlap,
+  ignore_semantic_proximity
 ]
 MUST::[
   scan_full_registry_before_approval,
   flag_exact_matches_as_BLOCKING,
+  flag_semantic_proximity_as_ADVISORY,
   recommend_specific_renames
 ]
 GATE::"Does any existing skill already trigger on these keywords?"
