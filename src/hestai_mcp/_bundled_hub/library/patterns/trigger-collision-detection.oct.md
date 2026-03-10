@@ -1,31 +1,30 @@
 ===TRIGGER_COLLISION_DETECTION===
 META:
   TYPE::PATTERN_DEFINITION
-  VERSION::"1.0.0"
+  VERSION::"1.1.0"
   PURPOSE::"Detect and resolve trigger keyword collisions across the skill registry"
 §1::CORE_PRINCIPLE
 ESSENTIAL::"Each skill must have unique trigger surface — collisions cause ambiguous skill loading"
 ANTI_PATTERN::"silent_overlap<two_skills_triggered_by_same_keyword→unpredictable_selection>"
 ENFORCEMENT::"Scan full registry BEFORE approving new triggers"
-§2::DETECTION_PROTOCOL
+§2::DECISION_FRAMEWORK
 SCAN_SEQUENCE::[
-  1::"collect_all_YAML_triggers_from_registry<glob_SKILL.md_files>",
+  1::"collect_all_triggers_from_registry<glob_SKILL.md_files>",
   2::collect_new_skill_triggers,
   3::"compare<exact_match→BLOCKING,substring_overlap→ADVISORY,semantic_proximity→ADVISORY>"
 ]
 SEVERITY::[
   BLOCKING::exact_match<same_keyword_in_two_skills>,
-  ADVISORY::substring_overlap<create_skill_vs_skill_creator>,
-  ADVISORY::semantic_proximity<compress_octave_vs_octave_compression>
+  ADVISORY::"substring_overlap<create_skill⇌skill_creator>",
+  ADVISORY::"semantic_proximity<compress_octave⇌octave_compression>"
 ]
-§3::RESOLUTION_ACTIONS
 ON_COLLISION::[
   rename_trigger<make_more_specific>,
   "merge_skills<if_functionally_overlapping→see_skill-overlap-resolution>",
   split_triggers<assign_distinct_keyword_domains>,
   escalate<ecosystem_review_if_systemic>
 ]
-§4::USED_BY
+§3::USED_BY
 AGENTS::[skills-expert]
 CONTEXT::skill_creation⊕skill_validation⊕ecosystem_audit
 §5::ANCHOR_KERNEL
