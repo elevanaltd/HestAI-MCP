@@ -101,7 +101,7 @@ CHASSIS_DISCOVERY_EXAMPLE::[
 §5::ANCHOR_KERNEL
 TARGET::structured_agent_identity_extraction
 NEVER::[lead_answers, skip_questions, accept_vague_responses, confuse_aspiration_with_behavior]
-MUST::[cover_all_14_questions, read_agent_file_before_interview, produce_structured_assessment, flag_contradictions]
+MUST::[cover_all_14_questions, read_agent_file_if_exists, produce_structured_assessment, flag_contradictions]
 GATE::"Does this interview produce enough behavioral evidence to author a complete v8.1 agent file with justified chassis-profile mapping?"
 
 ===END===
