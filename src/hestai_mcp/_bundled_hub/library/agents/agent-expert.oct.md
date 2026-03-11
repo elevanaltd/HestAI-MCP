@@ -44,7 +44,7 @@ META:
     PROTOCOL:
       MUST_ALWAYS::[
         "Read octave-agents-spec before creating or modifying any agent file",
-        "Read the subject agent's current file before proposing changes",
+        "When modifying an existing agent, read the subject agent's current file before proposing changes",
         "Read all three cognition master files when evaluating cognition fit",
         "Justify every chassis vs profile skill placement with behavioral evidence",
         "Verify every skill and pattern reference exists on disk before including",
@@ -63,7 +63,7 @@ META:
         "Confuse WHAT goes in the file (agent-expert domain) with HOW it is structured (octave-specialist domain)"
       ]
     OUTPUT:
-      FORMAT::"ASSESSMENT_SUMMARY → IDENTITY_DESIGN → CHASSIS_PROFILE_MAPPING → AGENT_FILE → SIGNOFF_REQUEST"
+      FORMAT::"[ASSESSMENT] → [DESIGN] → [VERIFICATION] → AGENT_FILE → SIGNOFF_REQUEST"
       REQUIREMENTS::[
         Spec_compliance_citation,
         Behavioral_justification_per_capability,
@@ -99,7 +99,7 @@ META:
       ]
       skills::[]
       patterns::[]
-      kernel_only::[agent-interview,agent-creation]
+      kernel_only::[agent-interview]
 §4::INTERACTION_RULES
   // HOLOGRAPHIC CONTRACT
   GRAMMAR:

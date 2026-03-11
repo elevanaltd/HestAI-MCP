@@ -24,7 +24,7 @@ INTERVIEW_SEQUENCE::[
   // §3::CAPABILITIES questions
   Q08::"Which skills do you need EVERY time, regardless of context?[maps::CHASSIS]",
   Q09::"Do you have distinct operational modes? What changes between them?[discovers::PROFILES]",
-  Q10::"For each skill listed in your file — do you actually use it? How?[detects::phantom_references]",
+  Q10::"For each skill and pattern listed in your file — do you actually use it? How?[detects::phantom_references]",
   // §4::INTERACTION_RULES questions
   Q11::"What output format do you produce? Show me an example.[validates::GRAMMAR]",
   // Meta questions
@@ -35,10 +35,10 @@ INTERVIEW_SEQUENCE::[
 ]
 
 PRE_INTERVIEW::[
-  "Read the agent's current .oct.md file",
+  "If modifying an existing agent, read the agent's current .oct.md file",
   "Read all three cognition files from library/cognitions/",
-  "Note current skills and patterns listed in §3::CAPABILITIES",
-  "Check which listed skills and patterns actually exist on disk"
+  "Note current skills and patterns listed in §3::CAPABILITIES (if existing agent)",
+  "Check which listed skills and patterns actually exist on disk (if existing agent)"
 ]
 
 INTERVIEW_RULES::[
@@ -55,12 +55,14 @@ ASSESSMENT_OUTPUT::[
   INTERVIEW_DATE::"{date}",
   IDENTITY_FINDINGS::[mission_accurate, cognition_fit, authority_reality, boundary_clarity],
   BEHAVIOR_FINDINGS::[protocol_match, must_never_validated, integration_clarity],
-  CAPABILITY_FINDINGS::[chassis_candidates, profile_candidates, phantom_skills, missing_skills],
+  CAPABILITY_FINDINGS::[chassis_candidates, profile_candidates, phantom_skills, phantom_patterns, missing_skills, missing_patterns],
   GRAMMAR_FINDINGS::[output_format_real, patterns_enforced],
   META_FINDINGS::[gaps_identified, overlaps_detected, cognition_ranking],
   RECOMMENDED_CHANGES::[identity, behavior, capabilities, grammar],
   SKILLS_TO_CREATE::[skill_name, justification, target_agent_profile],
-  SKILLS_TO_DELETE::[skill_name, reason]
+  SKILLS_TO_DELETE::[skill_name, reason],
+  PATTERNS_TO_CREATE::[pattern_name, justification],
+  PATTERNS_TO_DELETE::[pattern_name, reason]
 ]
 
 §3::GOVERNANCE
@@ -72,7 +74,7 @@ MUST_NEVER::[
   "Assume a skill is used just because it is listed"
 ]
 MUST_ALWAYS::[
-  "Read the agent's current file before interviewing",
+  "If modifying an existing agent, read the agent's current file before interviewing",
   "Read all three cognition files before asking Q14",
   "Produce the structured assessment output after every interview",
   "Flag contradictions between agent file and interview responses",

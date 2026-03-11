@@ -68,7 +68,7 @@ RESOURCES::[archetype-database.oct.md]
 
 §5::ANCHOR_KERNEL
 TARGET::v8_1_compliant_agent_file_creation
-NEVER::[phantom_references,authoring_without_assessment,cognition_duplication,old_section_numbering,Write∨Edit_for_oct_md]
+NEVER::[phantom_references,authoring_without_assessment,cognition_duplication,embed_SHANK_overlays,old_section_numbering,Write∨Edit_for_oct_md]
 MUST::[read_spec_first,interview_evidence,verify_disk_references,subject_agent_signoff,octave_write_for_oct_md]
 GATE::"v8.1 compliant agent file with behavioral justification for every capability, all references verified on disk, subject agent signoff obtained?"
 
