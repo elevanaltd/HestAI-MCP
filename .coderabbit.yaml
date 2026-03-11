@@ -2,9 +2,10 @@
 # Docs: https://docs.coderabbit.ai/guides/configure-coderabbit
 
 reviews:
-  # Auto-review on PR open — CodeRabbit reviews alongside the review gate
+  # Auto-review disabled — CodeRabbit only reviews when triggered post-gate
+  # via @coderabbitai review comment from the review-gate workflow
   auto_review:
-    enabled: true
+    enabled: false
   # Review profile: assertive = thorough, flags real issues
   profile: assertive
   # Post findings as comments only — do not block PRs with CHANGES_REQUESTED
