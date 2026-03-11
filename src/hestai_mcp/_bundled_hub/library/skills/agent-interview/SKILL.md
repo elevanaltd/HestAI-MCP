@@ -62,7 +62,8 @@ ASSESSMENT_OUTPUT::[
   SKILLS_TO_CREATE::[skill_name, justification, target_agent_profile],
   SKILLS_TO_DELETE::[skill_name, reason],
   PATTERNS_TO_CREATE::[pattern_name, justification],
-  PATTERNS_TO_DELETE::[pattern_name, reason]
+  PATTERNS_TO_DELETE::[pattern_name, reason],
+  BEHAVIORAL_EVIDENCE::[verbatim_quotes, contradictions_observed]
 ]
 
 §3::GOVERNANCE
@@ -78,7 +79,7 @@ MUST_ALWAYS::[
   "Read all three cognition files before asking Q14",
   "Produce the structured assessment output after every interview",
   "Flag contradictions between agent file and interview responses",
-  "Verify skill existence on disk before marking as phantom"
+  "Verify skill and pattern existence on disk before marking as phantom"
 ]
 
 §4::EXAMPLES
