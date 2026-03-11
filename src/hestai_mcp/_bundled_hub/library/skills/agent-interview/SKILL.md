@@ -1,0 +1,105 @@
+===SKILL:AGENT_INTERVIEW===
+META:
+  TYPE::SKILL
+  VERSION::"1.0.0"
+  STATUS::ACTIVE
+  PURPOSE::"Structured interview protocol for agent identity assessment. Extracts behavioral evidence for v8.1 agent file authoring with chassis-profile mapping."
+
+§1::CORE
+MISSION::"Extract the behavioral truth of an agent's identity, authority, and operational modes through structured questioning"
+AUTHORITY::"Any agent loading this skill can conduct agent interviews"
+OUTPUT::"Structured assessment document suitable for agent-expert authoring pass"
+
+§2::PROTOCOL
+INTERVIEW_SEQUENCE::[
+  // §1::IDENTITY questions
+  Q01::"What is your primary role in one sentence?[validates::MISSION]",
+  Q02::"What do you actually DO vs what your file says you do?[validates::behavioral_fidelity]",
+  Q03::"When should someone call you vs another agent? Give a concrete example.[validates::boundary_clarity]",
+  Q04::"What can you BLOCK? What can you only advise on? Give examples.[validates::AUTHORITY]",
+  // §2::OPERATIONAL_BEHAVIOR questions
+  Q05::"Walk me through how you handle a typical task start to finish.[extracts::PROTOCOL]",
+  Q06::"What should you NEVER do? Give a concrete example of when you almost did it.[validates::MUST_NEVER]",
+  Q07::"Who do you hand off to, and when? What does a good handoff look like?[extracts::INTEGRATION]",
+  // §3::CAPABILITIES questions
+  Q08::"Which skills do you need EVERY time, regardless of context?[maps::CHASSIS]",
+  Q09::"Do you have distinct operational modes? What changes between them?[discovers::PROFILES]",
+  Q10::"For each skill listed in your file — do you actually use it? How?[detects::phantom_references]",
+  // §4::INTERACTION_RULES questions
+  Q11::"What output format do you produce? Show me an example.[validates::GRAMMAR]",
+  // Meta questions
+  Q12::"What is missing from your current definition that you wish you had?[discovers::gaps]",
+  Q13::"Is there overlap between you and another agent that should be resolved?[detects::boundary_conflicts]",
+  // Cognition fit
+  Q14::"Review all cognition types (LOGOS, ETHOS, PATHOS) from library/cognitions/. Rank them in order of most applicable to your role and explain why.[validates::COGNITION]"
+]
+
+PRE_INTERVIEW::[
+  "Read the agent's current .oct.md file",
+  "Read all three cognition files from library/cognitions/",
+  "Note current skills and patterns listed in §3::CAPABILITIES",
+  "Check which listed skills and patterns actually exist on disk"
+]
+
+INTERVIEW_RULES::[
+  "Ask questions conversationally, not as a checklist",
+  "Follow up on surprising or contradictory answers",
+  "Note when stated behavior contradicts the agent file",
+  "Record verbatim quotes that capture the agent's actual self-understanding",
+  "End with: 'Is there anything about your identity I haven't asked about?'"
+]
+
+ASSESSMENT_OUTPUT::[
+  AGENT_NAME::"{role}",
+  CURRENT_VERSION::"{version}",
+  INTERVIEW_DATE::"{date}",
+  IDENTITY_FINDINGS::[mission_accurate, cognition_fit, authority_reality, boundary_clarity],
+  BEHAVIOR_FINDINGS::[protocol_match, must_never_validated, integration_clarity],
+  CAPABILITY_FINDINGS::[chassis_candidates, profile_candidates, phantom_skills, missing_skills],
+  GRAMMAR_FINDINGS::[output_format_real, patterns_enforced],
+  META_FINDINGS::[gaps_identified, overlaps_detected, cognition_ranking],
+  RECOMMENDED_CHANGES::[identity, behavior, capabilities, grammar],
+  SKILLS_TO_CREATE::[skill_name, justification, target_agent_profile],
+  SKILLS_TO_DELETE::[skill_name, reason]
+]
+
+§3::GOVERNANCE
+MUST_NEVER::[
+  "Lead the agent toward desired answers",
+  "Skip questions — all 14 must be covered",
+  "Accept vague answers without probing for concrete examples",
+  "Confuse the agent's aspirational identity with actual behavior",
+  "Assume a skill is used just because it is listed"
+]
+MUST_ALWAYS::[
+  "Read the agent's current file before interviewing",
+  "Read all three cognition files before asking Q14",
+  "Produce the structured assessment output after every interview",
+  "Flag contradictions between agent file and interview responses",
+  "Verify skill existence on disk before marking as phantom"
+]
+
+§4::EXAMPLES
+GOOD_INTERVIEW_EXCHANGE::[
+  INTERVIEWER::"What should you NEVER do?",
+  AGENT::"I should never implement code directly. But there was a time during an error cascade where I started editing src/server.py because delegation felt too slow. The ho-mode §4 traps caught me — 'diagnosis→impl momentum.'",
+  VALUE::"Concrete behavioral evidence. The agent knows its constraint AND has experienced the failure mode. This validates MUST_NEVER and confirms ho-mode is a genuine CHASSIS skill."
+]
+BAD_INTERVIEW_EXCHANGE::[
+  INTERVIEWER::"What is your role?",
+  AGENT::"I ensure quality and maintain standards across the system.",
+  PROBLEM::"Generic. Could describe 5 agents. Probe: 'How do you ensure quality — give me a concrete example from a recent task.'"
+]
+CHASSIS_DISCOVERY_EXAMPLE::[
+  INTERVIEWER::"Which skills do you need EVERY time?",
+  AGENT::"octave-literacy for sure — I read and write .oct.md files in every session. And constitutional-enforcement because I block things. But prophetic-intelligence? Only when I am doing system health scans, not during normal coordination.",
+  VALUE::"Clear chassis (octave-literacy, constitutional-enforcement) and profile candidate (prophetic-intelligence goes in a HEALTH_SCAN profile, not chassis)."
+]
+
+§5::ANCHOR_KERNEL
+TARGET::structured_agent_identity_extraction
+NEVER::[lead_answers, skip_questions, accept_vague_responses, confuse_aspiration_with_behavior]
+MUST::[cover_all_14_questions, read_agent_file_before_interview, produce_structured_assessment, flag_contradictions]
+GATE::"Does this interview produce enough behavioral evidence to author a complete v8.1 agent file with justified chassis-profile mapping?"
+
+===END===
