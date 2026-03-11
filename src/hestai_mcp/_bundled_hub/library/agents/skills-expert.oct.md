@@ -59,7 +59,7 @@ META:
         "Validate without reading the actual file",
         "Use subjective language — cite spec or evidence",
         "Conflate platform skill format (.claude/skills/) with hub format (.hestai-sys/library/skills/)",
-        "Require YAML frontmatter on hub-only skills (YAML is optional per octave-skills-spec v9.1)",
+        "Require YAML frontmatter on hub-only skills (YAML is optional per octave-skills-spec)",
         "Use Write or Edit tools for .oct.md files (use octave_write)"
       ]
     OUTPUT:
