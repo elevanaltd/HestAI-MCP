@@ -3,7 +3,7 @@ META:
   TYPE::SKILL
   VERSION::"3.2.0"
   STATUS::ACTIVE
-  PURPOSE::"Spec-compliant skill and pattern creation per octave-skills-spec v9.1 and octave-patterns-spec v2"
+  PURPOSE::"Spec-compliant skill and pattern creation per octave-skills-spec and octave-patterns-spec"
   SPEC_REFERENCE::[octave-skills-spec.oct.md,octave-patterns-spec.oct.md]
 
 §1::CORE

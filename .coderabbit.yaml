@@ -7,8 +7,8 @@ reviews:
     enabled: true
   # Review profile: assertive = thorough, flags real issues
   profile: assertive
-  # Request changes when issues found (not just comments)
-  request_changes_workflow: true
+  # Post findings as comments only — do not block PRs with CHANGES_REQUESTED
+  request_changes_workflow: false
 
   path_instructions:
     - path: "src/**/*.py"
