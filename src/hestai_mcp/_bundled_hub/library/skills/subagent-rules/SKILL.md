@@ -8,7 +8,7 @@ triggers: ["subagent", "oa-router", "Task delegation", "anchor ceremony", "subag
 ===SKILL:SUBAGENT_RULES===
 META:
   TYPE::SKILL
-  VERSION::"2.0"
+  VERSION::"2.1.0"
   STATUS::ACTIVE
   PURPOSE::"Enforce oa-router delegation with anchor ceremony for all subagent Task() calls"
 
@@ -41,7 +41,17 @@ META:
   ]
 
 §4::CALLER_RULES
-  MUST::["Include anchor-first instruction in every prompt (baked into §2 template)", "Include role field (oa-router cannot bind without it)"]
-  NEVER::["Skip/bypass anchor ceremony", "Pre-assign identity (e.g., 'You are an implementation-lead')", "Omit role from prompt", "Include pre-ceremony instructions that bypass binding"]
+  MUST::["Include anchor-first instruction in every prompt (baked into §2 template)", "Include role field (oa-router cannot bind without it)", "Store agentId from Task() result for same-role reuse", "Use resume parameter with stored agentId for subsequent calls to same role"]
+  NEVER::["Skip/bypass anchor ceremony", "Pre-assign identity (e.g., 'You are an implementation-lead')", "Omit role from prompt", "Include pre-ceremony instructions that bypass binding", "Launch fresh Task() for same role when previous agentId exists in session"]
   INVALID_WORK::"IF subagent produces output without valid PERMIT_SID THEN work is INVALID per I5 → discard and re-delegate"
+
+§5::RESUME_RULE
+  RULE::"When delegating to a role previously invoked in the same session, MUST use Task(resume: agentId) instead of launching fresh"
+  RATIONALE::"Fresh launch forces full re-anchor (~50k+ tokens). Resume preserves anchor context, governance state, and loaded capabilities."
+  PATTERN::[
+    FIRST_CALL::Task({subagent_type: "oa-router", prompt: "role: X ..."})→store_agentId,
+    SUBSEQUENT::Task({resume: stored_agentId, prompt: "continue: ..."})→reuse_context
+  ]
+  EXCEPTION::"Launch fresh only when role changes OR context has fundamentally shifted (different branch, different project)"
+  RELATED::"External model tools (PAL continuation_id, future equivalents) follow same principle — preserve conversation thread via tool-native continuation IDs. This rule covers Task() delegation; tool-level continuation is tool-specific."
 ===END===
