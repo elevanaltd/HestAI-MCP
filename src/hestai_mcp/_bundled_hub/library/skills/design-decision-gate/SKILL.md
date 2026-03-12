@@ -31,7 +31,7 @@ MUST_NEVER::[
   "Skip feasibility validation before presenting options"
 ]
 ESCALATION::[
-  ARCHITECTURAL_IMPACT::"→ visual-architect",
+  ARCHITECTURAL_IMPACT::"→ design-architect",
   NORTH_STAR_CONFLICT::"→ requirements-steward",
   STAKEHOLDER_DEADLOCK::"→ HUMAN"
 ]
