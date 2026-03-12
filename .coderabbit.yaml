@@ -2,10 +2,12 @@
 # Docs: https://docs.coderabbit.ai/guides/configure-coderabbit
 
 reviews:
-  # Auto-review disabled — CodeRabbit only reviews when triggered post-gate
-  # via @coderabbitai review comment from the review-gate workflow
+  # Auto-review enabled — CodeRabbit reviews on PR open as early advisory signal.
+  # Post-gate triggering via @coderabbitai review is incompatible with
+  # enabled: false (CodeRabbit treats skipped commits as "already reviewed").
+  # CRS/CE chain remains the structural blocking gate.
   auto_review:
-    enabled: false
+    enabled: true
   # Review profile: assertive = thorough, flags real issues
   profile: assertive
   # Post findings as comments only — do not block PRs with CHANGES_REQUESTED
