@@ -31,10 +31,13 @@ jobs:
     # Keywords match review_formats.py: APPROVED, REVIEWED (covers SELF-REVIEWED), GO.
     # Also matches markdown-bold variants (**APPROVED**, **GO**) since review_formats.py
     # strips bold markers before pattern matching.
+    # IMPORTANT: Exclude bot comments to prevent self-triggering — the gate's own ❌ status
+    # comment contains 'APPROVED'/'REVIEWED' in guidance text which would re-trigger the gate.
     if: >-
       github.event_name == 'pull_request'
       || github.event_name == 'workflow_call'
       || (github.event.issue.pull_request
+          && github.event.comment.user.type != 'Bot'
           && (contains(github.event.comment.body, 'APPROVED')
               || contains(github.event.comment.body, 'REVIEWED')
               || contains(github.event.comment.body, ' GO')
@@ -248,13 +251,13 @@ jobs:
               core.setFailed(`Failed to update PR status: ${error.message}`);
             }
 
-      # AI code review bots (post-gate):
-      # - CodeRabbit: triggered explicitly after gate passes (auto-review also enabled)
-      # - Cubic Dev AI: auto-reviews on PR open (no trigger needed)
-      # - Copilot: auto-reviews via repo ruleset (no trigger needed)
-      # - Qodo: not currently triggerable from workflows
+      # AI code review bots:
+      # - CodeRabbit: auto-review DISABLED, triggered explicitly post-gate below
+      # - Cubic Dev AI: auto-reviews on PR activity (no gate control available)
+      # - Qodo: triggered via /review comment post-gate below
       - name: Request CodeRabbit Review
-        if: steps.review_check.outputs.exit_code == '0'
+        if: always() && steps.review_check.outputs.exit_code == '0'
+        continue-on-error: true
         uses: actions/github-script@v7
         env:
           PR_NUMBER: ${{ steps.pr.outputs.number }}
@@ -291,3 +294,43 @@ jobs:
               body: `${marker}\n@coderabbitai review`
             });
             console.log(`Requested CodeRabbit review for ${headSha}`);
+
+      - name: Request Qodo Review
+        if: always() && steps.review_check.outputs.exit_code == '0'
+        continue-on-error: true
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        with:
+          script: |
+            const prNumber = Number(process.env.PR_NUMBER);
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+            const headSha = pr.head.sha;
+            const marker = `<!-- qodo-review-request-${headSha} -->`;
+
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                per_page: 100
+              }
+            );
+
+            if (comments.find(c => c.user.type === 'Bot' && c.body.includes(marker))) {
+              console.log(`Qodo review already requested for ${headSha}, skipping`);
+              return;
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: `/review\n${marker}`
+            });
+            console.log(`Requested Qodo review for ${headSha}`);
