@@ -38,7 +38,7 @@ repos:
 
       - id: review-validator
         name: Check review requirements
-        entry: python3 scripts/validate_review.py
+        entry: .venv/bin/python scripts/validate_review.py
         language: system
         pass_filenames: false
         always_run: true
