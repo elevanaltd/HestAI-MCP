@@ -92,7 +92,7 @@ META:
     METHOD::"Use mythology terms as KEY prefixes (CHRONOS::audit_6wk) not embedded values (pressure::audit_6wk∧CHRONOS)"
     WHY::"Domain labels are reconstruction anchors — agents translate each labeled field separately instead of merging into compound sentences"
     RESULT::"11/11 decision-relevant facts preserved at 15% fewer tokens than original prose"
-    EVIDENCE::"docs/research/compression-fidelity-round-trip-study.md"
+    EVIDENCE::"Compression fidelity round-trip study: 11/11 decision-relevant facts preserved (octave-mcp upstream research)"
     LOSSLESS_FIDELITY_AT_CONSERVATIVE_COST::true
 
 §4::ANTI_PATTERNS

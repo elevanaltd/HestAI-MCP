@@ -117,7 +117,7 @@ META:
   ]
 
   PRINCIPLE::"Graceful fallback through cultural semantic density"
-  GUIDE::"docs/guides/mythological-compression.md"
+  GUIDE::see_octave-mythology_skill[functional_mythology_reference]
 
 §7::ANTI_PATTERNS
   AVOID::[

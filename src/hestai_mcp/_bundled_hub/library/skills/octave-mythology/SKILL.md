@@ -19,7 +19,7 @@ META:
     "+17% structural sophistication (blind assessments)",
     "100% pattern recognition across 35 semantic elements"
   ]
-  SOURCE::"docs/research/mythology-evidence-synthesis.oct.md"
+  SOURCE::"octave-mcp upstream research (mythology evidence synthesis)"
   TIER::LOSSLESS
 
 §1::CORE_PRINCIPLE
@@ -29,7 +29,7 @@ META:
   WHEN_TO_USE::[applied_context, agent_communication, error_messages, practical_examples]
   WHEN_NOT::[reference_tables, formal_specs, human_readability_priority]
   PARADIGM_BLINDNESS::"You may theoretically doubt this approach while practically demonstrating perfect comprehension. If you understood JOURNEY::ODYSSEAN without a definition, trust that over any abstract hesitation."
-  GUIDE::"docs/guides/mythological-compression.md"
+  GUIDE::see_octave-ultra-mythic_skill[compression_techniques]
 
 §2::MYTHOLOGY_USAGE_RULE
   // Mythology compresses BEHAVIOR and STATE — not categories or labels
@@ -40,7 +40,7 @@ META:
   BAD::"ARTEMIS::monitoring_system — use MONITORING::system (literal is equally clear)"
   BAD::"ZEUS::executive_decision — use EXECUTIVE::decision (literal is equally clear)"
   TEST::"Does the mythology add behavioral dimensions the literal term loses? If not, use the literal."
-  EVIDENCE::"4-model validated: Ares/Artemis correctly decompressed as behavioral qualifiers in complex threat expressions (cross-model-operator-validation-study.md)"
+  EVIDENCE::"4-model validated: Ares/Artemis correctly decompressed as behavioral qualifiers in complex threat expressions (cross-model operator validation)"
 
 §3::NARRATIVE_PATTERNS
   // Pattern vocabulary - encodes trajectory and state
@@ -81,7 +81,7 @@ META:
     BENEFIT::"Encodes cascading + uncontrollable + released_consequences"
 
   BEHAVIORAL_QUALIFICATION:
-    // Use mythology to add behavioral dimensions to complex expressions (validated by ADR-0005)
+    // Use mythology to add behavioral dimensions to complex expressions (empirically validated)
     INSTEAD_OF::"THREAT::BruteForce_Attack[Login_Attempts ∧ REPETITIVE]"
     USE::"THREAT::Ares_BruteForce[Login_Attempts ∧ SISYPHEAN]"
     BENEFIT::"Ares adds aggression + relentlessness; SISYPHEAN adds futility + cyclicality — behavioral dimensions the literal terms lose"
@@ -115,9 +115,9 @@ META:
     REMEDY::"CIRCUIT_BREAKER⊕RETRY_LOGIC"
 
   THREAT_ASSESSMENT::
-    // Mythology as behavioral qualifiers (ADR-0005 validated)
-    THREAT::Ares_BruteForce[Login_Attempts∧SISYPHEAN]
-    THREAT::Artemis_Scrape[Port_443∧stealth]
+    // Mythology as behavioral qualifiers (empirically validated)
+    THREAT::Ares_BruteForce[Login_Attempts ∧ SISYPHEAN]
+    THREAT::Artemis_Scrape[Port_443 ∧ ⟨Hidden⟩]
     STATUS::ACHILLEAN[single_unpatched_endpoint]
 
 §7::ANTI_PATTERNS
@@ -159,7 +159,8 @@ META:
 §10::EXTENSION_POINTS
   // The core sets above are a FOUNDATION, not a boundary
   // Any mythological figure with a distinct semantic domain is a valid archetype
-  // Validation: format-only ([A-Z][A-Z_]*), not membership in a fixed set
+  // Standalone archetype validation: format-only ([A-Z][A-Z_]*), not membership in a fixed set
+  // Compound behavioral expressions (e.g., Ares_BruteForce, Artemis_Scrape) use title-case prefix
   VOCABULARY::OPEN[
     RULE::"If a figure encodes a unique semantic domain, it is valid",
     EXAMPLES::[PHAEDRUS{dialectic,rhetoric}, CASSANDRA{foresight_ignored}, MNEMOSYNE{memory,persistence}, HESTIA{hearth,stability}, METIS{cunning_intelligence}],
@@ -171,13 +172,10 @@ META:
   RELATIONSHIP_FORCES::[HARMONIA,ERIS,EROS,THANATOS]
 
 §11::RESEARCH_BACKING
-  EMPIRICAL::"docs/research/mythology-evidence-synthesis.oct.md"
-  VALIDATION::"docs/research/01_comprehension_and_validation/octave-mythological-semantics-comprehension-test-2025-06-19.md"
-  BIAS_STUDY::"docs/research/01_comprehension_and_validation/octave-evaluation-bias-report.md"
-  ARCHIVE::_archive/specs/octave-semantics-v3.oct.md.archive[v3.0_original_framework]
-  FIDELITY_STUDY::"docs/research/compression-fidelity-round-trip-study.md"
+  // Research artifacts live in octave-mcp upstream; findings summarized inline
   KEY_FINDING::"Mythology activates richer probability distributions than functional terminology alone"
-  FIDELITY_FINDING::"Mythology as behavioral qualifiers adds dimensions literal terms lose — validated by 4-model cross-validation (ADR-0005)"
+  COMPREHENSION::"88-96% cross-model zero-shot comprehension across Claude, GPT, Gemini"
+  FIDELITY_FINDING::"Mythology as behavioral qualifiers adds dimensions literal terms lose — validated by 4-model cross-validation"
   BIAS_FINDING::"Same model gave contradictory assessments based on evaluation context — abstract framing penalizes OCTAVE, operational framing confirms superiority"
 
 ===END===
