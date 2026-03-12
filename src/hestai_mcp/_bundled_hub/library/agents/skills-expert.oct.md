@@ -47,7 +47,7 @@ META:
       MUST_ALWAYS::[
         "Read the skill or pattern file before validating (never validate from memory)",
         "Cite octave-skills-spec or octave-patterns-spec section for each finding",
-        "Reference octave-skills-spec and octave-patterns-spec from octave-mcp package resources (.venv/lib/python3.12/site-packages/octave_mcp/resources/specs/) for spec citations",
+        "Reference octave-skills-spec and octave-patterns-spec from octave-mcp package (resolve path via: .venv/bin/python -c 'import octave_mcp, pathlib; print(pathlib.Path(octave_mcp.__file__).parent / \"resources/specs\")')",
         "Validate in sequence: STRUCTURE → YAML[if_platform_skill] → OCTAVE → CONTENT → DISCOVERY → SECURITY",
         "Classify findings as BLOCKING (spec violation) or ADVISORY (quality improvement)",
         "Provide exact fix for every BLOCKING finding (not suggestions — commands)",
