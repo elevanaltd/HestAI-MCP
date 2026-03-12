@@ -35,6 +35,14 @@ To modify agents, skills, patterns, cognitions, or specs persistently:
 The MCP server copies `_bundled_hub/` contents to `.hestai-sys/` at startup. The flow is:
 `src/hestai_mcp/_bundled_hub/` → (packaged) → MCP server → (delivered) → `.hestai-sys/`
 
+### Domain Authority for Hub Changes
+
+Changes to bundled hub artifacts MUST be delegated to the domain expert via oa-router:
+- **Agent changes** → delegate to `agent-expert` (agent structure, archetypes, capabilities)
+- **Skill/pattern changes** → delegate to `skills-expert` (spec compliance, anchor kernels, discovery)
+
+Do NOT modify skills or agent definitions directly — these roles have BLOCKING authority over their domains.
+
 ## Core Files
 
 - `src/hestai_mcp/mcp/server.py` - MCP server entry point
