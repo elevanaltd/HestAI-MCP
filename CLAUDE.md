@@ -24,12 +24,24 @@ The `.venv` is created by the session startup hook (`uv sync --all-extras`).
 .venv/bin/python -m pytest -m contract    # Contract tests (SOON)
 ```
 
+## Governance: Bundled Hub vs .hestai-sys/
+
+**`.hestai-sys/` is READ-ONLY runtime delivery. Changes there are lost on MCP server restart.**
+
+To modify agents, skills, patterns, cognitions, or specs persistently:
+- **Write to**: `src/hestai_mcp/_bundled_hub/library/` (committed source, packaged into MCP server)
+- **Never modify**: `.hestai-sys/` directly (runtime copy, gitignored, overwritten on restart)
+
+The MCP server copies `_bundled_hub/` contents to `.hestai-sys/` at startup. The flow is:
+`src/hestai_mcp/_bundled_hub/` → (packaged) → MCP server → (delivered) → `.hestai-sys/`
+
 ## Core Files
 
 - `src/hestai_mcp/mcp/server.py` - MCP server entry point
 - `src/hestai_mcp/mcp/tools/` - MCP tool implementations (clock_in, clock_out, bind)
 - `src/hestai_mcp/ai/` - AI client and provider abstractions
 - `src/hestai_mcp/schemas/` - Pydantic schemas
+- `src/hestai_mcp/_bundled_hub/` - Governance source (agents, skills, patterns, cognitions)
 - `tests/` - Test suite mirroring src/ structure
 - `.hestai/north-star/` - Project North Star and component North Stars
 - `docs/ARCHITECTURE.md` - System architecture reference
