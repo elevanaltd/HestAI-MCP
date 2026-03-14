@@ -3,18 +3,20 @@ name: octave-literacy
 description: Fundamental reading and writing capability for the OCTAVE format. Basic structural competence without full architectural specifications
 allowed-tools: ["Read", "Write", "Edit"]
 triggers: ["octave format", "write octave", "octave syntax", "structured output", "OCTAVE basics", "OCTAVE literacy", "OCTAVE structure", "semantic format", "key::value", "OCTAVE notation"]
-version: "1.3.0"
+version: "1.4.0"
 ---
 
 ===OCTAVE_LITERACY===
 META:
   TYPE::SKILL
-  VERSION::"1.3.0"
+  VERSION::"1.4.0"
   STATUS::ACTIVE
   PURPOSE::"Essential syntax and operators for basic OCTAVE competence"
   TIER::LOSSLESS
   SPEC_REFERENCE::octave-core-spec.oct.md
   V6_FEATURES::"Adds CONTRACT/GRAMMAR blocks, assembly rules, .oct.md extension"
+  NEXT_SKILLS::[octave-mastery, octave-mythology]
+  // octave-mythology provides mythological compression — OCTAVE's semantic density advantage
 
 §1::CORE_SYNTAX
   ASSIGNMENT::KEY::value   // Double colon is MANDATORY for data
@@ -26,10 +28,18 @@ META:
   NULL::null               // Lowercase only
   COMMENT:://              // Standard comment syntax
 
-  §1b::BRACKET_FORMS
-    CONTAINER::[a,b,c]              // Bare brackets = list
-    CONSTRUCTOR::NAME[args]         // NAME[...] = constructor (REGEX[pattern], ENUM[a,b])
-    INLINE_MAP::[key::val,key2::val2]  // Dense key-value pairs (values must be atoms)
+  §1b::LITERAL_ZONES
+    // Fenced code blocks pass through with ZERO processing — no normalization, no escaping
+    SYNTAX::KEY_then_newline_then_fence[3_or_more_backticks]
+    RULES::[zero_processing_between_fences,tabs_allowed,NFC_bypass,info_tag_preserved]
+    USE_CASES::[embedded_code,teaching_examples,verbatim_content,OCTAVE_about_OCTAVE]
+    FENCE_SCALING::use_N_plus_1_backticks_to_wrap_content_containing_N_backtick_fences
+    // Example: KEY::\n```python\nprint("hello")\n``` — content preserved byte-for-byte
+
+  §1c::BRACKET_FORMS
+    CONTAINER::[a,b,c]                         // Bare brackets = list
+    CONSTRUCTOR::NAME[args]                    // NAME[...] = constructor (REGEX[pattern], ENUM[a,b])
+    INLINE_MAP::[key::val,key2::val2]          // Dense key-value pairs (values must be atoms)
     HOLOGRAPHIC::[\"value\"∧CONSTRAINT→§TARGET]  // Schema mode only
 
 §2::OPERATORS
@@ -61,7 +71,8 @@ META:
   5::Use lowercase for true, false, null (NOT True, False, NULL)
   6::∧ only appears inside brackets, never bare: [A∧B∧C] is valid, A∧B is not
   7::⇌ is binary only (A⇌B), not chained (A⇌B⇌C is invalid)
-  8::File extension .oct.md is canonical (v6), .octave.txt deprecated
+  8::Quote values containing § when used as content, not section markers ("§2_BEHAVIOR" not §2_BEHAVIOR)
+  9::File extension .oct.md is canonical (v6), .octave.txt deprecated
 
   §3b::V6_ENVELOPE_STRUCTURE
     FILE_STRUCTURE::[===NAME===,META_BLOCK,SEPARATOR_OPTIONAL,BODY,===END===]
@@ -77,6 +88,11 @@ META:
     V6_PATTERN::multiple_profiles_one_document[no_intermediate_terminators]
 
 §4::EXAMPLE_BLOCK
+  // WRONG: §2 parsed as section anchor, value splits
+  // REFERENCE::§2_BEHAVIOR_SECTION
+  // RIGHT: quoted, § is literal
+  // REFERENCE::"§2_BEHAVIOR_SECTION"
+
   ===EXAMPLE===
   STATUS::ACTIVE
   PHASES:

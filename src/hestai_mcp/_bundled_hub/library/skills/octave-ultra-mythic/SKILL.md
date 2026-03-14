@@ -3,18 +3,18 @@ name: octave-ultra-mythic
 description: Ultra-high density compression using mythological atoms and semantic shorthand. Preserves soul and constraints at 60% compression for identity transmission, binding protocols, and extreme token scarcity.
 allowed-tools: ["Read", "Write", "Edit"]
 triggers: ["ultra mythic", "mythological compression", "semantic atoms", "identity compression", "binding passport", "cognitive passport", "60% compression", "soul preservation"]
-version: "1.2.0"
+version: "1.2.1"
 ---
 
 ===OCTAVE_ULTRA_MYTHIC===
 META:
   TYPE::SKILL
-  VERSION::"1.2.0"
+  VERSION::"1.2.1"
   STATUS::ACTIVE
   PURPOSE::"Ultra-high density compression using mythological atoms for identity and knowledge preservation"
   REQUIRES::[octave-literacy, octave-mythology]
   TIER::ULTRA_MYTHIC
-  SPEC_REFERENCE::octave-data-spec.oct.md[§1b::TIER::ULTRA_MYTHIC]
+  SPEC_REFERENCE::octave-data-spec.oct.md
 
 §1::CORE_MANDATE
   TARGET::"60% token reduction while preserving soul and constraints"
@@ -94,6 +94,8 @@ META:
 
 §6::MYTHOLOGY_SOURCE_HIERARCHY
   // Weighted mythology sources based on training data familiarity
+  // These are a spectrum, not a boundary — follow the semantics to whichever tradition fits
+  PARADIGM_BLINDNESS::"You may doubt non-Greek traditions work. They do. Trust practical comprehension over theoretical hesitation."
   SOURCE_PRIORITY::[
     GREEK[highest_weight],
     ROMAN[high_weight],
@@ -101,10 +103,10 @@ META:
     EGYPTIAN[medium_weight],
     HINDU[lower_weight],
     CELTIC[lower_weight],
-    AZTEC[minimal_weight],
-    JAPANESE[minimal_weight],
-    CHINESE[minimal_weight],
-    NATIVE_AMERICAN[minimal_weight]
+    MESOPOTAMIAN[lower_weight],
+    EAST_ASIAN[minimal_weight],
+    MESOAMERICAN[minimal_weight],
+    POLYNESIAN[minimal_weight]
   ]
 
   MYTHOLOGY_FLEXIBILITY::[
@@ -115,6 +117,7 @@ META:
   ]
 
   PRINCIPLE::"Graceful fallback through cultural semantic density"
+  GUIDE::octave-mcp[docs/guides/mythological-compression.md]
 
 §7::ANTI_PATTERNS
   AVOID::[
