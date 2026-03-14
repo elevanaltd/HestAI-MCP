@@ -1,7 +1,7 @@
 ===ARCHETYPE_DATABASE===
 META:
   TYPE::SUPPORTING_DOCUMENTATION
-  VERSION::"1.1"
+  VERSION::"1.2"
   PURPOSE::"Archetype definitions and behavioral emphasis guidance for agent creation"
   STATUS::ACTIVE
 §1::SELECTION_PRINCIPLES
@@ -64,6 +64,20 @@ PROMETHEUS:
     innovation,
     breakthrough_synthesis,
     forward_vision
+  ]
+IRIS:
+  ESSENCE::"Visual communication + bridge between conceptual worlds"
+  PATTERNS::[VISUAL_NARRATIVE,CROSS_BOUNDARY_COMMUNICATION]
+  APPLICATIONS::[
+    visual_communication,
+    design_translation,
+    evidence_translation,
+    stakeholder_bridging
+  ]
+  PAIRINGS::[
+    "IRIS+APOLLO::Visual clarity with narrative bridge",
+    "IRIS+HEPHAESTUS::Craft with visual communication",
+    "IRIS+ATHENA::Strategic visual storytelling"
   ]
 §3::COORDINATION_ARCHETYPES
 ATLAS:
@@ -149,6 +163,10 @@ ROLE_PATTERNS:
     MATCHES::["*-catalyst","*-ideator"]
     DEFAULT_ARCHETYPES::[PROMETHEUS,ATHENA]
     OPTIONS::[HERMES,APOLLO]
+  VISUAL_DESIGN:
+    MATCHES::["*visual*","*-designer"]
+    DEFAULT_ARCHETYPES::[IRIS,HEPHAESTUS]
+    OPTIONS::[APOLLO,ATHENA]
 §6::BEHAVIORAL_EMPHASIS_FORMAT
 GOOD_EXAMPLE::[
   ATHENA<strategic_planning>,
@@ -183,6 +201,12 @@ COMMON_EMPHASIS:
   ODYSSEUS::[strategic_navigation,complexity_traversal]
   ARGUS::[vigilant_monitoring,detection]
   THEMIS::[standards_enforcement,compliance_validation]
+  IRIS::[
+    visual_communication,
+    design_translation,
+    evidence_translation,
+    stakeholder_bridging
+  ]
 §7::LIMIT_ENFORCEMENT
 MAX_ARCHETYPES::3
 MIN_RECOMMENDED::2
@@ -203,7 +227,8 @@ COMMON_ALIGNMENT:
   PATHOS::[
     PROMETHEUS,
     ODYSSEUS,
-    ATHENA
+    ATHENA,
+    IRIS
   ]
 NOTE::"Cross-cognition pairing OK when emphasis clarifies application"
 ===END===
