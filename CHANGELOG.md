@@ -139,7 +139,7 @@ All notable changes to HestAI-MCP.
 
 ## Chores
 
-- upgrade octave-mcp to v1.9.2 - 2026-03-14
+- upgrade octave-mcp to v1.9.2 ([#323](https://github.com/elevanaltd/HestAI-MCP/pull/323)) - 2026-03-14
 - update octave-mcp from 1.9.0 to 1.9.1 ([#309](https://github.com/elevanaltd/HestAI-MCP/pull/309)) - 2026-03-08
 - update octave-mcp from 1.7.0 to 1.9.0 ([#308](https://github.com/elevanaltd/HestAI-MCP/pull/308)) - 2026-03-07
 - upgrade octave-mcp to v1.7.0 ([#295](https://github.com/elevanaltd/HestAI-MCP/pull/295)) - 2026-02-28
