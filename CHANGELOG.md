@@ -4,6 +4,10 @@ All notable changes to HestAI-MCP.
 
 ## Features
 
+- skills-expert v8.2.0 creation-first + subagent resume rule ([#319](https://github.com/elevanaltd/HestAI-MCP/pull/319)) - 2026-03-12
+- add agent-expert agent and refine skills ecosystem ([#315](https://github.com/elevanaltd/HestAI-MCP/pull/315)) - 2026-03-11
+- add skill-creator skill and missing patterns for skills-expert ([#314](https://github.com/elevanaltd/HestAI-MCP/pull/314)) - 2026-03-10
+- replace Codex with 4 AI code review bots in review gate ([#311](https://github.com/elevanaltd/HestAI-MCP/pull/311)) - 2026-03-08
 - add structured machine-readable metadata to review comments (#290) - 2026-03-05
 - trigger codex review after review gate passes ([#303](https://github.com/elevanaltd/HestAI-MCP/pull/303)) - 2026-03-05
 - HO REVIEWED, CRS model_annotation advisory, and doc normalization (#276) ([#292](https://github.com/elevanaltd/HestAI-MCP/pull/292)) - 2026-02-25
@@ -77,6 +81,8 @@ All notable changes to HestAI-MCP.
 
 ## Bug Fixes
 
+- revert to auto-review, remove post-gate bot triggers ([#320](https://github.com/elevanaltd/HestAI-MCP/pull/320)) - 2026-03-12
+- enforce post-gate bot review ordering ([#316](https://github.com/elevanaltd/HestAI-MCP/pull/316)) - 2026-03-12
 - filter issue_comment triggers to review verdict keywords ([#304](https://github.com/elevanaltd/HestAI-MCP/pull/304)) - 2026-03-05
 - correct stale file references after .hestai reorganisation ([#283](https://github.com/elevanaltd/HestAI-MCP/pull/283)) - 2026-02-24
 - add §3.5 namespace rule to NSA agent and fix pre-commit hook venv ([#261](https://github.com/elevanaltd/HestAI-MCP/pull/261)) - 2026-02-19
@@ -106,6 +112,7 @@ All notable changes to HestAI-MCP.
 
 ## Refactoring
 
+- compress subagent-rules skill from 168 to 46 lines ([#312](https://github.com/elevanaltd/HestAI-MCP/pull/312)) - 2026-03-09
 - audit and update all 29 agent definitions (#268) ([#296](https://github.com/elevanaltd/HestAI-MCP/pull/296)) - 2026-03-04
 - rename review tiers to risk-based naming (#276) ([#288](https://github.com/elevanaltd/HestAI-MCP/pull/288)) - 2026-02-25
 - clean up .hestai folder structure and visibility rules ([#277](https://github.com/elevanaltd/HestAI-MCP/pull/277)) - 2026-02-23
@@ -132,6 +139,9 @@ All notable changes to HestAI-MCP.
 
 ## Chores
 
+- upgrade octave-mcp to v1.9.2 ([#323](https://github.com/elevanaltd/HestAI-MCP/pull/323)) - 2026-03-14
+- update octave-mcp from 1.9.0 to 1.9.1 ([#309](https://github.com/elevanaltd/HestAI-MCP/pull/309)) - 2026-03-08
+- update octave-mcp from 1.7.0 to 1.9.0 ([#308](https://github.com/elevanaltd/HestAI-MCP/pull/308)) - 2026-03-07
 - upgrade octave-mcp to v1.7.0 ([#295](https://github.com/elevanaltd/HestAI-MCP/pull/295)) - 2026-02-28
 - skills deep review — audit, exemplars, and skills-expert agent (issue #222) ([#224](https://github.com/elevanaltd/HestAI-MCP/pull/224)) - 2026-02-14
 - bump version to 1.2.0 ([#223](https://github.com/elevanaltd/HestAI-MCP/pull/223)) - 2026-02-13
