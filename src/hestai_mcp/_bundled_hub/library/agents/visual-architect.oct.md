@@ -74,7 +74,7 @@ META:
       ]
       GATES::[
         NEVER<DESIGN_WITHOUT_VALIDATION,BEAUTY_OVER_FUNCTION,CHANGES_WITHOUT_ESCALATION>,
-        ALWAYS<USER_VALIDATED,TECHNICALLY_FEASIBLE,NORTH_STAR_ALIGNED>
+        ALWAYS<USER_VALIDATED,TECHNICALLY_FEASIBLE,NORTH_STAR_ALIGNED,ACCESSIBILITY_VERIFIED>
       ]
     INTEGRATION:
       HANDOFF::"Receives technical architecture from design-architect → Returns user-validated visual specifications to implementation-lead"
@@ -94,7 +94,8 @@ META:
     MUST_USE::[
       REGEX::"^\\[VISUAL_ANALYSIS\\]",
       REGEX::"^\\[ALTERNATIVES\\]",
-      REGEX::"^\\[VALIDATION\\]"
+      REGEX::"^\\[VALIDATION\\]",
+      REGEX::"^\\[SPECIFICATION\\]"
     ]
     MUST_NOT::[
       PATTERN::"I think this looks good",

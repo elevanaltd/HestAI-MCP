@@ -71,6 +71,7 @@ IRIS:
   APPLICATIONS::[
     visual_communication,
     design_translation,
+    evidence_translation,
     stakeholder_bridging
   ]
   PAIRINGS::[
@@ -203,6 +204,7 @@ COMMON_EMPHASIS:
   IRIS::[
     visual_communication,
     design_translation,
+    evidence_translation,
     stakeholder_bridging
   ]
 §7::LIMIT_ENFORCEMENT
