@@ -41,7 +41,7 @@ Changes to bundled hub artifacts MUST be delegated to the domain expert via oa-r
 - **Agent changes** → delegate to `agent-expert` (agent structure, archetypes, capabilities)
 - **Skill/pattern changes** → delegate to `skills-expert` (spec compliance, anchor kernels, discovery)
 
-Do NOT modify skills or agent definitions directly — these roles have BLOCKING authority over their domains.
+Do NOT modify skills or agent definitions directly — oa-router enforces blocking authority over these domains at runtime through the anchor ceremony process.
 
 ## Core Files
 
