@@ -3,13 +3,13 @@ name: octave-mythology
 description: Functional mythological compression for OCTAVE documents. Semantic shorthand for LLM audiences, not prose decoration
 allowed-tools: ["Read", "Write", "Edit"]
 triggers: ["mythology", "archetype", "SISYPHEAN", "ICARIAN", "semantic compression", "evidence-based", "mythological domains", "OCTAVE mythology", "PROMETHEAN", "functional mythology", "compression patterns"]
-version: "1.2.0"
+version: "1.2.1"
 ---
 
 ===OCTAVE_MYTHOLOGY===
 META:
   TYPE::SKILL
-  VERSION::"1.2.0"
+  VERSION::"1.2.1"
   STATUS::ACTIVE
   PURPOSE::"Functional mythological semantic compression for OCTAVE documents"
   PRINCIPLE::"Compression shorthand for LLM audiences, not ceremonial prose"
@@ -19,7 +19,7 @@ META:
     "+17% structural sophistication (blind assessments)",
     "100% pattern recognition across 35 semantic elements"
   ]
-  SOURCE::"octave-mcp upstream research (mythology evidence synthesis)"
+  SOURCE::octave-mcp[docs/research/mythology-evidence-synthesis.oct.md]
   TIER::LOSSLESS
 
 §1::CORE_PRINCIPLE
@@ -29,18 +29,18 @@ META:
   WHEN_TO_USE::[applied_context, agent_communication, error_messages, practical_examples]
   WHEN_NOT::[reference_tables, formal_specs, human_readability_priority]
   PARADIGM_BLINDNESS::"You may theoretically doubt this approach while practically demonstrating perfect comprehension. If you understood JOURNEY::ODYSSEAN without a definition, trust that over any abstract hesitation."
-  GUIDE::see_octave-ultra-mythic_skill[compression_techniques]
+  GUIDE::octave-mcp[docs/guides/mythological-compression.md]
 
 §2::MYTHOLOGY_USAGE_RULE
   // Mythology compresses BEHAVIOR and STATE — not categories or labels
   // If the concept has emotional or temporal complexity a literal term can't capture, mythology adds value
   // If a literal domain term works, use the literal
-  GOOD::"Artemis_Scrape[Port_443 ∧ ⟨Hidden⟩] — adds stealth+precision+hunting beyond what 'monitoring_scrape' conveys"
+  GOOD::"Artemis_Scrape[Port_443 ∧ Hidden] — adds stealth+precision+hunting beyond what 'monitoring_scrape' conveys"
   GOOD::"Ares_BruteForce[Login_Attempts ∧ SISYPHEAN] — adds aggression+relentlessness beyond 'security_attack'"
   BAD::"ARTEMIS::monitoring_system — use MONITORING::system (literal is equally clear)"
   BAD::"ZEUS::executive_decision — use EXECUTIVE::decision (literal is equally clear)"
   TEST::"Does the mythology add behavioral dimensions the literal term loses? If not, use the literal."
-  EVIDENCE::"4-model validated: Ares/Artemis correctly decompressed as behavioral qualifiers in complex threat expressions (cross-model operator validation)"
+  EVIDENCE::"4-model validated: Ares/Artemis correctly decompressed as behavioral qualifiers in complex threat expressions"
 
 §3::NARRATIVE_PATTERNS
   // Pattern vocabulary - encodes trajectory and state
@@ -81,13 +81,13 @@ META:
     BENEFIT::"Encodes cascading + uncontrollable + released_consequences"
 
   BEHAVIORAL_QUALIFICATION:
-    // Use mythology to add behavioral dimensions to complex expressions (empirically validated)
+    // Use mythology to add behavioral dimensions to complex expressions
     INSTEAD_OF::"THREAT::BruteForce_Attack[Login_Attempts ∧ REPETITIVE]"
     USE::"THREAT::Ares_BruteForce[Login_Attempts ∧ SISYPHEAN]"
     BENEFIT::"Ares adds aggression + relentlessness; SISYPHEAN adds futility + cyclicality — behavioral dimensions the literal terms lose"
 
     INSTEAD_OF::"THREAT::Monitoring_Scrape[Port_443 ∧ Hidden]"
-    USE::"THREAT::Artemis_Scrape[Port_443 ∧ ⟨Hidden⟩]"
+    USE::"THREAT::Artemis_Scrape[Port_443 ∧ Hidden]"
     BENEFIT::"Artemis adds stealth + precision + hunting — behavioral dimensions beyond 'monitoring'"
 
     WARNING::"This works because the myth adds behavior. ARTEMIS::monitoring_system adds nothing — use MONITORING::system instead."
@@ -115,9 +115,9 @@ META:
     REMEDY::"CIRCUIT_BREAKER⊕RETRY_LOGIC"
 
   THREAT_ASSESSMENT::
-    // Mythology as behavioral qualifiers (empirically validated)
-    THREAT::Ares_BruteForce[Login_Attempts ∧ SISYPHEAN]
-    THREAT::Artemis_Scrape[Port_443 ∧ ⟨Hidden⟩]
+    // Mythology as behavioral qualifiers (empirically validated, 4-model cross-validation)
+    THREAT::"Ares_BruteForce[Login_Attempts ∧ SISYPHEAN]"
+    THREAT::"Artemis_Scrape[Port_443 ∧ Hidden]"
     STATUS::ACHILLEAN[single_unpatched_endpoint]
 
 §7::ANTI_PATTERNS
@@ -160,7 +160,7 @@ META:
   // The core sets above are a FOUNDATION, not a boundary
   // Any mythological figure with a distinct semantic domain is a valid archetype
   // Standalone archetype validation: format-only ([A-Z][A-Z_]*), not membership in a fixed set
-  // Compound behavioral expressions (e.g., Ares_BruteForce, Artemis_Scrape) use title-case prefix
+  // Compound behavioral expressions (e.g., Artemis_Scrape, Ares_BruteForce) use Title_Case prefix — these are qualified actions, not standalone archetypes
   VOCABULARY::OPEN[
     RULE::"If a figure encodes a unique semantic domain, it is valid",
     EXAMPLES::[PHAEDRUS{dialectic,rhetoric}, CASSANDRA{foresight_ignored}, MNEMOSYNE{memory,persistence}, HESTIA{hearth,stability}, METIS{cunning_intelligence}],
@@ -172,9 +172,8 @@ META:
   RELATIONSHIP_FORCES::[HARMONIA,ERIS,EROS,THANATOS]
 
 §11::RESEARCH_BACKING
-  // Research artifacts live in octave-mcp upstream; findings summarized inline
+  // Full studies in octave-mcp source repo under docs/research/
   KEY_FINDING::"Mythology activates richer probability distributions than functional terminology alone"
-  COMPREHENSION::"88-96% cross-model zero-shot comprehension across Claude, GPT, Gemini"
   FIDELITY_FINDING::"Mythology as behavioral qualifiers adds dimensions literal terms lose — validated by 4-model cross-validation"
   BIAS_FINDING::"Same model gave contradictory assessments based on evaluation context — abstract framing penalizes OCTAVE, operational framing confirms superiority"
 
