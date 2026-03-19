@@ -161,6 +161,8 @@ Each agent registry entry maps identity to execution:
 
 The registry replaces all of PAL's configuration (e.g., `goose.json` provider configs) with a unified, UI-configurable mapping. Switching an agent's model is a registry edit, not a code change.
 
+**Cross-provider bridge:** CLIs are designed for human-to-AI interaction — an agent running in Claude CLI cannot natively signal the Workbench to spawn a Codex panel. The bridge is an MCP tool (e.g., `dispatch_colleague(role, task)`) that HestAI Core provides. The agent calls it like any tool; the Workbench intercepts the call via the panel event bus, spawns the target CLI from the registry, passes the task, and returns the result. To the calling agent, cross-provider delegation is invisible — it's just a tool call that returns a response.
+
 **Target state:** Operator opens Workbench, picks a role from registry, and works. The Workbench spawns the correct CLI or makes the correct API call based on the registry entry. Governance Chat panel shows debates as threaded conversations. Session persistence across worktrees.
 
 ---
@@ -220,6 +222,18 @@ Debate Hall works without HestAI. A team that doesn't use HestAI governance can 
 ### Ceremony proportional to risk
 
 Not every task needs a full anchor ceremony. Trivial read-only tasks get a micro permit. Standard work gets the full ceremony. Critical decisions get extra scrutiny. Governance weight scales with risk.
+
+In the Workbench, ceremony streamlines via **hybrid injection**: the Workbench pre-injects raw governance context (Constitution, agent definition, North Star, project context) into the system prompt, then the agent writes a short synthesis proving comprehension — one tool call instead of six. This preserves the cognitive alignment that makes the ceremony valuable (the agent generates its own proof, engaging its reasoning) while collapsing the I/O overhead. Inject the data, force the agent to write the synthesis.
+
+### Dual-path delegation
+
+Agent delegation operates through two coexisting patterns:
+
+- **Pattern A (intra-session):** A CLI agent uses its native delegation mechanism (e.g., Claude's `Task()` tool) to spawn a subagent within the same worktree. The subagent inherits MCP server connections and can bind via micro-tier anchor. This is fast, same-provider delegation governed by the subagent-rules skill.
+
+- **Pattern B (cross-provider):** The Workbench spawns a new panel with a different CLI tool, selected from the agent registry. The LLM signals the Workbench via an MCP tool (e.g., `dispatch_colleague`), the Workbench intercepts the call, spawns the target CLI panel, passes the task, waits for completion, and returns the result. To the calling agent, it looks like a normal tool call that took longer to respond.
+
+Both patterns are intentional. Pattern A is efficient for same-model work. Pattern B is the provider-agnostic path that makes multi-model orchestration invisible to the LLMs.
 
 ---
 
