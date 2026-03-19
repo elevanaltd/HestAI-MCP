@@ -185,7 +185,7 @@ This is what the operator's daily experience looks like when the ecosystem is co
 
 8. **Agent needs lightweight advisory.** Calls an API-dispatched agent (e.g., ho-liaison on OpenRouter) for quick consultation. The response comes back within the same session — no CLI spawn needed.
 
-9. **Agent delegates implementation work.** The agent calls a subagent mapped in the registry — possibly on a different CLI and provider entirely. For example, HO on Claude Opus delegates to an implementation-lead on Goose (via OpenRouter). The subagent spawns, binds its own identity via anchor ceremony, does the work, and returns results.
+9. **Agent delegates implementation work.** The agent calls a subagent mapped in the registry — possibly on a different CLI and provider entirely. For example, HO on Claude Opus delegates to an implementation-lead on Goose CLI (configured to use an OpenRouter model like Kimi K2.5). The subagent spawns with full MCP access, binds its own identity via anchor ceremony, does the work, and returns results.
 
 10. **Work needs review.** The agent dispatches review agents from the registry. CRS might be mapped to Codex CLI, CE to Gemini CLI. Each reviewer binds, reviews the PR, and submits their assessment via `submit_review`. Different models provide genuine multi-perspective review.
 
