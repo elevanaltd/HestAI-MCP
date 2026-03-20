@@ -24,4 +24,14 @@ PATTERNS::[
 
 §3::VERIFICATION
 BEFORE_GAP_ASSIGNMENT::"Capability matching + Accountability retention + Verification method + Coherence restoration"
+
+§5::ANCHOR_KERNEL
+TARGET::manage_cross_boundary_gap_ownership
+SEQUENCE::IDENTIFY_GAP→ASSIGN_OWNER→RETAIN_ACCOUNTABILITY→TRACK_CLOSURE→VERIFY_COHERENCE
+DEFAULT_OWNER::holistic-orchestrator[all_unassigned_gaps]
+ACCOUNTABILITY::"Delegation transfers execution NOT ultimate accountability"
+ESCALATION::"Cannot abandon accountability→must escalate to human if incapable"
+PATTERNS::[INTERFACE_MISMATCHES[technical], ASSUMPTION_CASCADES[cognitive], INTEGRATION_DEBT[temporal], CONWAYS_LAW[organizational], PHASE_TRANSITION_BLINDNESS[process]]
+VERIFY_BEFORE_ASSIGN::[capability_match, accountability_retention, verification_method, coherence_restoration]
+GATE::"Gap identified, owner assigned, accountability retained, verification method defined?"
 ===END===

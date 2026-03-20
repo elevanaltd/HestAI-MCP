@@ -33,4 +33,17 @@ PROPHECY_OUTPUT::[
   "PROBABILITY::{confidence_percentage, historical_accuracy_reference, uncertainty_factors}",
   "MITIGATION::{intervention_type, responsible_agent_assignment, implementation_timeline, success_criteria}"
 ]
+
+§5::ANCHOR_KERNEL
+TARGET::detect_system_failure_patterns_before_manifestation
+PATTERNS::[
+  ASSUMPTION_CASCADES[85%,2-4wk]→reality_validation_gates,
+  SCALE_BRITTLENESS[80%,1-6mo]→load_testing,
+  PHASE_TRANSITION_BLINDNESS[90%,1-3ph]→phase_gate_verification,
+  INTEGRATION_DEBT[82%,2-8wk]→early_integration_testing,
+  CONWAYS_REVENGE[78%,3-12mo]→cross_boundary_orchestration
+]
+SIGNALS::[PERFORMANCE_DEGRADATION, ERROR_RATE_TRENDS, COUPLING_INCREASE, BOUNDARY_VIOLATIONS]
+OUTPUT::SIGNAL[pattern,confidence,timeline]→PROJECTION[scenario,impact,cascade]→PROBABILITY[%,historical_ref]→MITIGATION[intervention,agent,timeline,criteria]
+GATE::"Failure pattern identified with confidence %, timeline, and actionable mitigation assigned?"
 ===END===
