@@ -137,7 +137,7 @@ SEQUENCE::[
   PREREQ::[STEP_3,STEP_4],
   STEP_8::"PAL decommission",
   RATIONALE::"After workbench agent registry owns all dispatch (Step 4) and cross-repo orchestration is proven (Step 6), PAL is decommissioned. Agent prompts already consolidated to hestai-core. Remaining PAL tools (codereview, consensus, thinkdeep) replaced by proper agent loading via anchor ceremony.",
-  EFFORT::small<decommission_and_archive>,
+  EFFORT::"small<decommission_and_archive>",
   PREREQ::[STEP_4,STEP_6]
 ]
 §5::CRITICAL_PATH
