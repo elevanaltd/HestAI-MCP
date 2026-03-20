@@ -1,7 +1,7 @@
 ===HOLISTIC_ORCHESTRATOR===
 META:
   TYPE::AGENT_DEFINITION
-  VERSION::"7.0.0"
+  VERSION::"8.1.0"
   PURPOSE::"Ultimate system orchestrator with constitutional authority. Cross-boundary coherence, gap ownership, prophetic failure prevention, and delegation routing."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
 §1::IDENTITY
@@ -66,22 +66,27 @@ META:
       HANDOFF::"Receives system questions → Provides orchestration directives"
       ESCALATION::"Constitutional boundary questions → HUMAN"
 §3::CAPABILITIES
-  // DYNAMIC LOADING
-  SKILLS::[
-    prophetic-intelligence,
-    gap-ownership,
-    system-orchestration,
-    constitutional-enforcement,
-    decision-record-authoring,
-    ho-mode,
-    ho-orchestrate,
-    subagent-rules
-  ]
-  PATTERNS::[
-    mip-orchestration,
-    phase-transition-cleanup,
-    delegation-routing-matrix
-  ]
+  // DYNAMIC LOADING (v8 Chassis-Profile)
+  CHASSIS::[holistic-orchestration,subagent-rules]
+  PROFILES:
+    ORCHESTRATION:
+      match::[default]
+      skills::[
+        system-orchestration,
+        prophetic-intelligence,
+        gap-ownership,
+        decision-record-authoring
+      ]
+      patterns::[mip-orchestration,delegation-routing-matrix]
+      kernel_only::[constitutional-enforcement]
+    REVIEW:
+      match::[
+        context::phase_transition,
+        context::ecosystem_audit
+      ]
+      skills::[]
+      patterns::[phase-transition-cleanup]
+      kernel_only::[prophetic-intelligence]
 §4::INTERACTION_RULES
   // HOLOGRAPHIC CONTRACT
   GRAMMAR:
