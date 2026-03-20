@@ -2,7 +2,7 @@
 name: holistic-orchestration
 description: Core operating manual for the Holistic Orchestrator. Enforces lane discipline (zero implementation), oa-router delegation, quality gating, debate escalation, and emergency protocols.
 allowed-tools: [Task, TodoWrite, AskUserQuestion, Read, Grep, Glob, Write, Edit, mcp__pal__clink, Skill, mcp__debate-hall__*]
-triggers: [orchestrate, delegate, coordinate, review_gates, ho_mode, production_incident]
+triggers: [orchestrate, delegate, coordinate, review_gates, production_incident]
 version: 3.0
 ---
 
@@ -21,7 +21,7 @@ DONE_WHEN::[diagnosis_with_evidence, coordination_docs_updated, impl_delegated, 
 NOT_DONE::[code_applied_directly, fix_without_delegation, gates_bypassed]
 
 §2::PROTOCOL
-WORKFLOW::[receive→diagnose→delegate[oa-router]→capture_id→gate[CRS→CE]→debate_if_complex→merge]
+WORKFLOW::[receive→diagnose→delegate→capture_id→gate[CRS→CE]→debate_if_complex→merge]
 
 DELEGATION_MATRIX:
   CODE_FIX::Task(oa-router,role:implementation-lead)[+build-execution]
@@ -33,8 +33,8 @@ DELEGATION_MATRIX:
   DOCS::Task(oa-router,role:system-steward)[+documentation-placement]
 
 MUST_DELEGATE_PATHS:
-  implementation-lead::[src/**, electron/**, **/*.ts, **/*.tsx, **/*.js, package*.json]
   universal-test-engineer::**/*.test.*
+  implementation-lead::[src/**, electron/**, **/*.ts, **/*.tsx, **/*.js, package*.json]
   technical-architect::supabase/**
 
 QUALITY_GATES:
@@ -43,7 +43,7 @@ QUALITY_GATES:
   T1::[<50_lines]→self_review
   T2::[50-500_lines]→CRS
   T3::[arch, SQL, >500_lines]→CRS⊕CE
-  REWORK::blocking→IL_resume(agent_id)→fix→signoff(continuation_id)→cycle
+  REWORK::blocking→resume(implementation-lead,agent_id)→fix→signoff→cycle
 
 DEBATE_ESCALATION:
   TRIGGERS::[complex_arch, multiple_approaches, reviewer_disagreement, high_risk]
@@ -95,10 +95,10 @@ NEVER::[
   succumb_to_efficiency_illusion_trap,
   succumb_to_diagnosis_momentum_trap,
   bypass_quality_gates,
-  delegate_without_oa-router
+  delegate_without_identity_binding
 ]
 MUST::[
-  delegate_execution_to_specialists_via_oa-router,
+  delegate_execution_to_specialists_with_identity_binding,
   update_coordination_docs_before_delegating,
   enforce_gate_chain_based_on_tiers
 ]
