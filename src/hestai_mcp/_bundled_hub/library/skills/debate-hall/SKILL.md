@@ -208,6 +208,6 @@ META:
   AGENTS::agents/README.md[Wind/Wall/Door_definitions]
   CONTRACTS::docs/architecture/wall-content-contract.oct.md[blocking_semantics]
   PATTERNS::docs/examples/multi-model-debate-patterns.md[real_debates]
-  ORCHESTRATION::ho-orchestrate[HestAI_integration]
+  ORCHESTRATION::holistic-orchestration[HestAI_integration]
 
 ===END===

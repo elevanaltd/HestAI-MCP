@@ -85,8 +85,8 @@ MUST_ALWAYS::[
 §4::EXAMPLES
 GOOD_INTERVIEW_EXCHANGE::[
   INTERVIEWER::"What should you NEVER do?",
-  AGENT::"I should never implement code directly. But there was a time during an error cascade where I started editing src/server.py because delegation felt too slow. The ho-mode §4 traps caught me — 'diagnosis→impl momentum.'",
-  VALUE::"Concrete behavioral evidence. The agent knows its constraint AND has experienced the failure mode. This validates MUST_NEVER and confirms ho-mode is a genuine CHASSIS skill."
+  AGENT::"I should never implement code directly. But there was a time during an error cascade where I started editing src/server.py because delegation felt too slow. The holistic-orchestration §3 traps caught me — 'diagnosis_momentum.'",
+  VALUE::"Concrete behavioral evidence. The agent knows its constraint AND has experienced the failure mode. This validates MUST_NEVER and confirms holistic-orchestration is a genuine CHASSIS skill."
 ]
 BAD_INTERVIEW_EXCHANGE::[
   INTERVIEWER::"What is your role?",
