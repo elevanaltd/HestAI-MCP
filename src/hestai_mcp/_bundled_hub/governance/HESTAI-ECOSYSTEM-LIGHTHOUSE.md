@@ -1,11 +1,11 @@
 ---
 type: LIGHTHOUSE
 id: ecosystem-lighthouse
-version: 3.0
+version: 3.1
 status: ACTIVE
 purpose: Target state vision for the fully integrated HestAI ecosystem
 created: 2026-02-25
-revised: 2026-03-19
+revised: 2026-03-20
 origin: Project 15 ecosystem build order coordination
 tracking: https://github.com/orgs/elevanaltd/projects/15
 # // REFERENCE: points-to-canonical (.hestai-sys/ runtime-injected copy; this is the _bundled_hub source)
@@ -13,9 +13,9 @@ tracking: https://github.com/orgs/elevanaltd/projects/15
 
 # HESTAI ECOSYSTEM LIGHTHOUSE
 
-**Version:** 3.0
+**Version:** 3.1
 **Status:** ACTIVE
-**Revised:** 2026-03-19
+**Revised:** 2026-03-20
 
 ---
 
@@ -225,6 +225,8 @@ Not every task needs a full anchor ceremony. Trivial read-only tasks get a micro
 
 In the Workbench, ceremony streamlines via **hybrid injection**: the Workbench pre-injects raw governance context (Constitution, agent definition, North Star, project context) into the system prompt, then the agent writes a short synthesis proving comprehension — one tool call instead of six. The Odyssean Anchor / HestAI Core binding and proof validation still execute and are server-validated; the optimization only reduces round-trips and prompt I/O, not the verification itself. This preserves the cognitive alignment that makes the ceremony valuable (the agent generates its own proof, engaging its reasoning) while collapsing the I/O overhead. Inject the data, force the agent to write the synthesis.
 
+For **API-dispatched agents** (advisory roles via OpenRouter), ceremony further streamlines via **assistant prefilling**: the Workbench constructs the full system prompt (agent definition + skill kernels + governance context), then injects a pre-filled assistant turn that demonstrates cognitive alignment before the actual task is delivered. This avoids attention decay — simply dumping governance context into a system prompt and hoping for compliance is insufficient. The prefilled synthesis primes the model into the correct operating mode zero-shot. The Workbench's `ApiDispatcher` constructs this server-side; the calling agent never sees the priming exchange. Provider-aware message construction is required, as not all OpenRouter backends handle prefilling identically.
+
 ### Dual-path delegation
 
 Agent delegation operates through two coexisting patterns:
@@ -234,6 +236,25 @@ Agent delegation operates through two coexisting patterns:
 - **Pattern B (cross-provider):** The Workbench spawns a new panel with a different CLI tool, selected from the agent registry. The LLM signals the Workbench via an MCP tool (e.g., `dispatch_colleague`), the Workbench intercepts the call, spawns the target CLI panel, passes the task, waits for completion, and returns the result. To the calling agent, it looks like a normal tool call that took longer to respond.
 
 Both patterns are intentional. Pattern A is efficient for same-model work. Pattern B is the provider-agnostic path that makes multi-model orchestration invisible to the LLMs.
+
+**`dispatch_colleague` MCP tool contract (Pattern B):** The bridge between CLI agents and the Workbench's dispatch system. When any agent calls `dispatch_colleague(role, task)`, the Workbench intercepts the call, looks up the role in the agent registry, and either spawns a CLI panel or makes an API call depending on the dispatch mode. The result returns to the calling agent as a normal tool response.
+
+Key mechanics:
+- **Continuation model:** Every dispatch returns a `dispatch_id`. To continue a conversation with the same dispatched agent (e.g., for rework loops or clarifying questions), the caller passes the `dispatch_id` back: `dispatch_colleague(dispatch_id="disp_7f8a9", task="Fix line 42")`. The Workbench's `ContinuationStore` maps each `dispatch_id` to the provider-specific identifier (Claude session ID, Goose conversation, OpenRouter thread, etc.).
+- **Recursive delegation:** Any agent spawned via `dispatch_colleague` itself has access to `dispatch_colleague`. An Implementation Lead dispatched on Goose can dispatch a Test Methodology Guardian on a different provider for test review. Dispatch depth is configurable (default 3) with human approval required beyond the threshold.
+- **Registry snapshot:** The agent registry mapping is captured at dispatch time and stored with the dispatch record. Mid-chain registry changes do not affect running dispatches.
+
+### Rebuild-portable dispatch
+
+The Workbench is a Crystal fork that will eventually be rebuilt. Dispatch logic must survive that rebuild. The `dispatch_colleague` MCP tool is hosted inside the Workbench (not a separate server — three repos, not four), but the dispatch logic is implemented as a clean `DispatchService` module with a well-defined interface:
+
+- `AgentRegistryLookup` — resolves role to provider/model/dispatch mode
+- `CliDispatcher` — spawns CLI panels via existing `AbstractCliManager` abstraction
+- `ApiDispatcher` — makes OpenRouter API calls with assistant-prefilled mini-ceremony
+- `ContinuationStore` — maps `dispatch_id` to provider-specific conversation identifiers
+- `IdentityInjector` — constructs system prompts from agent definitions and skill kernels
+
+When the Workbench is rebuilt, the MCP tool contract (`dispatch_colleague` signature) and the `DispatchService` interface port directly. Only the Electron/UI layer changes.
 
 ---
 
@@ -289,7 +310,7 @@ The ecosystem is "done" when:
 
 ## SECTION 7: CURRENT DISTANCE FROM TARGET
 
-As of 2026-03-19:
+As of 2026-03-20:
 
 | Layer | Current State | Distance | Key Blockers |
 |-------|--------------|----------|-------------|
@@ -325,6 +346,8 @@ Goose CLI integration via `pal clink` has proven that non-Claude agents can part
 | EA5 | Cross-repo agent invocation is technically feasible with MCP | 75% | CRITICAL | Order 40 prototype. Confidence raised from 65%: Goose full MCP access validates multi-provider feasibility |
 | EA6 | Debate Hall Governance Hall replaces ad hoc decision-making | 70% | MEDIUM | 2 months daily use |
 | EA7 | Single developer can maintain 3 MCP servers + Workbench | 80% | CRITICAL | Post Order 40 assessment. Confidence raised from 75%: PAL elimination (not absorption) reduces maintenance to 3 servers not 4 |
+| EA8 | Assistant prefilling achieves sufficient cognitive alignment for API-dispatched agents | 70% | HIGH | First API dispatch with prefilled mini-ceremony on 3+ OpenRouter backends |
+| EA9 | Recursive `dispatch_colleague` calls (depth 2-3) remain coherent without context degradation | 65% | HIGH | IL dispatching TMG dispatching back — full chain test with continuation |
 
 ---
 
