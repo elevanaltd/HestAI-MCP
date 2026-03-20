@@ -54,7 +54,6 @@ DEBATE_ESCALATION:
 §3::GOVERNANCE
 DIRECT_WRITE_ALLOWED:
   coordination::.hestai/state/**/*.md
-  skills_agents::.hestai-sys/**/*.md
   project_docs::[README.md, CLAUDE.md]
 
 BLOCKED_TOOLS::[NotebookEdit, MultiEdit, mcp__supabase__apply_migration, mcp__supabase__execute_sql, mcp__supabase__deploy_edge_function]
@@ -103,7 +102,7 @@ MUST::[
   update_coordination_docs_before_delegating,
   enforce_gate_chain_based_on_tiers
 ]
-DELEGATE_BY_PATH::[src/**→IL, electron/**→IL, **/*.ts→IL, **/*.tsx→IL, **/*.js→IL, package*.json→IL, **/*.test.*→UTE, supabase/**→TechArch]
+DELEGATE_BY_PATH::[src/**→IL, electron/**→IL, **/*.test.*→UTE, **/*.ts→IL, **/*.tsx→IL, **/*.js→IL, package*.json→IL, supabase/**→TechArch]
 DELEGATE_BY_TYPE::[CODE→IL, TEST→UTE, ARCH→TechArch, ERROR→ErrorArch, SEC→SecSpec, DOCS→SysSteward]
 GATES::[T0:exempt, T1:self, T2:CRS[gemini], T3:CRS⊕CE[codex]]
 DEBATE::IF[complex_arch∨reviewer_disagreement]→Wind[claude]→Wall[codex]→Door[gemini]
