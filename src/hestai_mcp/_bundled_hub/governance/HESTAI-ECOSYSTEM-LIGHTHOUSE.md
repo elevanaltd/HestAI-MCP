@@ -1,11 +1,11 @@
 ---
 type: LIGHTHOUSE
 id: ecosystem-lighthouse
-version: 2.0
+version: 3.0
 status: ACTIVE
 purpose: Target state vision for the fully integrated HestAI ecosystem
 created: 2026-02-25
-revised: 2026-03-04
+revised: 2026-03-19
 origin: Project 15 ecosystem build order coordination
 tracking: https://github.com/orgs/elevanaltd/projects/15
 # // REFERENCE: points-to-canonical (.hestai-sys/ runtime-injected copy; this is the _bundled_hub source)
@@ -13,9 +13,9 @@ tracking: https://github.com/orgs/elevanaltd/projects/15
 
 # HESTAI ECOSYSTEM LIGHTHOUSE
 
-**Version:** 2.0
+**Version:** 3.0
 **Status:** ACTIVE
-**Revised:** 2026-03-04
+**Revised:** 2026-03-19
 
 ---
 
@@ -88,9 +88,9 @@ The ecosystem converges from the current six repos to three MCP servers plus a c
 
 **What it absorbs:**
 - Odyssean Anchor MCP — the binding protocol, Steward state machine, proof validation, and permit system rebuilt natively inside HestAI Core (ADR-0275 accepted, rebuild phases #279-282 not yet started)
-- Agent prompts from PAL MCP (61 clink role definitions consolidated as canonical source)
+- Agent prompts from PAL MCP (61 clink role definitions consolidated as canonical source). PAL itself is eliminated — dispatch moves natively to Workbench, agent prompts and role definitions consolidate here as the canonical source
 
-**What it does NOT own:** Deliberation (debate-hall), execution/UI (Workbench), model dispatch (Workbench), OCTAVE format (octave-mcp).
+**What it does NOT own:** Deliberation (debate-hall), execution/UI/dispatch (Workbench), OCTAVE format (octave-mcp).
 
 **Key properties:**
 - Provider-agnostic — knows WHO agents are and HOW they should behave, not which model runs them
@@ -129,24 +129,41 @@ The ecosystem converges from the current six repos to three MCP servers plus a c
 **What it is:** The only GUI in the ecosystem. Desktop application for managing AI sessions, agent dispatch, and system visibility.
 
 **What it owns:**
-- Agent registry (role -> provider -> model mapping, UI-configurable)
-- CLI dispatch (spawning agents on different providers/models, absorbed from PAL clink)
+- Agent registry (role -> provider -> model -> dispatch mode, UI-configurable)
+- Multi-CLI dispatch (spawning agents via Claude, Codex, Gemini, or Goose CLIs)
+- API dispatch (lightweight agent calls via OpenRouter for advisory/consultation roles)
 - Session management (worktrees, terminal multiplexing, session persistence)
 - Governance Chat UI (rendering debate-hall transcripts as conversation threads)
 - System dashboard (visibility into all active sessions, agents, debates)
 
-**What it absorbs:**
-- PAL MCP Server — clink dispatch moves to Workbench, workflow tools replaced by proper agent loading via anchor, agent prompts consolidated to HestAI Core
+**What it eliminates:**
+- PAL MCP Server — ceases to exist. CLI dispatch is natively owned by the Workbench agent registry. Agent prompts consolidated to HestAI Core. No intermediate bridge layer.
 - Crystal Fresh — the original fork from which the Workbench evolved
 
 **What it does NOT own:** Agent identity (HestAI Core), deliberation logic (debate-hall), document format (octave-mcp).
 
 **Key properties:**
 - Only system with a GUI — debate-hall and HestAI Core are headless MCP servers
-- Knows WHICH provider and model each agent runs on (separation from WHO the agent is)
+- Knows WHICH provider, model, and dispatch mode each agent uses (separation from WHO the agent is)
 - The convergence point — where identity, deliberation, format, and execution meet
+- Two-tier dispatch: CLI for interactive sessions (Claude, Codex, Gemini, Goose), API for lightweight calls (OpenRouter)
 
-**Target state:** Operator opens Workbench, picks a role from registry, picks a provider/model, and works. Governance Chat panel shows debates as threaded conversations. Agent dispatch handles multi-provider orchestration. Session persistence across worktrees.
+**Agent Registry schema (conceptual):**
+
+Each agent registry entry maps identity to execution:
+
+| Field | Description | Examples |
+|-------|-------------|---------|
+| **role** | Agent role from HestAI Core | `holistic-orchestrator`, `implementation-lead`, `critical-engineer` |
+| **provider** | AI provider | `anthropic`, `google`, `openai`, `openrouter` |
+| **model** | Specific model | `claude-opus-4-6`, `gemini-2.5-pro`, `codex-mini`, `moonshotai/kimi-k2.5` |
+| **dispatch** | CLI or API | `cli:claude`, `cli:codex`, `cli:gemini`, `cli:goose`, `api:openrouter` |
+
+The registry replaces all of PAL's configuration (e.g., `goose.json` provider configs) with a unified, UI-configurable mapping. Switching an agent's model is a registry edit, not a code change.
+
+**Cross-provider bridge:** CLIs are designed for human-to-AI interaction — an agent running in Claude CLI cannot natively signal the Workbench to spawn a Codex panel. The bridge is an MCP tool (e.g., `dispatch_colleague(role, task)`) that the Workbench provides. See the "Dual-path delegation" principle in Section 4 for the full mechanism (Pattern B).
+
+**Target state:** Operator opens Workbench, picks a role from registry, and works. The Workbench spawns the correct CLI or makes the correct API call based on the registry entry. Governance Chat panel shows debates as threaded conversations. Session persistence across worktrees.
 
 ---
 
@@ -158,9 +175,9 @@ This is what the operator's daily experience looks like when the ecosystem is co
 
 2. **Pick a task.** Select work — a feature, a bug, an architectural decision.
 
-3. **Pick a role.** Agent registry shows available roles (Holistic Orchestrator, Implementation Lead, Technical Architect, etc.) with their provider/model assignments. Select one.
+3. **Pick a role.** Agent registry shows available roles (Holistic Orchestrator, Implementation Lead, Technical Architect, etc.) with their provider/model/dispatch assignments. Select one.
 
-4. **Workbench spawns the agent.** Creates a git worktree, connects MCP servers, launches the CLI for the selected provider/model.
+4. **Workbench spawns the agent.** Creates a git worktree, connects MCP servers, launches the appropriate CLI (Claude, Codex, Gemini, or Goose) based on the registry entry.
 
 5. **Agent binds identity.** Anchor ceremony runs automatically — the agent proves it comprehends its role, the Constitution, and the current project context. Appropriate capability profile loads based on task scope.
 
@@ -168,11 +185,15 @@ This is what the operator's daily experience looks like when the ecosystem is co
 
 7. **Agent hits an ambiguous decision.** Calls debate-hall for a structured Wind/Wall/Door debate. The debate produces a synthesis with a decision record. The Governance Chat panel shows the debate as a conversation thread.
 
-8. **Agent needs another perspective.** The Workbench dispatches a different agent on a different provider/model. The new agent binds its own identity. Both agents see the shared project context.
+8. **Agent needs lightweight advisory.** Calls an API-dispatched agent (e.g., ho-liaison on OpenRouter) for quick consultation. The response comes back within the same session — no CLI spawn needed.
 
-9. **Session ends.** HestAI Core archives the transcript in OCTAVE format. The decision record is hash-chained and searchable. The worktree preserves the work.
+9. **Agent delegates implementation work.** The agent calls a subagent mapped in the registry — possibly on a different CLI and provider entirely. For example, HO on Claude Opus delegates to an implementation-lead on Goose CLI (configured to use an OpenRouter model like Kimi K2.5). The subagent spawns with full MCP access, binds its own identity via anchor ceremony, does the work, and returns results.
 
-10. **Operator reviews.** The dashboard shows what was done, what decisions were made, and what's next. All artifacts are persistent and discoverable.
+10. **Work needs review.** The agent dispatches review agents from the registry. CRS might be mapped to Codex CLI, CE to Gemini CLI. Each reviewer binds, reviews the PR, and submits their assessment via `submit_review`. Different models provide genuine multi-perspective review.
+
+11. **Session ends.** HestAI Core archives the transcript in OCTAVE format. The decision record is hash-chained and searchable. The worktree preserves the work.
+
+12. **Operator reviews.** The dashboard shows what was done, what decisions were made, and what's next. All artifacts are persistent and discoverable.
 
 ---
 
@@ -186,11 +207,13 @@ Each system owns exactly one concern. Identity is not deliberation. Deliberation
 
 ### One canonical source
 
-Agent definitions exist in exactly one place: HestAI Core. Not duplicated in PAL, not copied to the Workbench, not embedded in debate-hall. When an agent's constitution changes, it changes in one file.
+Agent definitions exist in exactly one place: HestAI Core. Not duplicated in the Workbench, not embedded in debate-hall. When an agent's constitution changes, it changes in one file. The Workbench's agent registry maps roles to providers — it references identity, never duplicates it.
 
 ### Provider agnosticism
 
 The governance layer (HestAI Core) knows nothing about which AI model runs an agent. The execution layer (Workbench) knows nothing about what an agent's authority boundaries are. Switching providers for a role is a registry change, not a governance change.
+
+This is not theoretical. Goose CLI agents have been verified with full MCP access to all four ecosystem servers (HestAI, OCTAVE, Debate Hall, Odyssean Anchor), including anchor ceremony binding, debate participation, and OCTAVE read/write. Provider agnosticism is proven across Claude, Codex, Gemini, and Goose.
 
 ### Standalone deliberation
 
@@ -199,6 +222,18 @@ Debate Hall works without HestAI. A team that doesn't use HestAI governance can 
 ### Ceremony proportional to risk
 
 Not every task needs a full anchor ceremony. Trivial read-only tasks get a micro permit. Standard work gets the full ceremony. Critical decisions get extra scrutiny. Governance weight scales with risk.
+
+In the Workbench, ceremony streamlines via **hybrid injection**: the Workbench pre-injects raw governance context (Constitution, agent definition, North Star, project context) into the system prompt, then the agent writes a short synthesis proving comprehension — one tool call instead of six. The Odyssean Anchor / HestAI Core binding and proof validation still execute and are server-validated; the optimization only reduces round-trips and prompt I/O, not the verification itself. This preserves the cognitive alignment that makes the ceremony valuable (the agent generates its own proof, engaging its reasoning) while collapsing the I/O overhead. Inject the data, force the agent to write the synthesis.
+
+### Dual-path delegation
+
+Agent delegation operates through two coexisting patterns:
+
+- **Pattern A (intra-session):** A CLI agent uses its native delegation mechanism (e.g., Claude's `Task()` tool) to spawn a subagent within the same worktree. The subagent inherits MCP server connections and can bind via micro-tier anchor. This is fast, same-provider delegation governed by the subagent-rules skill.
+
+- **Pattern B (cross-provider):** The Workbench spawns a new panel with a different CLI tool, selected from the agent registry. The LLM signals the Workbench via an MCP tool (e.g., `dispatch_colleague`), the Workbench intercepts the call, spawns the target CLI panel, passes the task, waits for completion, and returns the result. To the calling agent, it looks like a normal tool call that took longer to respond.
+
+Both patterns are intentional. Pattern A is efficient for same-model work. Pattern B is the provider-agnostic path that makes multi-model orchestration invisible to the LLMs.
 
 ---
 
@@ -224,7 +259,7 @@ The ecosystem is "done" when:
 
 7. **All repos green.** Tests passing, coverage above thresholds, linters clean, type checking strict.
 
-8. **Three MCP servers, not six.** OA absorbed into HestAI Core. PAL absorbed into Workbench + Core.
+8. **Three MCP servers, not six.** OA absorbed into HestAI Core. PAL eliminated — dispatch natively owned by Workbench agent registry, identity consolidated to HestAI Core.
 
 9. **The Workbench is daily-driveable.** Used for real work, not as a demo. 2 months of daily use before any rebuild.
 
@@ -246,7 +281,7 @@ The ecosystem is "done" when:
 
 3. **Perfect orchestration.** Cross-repo agent invocation is explicitly a prototype. "Try it and see."
 
-4. **Full PAL replacement immediately.** PAL works fine today. Absorption is incremental — clink first, remaining tools later.
+4. **A PAL bridge layer.** PAL is eliminated, not absorbed. The Workbench agent registry natively owns multi-CLI dispatch (Claude, Codex, Gemini, Goose) and API dispatch (OpenRouter). There is no intermediate dispatch server.
 
 5. **A coordination system before trying anything.** The dependency graph shows dependencies, not a waterfall. Prototype-first.
 
@@ -254,24 +289,28 @@ The ecosystem is "done" when:
 
 ## SECTION 7: CURRENT DISTANCE FROM TARGET
 
-As of 2026-03-04:
+As of 2026-03-19:
 
 | Layer | Current State | Distance | Key Blockers |
 |-------|--------------|----------|-------------|
 | **OCTAVE MCP** | v1.8.0, production, PyPI published | Close | Chassis-Profile grammar (octave-mcp#283) at RFC stage |
 | **HestAI Core** | B1 foundation, 4 tools, OA merger decided (ADR-0275) but not started | Far | OA rebuild phases (#279-282), capability tiers (#284), tiered permits (#285) |
 | **Debate Hall** | v0.4.0, 17 tools, consult/convene shipped | Medium | Governance Hall (#163), RACI mode (#159) |
-| **Workbench** | Phase 2 complete, Phase 3 (agent registry) open | Far | Agent registry (#32), clink extraction (#33), governance chat UI (#16/#34) |
+| **Workbench** | Phase 2 complete, Phase 3 (agent registry) open | Far | Agent registry (#32) must support multi-CLI dispatch (Claude/Codex/Gemini/Goose) + API dispatch (OpenRouter), governance chat UI (#16/#34) |
 | **OA (to be absorbed)** | Operational, ADR-0275 accepted | Being replaced | Rebuild phases not started |
-| **PAL (to be absorbed)** | Operational, actively used daily (clink, chat, apilookup) | Being replaced | clink extraction (#33), then gradual absorption (#36) |
+| **PAL (to be eliminated)** | Operational, used daily via `pal clink` | Being eliminated | Workbench agent registry replaces all PAL dispatch. Goose via `pal clink` validates that multi-provider dispatch works — the registry must natively own this capability |
 
 ### The Critical Path
 
 Per Project 15 (Order field) and the Ecosystem Dependency Graph (STEP numbering):
 
-**Order 10** (merger decision — DONE, ADR-0275) -> **Order 20** (OA rebuild + agent registry) -> **Order 30** (clink extraction + governance chat UI) -> **Order 40** (cross-repo agent orchestration) -> **Order 50** (blind assessor + PAL full absorption)
+**Order 10** (merger decision — DONE, ADR-0275) -> **Order 20** (OA rebuild + agent registry with multi-CLI/API dispatch) -> **Order 30** (governance chat UI) -> **Order 40** (cross-repo agent orchestration) -> **Order 50** (blind assessor + PAL decommission)
 
 The convergence point is **Order 40: Cross-repo agent orchestration prototype** — where identity, deliberation, format, and execution work together for the first time.
+
+### Validated Early
+
+Goose CLI integration via `pal clink` has proven that non-Claude agents can participate as first-class ecosystem citizens — full MCP access to all 4 servers (46 tools), anchor ceremony binding, debate-hall participation, OCTAVE read/write, and agent/skill delegation. This validates provider agnosticism ahead of the Workbench agent registry build.
 
 ---
 
@@ -282,10 +321,10 @@ The convergence point is **Order 40: Cross-repo agent orchestration prototype** 
 | EA1 | Three-repo architecture is sufficient | 85% | CRITICAL | Order 40 prototype |
 | EA2 | Chassis-Profile schema handles all capability selection needs | 70% | HIGH | First agent with multiple profiles |
 | EA3 | Tiered permits reduce ceremony overhead without sacrificing security | 75% | HIGH | Quick-tier usage in production |
-| EA4 | Workbench can absorb PAL clink without breaking daily workflow | 80% | HIGH | Order 30 clink extraction |
-| EA5 | Cross-repo agent invocation is technically feasible with MCP | 65% | CRITICAL | Order 40 prototype |
-| EA6 | Debate Hall Governance Hall replaces ad-hoc decision making | 70% | MEDIUM | 2 months daily use |
-| EA7 | Single developer can maintain 3 MCP servers + Workbench | 75% | CRITICAL | Post Order 40 assessment |
+| EA4 | Workbench agent registry can natively replace all PAL dispatch (multi-CLI + API) | 80% | HIGH | Agent registry prototype with Goose + Claude + Codex + Gemini dispatch |
+| EA5 | Cross-repo agent invocation is technically feasible with MCP | 75% | CRITICAL | Order 40 prototype. Confidence raised from 65%: Goose full MCP access validates multi-provider feasibility |
+| EA6 | Debate Hall Governance Hall replaces ad hoc decision-making | 70% | MEDIUM | 2 months daily use |
+| EA7 | Single developer can maintain 3 MCP servers + Workbench | 80% | CRITICAL | Post Order 40 assessment. Confidence raised from 75%: PAL elimination (not absorption) reduces maintenance to 3 servers not 4 |
 
 ---
 

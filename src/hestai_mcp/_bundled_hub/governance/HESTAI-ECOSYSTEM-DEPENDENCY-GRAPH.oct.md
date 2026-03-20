@@ -1,11 +1,11 @@
 ===DEPENDENCY_GRAPH===
 META:
   TYPE::ECOSYSTEM_DEPENDENCY_GRAPH
-  VERSION::"2.0"
+  VERSION::"2.1"
   STATUS::ACTIVE
   PURPOSE::"Cross-repo build sequence, blocking relationships, and phase alignment"
   CREATED::"2026-02-22"
-  REVISED::"2026-03-04"
+  REVISED::"2026-03-19"
   FORMAT::octave
   RESOLVES::"#265 (Cross-repo ecosystem dependency graph)"
   SUPPLEMENTS::HESTAI-ECOSYSTEM-OVERVIEW.oct.md
@@ -68,13 +68,13 @@ HESTAI_WORKBENCH::[
 ]
 PAL_MCP_SERVER::[
   VERSION::"1.0.3",
-  PHASE::OPERATIONAL,
+  PHASE::OPERATIONAL<being_eliminated>,
   HEALTH::STABLE,
   TOOLS::19,
   ["7 _enabled_by_default"],
   TESTS::"109 test files",
   BLOCKERS::none,
-  KEY_FACT::"Actively used daily (clink, chat, apilookup). Zero hestai-mcp dependencies. Has 61 clink role prompts. Absorption into workbench+core planned but incremental — no urgency. The most mature multi-provider orchestration layer."
+  KEY_FACT::"Actively used daily (clink with Claude, Codex, Gemini, Goose CLIs). Zero hestai-mcp dependencies. Has 61 clink role prompts. Being eliminated per Lighthouse v3.0 — Workbench agent registry natively replaces all dispatch. Goose via pal clink validates multi-provider dispatch ahead of registry build."
 ]
 §2::DEPENDENCY_ARROWS
   // Format: SOURCE --[type]--> TARGET (evidence)
@@ -87,14 +87,14 @@ ARROWS::[
   "hestai-workbench --[planned]--> debate-hall-mcp (governance chat UI, #16)",
   "hestai-workbench --[planned]--> octave-mcp (document format)",
   "pal-mcp-server --[none]--> anything (fully independent, references hestai in prompts only)",
-  "pal-mcp-server --[absorption_target]--> hestai-workbench+hestai-mcp (clink->workbench, prompts->core)"
+  "pal-mcp-server --[elimination_target]--> hestai-workbench+hestai-mcp (dispatch->workbench registry, prompts->core, PAL decommissioned)"
 ]
 §3::LAYER_MODEL_WITH_STATE
   // Each layer must be solid before the layer above can fully depend on it
 LAYER_0::"FOUNDATION<octave-mcp::[SOLID,v1.8.0,production,no_action_needed],ACTION::\"Just update deps when releases happen\">"
 LAYER_1::"IDENTITY_AND_GOVERNANCE<hestai-mcp::[FUNCTIONAL,B1,discovering_scope],odyssean-anchor-mcp::[OPERATIONAL,alpha,merger_decided],COMBINED_STATE::\"Both work independently. Together they provide identity binding. Merger decided (ADR-0275) — will simplify deployment and eliminate runtime MCP-to-MCP call overhead.\",ACTION::\"Execute merger rebuild (#279-282). Continue B1 discovery.\">"
 LAYER_2::"DELIBERATION<debate-hall-mcp::[SOLID,v0.4.0,production,17_tools],ACTION::\"No blockers. Continue with #163 (Governance Hall) and RACI mode (#159) at own pace.\">"
-LAYER_3::"EXECUTION<hestai-workbench::[PROTOTYPE,Phase_2_complete,Phase_3_open],pal-mcp-server::[OPERATIONAL,actively_used_daily,being_incrementally_absorbed],COMBINED_STATE::\"Workbench needs agent registry (Phase 3) to advance. PAL provides the multi-provider dispatch that workbench will eventually own.\",ACTION::\"Start Phase 3 agent registry. Absorb PAL clink as part of it or immediately after.\">"
+LAYER_3::"EXECUTION<hestai-workbench::[PROTOTYPE,Phase_2_complete,Phase_3_open],pal-mcp-server::[OPERATIONAL,actively_used_daily,being_eliminated],COMBINED_STATE::\"Workbench needs agent registry (Phase 3) to advance. PAL provides multi-provider dispatch that the registry will natively replace. Goose via pal clink validates this works.\",ACTION::\"Start Phase 3 agent registry with native multi-CLI dispatch (Claude, Codex, Gemini, Goose) + API dispatch (OpenRouter). PAL decommissioned when registry is complete.\">"
 §4::SEQUENCED_BUILD_ORDER
   // CRITICAL PATH: What must happen in what order
   // STEP 1 (merger decision) is DONE — ADR-0275 accepted
@@ -114,9 +114,9 @@ SEQUENCE::[
   EFFORT::"medium<DB_schema⊕IPC⊕UI⊕tests>",
   BLOCKS::[STEP_5,STEP_6],
   PREREQ::STEP_1<DONE>,
-  STEP_4::"PAL clink extraction -> workbench dispatch",
-  RATIONALE::"clink is modular and self-contained. Extracting the CLI-dispatch pattern into workbench gives it the ability to spawn agents on different providers/models. Highest-value PAL extraction.",
-  EFFORT::"medium<clink.py⊕cli_configs⊕provider_registry>",
+  STEP_4::"Native multi-CLI dispatch in workbench agent registry",
+  RATIONALE::"Build dispatch natively into the agent registry — not extract from PAL. Registry entries map role→provider→model→dispatch mode (cli:claude, cli:codex, cli:gemini, cli:goose, api:openrouter). Goose via pal clink validates multi-provider dispatch works with full MCP access.",
+  EFFORT::"medium<registry_schema⊕cli_spawning⊕api_dispatch⊕provider_configs>",
   BLOCKS::[STEP_6],
   PREREQ::STEP_3<agent_registry_exists>,
   STEP_5::"Workbench <-> debate-hall integration (Governance Chat UI)",
@@ -135,14 +135,14 @@ SEQUENCE::[
   RATIONALE::"Needs agents that can be dispatched, identity binding, multi-model invocation. Can be manually invoked as Claude Code subagent earlier for spot-testing.",
   EFFORT::"medium<agent_def⊕rubrics⊕scenarios>",
   PREREQ::[STEP_3,STEP_4],
-  STEP_8::"PAL full absorption — remaining tools",
-  RATIONALE::"After clink extracted (Step 4), remaining PAL tools (codereview, consensus, thinkdeep, etc.) absorbed or deprecated. Low urgency since PAL works fine as-is and is actively used daily.",
-  EFFORT::"large<19_tools⊕61_prompts⊕config_unification>",
+  STEP_8::"PAL decommission",
+  RATIONALE::"After workbench agent registry owns all dispatch (Step 4) and cross-repo orchestration is proven (Step 6), PAL is decommissioned. Agent prompts already consolidated to hestai-core. Remaining PAL tools (codereview, consensus, thinkdeep) replaced by proper agent loading via anchor ceremony.",
+  EFFORT::"small<decommission_and_archive>",
   PREREQ::[STEP_4,STEP_6]
 ]
 §5::CRITICAL_PATH
 CRITICAL_PATH::"STEP_1[DONE] -> STEP_3 -> STEP_4 -> STEP_6"
-EXPLANATION::"Merger decision (1, DONE) unblocks agent registry design (3), which unblocks clink extraction (4), which enables cross-repo agent invocation (6). Everything else can happen in parallel around this spine."
+EXPLANATION::"Merger decision (1, DONE) unblocks agent registry design (3), which unblocks native multi-CLI/API dispatch (4), which enables cross-repo agent invocation (6). Everything else can happen in parallel around this spine."
 VISUAL::[
   "                octave-mcp (solid, no action)     debate-hall (solid, own pace)",
   "                       |                                |",
@@ -150,12 +150,12 @@ VISUAL::[
   "           /                \\                            |",
   "  STEP 2: OA Rebuild  STEP 3: Agent Registry -----> STEP 5: Gov Chat UI",
   "  (#279-282)                |                           |",
-  "                     STEP 4: clink extraction            |",
+  "                     STEP 4: Native multi-CLI dispatch    |",
   "                            |                           |",
   "                     STEP 6: Cross-repo agent invocation",
   "                       /              \\",
-  "               STEP 7: Blind       STEP 8: PAL full",
-  "               Assessor            absorption"
+  "               STEP 7: Blind       STEP 8: PAL",
+  "               Assessor            decommission"
 ]
 PARALLEL_TRACKS::[
   TRACK_A::"octave-mcp roadmap (independent, Chassis-Profile RFC #283)",
@@ -176,14 +176,14 @@ DECISION_1::[
   ]
 ]
 DECISION_2::[
-  QUESTION::"When does PAL get absorbed into workbench?",
-  POSITION::"STEP_4[clink_first]⊕STEP_8",
-  ANSWER::"Incrementally. clink first (highest value, modular). Remaining tools later. PAL works fine as-is and is actively used daily — no urgency for full absorption."
+  QUESTION::"What happens to PAL?",
+  POSITION::"STEP_4[native_dispatch]⊕STEP_8[decommission]",
+  ANSWER::"PAL is eliminated, not absorbed (Lighthouse v3.0). Workbench agent registry natively owns multi-CLI dispatch (Claude, Codex, Gemini, Goose) and API dispatch (OpenRouter). PAL decommissioned once registry is complete. Goose via pal clink validates multi-provider dispatch works."
 ]
 DECISION_3::[
   QUESTION::"What's the actual critical path to cross-repo agent invocation?",
   POSITION::STEP_6,
-  ANSWER::"Agent registry (Step 3) + clink dispatch (Step 4) + debate-hall convene (already shipped). Step 6 is where they converge."
+  ANSWER::"Agent registry (Step 3) + native multi-CLI/API dispatch (Step 4) + debate-hall convene (already shipped). Step 6 is where they converge."
 ]
 DECISION_4::[
   QUESTION::"Where does the blind-assessor test suite (#263) sit?",
@@ -222,7 +222,7 @@ ISSUES::[
   "workbench#32 (agent registry)",
   "::",
   STEP_3,
-  "workbench#33 (clink extraction)",
+  "workbench#33 (native multi-CLI dispatch, was: clink extraction)",
   "::",
   STEP_4,
   "debate-hall#163 (governance hall)",
