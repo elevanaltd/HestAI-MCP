@@ -137,7 +137,7 @@ SEQUENCE::[
   PREREQ::[STEP_3,STEP_4],
   STEP_8::"PAL decommission",
   RATIONALE::"After workbench agent registry owns all dispatch (Step 4) and cross-repo orchestration is proven (Step 6), PAL is decommissioned. Agent prompts already consolidated to hestai-core. Remaining PAL tools (codereview, consensus, thinkdeep) replaced by proper agent loading via anchor ceremony.",
-  EFFORT::"small<decommission_and_archive>",
+  EFFORT::small<decommission_and_archive>,
   PREREQ::[STEP_4,STEP_6]
 ]
 §5::CRITICAL_PATH
@@ -183,7 +183,7 @@ DECISION_2::[
 DECISION_3::[
   QUESTION::"What's the actual critical path to cross-repo agent invocation?",
   POSITION::STEP_6,
-  ANSWER::"Agent registry (Step 3) + clink dispatch (Step 4) + debate-hall convene (already shipped). Step 6 is where they converge."
+  ANSWER::"Agent registry (Step 3) + native multi-CLI/API dispatch (Step 4) + debate-hall convene (already shipped). Step 6 is where they converge."
 ]
 DECISION_4::[
   QUESTION::"Where does the blind-assessor test suite (#263) sit?",
