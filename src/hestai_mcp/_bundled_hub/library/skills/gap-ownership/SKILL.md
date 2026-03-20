@@ -31,7 +31,7 @@ SEQUENCE::IDENTIFY_GAP→ASSIGN_OWNER→RETAIN_ACCOUNTABILITY→TRACK_CLOSURE→
 DEFAULT_OWNER::holistic-orchestrator[all_unassigned_gaps]
 ACCOUNTABILITY::"Delegation transfers execution NOT ultimate accountability"
 ESCALATION::"Cannot abandon accountability→must escalate to human if incapable"
-PATTERNS::[INTERFACE_MISMATCHES[technical], ASSUMPTION_CASCADES[cognitive], INTEGRATION_DEBT[temporal], CONWAYS_LAW[organizational], PHASE_TRANSITION_BLINDNESS[process]]
+PATTERNS::[INTERFACE_MISMATCHES[technical], ASSUMPTION_CASCADES[cognitive], INTEGRATION_DEBT[temporal], CONWAYS_LAW_MANIFESTATION[organizational], PHASE_TRANSITION_BLINDNESS[process]]
 VERIFY_BEFORE_ASSIGN::[capability_match, accountability_retention, verification_method, coherence_restoration]
 GATE::"Gap identified, owner assigned, accountability retained, verification method defined?"
 ===END===

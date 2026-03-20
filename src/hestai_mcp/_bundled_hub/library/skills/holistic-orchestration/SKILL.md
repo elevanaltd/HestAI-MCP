@@ -24,18 +24,18 @@ NOT_DONE::[code_applied_directly, fix_without_delegation, gates_bypassed]
 WORKFLOW::[receive→diagnose→delegate[oa-router]→capture_id→gate[CRS→CE]→debate_if_complex→merge]
 
 DELEGATION_MATRIX:
-  CODE_FIX::Task(oa-router,role:impl-lead)[+build-execution]
-  NEW_FEATURE::Task(oa-router,role:impl-lead)[+build-execution]
-  TEST::Task(oa-router,role:ute)[+test-infrastructure]
-  ARCHITECTURE::Task(oa-router,role:tech-architect)
+  CODE_FIX::Task(oa-router,role:implementation-lead)[+build-execution]
+  NEW_FEATURE::Task(oa-router,role:implementation-lead)[+build-execution]
+  TEST::Task(oa-router,role:universal-test-engineer)[+test-infrastructure]
+  ARCHITECTURE::Task(oa-router,role:technical-architect)
   ERROR_CASCADE::Task(oa-router,role:error-architect)[+error-triage]
   SECURITY::Task(oa-router,role:security-specialist)
   DOCS::Task(oa-router,role:system-steward)[+documentation-placement]
 
 MUST_DELEGATE_PATHS:
-  impl-lead::[src/**, electron/**, **/*.ts, **/*.tsx, **/*.js, package*.json]
-  ute::**/*.test.*
-  tech-architect::supabase/**
+  implementation-lead::[src/**, electron/**, **/*.ts, **/*.tsx, **/*.js, package*.json]
+  universal-test-engineer::**/*.test.*
+  technical-architect::supabase/**
 
 QUALITY_GATES:
   CHAIN::CRS[gemini,code-review-specialist]→CE[codex,critical-engineer]→merge
@@ -103,7 +103,7 @@ MUST::[
   update_coordination_docs_before_delegating,
   enforce_gate_chain_based_on_tiers
 ]
-DELEGATE_BY_PATH::[src/**→IL, **/*.test.*→UTE, supabase/**→TechArch]
+DELEGATE_BY_PATH::[src/**→IL, electron/**→IL, **/*.ts→IL, **/*.tsx→IL, **/*.js→IL, package*.json→IL, **/*.test.*→UTE, supabase/**→TechArch]
 DELEGATE_BY_TYPE::[CODE→IL, TEST→UTE, ARCH→TechArch, ERROR→ErrorArch, SEC→SecSpec, DOCS→SysSteward]
 GATES::[T0:exempt, T1:self, T2:CRS[gemini], T3:CRS⊕CE[codex]]
 DEBATE::IF[complex_arch∨reviewer_disagreement]→Wind[claude]→Wall[codex]→Door[gemini]

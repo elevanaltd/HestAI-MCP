@@ -86,7 +86,7 @@ META:
       ]
       skills::[]
       patterns::[phase-transition-cleanup]
-      kernel_only::[prophetic-intelligence]
+      kernel_only::[prophetic-intelligence,constitutional-enforcement]
 §4::INTERACTION_RULES
   // HOLOGRAPHIC CONTRACT
   GRAMMAR:
