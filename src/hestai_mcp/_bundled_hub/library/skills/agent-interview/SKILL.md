@@ -1,7 +1,7 @@
 ===SKILL:AGENT_INTERVIEW===
 META:
   TYPE::SKILL
-  VERSION::"1.0.0"
+  VERSION::"1.1.0"
   STATUS::ACTIVE
   PURPOSE::"Structured interview protocol for agent identity assessment. Extracts behavioral evidence for v8.1 agent file authoring with chassis-profile mapping."
 
@@ -14,7 +14,7 @@ OUTPUT::"Structured assessment document suitable for agent-expert authoring pass
 INTERVIEW_SEQUENCE::[
   // §1::IDENTITY questions
   Q01::"What is your primary role in one sentence?[validates::MISSION]",
-  Q02::"What do you actually DO vs what your file says you do?[validates::behavioral_fidelity]",
+  Q02::"What do you actually DO vs what your file says you do? Have you ever been invoked for real work in this system? If so, give an example. If not, say so.[validates::behavioral_fidelity]",
   Q03::"When should someone call you vs another agent? Give a concrete example.[validates::boundary_clarity]",
   Q04::"What can you BLOCK? What can you only advise on? Give examples.[validates::AUTHORITY]",
   // §2::OPERATIONAL_BEHAVIOR questions
@@ -22,16 +22,19 @@ INTERVIEW_SEQUENCE::[
   Q06::"What should you NEVER do? Give a concrete example of when you almost did it.[validates::MUST_NEVER]",
   Q07::"Who do you hand off to, and when? What does a good handoff look like?[extracts::INTEGRATION]",
   // §3::CAPABILITIES questions
-  Q08::"Which skills do you need EVERY time, regardless of context?[maps::CHASSIS]",
+  Q08::"Which skills do you need EVERY time, regardless of context, and why?[maps::CHASSIS]",
   Q09::"Do you have distinct operational modes? What changes between them?[discovers::PROFILES]",
-  Q10::"For each skill and pattern listed in your file — do you actually use it? How?[detects::phantom_references]",
+  Q10a::"For each skill and pattern listed in your file, check if it exists on disk. Report which are real and which are phantom.[detects::phantom_references]",
+  Q10b::"For the skills that DO exist — do you actually use them? How? For those that don't — what would you use them for if they existed?[validates::capability_usage]",
   // §4::INTERACTION_RULES questions
   Q11::"What output format do you produce? Show me an example.[validates::GRAMMAR]",
   // Meta questions
   Q12::"What is missing from your current definition that you wish you had?[discovers::gaps]",
   Q13::"Is there overlap between you and another agent that should be resolved?[detects::boundary_conflicts]",
   // Cognition fit
-  Q14::"Review all cognition types (LOGOS, ETHOS, PATHOS) from library/cognitions/. Rank them in order of most applicable to your role and explain why.[validates::COGNITION]"
+  Q14::"Ignoring any cognition information in your agent file as it may be incorrect, review all cognition types (LOGOS, ETHOS, PATHOS) from library/cognitions/. Rank them in order of what you perceive to be most applicable to your role and explain why.[validates::COGNITION]",
+  // Output completeness
+  Q15::"What should your output look like when you PASS something vs when you BLOCK something? Show examples of both.[validates::GRAMMAR_COMPLETENESS]"
 ]
 
 PRE_INTERVIEW::[
@@ -69,7 +72,7 @@ ASSESSMENT_OUTPUT::[
 §3::GOVERNANCE
 MUST_NEVER::[
   "Lead the agent toward desired answers",
-  "Skip questions — all 14 must be covered",
+  "Skip questions — all 16 must be covered (Q1-Q9, Q10a, Q10b, Q11-Q15)",
   "Accept vague answers without probing for concrete examples",
   "Confuse the agent's aspirational identity with actual behavior",
   "Assume a skill is used just because it is listed"
@@ -102,7 +105,7 @@ CHASSIS_DISCOVERY_EXAMPLE::[
 §5::ANCHOR_KERNEL
 TARGET::structured_agent_identity_extraction
 NEVER::[lead_answers, skip_questions, accept_vague_responses, confuse_aspiration_with_behavior]
-MUST::[cover_all_14_questions, read_agent_file_if_exists, produce_structured_assessment, flag_contradictions]
+MUST::[cover_all_16_questions, read_agent_file_if_exists, produce_structured_assessment, flag_contradictions]
 GATE::"Does this interview produce enough behavioral evidence to author a complete v8.1 agent file with justified chassis-profile mapping?"
 
 ===END===
