@@ -44,8 +44,8 @@ SECRETS_EXPOSURE_DETECTION::[
 ]
 
 DEPENDENCY_RISK::[
-  new_dependency_added::check_known_vulnerabilities,
-  pinned_versions::verify_not_known_vulnerable,
+  new_dependency_added::ADVISORY<check_known_vulnerabilities>,
+  pinned_versions::ADVISORY<verify_not_known_vulnerable>,
   "transitive_dependency_risk::ADVISORY<flag_for_audit>"
 ]
 

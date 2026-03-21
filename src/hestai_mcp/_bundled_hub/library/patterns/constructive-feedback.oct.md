@@ -1,7 +1,7 @@
 ===CONSTRUCTIVE_FEEDBACK===
 META:
   TYPE::PATTERN_DEFINITION
-  VERSION::"1.0.0"
+  VERSION::"1.1.0"
   PURPOSE::"Evidence-based review communication framework — structure findings for clarity and actionability"
 §1::CORE_PRINCIPLE
 ESSENTIAL::"Every review finding must be actionable — state what, where, why, and how to fix"
@@ -19,14 +19,14 @@ CONFIDENCE_GATING:
     EVIDENCE::spec_violation⊕test_failure⊕provable_bug
     FRAMING::"direct assertion — 'This will cause X because Y'"
     ACTION::BLOCKING⊕MUST_FIX
+  HIGH:
+    EVIDENCE::strong_pattern_match⊕established_best_practice⊕likely_risk
+    FRAMING::"confident — 'This pattern causes X. Fix with Y.'"
+    ACTION::BLOCKING⊕SHOULD_FIX
   MODERATE:
-    EVIDENCE::pattern_match⊕best_practice⊕potential_risk
+    EVIDENCE::pattern_match⊕potential_risk⊕style_concern
     FRAMING::"qualified — 'This pattern typically causes X. Consider Y.'"
     ACTION::ADVISORY⊕SHOULD_CONSIDER
-  LOW:
-    EVIDENCE::style_preference⊕minor_optimization
-    FRAMING::"suggestion — 'Nit: consider X for readability'"
-    ACTION::NIT⊕OPTIONAL
 FIX_GUIDANCE::[
   provide_code_snippet_when_fix_is_clear,
   reference_documentation_when_pattern_based,

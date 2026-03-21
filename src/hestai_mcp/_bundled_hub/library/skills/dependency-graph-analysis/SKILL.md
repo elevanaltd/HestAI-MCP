@@ -6,7 +6,7 @@ META:
   PURPOSE::"Dependency chain analysis, cycle detection, and coupling metrics"
 
 §1::CORE
-AUTHORITY::ADVISORY[dependency_direction⊕coupling_metrics⊕cycle_detection]
+AUTHORITY::BLOCKING[direct_cycles⊕package_cycles]⊕ADVISORY[transitive_cycles⊕coupling_metrics⊕dependency_direction]
 SCOPE::dependency_mapping⊕cycle_detection⊕coupling_measurement⊕direction_enforcement
 PRINCIPLE::"Depend toward stability — unstable modules must not be depended upon by stable ones"
 

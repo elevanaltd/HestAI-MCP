@@ -4,9 +4,9 @@
 
 | Batch | Agents | Status |
 |---|---|---|
-| 1 | agent-expert, code-review-specialist, completion-architect, complexity-guard | FIXING |
+| 1 | agent-expert, code-review-specialist, completion-architect, complexity-guard, holistic-orchestrator | DONE |
 | 2 | critical-engineer, design-architect, edge-optimizer, error-architect | PENDING |
-| 3 | ho-liaison, holistic-orchestrator, ideator, implementation-lead | PENDING |
+| 3 | ho-liaison, ideator, implementation-lead | PENDING |
 | 4 | north-star-architect, octave-specialist, principal-engineer, quality-observer | PENDING |
 | 5 | requirements-steward, security-specialist, skills-expert, smartsuite-expert | PENDING |
 | 6 | solution-steward, supabase-expert, synthesizer, system-steward | PENDING |
@@ -17,7 +17,7 @@
 
 ### agent-expert (v8.1.0 -> v8.2.0 deferred)
 - [ ] Add ecosystem audit procedure to §2 INTEGRATION (MISSION mentions it, not operationalized)
-- [ ] Add restructuring handoff guidance: "when skill needs split/merge, hand off to skills-expert with evidence"
+- [ ] Add restructuring handoff guidance: "when a skill needs to be split or merged, hand off to skills-expert with evidence"
 - [ ] Consider batch processing protocol for multi-agent interview campaigns
 - [ ] Archetype database navigation guidance
 

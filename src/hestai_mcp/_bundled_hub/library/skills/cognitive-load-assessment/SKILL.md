@@ -28,7 +28,7 @@ ASSESSMENT_SEQUENCE::[
 SCORING::[
   LOW::total_lt_8[acceptable_cognitive_tax],
   MODERATE::total_8_to_15[review_for_simplification],
-  HIGH::total_gt_15[refactoring_candidate],
+  HIGH::total_16_to_25[refactoring_candidate],
   CRITICAL::total_gt_25[immediate_intervention]
 ]
 
