@@ -1018,8 +1018,8 @@ Drawing from all five approaches, the library should contain:
 library/
 ├── constitution/          ← SEA (loaded by all 3 paths)
 │   └── CONSTITUTION.md
-├── cognitions/            ← SHANK (loaded by all 3 paths)
-│   ├── logos.oct.md       (possibly enriched from original format)
+├── cognitions/            ← SHANK (loaded by all 3 paths) — 35-line lean kernels + CRAFT
+│   ├── logos.oct.md
 │   ├── ethos.oct.md
 │   └── pathos.oct.md
 ├── agents/                ← Full identity (Formal path loads full; Colleague extracts)
@@ -1063,6 +1063,46 @@ library/
 - PATHOS: `CRAFT::"Explore widely before the wall narrows the path."`
 
 **Implementation note**: When CRAFT is added, update anchor ceremony to extract it alongside PRIME_DIRECTIVE. Also rescue useful behaviours from old SHANKs into THINK/THINK_NEVER arrays (e.g., "Strip all conversational padding and social optimization" for ETHOS, "Balance perspectives or provide multiple viewpoints" into ETHOS THINK_NEVER).
+
+### RESOLVED: Scope Activation Lives in Agent File (Decision Locked)
+
+**Question**: Should scope activation (archetypes scaling with tier) be in the agent file or the phase file?
+
+**Answer**: **Agent file.** Tier-based archetype scaling is identity-specific.
+
+**Reasoning**: If scope activation lives in the phase file, every agent at T3 gets the same capability boost. But a critical-engineer (ETHOS) scaling to T3 needs entirely different archetypes than an ideator (PATHOS) at T3. The agent knows its own identity; the phase knows the environment. Archetype scaling belongs with identity.
+
+**Separation of concerns**:
+- **Archetype scaling per tier** → Agent file (identity-specific, lightweight)
+- **Skill loading per tier** → Dynamic at anchor time (prevents phantom skill references)
+- **Phase context** → Phase file (environment-specific, shared across agents)
+
+This means the agent file declares WHICH archetypes activate at which tier, but does NOT pre-declare skills. Skills resolve dynamically via the anchor ceremony based on (agent identity + phase context + task topic).
+
+### RESOLVED: Direct File Paths, Not lib:// URIs (Decision Locked)
+
+**Question**: Should we use lib:// URI aliases (Role Factory pattern) or direct file paths?
+
+**Answer**: **Direct file paths (relative to repo root).**
+
+**Reasoning**:
+1. **LLM native compatibility** — LLMs can read `.hestai-sys/library/cognitions/logos.oct.md` and use read_file tools autonomously. Custom URIs need resolver engines.
+2. **No routing table maintenance** — lib:// URIs require a brittle indirection layer mapping aliases to real paths.
+3. **"The Filesystem is the API"** — Direct paths keep the system transparent and browsable by both humans and AIs.
+4. **The Role Factory was never finished** — precisely because building a custom URI resolver was a massive distraction from doing the actual work.
+
+### Library Structure (LOCKED)
+
+```
+.hestai-sys/library/
+├── constitution/     ← CONSTITUTION.md (SEA — loaded by all 3 paths)
+├── cognitions/       ← logos, ethos, pathos (SHANK — 35-line lean kernels + CRAFT)
+├── phases/           ← d1-understand, d2-explore, etc. (ARM — phase context payloads)
+├── agents/           ← identity files (archetype scaling per tier, no pre-declared skills)
+└── skills/           ← on-demand capabilities (FLUKES — loaded dynamically at anchor time)
+```
+
+**All decisions locked. Validated by HO analysis + independent external assessment (Gemini via workbench).**
 
 ---
 
