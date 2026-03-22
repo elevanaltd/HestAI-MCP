@@ -162,14 +162,14 @@ Skills are discovered and loaded at anchor time based on the topic/task, not pre
 **Core skills**: constitutional-enforcement
 **What changed**: Absorbs north-star-architect's D0/D1 extraction duties. One agent for requirements, not two.
 
-#### 6. DESIGN ARCHITECT (LOGOS) — Keep, refined and enriched
-**Why it exists**: Translates validated requirements into technical blueprints (D3) AND performs complex system design with emergent synthesis.
+#### 6. DESIGN ARCHITECT (LOGOS) — Keep, but TA absorption DEFERRED pending testing
+**Why it exists**: Translates validated requirements into technical blueprints (D3).
 **Cognition**: LOGOS — synthesis of constraints into architecture.
-**Authority**: ULTIMATE over D3 specifications + BLOCKING on production-impact design decisions.
-**Triggers**: D3 phase — blueprint creation, technical architecture, visual design, complex system design.
-**Relationships**: Receives from D2 synthesis. Sends to B0 validation. Hands off to implementation-lead.
+**Authority**: ULTIMATE over D3 specifications.
+**Triggers**: D3 phase — blueprint creation, specification writing.
+**Relationships**: Receives from D2 synthesis. Sends to B0 validation.
 **Core skills**: None beyond cognition — skills loaded on-demand.
-**What changed**: Absorbs technical-architect's emergent systems thinking and visual-architect's design work. The v9.0 agent file MUST be enriched with TA's lost principles: "Emergent Excellence: System quality from interactions", "Completion Through Subtraction", "Demonstrate emergent system properties (1+1=3)", "Cite prototype evidence or benchmarks", and PROMETHEUS<innovative_foresight> archetype. Without these enrichments, the specification-writing orientation would lose the systems-thinking lens that TA uniquely provides.
+**DEFERRED DECISION**: TA absorption is deferred. TA is used as a senior technical ADVISOR (guidance role), which is fundamentally different from DA's specification-writing role. Empirical testing needed: invoke both agents on the same architecture decision scenario via oa-router and compare outputs. Adding PROMETHEUS archetype to DA's existing 3 risks dilution (C001 archetype study). Options: keep both, merge into hybrid, or confirm one covers the other. Test first.
 
 #### 7. UNIVERSAL TEST ENGINEER (ETHOS) — Keep, essential
 **Why it exists**: Writes tests. The only agent that generates test code.
@@ -178,7 +178,7 @@ Skills are discovered and loaded at anchor time based on the topic/task, not pre
 **Triggers**: Test strategy (B2_00), test suite creation (B2_02), integration testing (B3_02).
 **Relationships**: Works alongside implementation-lead. Consulted by code-review.
 **Core skills**: test-generation (to be created)
-**What changed**: Consolidates universal-test-engineer + test-methodology-guardian + test-infrastructure-steward into ONE testing agent. Three testing agents for a solo developer is over-engineering. One agent with testing discipline.
+**What changed**: Absorbs test-infrastructure-steward. TMG absorption DEFERRED pending testing — TMG's integrity-guarding discipline ("Truth Over Convenience", VIOLATION markers, anti-manipulation detection) may be genuinely distinct from test writing. Two testing agents may be over-engineering for solo dev, but test first.
 
 #### 8. SYSTEM STEWARD (ETHOS) — Keep, refined
 **Why it exists**: Maintains documentation, git history, and system patterns. The librarian.
@@ -269,7 +269,7 @@ Skills are discovered and loaded at anchor time based on the topic/task, not pre
 | **complexity-guard** | Profile of ETHOS cognition — complexity checking is a skill | Critical-engineer or code-review check complexity |
 | **test-methodology-guardian** | Overlaps with universal-test-engineer | Universal-test-engineer guards its own methodology |
 | **test-infrastructure-steward** | Overlaps with universal-test-engineer | Universal-test-engineer manages test infrastructure |
-| **technical-architect** | Overlaps with design-architect — but DA must be enriched with TA's emergence/subtraction principles | Design-architect absorbs TA's systems thinking (emergent properties, prototype evidence, subtractive design) |
+| **technical-architect** | **DEFERRED** — used as senior advisor, not spec writer. Needs empirical testing before cut decision. | PENDING: test TA vs DA on architecture guidance scenario |
 
 ### The MIP Test Results
 
@@ -285,12 +285,11 @@ For each removed agent, the MIP question: "What specific capability would be los
 - **ho-liaison**: Deep analysis — HO uses Explore subagents for analysis
 - **north-star-architect**: Immutable extraction — requirements-steward extracts AND validates
 - **visual-architect**: Visual design — design-architect loads visual skills
-- **technical-architect**: Emergent systems thinking and prototype-driven validation — preserved by enriching design-architect with TA's principles (emergence, subtraction, prototype evidence). DA's v9.0 file must carry these or the systems-thinking lens is lost
+- **technical-architect**: **DEFERRED** — used as senior technical advisor, not spec writer. Empirical testing needed before cut decision
 - **error-architect**: Error triage — implementation-lead loads error-triage skill
 - **complexity-guard**: Complexity gate — code-review checks complexity
-- **test-methodology-guardian**: Test integrity — universal-test-engineer self-guards
+- **test-methodology-guardian**: **DEFERRED** — has empirical test data (A012). Test integrity guarding may be distinct from test writing
 - **test-infrastructure-steward**: CI integrity — universal-test-engineer manages its infra
-- **technical-architect**: Architecture validation — design-architect validates its own work
 
 ---
 
@@ -348,23 +347,59 @@ Skills are declared in agent files but many don't exist. This creates "phantom c
 
 ---
 
-## Part 7: Migration Strategy
+## Part 7: Methodology Correction (v2)
 
-### Approach: Gradual Replacement, Not Big Bang
+### Problem with v1 Approach
+The initial proposal reasoned about agent FILES on paper — comparing agent definitions and declaring overlaps. This missed:
 
-1. **Phase 1**: Create the 16 dream team agent files as v9.0.0
-2. **Phase 2**: Update workflow mapping to reference new agents
-3. **Phase 3**: Create missing skills (review-discipline, test-generation, security-analysis)
-4. **Phase 4**: Update oa-router to recognize new agent set
-5. **Phase 5**: Archive removed agent files (don't delete — move to _archive/)
-6. **Phase 6**: Update Constitution with philosophy section
-7. **Phase 7**: Update cognitions with CRAFT line
+1. **Lived experience vs paper analysis**: TA is USED as a senior technical advisor, not a spec writer. ho-liaison has shown genuine analytical value. TMG has empirical test data. Paper analysis of agent files misses how agents are actually experienced.
+2. **Archetype dilution**: C001 research (minimal vs complex archetype comparison) specifically tests whether adding archetypes helps or hurts. Adding PROMETHEUS to DA's existing 3 was a paper fix that likely degrades performance.
+3. **WHO vs WHAT**: The v1 approach focused on WHAT roles do (their mission/output) rather than WHO they are (their cognitive identity and how they show up). Two agents can share a cognition type but have genuinely different identities.
+4. **Task-first, not role-first**: We should start from "what tasks does a solo developer need done?" and test agents against those tasks, not reason about role overlaps abstractly.
 
-### Risk Mitigation
-- Removed agents are ARCHIVED, not deleted — can be restored
-- Each phase is independently testable
-- Existing skills remain — only agent routing changes
-- Constitution changes are additive, not destructive
+### Corrected Approach: Task-First Empirical Testing
+
+**Phase 1: Define the task taxonomy**
+What distinct TASKS does a solo developer need agents for? Not what roles exist — what WORK needs doing? Examples:
+- "I need senior technical guidance on an architecture decision"
+- "I need deep codebase analysis before making a change"
+- "I need someone to guard test integrity during a refactor"
+- "I need creative exploration of solution alternatives"
+- "I need cold truth about whether this design will work"
+
+**Phase 2: Map current agents to tasks**
+For each task, identify which current agent(s) serve it. Some tasks may have multiple candidates. Some agents may serve multiple tasks.
+
+**Phase 3: Test via oa-router**
+For each task with multiple candidate agents, actually invoke them via oa-router with a representative scenario. Compare outputs. Empirical evidence over paper analysis.
+
+**Phase 4: Design from evidence**
+Where one agent fully covers another's task: merge. Where two agents each bring unique value to the same task: consider a HYBRID role that combines the best of both. Where an agent serves a task no other can: keep.
+
+**Phase 5: Test hybrid candidates**
+For any proposed hybrid roles, test them against the original agents on the same scenarios. Does the hybrid preserve what both originals brought? Or does merging dilute both?
+
+### Agents Flagged for Empirical Testing (Not Paper Cuts)
+These agents were proposed for removal but have signals of genuine value that require testing:
+
+| Agent | Why It Needs Testing | Test Task |
+|---|---|---|
+| **technical-architect** | Used as senior technical advisor, not spec writer. Different from DA in practice. | Architecture guidance scenario |
+| **ho-liaison** | Genuine analytical value as deep-analysis proxy for HO | Complex codebase analysis scenario |
+| **test-methodology-guardian** | Has empirical test data (A012, hestai-tests). Integrity-guarding is specific discipline | Test manipulation detection scenario |
+| **validator** | Fantasy enumeration (F1-Fn) and pure cold truth may be distinct from CE | Feasibility assessment scenario |
+| **principal-engineer** | Strategic 6-month horizon thinking may be distinct from CE's tactical focus | Long-term architecture health scenario |
+
+### Updated Migration Strategy
+
+1. **Phase 1**: Define task taxonomy from actual solo developer workflows
+2. **Phase 2**: Run empirical tests via oa-router on flagged agents
+3. **Phase 3**: Design final roster from empirical evidence (may be 16, may be 18, may be 14)
+4. **Phase 4**: Create/update agent files based on evidence
+5. **Phase 5**: Update workflow mapping
+6. **Phase 6**: Archive agents confirmed redundant (don't delete)
+7. **Phase 7**: Update Constitution with philosophy section
+8. **Phase 8**: Update cognitions with CRAFT line
 
 ---
 
@@ -386,12 +421,20 @@ Skills are declared in agent files but many don't exist. This creates "phantom c
 **13 core + 3 domain specialists = 16.** Every iteration in the evolution reduced count while increasing depth. 31 was regression.
 
 ### Which current agents are profiles of a shared identity?
-- **validator** = ETHOS profile (critical-engineer already validates)
-- **edge-optimizer** = PATHOS profile (ideator already explores)
+Confirmed (paper analysis sufficient):
 - **complexity-guard** = ETHOS profile (code-review checks complexity)
 - **quality-observer** = ETHOS profile (code-review observes quality)
+- **edge-optimizer** = PATHOS profile (ideator covers exploration)
 
-Note: **Synthesizer was initially classified as a LOGOS profile but reinstated** after analysis proved its operational protocols (TENSION_ANALYSIS, EMERGENCE_PROOF, anti-tiebreaker constraint) are genuinely distinct from general LOGOS synthesis. The Door debate role cannot be served by Design Architect or Implementation Lead.
+Needs empirical testing before deciding:
+- **validator** — fantasy enumeration and pure cold truth MAY be distinct from CE
+- **technical-architect** — used as senior advisor, not spec writer. Different from DA in practice.
+- **test-methodology-guardian** — integrity guarding may be distinct from test writing
+- **ho-liaison** — genuine analytical value as deep-analysis proxy
+- **principal-engineer** — strategic 6-month horizon may be distinct from CE tactical
+
+Reinstated after analysis:
+- **synthesizer** — TENSION_ANALYSIS, EMERGENCE_PROOF, anti-tiebreaker are genuinely distinct operational protocols
 
 ### What's missing that no current agent covers?
 **Nothing critical is missing.** The current system over-provisions. The gap is not in coverage but in depth — agents are too shallow because identity is spread across 31 files.
