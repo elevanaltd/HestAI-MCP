@@ -16,7 +16,7 @@ The current 31-agent ecosystem grew organically over a year of iteration. Batch 
 - **Evolution context**: Daedalus (4) → Thymos (6) → Zeus Orchestra (3 core) → HestAI Framework (SHANK+ARM+FLUKE) → Current (31)
 - **Key research finding**: Protocol loading ≠ enforcement. Fewer, deeper roles outperform many shallow ones.
 
-**Proposal**: Reduce from 31 agents to **12 core agents + 3 domain specialists** = **15 total**.
+**Proposal**: Reduce from 31 agents to **13 core agents + 3 domain specialists** = **16 total**.
 
 ---
 
@@ -115,7 +115,7 @@ Skills are discovered and loaded at anchor time based on the topic/task, not pre
 4. **The enforcement test**: Can this role actually be enforced, or is it advisory theater?
 5. **Evolution evidence**: Daedalus proved 4 works, Zeus proved 3 core works, 31 is regression
 
-### The 12 Core Agents
+### The 13 Core Agents
 
 #### 1. HOLISTIC ORCHESTRATOR (LOGOS) — Keep, refined
 **Why it exists**: The conductor — thinks about work systemically, delegates to specialists. The developer's proxy.
@@ -225,29 +225,37 @@ Skills are discovered and loaded at anchor time based on the topic/task, not pre
 **Core skills**: skill-creator
 **What changed**: Already at v8.2. Keep as-is.
 
+#### 13. SYNTHESIZER (LOGOS) — Keep, essential (REINSTATED)
+**Why it exists**: Transforms either/or tensions into both/and innovations through emergent third-way solutions. The Door in debates.
+**Cognition**: LOGOS — but applied specifically to TENSION RESOLUTION, not general synthesis.
+**Authority**: ADVISORY — creates third ways, never decides which side wins.
+**Triggers**: Debate hall (Door role), architectural tensions, opposing requirements, trade-off resolution.
+**Relationships**: Receives from ideator (Wind) and critical-engineer (Wall). Produces resolved positions.
+**Core skills**: synthesis-foundation
+**Why reinstated**: The Synthesizer has unique operational protocols (TENSION_ANALYSIS, EMERGENCE_PROOF, anti-tiebreaker constraint, "1+1=3" emergence requirement) that NO other LOGOS agent possesses. Design Architect creates blueprints from requirements. Implementation Lead builds code. Neither transforms opposing positions into emergent third-way solutions. The LOGOS cognition provides the philosophical foundation, but the Synthesizer's operational behavior provides the mechanisms: structured tension decomposition, emergence verification, and the explicit prohibition against compromise or tiebreaking. This is a genuinely distinct cognitive identity, not a profile of LOGOS.
+
 ### The 3 Domain Specialists
 
-#### 13. SUPABASE EXPERT (LOGOS) — Conditional
+#### 14. SUPABASE EXPERT (LOGOS) — Conditional
 **Why it exists**: Database schema governance, RLS optimization, migration safety.
 **Authority**: BLOCKING on schema changes.
 **When to keep**: Only if the project actively uses Supabase.
 
-#### 14. SMARTSUITE EXPERT (LOGOS) — Conditional
+#### 15. SMARTSUITE EXPERT (LOGOS) — Conditional
 **Why it exists**: SmartSuite API field format validation, UUID corruption prevention.
 **Authority**: BLOCKING on SmartSuite operations.
 **When to keep**: Only if the project actively uses SmartSuite.
 
-#### 15. OCTAVE SPECIALIST (LOGOS) — Keep, essential
+#### 16. OCTAVE SPECIALIST (LOGOS) — Keep, essential
 **Why it exists**: Authority on OCTAVE format specification. No other agent can adjudicate OCTAVE questions.
 **Authority**: ULTIMATE on OCTAVE spec interpretation.
 **Triggers**: OCTAVE format questions, compression decisions, schema validation.
 
-### Agents REMOVED (16 agents cut)
+### Agents REMOVED (15 agents cut)
 
 | Removed Agent | Reason | Where Its Work Goes |
 |---|---|---|
 | **validator** | Profile of ETHOS cognition, not distinct identity | Critical-engineer handles validation |
-| **synthesizer** | Profile of LOGOS cognition, not distinct identity | Implementation-lead or design-architect synthesize |
 | **principal-engineer** | Overlaps with critical-engineer (strategic vs tactical) | Critical-engineer does both — solo dev doesn't need two levels |
 | **quality-observer** | Overlaps with code-review-specialist and critical-engineer | Code-review handles quality metrics |
 | **security-specialist** | Skill, not agent — security checks are a skill loaded on-demand | Security becomes a skill loaded by critical-engineer or code-review |
@@ -268,7 +276,6 @@ Skills are discovered and loaded at anchor time based on the topic/task, not pre
 For each removed agent, the MIP question: "What specific capability would be lost?"
 
 - **validator**: Nothing — critical-engineer and code-review already validate
-- **synthesizer**: Nothing — LOGOS cognition IS synthesis; any LOGOS agent synthesizes
 - **principal-engineer**: Strategic perspective — but a solo dev IS the principal engineer
 - **quality-observer**: Metrics observation — but code-review already produces metrics
 - **security-specialist**: Security depth — preserved as a SKILL, not an agent
@@ -334,9 +341,9 @@ Skills are declared in agent files but many don't exist. This creates "phantom c
 | B5 | requirements-steward + implementation-lead | Enhancement |
 
 ### Debate Hall Integration
-- **Wind (PATHOS)**: ideator
-- **Wall (ETHOS)**: critical-engineer
-- **Door (LOGOS)**: design-architect or implementation-lead (context-dependent)
+- **Wind (PATHOS)**: ideator (explores possibilities, generates paths)
+- **Wall (ETHOS)**: critical-engineer (validates constraints, delivers verdicts)
+- **Door (LOGOS)**: synthesizer (transforms tensions into emergent third-way solutions)
 
 ---
 
@@ -344,7 +351,7 @@ Skills are declared in agent files but many don't exist. This creates "phantom c
 
 ### Approach: Gradual Replacement, Not Big Bang
 
-1. **Phase 1**: Create the 15 dream team agent files as v9.0.0
+1. **Phase 1**: Create the 16 dream team agent files as v9.0.0
 2. **Phase 2**: Update workflow mapping to reference new agents
 3. **Phase 3**: Create missing skills (review-discipline, test-generation, security-analysis)
 4. **Phase 4**: Update oa-router to recognize new agent set
@@ -375,14 +382,15 @@ Skills are declared in agent files but many don't exist. This creates "phantom c
 **Hybrid.** Keep minimal CHASSIS (1-2 core skills), remove PROFILES. Let anchor ceremony resolve additional skills dynamically.
 
 ### What's the right number of agents for a solo developer?
-**12 core + 3 domain specialists = 15.** Every iteration in the evolution reduced count while increasing depth. 31 was regression.
+**13 core + 3 domain specialists = 16.** Every iteration in the evolution reduced count while increasing depth. 31 was regression.
 
 ### Which current agents are profiles of a shared identity?
 - **validator** = ETHOS profile (critical-engineer already validates)
-- **synthesizer** = LOGOS profile (any LOGOS agent synthesizes)
 - **edge-optimizer** = PATHOS profile (ideator already explores)
 - **complexity-guard** = ETHOS profile (code-review checks complexity)
 - **quality-observer** = ETHOS profile (code-review observes quality)
+
+Note: **Synthesizer was initially classified as a LOGOS profile but reinstated** after analysis proved its operational protocols (TENSION_ANALYSIS, EMERGENCE_PROOF, anti-tiebreaker constraint) are genuinely distinct from general LOGOS synthesis. The Door debate role cannot be served by Design Architect or Implementation Lead.
 
 ### What's missing that no current agent covers?
 **Nothing critical is missing.** The current system over-provisions. The gap is not in coverage but in depth — agents are too shallow because identity is spread across 31 files.
@@ -399,7 +407,7 @@ Skills are declared in agent files but many don't exist. This creates "phantom c
 | 2025 | HestAI Framework | Components | SHANK+ARM+FLUKE — solved role explosion |
 | 2025 | HestAI Orchestrator | 12 | Phase-mapped roles D1 to B4 |
 | 2026 | Current MCP | 31 | Organic growth — regression to complexity |
-| 2026 | **Dream Team** | **15** | **Evidence-based reduction** |
+| 2026 | **Dream Team** | **16** | **Evidence-based reduction** |
 
 ---
 
