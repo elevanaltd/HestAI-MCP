@@ -1111,6 +1111,45 @@ An agent doing build work loads `build-execution` (skill: what steps) + `tdd-dis
 
 **All decisions locked. Validated by HO analysis + independent external assessment (Gemini via workbench).**
 
+### RESOLVED: The Fulcrum Anchorage — Anchor Ceremony Redesign (Decision Locked)
+
+**Decision record**: `docs/decisions/2026-03-22-anchor-ceremony-redesign.oct.md`
+**Debate verdict**: SUBTRACTIVE_HYBRID — "Applied Cognitive Grammar"
+
+The 6-step cognitive loading sequence maps to the 4-stage anchor ceremony via Semantic Stacking:
+
+```
+COGNITIVE STACK              ANCHOR STAGE           MECHANISM
+1. cognitions/ (BIOS)     → REQUEST (loads)    +   Cognition delivered as pointer
+2. constitution/ (Laws)   → SEA (proves)           Agent proves Constitution THROUGH
+                                                    cognitive grammar. Cannot fake it.
+3. agents/ (Ego)          → SHANK (proves)         Agent cites MISSION + AUTHORITY
+4. phases/ (Environment)  → ARM (proves)           Agent maps phase + tension
+5. patterns/ (Principles) → FLUKES (proves)        Agent declares what it will use
+6. skills/ (Tools)        → FLUKES (bundled)       Patterns + Skills both at FLUKES
+```
+
+**The key innovation — Applied Cognitive Grammar**: At SEA stage, the agent must format its Constitution proof strictly through its Cognitive lens. LOGOS must output `[TENSION] → [INSIGHT] → [SYNTHESIS]`. ETHOS must output `[VERDICT] → [EVIDENCE]`. If the cognition file wasn't absorbed, the agent doesn't know the syntax. Server regex-validates the framing. Anti-theater through mechanism, not trust.
+
+**LLM Attention Physics**:
+- **Primacy** (Stages 0-1): Cognition + Constitution load first → heaviest conditioning weight
+- **Middle** (Stages 2-3): Identity + Context → attention sag safe (self-anchoring concepts)
+- **Recency** (Stage 4): Patterns + Skills load last → dominates immediate action selection
+
+**Three-Path Support**:
+
+| Path | Flow | Permit | Components |
+|---|---|---|---|
+| **Formal** | request → sea → shank → arm → flukes | FULL_PERMIT | All 6 loaded and proven |
+| **Colleague** | anchor_micro() | MICRO_PERMIT | Cognition + Identity injected (no proof) |
+| **Debate** | request → sea (early-exit) | DEBATE_PERMIT | Cognition + Constitution + Identity only |
+
+**Implementation note**: Server needs cognition MUST_USE grammar loaded server-side at REQUEST time to validate at SEA time. Role → agent file → COGNITION type → load regex patterns into session state. This is an odyssean-anchor-mcp change.
+
+**Colleague path**: Yes, inject cognition (agent still needs to THINK correctly). Skip proof (speed over ceremony). Workbench injects cognition file content alongside identity before API call.
+
+**Debate path**: Halts at SHANK. Debate agents need Cognition (how to think) + Identity (who they are). No ARM (no filesystem). No FLUKES (debate methodology embedded). `early_exit=shank` issues DEBATE_PERMIT.
+
 ---
 
 *Next step: map cognitive types per phase to actual agent roles, then determine final roster.*
