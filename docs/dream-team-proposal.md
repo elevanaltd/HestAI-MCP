@@ -378,8 +378,8 @@ Core agents keep immutable base cognition (e.g., Critical Engineer = ETHOS). But
 **5. Phase Fusion at T3+**
 Under extreme complexity, D3_ARCHITECT and B0_VALIDATE can fuse into a single concurrent node. Synthesis and Attack happen simultaneously rather than sequentially. This is the "architect while validating" mode.
 
-**6. WITNESS Cognitive Type (Post-Build)**
-B3/B4 introduces a new cognitive mode: WITNESS (ETHOS+PATHOS), an observer that compares reality to blueprint. Not fixing, not exploring — observing the delta between what was designed and what was built.
+**6. B3 Cognition: No New Type Needed**
+The debate proposed a "WITNESS" 4th cognition — but analysis of what B3 actually does (compare blueprint to reality, extract deltas, update constraints, identify patterns) reveals it is primarily LOGOS synthesis with ETHOS validation. The Wind/Wall/Door triad is structurally complete and philosophically sound. B3's core job is convergent compression of build evidence — pure "Reveal what connects." No 4th cognition file needed.
 
 ### Debate Comparison: Standard vs Premium Tier
 Both debates converged on the same 5 core insights (B3, D0, recursive B0, tier-as-depth, living Harmonise). Premium went deeper theoretically (resonance engines, gravitational attractors, artifact event horizons) but standard was more actionable. Key finding: **role diversity produces the same core insights across tiers**, supporting the M016 evidence that role diversity matters more than model diversity.
@@ -825,11 +825,13 @@ This turns B0 from a binary checkpoint into a diagnostic prism that routes the s
 
 **Cognitive Types Needed** (generic):
 
-| Cognitive Type | What It Does |
-|---|---|
-| **Retrospective Synthesizer** (convergent) | Compresses build evidence into updated constraints |
-| **Deviation Auditor** (validating) | Compares blueprint to reality, flags structural shifts |
-| **Pattern Extractor** (divergent) | Identifies reusable patterns from the completed cycle |
+| Cognitive Type | What It Does | Maps to Cognition |
+|---|---|---|
+| **Retrospective Synthesizer** (convergent) | Compresses build evidence into updated constraints | LOGOS — "Reveal what connects" |
+| **Deviation Auditor** (validating) | Compares blueprint to reality, flags structural shifts | ETHOS — "Reveal what breaks" |
+| **Pattern Extractor** (divergent) | Identifies reusable patterns from the completed cycle | PATHOS — "Reveal what could be" |
+
+**Cognition assignment**: B3 is primarily **LOGOS** work — convergent synthesis of build evidence into structural knowledge. The comparison-to-blueprint step is ETHOS validation, and pattern extraction has a PATHOS element. But the core job is compression and connection. **No new cognition type needed** — the Wind/Wall/Door triad is structurally complete.
 
 **Why it matters**: Without B3, the system is structurally amnesiac. LLM agents with no persistent memory need learning to be an explicit, automated phase — not an afterthought. B3 converts ephemeral task-learning into durable artifacts. The human doesn't attend this meeting — learning becomes compounding and invisible.
 
