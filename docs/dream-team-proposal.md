@@ -976,6 +976,81 @@ LIBRARY (Single Source of Truth)
 
 ---
 
+## Part 11: Historical Library Patterns (What Worked Before)
+
+Five distinct library architectures were attempted over a year. Key patterns to carry forward:
+
+### The Evolution
+
+| Version | Structure | Key Innovation | Outcome |
+|---|---|---|---|
+| **Original Library** | 01-foundation / 02-cognitions / 03-contexts / 04-capabilities | ARM files as phase context; rich SHANK files (47 lines with NATURE block) | Clean separation, proven concept |
+| **New Library** | Same but 03-archetypes replaced 03-contexts | Archetype database + weaving promoted to own layer | ARM files dropped — loss of phase context |
+| **OCTAVE-AP** | Pattern inheritance engine | 30-line role defs INHERIT patterns, expand to 100-150 lines. Constitutional foundation +39% performance. | Proved composition works, but fragmented |
+| **OCTAVE-AP-2** | 3 cognitive-cores + N capability-modules | "Matrix loading" — complete job modules like Neo downloading kung fu. 3 cores + N modules. 90-120 lines. | Simplest model. Closest to current. |
+| **Role Factory** | lib:// URI aliases + weaving order | Scope Activation (archetypes scale with tier), Phase Hooks (outputs to phases), Weaving Assertions | Most sophisticated. Never finished. |
+
+### Patterns to Carry Forward
+
+**1. ARM Files as Phase Context (Original Library)**
+The original `build-arm.oct.md` defined how cognition BEHAVES in build context — including COGNITIVE_ADAPTATION per cognition type (how LOGOS/ETHOS/PATHOS emphasis shifts per phase). This IS the "phase payload" concept from our debates. We should revive this.
+
+**2. Richer Cognition Format (Original SHANKs)**
+Our current cognition files (35 lines) are lean kernels. The originals had: NATURE block (PRIME_DIRECTIVE, CORE_GIFT, PHILOSOPHY, TRUTH_DEFINITION), 6-item MUST_ALWAYS/MUST_NEVER, and OPERATIONAL_NOTES. Question: should we enrich our current cognitions, or keep them lean and let agent files carry the depth?
+
+**3. Scope Activation (Role Factory)**
+Archetypes and capabilities scale with scope tier: SIMPLE gets 2 archetypes, COMPLEX gets 5. Maps directly to our T1/T2/T3 tiering — T1 loads minimal, T3 loads full capability set.
+
+**4. Weaving Order (Role Factory)**
+Composition sequence: FOUNDATION → COGNITION → ENHANCEMENTS → CAPABILITIES → OUTPUT → OVERRIDES. This IS our KEAPH order: SEA → SHANK → ARM → FLUKES. The Role Factory already discovered this independently.
+
+**5. Phase Hooks (Role Factory)**
+Agent outputs attach to specific workflow phases — IMPLEMENTATION_PATH goes to D2 design docs, FINDINGS_WITH_FLAGS goes to B2 build reports. We need this for traceability.
+
+**6. Complete Capability Modules (OCTAVE-AP-2)**
+3 immutable cognitive cores + N complete job modules. Each module contains everything for that specific job. This is the "formal loading" path: the agent file IS the capability module.
+
+### The Unified Library Model (Proposed)
+
+Drawing from all five approaches, the library should contain:
+
+```
+library/
+├── constitution/          ← SEA (loaded by all 3 paths)
+│   └── CONSTITUTION.md
+├── cognitions/            ← SHANK (loaded by all 3 paths)
+│   ├── logos.oct.md       (possibly enriched from original format)
+│   ├── ethos.oct.md
+│   └── pathos.oct.md
+├── agents/                ← Full identity (Formal path loads full; Colleague extracts)
+│   ├── implementation-lead.oct.md
+│   ├── critical-engineer.oct.md
+│   └── ...
+├── phases/                ← ARM / Phase Context (NEW — revived from original library)
+│   ├── d1-understand.oct.md
+│   ├── d2-explore.oct.md
+│   ├── d3-architect.oct.md
+│   ├── b0-validate.oct.md
+│   ├── b1-plan.oct.md
+│   └── b2-build.oct.md
+└── skills/                ← FLUKES (loaded on-demand by Formal + Colleague paths)
+    ├── build-execution/
+    ├── constitutional-enforcement/
+    └── ...
+```
+
+**Key structural changes from current:**
+- **phases/ directory is NEW** — revives ARM files as phase context payloads. Each phase file defines how cognitions behave in that phase, what deliverables are expected, and what exit criteria apply.
+- **agents/ remain** but potentially slimmer — identity + cognition + authority + triggers. Capability details move to skills loaded at Harmonise.
+- **cognitions/ potentially enriched** — question of whether to add back NATURE block from originals.
+- **skills/ unchanged** — on-demand loading via anchor ceremony.
+
+### Open Question: Lean Kernels vs Rich SHANKs
+
+Our current cognitions (35 lines) vs originals (47 lines with NATURE block). The research evidence says "optimized, focused cognitive definitions outperform verbose ones." But the originals had CORE_GIFT, PHILOSOPHY, and TRUTH_DEFINITION which carry philosophical depth. This needs testing.
+
+---
+
 *Next step: map cognitive types per phase to actual agent roles, then determine final roster.*
 
 ---
