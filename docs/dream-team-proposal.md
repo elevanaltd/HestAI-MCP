@@ -815,23 +815,27 @@ This turns B0 from a binary checkpoint into a diagnostic prism that routes the s
 
 **Purpose**: The Memory Engine. Automated, asynchronous reflection after BUILD. Solves the fundamental LLM problem: no persistent memory. Ensures the system LEARNS from what it built.
 
-**Activities** (all automated, no human attendance):
-1. **Delta compression** — compare D3 architecture with B2 outcome. What changed? What was learned?
-2. **Constraint update** — feed learnings back into D1 constraints and North Star documents
-3. **Context refresh** — update PROJECT-CONTEXT.oct.md with new state
-4. **Pattern extraction** — identify reusable patterns from this build cycle
+**Architecture**: B3 is NOT a single agent's job. It is a **multi-agent cognitive pipeline** — a headless, sequential chain where each step gets pure cognition from the triad. This preserves "one cognition per prompt" and enables optimal model routing per step.
 
-**Deliverable**: Updated context documents (automatic). North Star deltas (if requirements shifted during build).
+**The B3 Pipeline** (all automated, no human attendance):
 
-**Cognitive Types Needed** (generic):
+| Step | Job | Cognition | Agent (tbc) | Model Routing |
+|---|---|---|---|---|
+| **1. AUDIT** | Compare D3 blueprint to B2 reality. What's the delta? | ETHOS — "Reveal what breaks" | Critical Engineer or CRS | Fast/strict model (e.g. Codex, Gemini Flash) |
+| **2. EXTRACT** | Identify reusable patterns from this build cycle | PATHOS — "Reveal what could be" | Ideator (re-tasked as Pattern Seeker) | Creative model (e.g. Claude Opus) |
+| **3. SYNTHESIZE** | Compress findings into updated constraints and context docs | LOGOS — "Reveal what connects" | System Steward or HO | Powerful synthesis model (e.g. Gemini Pro) |
 
-| Cognitive Type | What It Does | Maps to Cognition |
-|---|---|---|
-| **Retrospective Synthesizer** (convergent) | Compresses build evidence into updated constraints | LOGOS — "Reveal what connects" |
-| **Deviation Auditor** (validating) | Compares blueprint to reality, flags structural shifts | ETHOS — "Reveal what breaks" |
-| **Pattern Extractor** (divergent) | Identifies reusable patterns from the completed cycle | PATHOS — "Reveal what could be" |
+**Step 1 Output**: Delta Report — "D3 specified 3 endpoints, B2 built 5. 2 endpoints are undocumented drift."
+**Step 2 Output**: Pattern Candidate List — "The retry-logic in the new API handler is novel; extract as universal pattern."
+**Step 3 Output**: Committed updates to PROJECT-CONTEXT.oct.md, North Star deltas (if requirements shifted), new pattern files.
 
-**Cognition assignment**: B3 is primarily **LOGOS** work — convergent synthesis of build evidence into structural knowledge. The comparison-to-blueprint step is ETHOS validation, and pattern extraction has a PATHOS element. But the core job is compression and connection. **No new cognition type needed** — the Wind/Wall/Door triad is structurally complete.
+**Why multi-agent pipeline is superior**:
+1. **Model optimization** — route each cognitive step to the model that excels at it
+2. **Cognitive purity** — no agent simultaneously critiques (ETHOS) AND brainstorms (PATHOS)
+3. **Infrastructure exists** — this is a headless version of the D2 debate pattern. DispatchService / workbench can run this 3-step chain via API calls, making it cheap and fast.
+4. **Evolution path** — this is structurally similar to run_debate. B3 could evolve into a specialized debate-hall mode for retrospective synthesis.
+
+**No new cognition needed** — the Wind/Wall/Door triad is structurally complete and philosophically sound. B3 uses all three in sequence, not a hybrid.
 
 **Why it matters**: Without B3, the system is structurally amnesiac. LLM agents with no persistent memory need learning to be an explicit, automated phase — not an afterthought. B3 converts ephemeral task-learning into durable artifacts. The human doesn't attend this meeting — learning becomes compounding and invisible.
 
@@ -839,6 +843,7 @@ This turns B0 from a binary checkpoint into a diagnostic prism that routes the s
 - **Skipping B3** — "we shipped, we're done" (guarantees re-learning the same lessons)
 - **Manual B3** — requiring human involvement defeats the purpose (overhead kills adoption)
 - **B3 bloat** — capturing everything instead of only constraint-relevant deltas (noise)
+- **Single-agent B3** — trying to do audit + extraction + synthesis in one prompt violates cognitive purity
 
 ---
 
