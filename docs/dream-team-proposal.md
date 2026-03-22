@@ -847,7 +847,136 @@ This turns B0 from a binary checkpoint into a diagnostic prism that routes the s
 
 ---
 
-*All 8 phases defined (D0, D1, D2, D3, B0, B1, B2, B3). Next step: map cognitive types to actual agent roles.*
+*All 8 phases defined (D0, D1, D2, D3, B0, B1, B2, B3).*
+
+---
+
+## Part 10: The Three Loading Paths
+
+### The Insight
+All agent loading draws from the SAME component library (cognitions, agent files, skills). The difference is DEPTH and CEREMONY COST. Three distinct paths exist, each with different KEAPH coverage:
+
+### Path 1: FORMAL Loading (Full KEAPH — "The Anchor")
+
+**What it is**: The full Odyssean Anchor ceremony. 5-stage progressive interrogation where the agent PROVES comprehension at each stage.
+
+**KEAPH mapping**:
+
+| KEAPH | Anchor Stage | What's Loaded | Cost |
+|---|---|---|---|
+| **K**nowledge | REQUEST | Pointers to Constitution, North Star, Cognition file | ~1k |
+| **E**stablish | SEA | Agent proves Constitution comprehension (cites MOTTO, immutables) | ~3k |
+| **A**bsorb | SHANK | Agent reads its own identity file + cognition overlay | ~3k |
+| **P**rocess | ARM | Agent reads PROJECT-CONTEXT, git state, maps tensions | ~3k |
+| **H**armonise | FLUKES | Skills loaded via compressed anchor kernel atoms | ~2k |
+
+**Total cost**: ~10-15k tokens per ceremony.
+
+**When to use**: Deep work requiring full identity + context + capabilities. Implementation sessions, architecture work, critical reviews. When the agent needs to UNDERSTAND the project, PROVE identity, and HOLD context across a long session.
+
+**Current mechanisms**: Odyssean Anchor (anchor_request → anchor_lock → anchor_commit), oa-router subagent delegation, bind command bootstrap.
+
+### Path 2: COLLEAGUE Loading (Lightweight Identity — "The Dispatch")
+
+**What it is**: A quicker binding that injects identity and context WITHOUT the full proof ceremony. The agent gets SEA + SHANK + relevant ARM + skill, but in a single injection rather than staged interrogation. More depth than a raw system prompt, less than formal anchor.
+
+**KEAPH mapping**:
+
+| KEAPH | What's Loaded | How |
+|---|---|---|
+| **K**nowledge | Skipped or implicit (agent already running) | — |
+| **E**stablish | SEA (Constitution) — injected, not proven | Single-shot injection |
+| **A**bsorb | SHANK (Identity + Cognition) — injected, not proven | From library |
+| **P**rocess | Relevant ARM context — scoped to task | Task-specific |
+| **H**armonise | Specific skill for the job | On-demand |
+
+**Total cost**: ~3-5k tokens.
+
+**When to use**: Quick advisory, delegation to colleagues, consult calls. When speed matters but quality must exceed raw prompting. B0 validation consults, B1 planning advice, error resolution delegation, colleague dispatch.
+
+**Current mechanisms**: PAL clink (with role), consult tool, convene tool, clock_in. **Planned**: dispatch_colleague (workbench), enhanced consult with identity injection.
+
+**Key gap**: Currently, clink sends a role name to an external CLI which loads its OWN copy of the system prompt. The colleague path should inject SHANK + ARM from the SAME library the formal path uses — this is where unification happens.
+
+### Path 3: DEBATE Loading (Cognitive Lens — "The Debate")
+
+**What it is**: Agents loaded purely for multi-perspective analysis. Identity is the COGNITION (Wind/Wall/Door), not the full agent file. ARM becomes the debate TOPIC. FLUKES aren't relevant beyond debate methodology.
+
+**KEAPH mapping**:
+
+| KEAPH | What's Loaded | How |
+|---|---|---|
+| **K**nowledge | Skipped | — |
+| **E**stablish | SEA (possibly) — constitutional grounding optional | Injected if needed |
+| **A**bsorb | SHANK (Cognition ONLY) — PATHOS/ETHOS/LOGOS kernel | Hardcoded prompts currently |
+| **P**rocess | ARM = debate topic + prior turns | Injected per turn |
+| **H**armonise | Debate methodology skill only | Embedded in prompt |
+
+**Total cost**: ~2-3k tokens per agent per turn.
+
+**When to use**: Governance hall debates, multi-perspective analysis, architectural decisions. When you need cognitive DIVERSITY (different thinking styles) applied to a shared problem. D2 exploration, B3 REINTEGRATE pipeline, architectural tension resolution.
+
+**Current mechanisms**: run_debate (auto-orchestration), Wind/Wall/Door hardcoded prompts, debate-hall consult/convene.
+
+**Key gap**: Debate prompts are currently hardcoded. They should pull from the SAME cognition library files (logos.oct.md, ethos.oct.md, pathos.oct.md) so any improvement to cognition definitions propagates to debates automatically.
+
+### The Unification Principle
+
+All three paths draw from the same component library:
+
+```
+LIBRARY (Single Source of Truth)
+├── cognitions/          ← SHANK source for all 3 paths
+│   ├── logos.oct.md
+│   ├── ethos.oct.md
+│   └── pathos.oct.md
+├── agents/              ← Full identity for Formal path, SHANK extraction for Colleague
+│   ├── implementation-lead.oct.md
+│   ├── critical-engineer.oct.md
+│   └── ...
+├── skills/              ← FLUKES source for Formal + Colleague paths
+│   ├── build-execution/
+│   ├── constitutional-enforcement/
+│   └── ...
+└── constitution/        ← SEA source for all 3 paths
+    └── CONSTITUTION.md
+```
+
+**What changes per path is not WHAT is loaded but HOW MUCH and HOW**:
+
+| Component | Formal | Colleague | Debate |
+|---|---|---|---|
+| **Constitution (SEA)** | Full, proven | Injected | Optional |
+| **Identity (SHANK)** | Full agent file, proven | Injected (agent file extract) | Cognition file only |
+| **Context (ARM)** | Full PROJECT-CONTEXT + git state | Task-scoped context | Debate topic + prior turns |
+| **Skills (FLUKES)** | Dynamic from anchor kernel | Task-specific skill | Debate methodology only |
+| **Proof required?** | Yes — 4-stage interrogation | No — injected on trust | No — stateless |
+| **Token cost** | 10-15k | 3-5k | 2-3k per turn |
+| **Session persistence** | Full session (permit) | Ephemeral (response) | Turn-by-turn |
+
+### Loading Path × Workflow Phase Matrix
+
+| Phase | Primary Loading Path | Secondary | Why |
+|---|---|---|---|
+| **D0 ORIENT** | None (human) | — | Human selects tier and entry. No agent loaded. |
+| **D1 UNDERSTAND** | T1: None. T2: Colleague. T3: Debate. | Formal (if starting fresh session) | T1 is self-directed. T2 consults for research. T3 runs debates for exploration. |
+| **D2 EXPLORE** | T1: Colleague. T2-T3: Debate. | Formal (if exploring within a bound session) | Exploration is debate territory — Wind/Wall/Door shine here. |
+| **D3 ARCHITECT** | T1: Colleague. T2-T3: Formal. | Debate (for architectural tensions) | Architecture needs full context (ARM). Formal loading provides it. |
+| **B0 VALIDATE** | T1: Colleague (quick consult). T2-T3: Formal or Debate. | — | Quick consults for T1. Formal CE review for T3. Debate for contested decisions. |
+| **B1 PLAN** | T1: None (self-plan). T2-T3: Formal. | Colleague (task decomposer consult) | Planning needs project context → formal loading. |
+| **B2 BUILD** | Formal (IL bound for session). | Colleague (TMG, CRS, CE reviews). | Builder is formally loaded. Reviewers are colleagues dispatched per PR. |
+| **B3 REINTEGRATE** | Colleague pipeline (3-step). | Debate (if complex reflection needed). | Headless pipeline — each step is a lightweight colleague dispatch. |
+
+### Key Gaps to Close
+
+1. **Colleague path needs library unification**: PAL clink currently uses its own system prompts. It should inject SHANK from the same library.
+2. **Debate path needs cognition file loading**: Debate prompts are hardcoded. They should pull from `library/cognitions/*.oct.md`.
+3. **dispatch_colleague needs implementation**: Workbench plans this as the colleague loading mechanism — it should implement the SEA+SHANK+ARM+Skill injection pattern.
+4. **Micro-KEAPH for Living Harmonise**: When an agent hits a blocker mid-phase and needs to rebind skills, this is a colleague-weight reload within a formal session. The mechanism doesn't exist yet.
+
+---
+
+*Next step: map cognitive types per phase to actual agent roles, then determine final roster.*
 
 ---
 
