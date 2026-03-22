@@ -246,35 +246,129 @@ For each library component, which path loads it, how it's proven, and what "skip
 
 ---
 
-## 4. Delivery
+## 4. System Architecture
 
-### 4.1 Implementation Approach
+### 4.1 Two-Layer Model
 
-The target platform for the rebuilt anchor and loading paths is the **hestai-workbench** (or equivalent orchestration layer). The workbench assembles injection payloads for each loading path from the shared library.
+The system is a **Dual-Faced Application**: an engine that executes and a glass that configures. OCTAVE stays external as a format dependency.
 
-What the orchestration layer must provide:
-1. **Payload assembly** — compose the right library components for each loading path
-2. **Phase resolution** — determine which phase file to load based on current work
-3. **Skill resolution** — determine which skills to load based on agent + phase + task topic
-4. **Grammar validation** — validate Applied Cognitive Grammar at the formal path's SEA stage
-5. **Permit management** — issue FULL, MICRO, or DEBATE permits based on loading path
+```
+LAYER 1: THE ENGINE
+├── Library Index      — watches library files, indexes components
+├── Payload Compiler   — JIT assembles injection payloads from library
+├── Dispatcher         — sends payloads to models (CLI, API, MCP)
+├── Anchor Validator   — validates cognitive grammar proofs (formal path)
+├── Pipeline Runner    — executes multi-step agent chains (B3, reviews)
+└── Session Manager    — permits, state, memory
 
-### 4.2 Implementation Sequence
+LAYER 2: THE GLASS
+├── Workflow Editor    — define phases, map agents to steps, set tiers
+├── Library Browser    — view/edit cognitions, agents, skills, patterns, phases
+├── Tier Configurator  — map agents to roles per tier, set model routing
+├── Pipeline Designer  — compose multi-agent sequences (like B3, review chains)
+├── Rule Editor        — "when X happens, dispatch Y with Z model"
+└── Session Dashboard  — observe running sessions, review history
 
-| Order | What | Depends On | Outcome |
-|---|---|---|---|
-| 1 | Write phase files | Library structure defined | ARM payloads exist |
-| 2 | Update cognition files (CRAFT + rescued SHANK behaviours) | Cognition decision locked | Enhanced lean kernels |
-| 3 | Update Constitution (§0.5 PHILOSOPHY) | Human approved | Philosopher-engineer DNA in law |
-| 4 | Define Dream Team roster | Phases defined, cognitive types mapped | Agent list finalized |
-| 5 | Write/update agent files (archetype tier scaling) | Roster decided | Identity files in library |
-| 6 | Audit skills and patterns | Roster finalized | Clean FLUKES inventory |
-| 7 | Build formal loading path (grammar validation) | Cognition files complete | Formal path operational |
-| 8 | Build colleague loading path (dispatch injection) | Library complete | Colleague path operational |
-| 9 | Build debate loading path (cognition file loading) | Cognition files complete | Debate path unified |
-| 10 | Write OPERATIONAL-WORKFLOW v2 | All above complete | Authoritative workflow reference |
+EXTERNAL DEPENDENCY:
+└── OCTAVE             — format tooling, validation, compression (standalone)
+```
 
-Steps 1-4 can run in parallel. Steps 5-6 depend on 4. Steps 7-9 can run in parallel after their dependencies. Step 10 is last.
+**Layer 1** is the machinery. It reads configuration and executes: compiles payloads from library, dispatches to providers, validates proofs, runs pipelines. It doesn't know what agents exist — it reads config.
+
+**Layer 2** is the admin panel. Where you configure everything: which agents exist, what tiers look like, what pipelines do, which models to use. When you save, it writes config that Layer 1 reads.
+
+**OCTAVE** stays external because it's a format specification used across projects.
+
+### 4.2 Configuration-Driven Orchestration
+
+Everything is the same engine pattern: **read config → compile payload from library → dispatch to model → collect response**. Different use cases are just different config.
+
+**Pipelines** (multi-agent sequences — B3, reviews, error resolution):
+```yaml
+pipelines:
+  b3-reintegrate:
+    trigger: "after_b2_merge"
+    automated: true
+    steps:
+      - role: "critical-engineer"
+        cognition: ethos
+        model: codex
+        task: "Compare D3 blueprint to B2 reality."
+      - role: "ideator"
+        cognition: pathos
+        model: opus
+        task: "Identify reusable patterns."
+      - role: "system-steward"
+        cognition: logos
+        model: gemini-pro
+        task: "Compress findings into updated constraints."
+```
+
+**Dispatch rules** (automatic colleague dispatch):
+```yaml
+dispatch-rules:
+  - trigger: "ho_needs_deep_analysis"
+    action: dispatch_colleague
+    role: "ho-liaison"
+    model: gemini-pro
+    loading: colleague
+  - trigger: "error_system_wide"
+    action: dispatch_colleague
+    role: "error-architect"
+    model: opus
+    loading: colleague
+```
+
+**Tier definitions** (review tiers, debate tiers, phase tiers):
+```yaml
+review-tiers:
+  t2-standard:
+    steps:
+      - role: "test-methodology-guardian"
+        cognition: ethos
+        model: goose
+      - role: "code-review-specialist"
+        cognition: ethos
+        model: gemini
+      - role: "critical-engineer"
+        cognition: ethos
+        model: claude
+```
+
+**All configurable from Layer 2.** Adding a new pipeline, dispatch rule, or tier means editing config in the admin panel — not writing code.
+
+### 4.3 How Current Systems Map
+
+| Current Thing | Destination | Rationale |
+|---|---|---|
+| Anchor ceremony (odyssean-anchor-mcp) | Layer 1: Anchor Validator | Binding is core engine. Proof validation is engine work. |
+| Debate orchestration (debate-hall-mcp) | Layer 1: Pipeline Runner + Dispatcher | Multi-agent orchestration is engine work. tiers.yaml becomes Layer 2 config. |
+| Session management (hestai-mcp clock_in/bind) | Layer 1: Session Manager | State is core engine. |
+| Workbench UI | Layer 2: The Glass | Admin panel and dashboard. |
+| OCTAVE tooling (octave-mcp) | External dependency | Format spec, reusable across projects. |
+| .oct.md library files | Indexed by Layer 1, edited via Layer 2 | Library is data, not code. |
+
+### 4.4 Modularity Note
+
+Layer 1 (engine) and Layer 2 (glass) should be architecturally separable even if deployed together. If the engine needs to be rebuilt, the glass wraps the new engine. If the glass needs to be rebuilt, the engine keeps running. This is internal modularity within a single application — not microservice fragmentation.
+
+### 4.5 Implementation Sequence
+
+| Order | What | Layer | Depends On | Outcome |
+|---|---|---|---|---|
+| 1 | Write phase files | Library (data) | Library structure defined | ARM payloads exist |
+| 2 | Update cognition files (CRAFT + THINK rescues) | Library (data) | Cognition decision locked | Enhanced lean kernels |
+| 3 | Update Constitution (§0.5 PHILOSOPHY) | Library (data) | Human approved | Philosopher-engineer DNA |
+| 4 | Define Dream Team roster | Library (data) | Phases + cognitive types mapped | Agent list finalized |
+| 5 | Write/update agent files | Library (data) | Roster decided | Identity files in library |
+| 6 | Audit skills and patterns | Library (data) | Roster finalized | Clean FLUKES inventory |
+| 7 | Build engine: payload compiler + dispatcher | Layer 1 | Library complete | Core engine operational |
+| 8 | Build engine: anchor validator (grammar validation) | Layer 1 | Cognition files | Formal path operational |
+| 9 | Build engine: pipeline runner | Layer 1 | Dispatcher working | Multi-agent pipelines work |
+| 10 | Build glass: workflow editor + tier configurator | Layer 2 | Engine operational | Config-driven orchestration |
+| 11 | Write OPERATIONAL-WORKFLOW v2 | Documentation | All above | Authoritative reference |
+
+Steps 1-6 (library content) can mostly run in parallel. Steps 7-9 (engine) depend on library. Step 10 (glass) depends on engine. Step 11 is last.
 
 ---
 
