@@ -162,14 +162,14 @@ Skills are discovered and loaded at anchor time based on the topic/task, not pre
 **Core skills**: constitutional-enforcement
 **What changed**: Absorbs north-star-architect's D0/D1 extraction duties. One agent for requirements, not two.
 
-#### 6. DESIGN ARCHITECT (LOGOS) — Keep, refined
-**Why it exists**: Translates validated requirements into technical blueprints (D3).
+#### 6. DESIGN ARCHITECT (LOGOS) — Keep, refined and enriched
+**Why it exists**: Translates validated requirements into technical blueprints (D3) AND performs complex system design with emergent synthesis.
 **Cognition**: LOGOS — synthesis of constraints into architecture.
-**Authority**: ULTIMATE over D3 specifications.
-**Triggers**: D3 phase — blueprint creation, technical architecture, visual design.
-**Relationships**: Receives from D2 synthesis. Sends to B0 validation.
+**Authority**: ULTIMATE over D3 specifications + BLOCKING on production-impact design decisions.
+**Triggers**: D3 phase — blueprint creation, technical architecture, visual design, complex system design.
+**Relationships**: Receives from D2 synthesis. Sends to B0 validation. Hands off to implementation-lead.
 **Core skills**: None beyond cognition — skills loaded on-demand.
-**What changed**: Absorbs technical-architect's validation duties and visual-architect's design work. One architect for all design, not three.
+**What changed**: Absorbs technical-architect's emergent systems thinking and visual-architect's design work. The v9.0 agent file MUST be enriched with TA's lost principles: "Emergent Excellence: System quality from interactions", "Completion Through Subtraction", "Demonstrate emergent system properties (1+1=3)", "Cite prototype evidence or benchmarks", and PROMETHEUS<innovative_foresight> archetype. Without these enrichments, the specification-writing orientation would lose the systems-thinking lens that TA uniquely provides.
 
 #### 7. UNIVERSAL TEST ENGINEER (ETHOS) — Keep, essential
 **Why it exists**: Writes tests. The only agent that generates test code.
@@ -269,7 +269,7 @@ Skills are discovered and loaded at anchor time based on the topic/task, not pre
 | **complexity-guard** | Profile of ETHOS cognition — complexity checking is a skill | Critical-engineer or code-review check complexity |
 | **test-methodology-guardian** | Overlaps with universal-test-engineer | Universal-test-engineer guards its own methodology |
 | **test-infrastructure-steward** | Overlaps with universal-test-engineer | Universal-test-engineer manages test infrastructure |
-| **technical-architect** | Overlaps with design-architect | Design-architect handles both design and technical validation |
+| **technical-architect** | Overlaps with design-architect — but DA must be enriched with TA's emergence/subtraction principles | Design-architect absorbs TA's systems thinking (emergent properties, prototype evidence, subtractive design) |
 
 ### The MIP Test Results
 
@@ -285,6 +285,7 @@ For each removed agent, the MIP question: "What specific capability would be los
 - **ho-liaison**: Deep analysis — HO uses Explore subagents for analysis
 - **north-star-architect**: Immutable extraction — requirements-steward extracts AND validates
 - **visual-architect**: Visual design — design-architect loads visual skills
+- **technical-architect**: Emergent systems thinking and prototype-driven validation — preserved by enriching design-architect with TA's principles (emergence, subtraction, prototype evidence). DA's v9.0 file must carry these or the systems-thinking lens is lost
 - **error-architect**: Error triage — implementation-lead loads error-triage skill
 - **complexity-guard**: Complexity gate — code-review checks complexity
 - **test-methodology-guardian**: Test integrity — universal-test-engineer self-guards
