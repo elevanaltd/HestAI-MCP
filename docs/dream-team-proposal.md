@@ -331,20 +331,58 @@ Skills are declared in agent files but many don't exist. This creates "phantom c
 **Design principles:**
 - **Any-entry**: Enter at whatever phase matches the work. A bug fix enters at B2. A new feature might start at D1. A refactor at B1.
 - **All phases are tiered**: Effort scales to scope. T1 = lightweight/self. T3+ = formal/multi-agent.
-- **No B3, B4, B5**: Integration = CI. Delivery = merge PR. Enhancement = re-enter at appropriate phase.
-- **B2 is always executed**: Every piece of work goes through BUILD with tiered review.
+- **D0 is ambient**: The human is always D0 — selecting tier, choosing entry point, providing context. Not a sequential step.
+- **B3 is automated**: Learning/reflection runs asynchronously after BUILD — no human overhead.
+- **B0 is recursive**: When it blocks, it diagnoses WHERE the failure originated and routes back.
+- **Tiering changes cognitive DEPTH, not just process weight**: T3 sidecars adversarial/exploratory cognition alongside primary.
 
 | Phase | Name | Always Done? | Tiered? | Description |
 |---|---|---|---|---|
-| **D1** | UNDERSTAND | No — skip when you know what you want | Yes — T1: just formalize what you know. T2: research existing options. T3: deep exploration, debates, unknowns. | Explore the problem space, research, formalize requirements |
+| **D0** | ORIENT | Yes — ambient | No — it IS the tier selector | The human as ROUTER_PRIME. Selects tier, chooses entry phase, provides grounding context. The conductor selects the score. Not a sequential step — the meta-cognitive anchor that envelops the whole workflow. |
+| **D1** | UNDERSTAND | No — skip when you know what you want | Yes — T1: formalize known. T2: research. T3: debate + assumption audit. | Explore the problem space, research, formalize requirements |
 | **D2** | EXPLORE | No — skip for obvious solutions | Yes — could be a debate, market research, comparison analysis, or just structured discussion | Explore SOLUTION space — not just debate-hall. Research, compare, ideate. |
-| **D3** | ARCHITECT | Yes — always done | Yes — T1: organic/conversational for small features. T2: documented design. T3: formal blueprint with specs. | Even small features benefit from thinking before coding. Done organically for small work, formally for complex. |
-| **B0** | VALIDATE | Yes — always done | Yes — T1: quick consult or HO check. T2: consult tool with specialist. T3: formal GO/NO-GO with multiple agents. | Deliberate pause. Stopping for validation saves rework. Use consult/dispatch_colleague. |
-| **B1** | PLAN | Yes — always done | Yes — T1: IL self-plans what they'll do. T2: task list with estimates. T3: atomic task decomposition with dependencies. | Even "plan what you'll do before doing it" helps. |
-| **B2** | BUILD | Yes — always | Yes — T0: exempt (docs-only). T1: self-review. T2: TMG+CRS+CE. T3: +CIV. T4: +PE (strategic). | Core phase. IL(RED) → TMG → IL(GREEN) → Tiered Review → Merge. Most refined phase. |
+| **D3** | ARCHITECT | Yes — always done | Yes — T1: organic/conversational. T2: documented design. T3: formal blueprint with specs. | Even small features benefit from thinking before coding. Done organically for small work, formally for complex. |
+| **B0** | VALIDATE | Yes — always done | Yes — T1: quick consult. T2: specialist consult. T3: formal GO/NO-GO committee. | **The Rubicon.** Deliberate pause between D-Space (design) and B-Space (build). When it blocks, it diagnoses WHERE the failure originated (D1? D2? D3?) and routes back — not just "NO" but "NO because D2 exploration was insufficient." |
+| **B1** | PLAN | Yes — always done | Yes — T1: self-plan. T2: task list. T3: atomic decomposition. | Even "plan what you'll do before doing it" helps. |
+| **B2** | BUILD | Yes — always | Yes — T0: exempt. T1: self-review. T2: TMG+CRS+CE. T3: +CIV. T4: +PE. | Core phase. IL(RED) → TMG → IL(GREEN) → Tiered Review → Merge. At T3+, secondary cognitions (PATHOS/ETHOS) sidecar alongside primary LOGOS — the execution environment becomes a creative crucible. |
+| **B3** | REINTEGRATE | Yes — automated | No — always runs | **The Memory Engine.** Automated, asynchronous reflection after BUILD. Compresses what was learned, updates context documents, feeds back to D1 constraints. Solves LLM persistent memory problem. The human doesn't attend this meeting. |
 | — | **SHIP** | Not a phase | — | Merge PR → CI → Deploy. Rework loop until all reviewers APPROVED. |
 
-**Key insight: the old D0→D1→D2→D3→B0→B1→B2→B3→B4→B5 (10 phases, 42+ subphases) reduces to 6 phases with tiered execution. No work is lost — it's just not forced into a linear enterprise pipeline.**
+**Structure: D-Space → Rubicon → B-Space → Memory**
+```
+D-SPACE (Possibility)          B-SPACE (Actuality)         M-SPACE (Memory)
+[D1 Understand]                [B1 Plan]                   [B3 Reintegrate]
+[D2 Explore]     → B0 RUBICON → [B2 Build] → SHIP →       ↺ feeds back to D1
+[D3 Architect]                                              constraints
+```
+
+D0 ORIENT is ambient — the human sets tier and entry point before anything begins. The phases within D-Space and B-Space are fluid (you can move between D1/D2/D3 freely without formal gates). B0 is the ONE hard gate between design and build.
+
+### Debate-Derived Insights (from standard + premium tier debates)
+
+**1. Living Harmonise / Dynamic Skill Forge**
+Skills aren't loaded once at anchor time and frozen. When a blocker is encountered mid-phase, the system triggers micro-KEAPH: unbind current skills → bind adversarial/exploratory skills → resolve blocker → restore original identity. The agent dynamically mutates to handle the anomaly without losing phase context. This eliminates the need for many specialist agents — instead, core agents dynamically recompose.
+
+**2. Tier-as-Cognitive-Depth**
+Tiering doesn't just add more review agents — it changes the cognitive environment:
+- **T1**: Zero-impedance. Implicit validation. Single cognition.
+- **T2**: Standard gates. Primary cognition per phase.
+- **T3+**: Creative escalation. B2_BUILD automatically sidecars SECONDARY PATHOS (Ideator) and SECONDARY ETHOS (Critical Engineer) alongside primary LOGOS. Code is actively challenged and evolved AS it is written.
+
+**3. Inter-Phase Resonance**
+The transition between phases is not an instant handoff — it's an active negotiation. D2(PATHOS) → D3(LOGOS) is a "resonance chamber" that checks: "Did divergent exploration generate enough velocity to survive convergent scrutiny?" If not, the transition rejects and reflects back to D2 without failing the workflow.
+
+**4. Cognitive Alloys**
+Core agents keep immutable base cognition (e.g., Critical Engineer = ETHOS). But when crossing a boundary (e.g., D2→D3), the KEAPH Harmonise stage alloys the agent's base with the phase's vector. ETHOS(Agent) + PATHOS(D2 Phase) = "Adversarial Explorer" (emergent). The liminal space GENERATES the required hybrid cognition.
+
+**5. Phase Fusion at T3+**
+Under extreme complexity, D3_ARCHITECT and B0_VALIDATE can fuse into a single concurrent node. Synthesis and Attack happen simultaneously rather than sequentially. This is the "architect while validating" mode.
+
+**6. WITNESS Cognitive Type (Post-Build)**
+B3/B4 introduces a new cognitive mode: WITNESS (ETHOS+PATHOS), an observer that compares reality to blueprint. Not fixing, not exploring — observing the delta between what was designed and what was built.
+
+### Debate Comparison: Standard vs Premium Tier
+Both debates converged on the same 5 core insights (B3, D0, recursive B0, tier-as-depth, living Harmonise). Premium went deeper theoretically (resonance engines, gravitational attractors, artifact event horizons) but standard was more actionable. Key finding: **role diversity produces the same core insights across tiers**, supporting the M016 evidence that role diversity matters more than model diversity.
 
 ### Debate Hall Integration
 - **Wind (PATHOS)**: ideator (explores possibilities, generates paths)
@@ -740,7 +778,69 @@ Analysis method: HO assessment + ho-liaison analysis (via PAL clink to Gemini), 
 
 ---
 
-*All 6 phases defined. Next step: map cognitive types to actual agent roles.*
+### D0: ORIENT (Debate-Derived Addition)
+
+**Purpose**: The human as ROUTER_PRIME. Not a sequential phase — the ambient meta-cognitive anchor. Selects the score; doesn't play an instrument.
+
+**Activities**:
+1. **Problem recognition** — identify what needs to be done
+2. **Tier selection** — how much cognitive depth does this deserve? (T1 typo fix vs T3 architecture change)
+3. **Entry point selection** — which phase to enter (D1 for new idea, B2 for known fix)
+4. **Context injection** — provide the grounding intent for agents
+
+**Deliverable**: None explicit — D0 is the act of DECIDING to begin. The tier and entry point are the output.
+
+**Cognitive Types Needed**: None — this is the HUMAN'S cognitive act. The orchestrating agent (HO) may assist with tier classification, but the decision is human.
+
+**Why it matters**: Without D0, agents lack grounding context. The human's intent, tier selection, and entry point choice are the "Knowledge" stage of macro-KEAPH. Every workflow begins here, whether consciously or not.
+
+---
+
+### B0: VALIDATE — Updated with Recursive Rubicon
+
+*Note: B0 is defined above but updated here with the debate-derived insight.*
+
+**Critical addition — Recursive Diagnosis**: When B0 blocks, it doesn't just say "NO." It diagnoses WHERE the failure originated:
+- "BLOCKED: D1 understanding insufficient — immutables are vague"
+- "BLOCKED: D2 exploration incomplete — untested assumption about API capability"
+- "BLOCKED: D3 blueprint has undefined failure mode for auth timeout"
+
+The output is: `Verdict::FAIL → Dissolve_Target::[D1|D2|D3] → Justification`
+
+This turns B0 from a binary checkpoint into a diagnostic prism that routes the system back to the exact D-Space coordinate where the problem originated.
+
+---
+
+### B3: REINTEGRATE (Debate-Derived Addition)
+
+**Purpose**: The Memory Engine. Automated, asynchronous reflection after BUILD. Solves the fundamental LLM problem: no persistent memory. Ensures the system LEARNS from what it built.
+
+**Activities** (all automated, no human attendance):
+1. **Delta compression** — compare D3 architecture with B2 outcome. What changed? What was learned?
+2. **Constraint update** — feed learnings back into D1 constraints and North Star documents
+3. **Context refresh** — update PROJECT-CONTEXT.oct.md with new state
+4. **Pattern extraction** — identify reusable patterns from this build cycle
+
+**Deliverable**: Updated context documents (automatic). North Star deltas (if requirements shifted during build).
+
+**Cognitive Types Needed** (generic):
+
+| Cognitive Type | What It Does |
+|---|---|
+| **Retrospective Synthesizer** (convergent) | Compresses build evidence into updated constraints |
+| **Deviation Auditor** (validating) | Compares blueprint to reality, flags structural shifts |
+| **Pattern Extractor** (divergent) | Identifies reusable patterns from the completed cycle |
+
+**Why it matters**: Without B3, the system is structurally amnesiac. LLM agents with no persistent memory need learning to be an explicit, automated phase — not an afterthought. B3 converts ephemeral task-learning into durable artifacts. The human doesn't attend this meeting — learning becomes compounding and invisible.
+
+**Anti-Patterns**:
+- **Skipping B3** — "we shipped, we're done" (guarantees re-learning the same lessons)
+- **Manual B3** — requiring human involvement defeats the purpose (overhead kills adoption)
+- **B3 bloat** — capturing everything instead of only constraint-relevant deltas (noise)
+
+---
+
+*All 8 phases defined (D0, D1, D2, D3, B0, B1, B2, B3). Next step: map cognitive types to actual agent roles.*
 
 ---
 
