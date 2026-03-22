@@ -454,7 +454,7 @@ A Wind/Wall/Door debate on "What is the optimal agent ecosystem for a solo devel
 **Not yet.** The philosopher-engineer DNA is scattered across archived documents. It needs to be crystallized into the Constitution and cognition files.
 
 ### Are the cognition files rich enough?
-**Yes, as kernels.** Research proved that optimized, focused cognitive definitions outperform verbose ones. Add one CRAFT line each, no more.
+**Yes, as execution kernels. DECISION LOCKED.** Prose dilutes constraints. The anchor ceremony only extracts FORCE, ESSENCE, ELEMENT, MODE, PRIME_DIRECTIVE, THINK, THINK_NEVER — anything else is dead tokens. Add one CRAFT line for philosopher-engineer DNA. Rescue useful old SHANK behaviours into THINK/THINK_NEVER arrays. Do NOT inflate the schema with NATURE blocks. See Part 11 for full reasoning.
 
 ### Should we have on-demand skill loading instead of chassis-profile?
 **Hybrid.** Keep minimal CHASSIS (1-2 core skills), remove PROFILES. Let anchor ceremony resolve additional skills dynamically.
@@ -1042,12 +1042,27 @@ library/
 **Key structural changes from current:**
 - **phases/ directory is NEW** — revives ARM files as phase context payloads. Each phase file defines how cognitions behave in that phase, what deliverables are expected, and what exit criteria apply.
 - **agents/ remain** but potentially slimmer — identity + cognition + authority + triggers. Capability details move to skills loaded at Harmonise.
-- **cognitions/ potentially enriched** — question of whether to add back NATURE block from originals.
+- **cognitions/ stay LEAN** — 35-line execution kernels. CRAFT line added. No schema inflation. (Decision locked below.)
 - **skills/ unchanged** — on-demand loading via anchor ceremony.
 
-### Open Question: Lean Kernels vs Rich SHANKs
+### RESOLVED: Lean Kernels Stay Lean (Decision Locked)
 
-Our current cognitions (35 lines) vs originals (47 lines with NATURE block). The research evidence says "optimized, focused cognitive definitions outperform verbose ones." But the originals had CORE_GIFT, PHILOSOPHY, and TRUTH_DEFINITION which carry philosophical depth. This needs testing.
+**Question**: Should we enrich current cognitions (35 lines) back to original richness (47 lines with NATURE block including CORE_GIFT, PHILOSOPHY, TRUTH_DEFINITION)?
+
+**Answer**: **No. Protect the 35-line execution kernels fiercely.**
+
+**Reasoning**:
+1. **Prose dilutes constraints.** `PHILOSOPHY::"Constraints create excellence"` is passive narrative flavor. `THINK::["Assume failure is default until proven otherwise"]` is an executable instruction for token generation. The old NATURE blocks were translated into enforceable operational constraints — the depth wasn't lost, it was ACTIVATED.
+2. **The anchor ceremony only extracts** `FORCE, ESSENCE, ELEMENT, MODE, PRIME_DIRECTIVE, THINK, THINK_NEVER`. Adding TRUTH_DEFINITION or CORE_GIFT back creates dead tokens — they take up space but never enter the agent's active cognitive proof.
+3. **Empirical evidence** (Part 2 of this proposal): "optimized, focused cognitive definitions produce measurable performance improvements." LOGOS optimized achieved 8/8 vs other variants.
+4. **Enrich the arrays, don't inflate the schema.** If a specific behaviour from the old SHANKs is missing (like ETHOS's brutal honesty), port it directly into THINK or THINK_NEVER as a strict command.
+
+**The CRAFT injection**: Add one line of Philosopher-Engineer DNA to each cognition's `§2::COGNITIVE_RULES`:
+- LOGOS: `CRAFT::"Understand fully, shape patterns, act minimally."`
+- ETHOS: `CRAFT::"Prove the structure holds before declaring victory."`
+- PATHOS: `CRAFT::"Explore widely before the wall narrows the path."`
+
+**Implementation note**: When CRAFT is added, update anchor ceremony to extract it alongside PRIME_DIRECTIVE. Also rescue useful behaviours from old SHANKs into THINK/THINK_NEVER arrays (e.g., "Strip all conversational padding and social optimization" for ETHOS, "Balance perspectives or provide multiple viewpoints" into ETHOS THINK_NEVER).
 
 ---
 
