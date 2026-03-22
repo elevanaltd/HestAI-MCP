@@ -326,20 +326,25 @@ Skills are declared in agent files but many don't exist. This creates "phantom c
 
 ## Part 6: Workflow Impact
 
-### Phase-Agent Mapping (Updated)
+### Phase Structure v2 (LOCKED — agreed with human)
 
-| Phase | Agent | Role |
-|---|---|---|
-| D0 | requirements-steward | Ideation + graduation |
-| D1 | requirements-steward | Understanding + North Star |
-| D2 | ideator + requirements-steward | Ideation + validation |
-| D3 | design-architect | Blueprint |
-| B0 | critical-engineer | GO/NO-GO gate |
-| B1 | task-decomposer | Build plan |
-| B2 | implementation-lead + universal-test-engineer + code-review-specialist | Build + test + review |
-| B3 | implementation-lead + critical-engineer | Integration + validation |
-| B4 | system-steward + critical-engineer | Delivery + signoff |
-| B5 | requirements-steward + implementation-lead | Enhancement |
+**Design principles:**
+- **Any-entry**: Enter at whatever phase matches the work. A bug fix enters at B2. A new feature might start at D1. A refactor at B1.
+- **All phases are tiered**: Effort scales to scope. T1 = lightweight/self. T3+ = formal/multi-agent.
+- **No B3, B4, B5**: Integration = CI. Delivery = merge PR. Enhancement = re-enter at appropriate phase.
+- **B2 is always executed**: Every piece of work goes through BUILD with tiered review.
+
+| Phase | Name | Always Done? | Tiered? | Description |
+|---|---|---|---|---|
+| **D1** | UNDERSTAND | No — skip when you know what you want | Yes — T1: just formalize what you know. T2: research existing options. T3: deep exploration, debates, unknowns. | Explore the problem space, research, formalize requirements |
+| **D2** | EXPLORE | No — skip for obvious solutions | Yes — could be a debate, market research, comparison analysis, or just structured discussion | Explore SOLUTION space — not just debate-hall. Research, compare, ideate. |
+| **D3** | ARCHITECT | Yes — always done | Yes — T1: organic/conversational for small features. T2: documented design. T3: formal blueprint with specs. | Even small features benefit from thinking before coding. Done organically for small work, formally for complex. |
+| **B0** | VALIDATE | Yes — always done | Yes — T1: quick consult or HO check. T2: consult tool with specialist. T3: formal GO/NO-GO with multiple agents. | Deliberate pause. Stopping for validation saves rework. Use consult/dispatch_colleague. |
+| **B1** | PLAN | Yes — always done | Yes — T1: IL self-plans what they'll do. T2: task list with estimates. T3: atomic task decomposition with dependencies. | Even "plan what you'll do before doing it" helps. |
+| **B2** | BUILD | Yes — always | Yes — T0: exempt (docs-only). T1: self-review. T2: TMG+CRS+CE. T3: +CIV. T4: +PE (strategic). | Core phase. IL(RED) → TMG → IL(GREEN) → Tiered Review → Merge. Most refined phase. |
+| — | **SHIP** | Not a phase | — | Merge PR → CI → Deploy. Rework loop until all reviewers APPROVED. |
+
+**Key insight: the old D0→D1→D2→D3→B0→B1→B2→B3→B4→B5 (10 phases, 42+ subphases) reduces to 6 phases with tiered execution. No work is lost — it's just not forced into a linear enterprise pipeline.**
 
 ### Debate Hall Integration
 - **Wind (PATHOS)**: ideator (explores possibilities, generates paths)
