@@ -512,7 +512,235 @@ Analysis method: HO assessment + ho-liaison analysis (via PAL clink to Gemini), 
 
 ---
 
-*Phases D2, D3, B0, B1, B2 to follow — same methodology.*
+### D2: EXPLORE
+
+**Purpose**: Explore the SOLUTION space. Not just debate-hall — could be market research, comparison analysis, empirical spikes, or structured discussion. Answers: "How should we solve this?"
+
+**Activities** (not all mandatory):
+1. **Landscape scan** — evaluate existing prior art, libraries, market options
+2. **Structured deliberation** — Wind/Wall/Door debate for complex decisions
+3. **Expert consultation** — targeted Q&A with specialist cognitions (via consult tool)
+4. **Empirical spikes** — throwaway prototypes to validate assumptions (NOT production code)
+5. **Trade-off mapping** — cost vs benefit vs complexity matrices
+
+**Deliverable** (scaled to tier):
+- Decision record (ADR) capturing WHY the selected path was chosen
+- Anti-goals log — explicitly rejected approaches with reasons (mandatory T2+)
+- Refined hypothesis — clear direction ready for D3
+
+**Cognitive Types Needed** (generic):
+
+| Cognitive Type | What It Does | When Needed |
+|---|---|---|
+| **Possibility Expander** (divergent) | Generates options, challenges status quo, explores alternatives | T2, T3 |
+| **Constraint Tester** (validating) | Tests feasibility, identifies friction, blocks fantasy | T2, T3 |
+| **Option Synthesizer** (convergent) | Integrates competing options into coherent path | T2, T3 |
+| **Empirical Validator** (pragmatic) | Builds throwaway spikes to validate abstract concepts | T3 |
+
+**Tiering**:
+
+| Tier | When | What Happens | Deliverable |
+|---|---|---|---|
+| **T1** | Solution is obvious, low risk | Quick mental check or informal chat. "Is there a reason NOT to do it this way?" | Decision note |
+| **T2** | Multiple valid approaches, moderate complexity | Structured debate or comparison matrix | Lightweight ADR + anti-goals log |
+| **T3** | High complexity, unknown solution space, high risk | Multi-perspective debate + empirical spikes + formal risk analysis | Comprehensive exploration record + ADRs |
+
+**Exit Criteria**:
+- Solution path selected — primary approach identified for D3
+- Alternatives explicitly rejected with rationale documented
+- Critical unknowns derisked (via spikes or research)
+- Proposed solution satisfies Elegance = Impact / Complexity
+
+**Anti-Patterns**:
+- **Analysis paralysis** — infinite exploration without convergence (violates "act minimally")
+- **Confirmation bias** — exploring only to justify pre-decided conclusion
+- **Premature building** — writing production code instead of throwaway spikes (creates sunk cost)
+- **Silent skipping** — bypassing D2 for complex problems due to impatience (leads to brittle architecture)
+
+---
+
+### D3: ARCHITECT
+
+**Purpose**: Think before coding. The "hinge" between problem space (D-phases) and solution space (B-phases). Proportional thinking — rigor scales to complexity.
+
+**Activities** (not all mandatory):
+1. **Structure mapping** — define component boundaries and responsibilities
+2. **Interface design** — establish data contracts between boundaries
+3. **Constraint resolution** — balance tradeoffs discovered in D2
+4. **Dependency planning** — sequence build order, identify blockers
+5. **Failure anticipation** — map edge cases and error handling strategies
+
+**Deliverable** (scaled to tier):
+- T1: Chat consensus — shared mental model before coding
+- T2: Design doc + component diagram + explicit assumptions
+- T3: Blueprint + API contracts + failure cascade matrix + security model
+
+**Cognitive Types Needed** (generic):
+
+| Cognitive Type | What It Does | When Needed |
+|---|---|---|
+| **Structural Synthesizer** (convergent) | Integrates parts into cohesive whole via relational logic | All tiers |
+| **Constraint Validator** (validating) | Ensures design respects boundaries and invariants | T2, T3 |
+| **Prophetic Projector** (anticipatory) | Anticipates future states, failure modes, and friction | T2, T3 |
+
+**Tiering**:
+
+| Tier | When | What Happens | Deliverable |
+|---|---|---|---|
+| **T1** | Small feature, low risk | Brief AI dialogue. "Here's what I'm thinking, any issues?" Organic, conversational. | Shared understanding before coding |
+| **T2** | Standard feature, multiple components | Draft core structures, document key decisions | Design doc committed to repo |
+| **T3** | System core, high risk, multiple integrations | Rigorous specification with all tensions resolved | Comprehensive blueprint |
+
+**Exit Criteria**:
+- **No magic boxes** — all components have defined mechanisms and owners
+- **Interfaces locked** — data shapes crossing boundaries are explicit and typed
+- **Tradeoffs decided** — ambiguity from D2 resolved into concrete choices
+- **Proportionality check** — design depth matches problem tier
+
+**Anti-Patterns**:
+- **Under-tiering** — coding before thinking for complex features (architectural debt)
+- **Over-tiering** — formal blueprints for trivial changes (velocity death)
+- **Implicit assumptions** — failing to state invariants across boundaries (integration failure)
+- **Happy-path obsession** — designing without failure modes (brittle production)
+
+---
+
+### B0: VALIDATE
+
+**Purpose**: Deliberate pause. "Is the design ready to build?" Stopping for validation, however small, prevents exponential rework cascades.
+
+**Activities**:
+1. **Design interrogation** — challenge assumptions against constraints
+2. **Feasibility check** — verify technical viability with current context
+3. **Alignment verification** — ensure solution meets original intent (D1 immutables)
+4. **Peer review simulation** — use AI as proxy for peer validation (consult/dispatch_colleague)
+
+**Deliverable**: GO/NO-GO decision (recorded)
+
+**Cognitive Types Needed** (generic):
+
+| Cognitive Type | What It Does | When Needed |
+|---|---|---|
+| **Critical Evaluator** (validating) | Challenges constraints, security, boundaries | All tiers |
+| **Feasibility Assessor** (analytical) | Checks structural consistency and viability | T2, T3 |
+
+**Tiering**:
+
+| Tier | When | What Happens | Deliverable |
+|---|---|---|---|
+| **T1** | Small feature, clear design | Quick consult: "Any obvious flaws?" Informal GO. | Verbal/chat GO |
+| **T2** | Standard feature | Submit design artifact for targeted critique against specific risks | Documented feedback + GO |
+| **T3** | High risk, architectural change | Multi-perspective committee validation (convene tool). Explicit approval from defined cognitive roles. | Formal GO/NO-GO record |
+
+**Exit Criteria**:
+- Explicit GO decision exists (recorded)
+- Identified risks either mitigated or consciously accepted
+
+**Anti-Patterns**:
+- **Momentum blindness** — skipping B0 because the idea "feels right" without external validation
+- **Validation theater** — asking for validation but ignoring warnings to maintain velocity
+- **Over-validation** — T3 rigor for trivial changes (violates MIP)
+
+---
+
+### B1: PLAN
+
+**Purpose**: Decompose validated design into actionable execution steps. Even "plan what you'll do before doing it" helps.
+
+**Activities**:
+1. **Task decomposition** — break design into atomic implementation steps
+2. **Dependency mapping** — identify execution sequence and blockers
+3. **Context scoping** — determine exactly which files/functions need modification
+4. **Verification design** — define how each step will be tested (Red/Green prep)
+
+**Deliverable**: Execution plan (step-by-step checklist, scaled to tier)
+
+**Cognitive Types Needed** (generic):
+
+| Cognitive Type | What It Does | When Needed |
+|---|---|---|
+| **Tactical Planner** (convergent) | Sequences, orders, decomposes into actionable steps | All tiers |
+| **Implementation Specialist** (practical) | Knows which files, functions, dependencies are involved | All tiers |
+
+**Tiering**:
+
+| Tier | When | What Happens | Deliverable |
+|---|---|---|---|
+| **T1** | Small change, single file | Executing agent outputs bulleted next-steps before writing code | Inline plan |
+| **T2** | Standard feature, multiple files | Dedicated planning step generates written checklist | Task checklist |
+| **T3** | Complex, multi-component, dependencies | Formal task breakdown with dependencies, context paths, validation criteria per step | Atomic task manifest |
+
+**Exit Criteria**:
+- A sequence of actions is defined
+- The immediate next action is unambiguous and unblocked
+
+**Anti-Patterns**:
+- **Planning while coding** — writing implementation before deciding the full sequence (tangled state)
+- **Monolithic tasks** — steps too large to validate independently
+- **Context bloat** — planning to load entire codebase rather than targeting specific files
+
+---
+
+### B2: BUILD
+
+**Purpose**: The core execution phase. Most refined, most used. Every piece of work goes through this.
+
+**Evidence base**: M016 study proves IL should handle RED phase (not separate test engineer). Multi-model experiment proves different ROLES find different issues; same role on different models finds overlapping issues.
+
+**Activities** (sequential):
+1. **RED** — translate requirements into failing executable assertions (tests)
+2. **TEST VALIDATION** — adversarial review of test coverage and alignment
+3. **GREEN** — implement code to satisfy test constraints
+4. **REFACTOR** — structural optimization maintaining green state
+5. **TIERED REVIEW** — code routed to review agents based on T0-T4 classification
+6. **REWORK LOOP** — address BLOCK verdicts with targeted fixes, re-review only by blocking agents
+7. **MERGE** — integration into mainline
+
+**Deliverables**:
+- Validated test suite (proof of requirements)
+- Production code (passing all tests)
+- Review assessments (structured verdicts from tiered agents)
+- Merge commit (traceable integration point)
+
+**Cognitive Types Needed** (generic):
+
+| Sub-step | Cognitive Type | What It Does |
+|---|---|---|
+| RED | **Translation Cognition** | Converts intent/requirements to executable logic |
+| TEST VALIDATION | **Adversarial Cognition** | Finds gaps in verification boundaries, prevents rubber-stamping |
+| GREEN | **Constructive Cognition** | Builds logic to satisfy constraints |
+| REFACTOR | **Structural Cognition** | Optimizes patterns and readability |
+| REVIEW | **Critical Cognition** | Evaluates against security, performance, architecture standards |
+| REWORK | **Adaptive Cognition** | Resolves critiques without breaking invariants |
+
+**Tiering**:
+
+| Tier | Trigger | Review Flow |
+|---|---|---|
+| **T0** | 0 code lines (docs-only, config-only) | Exempt |
+| **T1** | <10 lines, single file, no security paths | Self-review |
+| **T2** | 10-500 lines, or multiple files | RED → TMG → GREEN → CRS + CE → merge |
+| **T3** | >500 lines, or architecture changes, or security-touching | RED → TMG → GREEN → CRS + CE + CIV → merge |
+| **T4** | Manual invocation (strategic) | RED → TMG → GREEN → CRS + CE + CIV + PE → merge |
+
+**Tier refinement insight** (from ho-liaison): Line count alone is brittle. A 50-line security/auth change should trigger T3, while a 400-line boilerplate data model can stay T2. Consider adding a "Cognitive Density" modifier and semantic complexity overrides. Also: agent prompt markdown files (.md instructions) should be treated as code, not docs — they alter system behavior.
+
+**Exit Criteria**:
+- All tests passing + test validation agent approved
+- No coverage regression in critical paths
+- All required tier agents return APPROVED
+- All BLOCK verdicts resolved and cleared by original blocker
+
+**Anti-Patterns**:
+- **Validation theater** — writing tests AFTER implementation (defeats RED/GREEN discipline)
+- **Review fatigue** — sending rework to agents that already approved (waste)
+- **Model redundancy** — using different models for same role expecting novel insights (evidence shows role diversity matters more)
+- **Tier bypass** — splitting large PR into small T1s to evade T3 review
+- **Test rubber-stamping** — approving tests that lack meaningful assertions
+
+---
+
+*All 6 phases defined. Next step: map cognitive types to actual agent roles.*
 
 ---
 
