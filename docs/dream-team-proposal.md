@@ -39,7 +39,7 @@ The Constitution does NOT carry these proven philosophical atoms:
 4. **"Engineering is philosophy at 1ms resolution"** (PEF) — the identity
 5. **Solution proportionality** — match complexity to problem significance
 6. **"The conductor never plays an instrument"** — delegation discipline
-7. **RAPH pipeline heritage** — READ→ABSORB→PERCEIVE→HARMONIZE as cognitive processing model
+7. **KEAPH pipeline heritage** — KNOWLEDGE→ESTABLISH→ABSORB→PERCEIVE→HARMONIZE as cognitive processing model
 
 ### Recommendation
 Add a new section to the Constitution:
@@ -251,45 +251,46 @@ Skills are discovered and loaded at anchor time based on the topic/task, not pre
 **Authority**: ULTIMATE on OCTAVE spec interpretation.
 **Triggers**: OCTAVE format questions, compression decisions, schema validation.
 
-### Agents REMOVED (15 agents cut)
+### Agents with Confirmed Overlap (can be absorbed — test to verify)
 
-| Removed Agent | Reason | Where Its Work Goes |
+| Agent | Overlap With | User Context | Absorption Target |
+|---|---|---|---|
+| **quality-observer** | code-review-specialist + critical-engineer | Checks build quality; sometimes gives different results than CRS/CE (looks at overall excellence). Likely redundant. | CRS or CE, test first |
+| **edge-optimizer** | ideator | Finds different solutions at edges — not demonstrably better (see debate-hall evidence). Ideator with add-ons could cover it. | Ideator, with optimization skill on-demand |
+| **north-star-architect** | requirements-steward | D0/D1 extraction can be requirements-steward's job | Requirements-steward |
+
+### Agents Embedded in Constitutional Workflows (CANNOT be paper-cut)
+
+| Agent | Why It Can't Be Cut on Paper | Workflow Reference |
 |---|---|---|
-| **validator** | Profile of ETHOS cognition, not distinct identity | Critical-engineer handles validation |
-| **principal-engineer** | Overlaps with critical-engineer (strategic vs tactical) | Critical-engineer does both — solo dev doesn't need two levels |
-| **quality-observer** | Overlaps with code-review-specialist and critical-engineer | Code-review handles quality metrics |
-| **security-specialist** | Skill, not agent — security checks are a skill loaded on-demand | Security becomes a skill loaded by critical-engineer or code-review |
-| **edge-optimizer** | Profile of PATHOS cognition — advisory-only exploration | Ideator covers exploratory thinking |
-| **completion-architect** | B3 integration is implementation-lead's responsibility | Implementation-lead handles integration |
-| **solution-steward** | B4 delivery is system-steward's responsibility | System-steward handles documentation and handoff |
-| **ho-liaison** | Advisory analysis for HO — but HO should think for itself | HO uses Explore agents directly instead of a dedicated liaison |
-| **north-star-architect** | D0 extraction is requirements-steward's responsibility | Requirements-steward handles North Star creation |
-| **visual-architect** | Skill, not agent — visual design is loaded on-demand | Design-architect loads visual skills when needed |
-| **error-architect** | Skill, not agent — error triage is a methodology | Implementation-lead loads error-triage skill |
-| **complexity-guard** | Profile of ETHOS cognition — complexity checking is a skill | Critical-engineer or code-review check complexity |
-| **test-methodology-guardian** | Overlaps with universal-test-engineer | Universal-test-engineer guards its own methodology |
-| **test-infrastructure-steward** | Overlaps with universal-test-engineer | Universal-test-engineer manages test infrastructure |
-| **technical-architect** | **DEFERRED** — used as senior advisor, not spec writer. Needs empirical testing before cut decision. | PENDING: test TA vs DA on architecture guidance scenario |
+| **error-architect** | Embedded in ERROR_RESOLUTION.md as Phase 3 specialist for system-wide errors. The `/error` command constitutionally delegates to error-architect. Cutting it breaks the error resolution workflow. | ERROR_RESOLUTION.md Phase 3, error.md RACI |
+| **test-methodology-guardian** | MANDATORILY invoked in ERROR_RESOLUTION.md Phase 2 before ANY error fix. Prevents test manipulation. Different job than writing tests (UTE) or maintaining CI (TIS). | ERROR_RESOLUTION.md Phase 2 |
+| **test-infrastructure-steward** | Owns CI pipeline and testing infrastructure — a gap no other agent fills. Different approach than TMG (methodology) and UTE (test writing). | OPERATIONAL-WORKFLOW B2_00 |
 
-### The MIP Test Results
+### Agents That Serve Specific Workflow Phases (need workflow-first analysis)
 
-For each removed agent, the MIP question: "What specific capability would be lost?"
+| Agent | Workflow Role | User Experience |
+|---|---|---|
+| **complexity-guard** | Not in workflow — used ad-hoc as MIP enforcer | "If things feel over-engineered, I'd refer to CG." Could be a skill loaded by any ETHOS agent. |
+| **visual-architect** | D3_02 — mockups + user validation | Purpose-built for visual focus. Could be DA with visual skill, but workflow has it as distinct phase. |
+| **solution-steward** | B4_01 — package + docs + handoff | Has a workflow place. Could be system-steward with delivery skill. |
+| **completion-architect** | B3_01 — integration + coherence | Owns integration orchestration. Could be IL with integration skill. |
+| **security-specialist** | D3_04 + B3_03 + B4_04 | Three distinct workflow phases. Depth of security knowledge may warrant agent vs skill. |
+| **validator** | D2_02 — feasibility constraints | Has unique fantasy enumeration (F1-Fn). Different from CE's production focus. |
+| **principal-engineer** | B0_03 consulted + post-mortem strategic analysis | 6-month horizon, architectural decay detection. Different from CE tactical. |
+| **ho-liaison** | Not in workflow — deep-analysis proxy for HO | Genuine analytical value for complex codebase analysis. |
+| **technical-architect** | B0_03 + B1 consulted + B2 consulted + B5_02 | Used as senior technical ADVISOR for guidance — fundamentally different from DA spec writing. |
 
-- **validator**: Nothing — critical-engineer and code-review already validate
-- **principal-engineer**: Strategic perspective — but a solo dev IS the principal engineer
-- **quality-observer**: Metrics observation — but code-review already produces metrics
-- **security-specialist**: Security depth — preserved as a SKILL, not an agent
-- **edge-optimizer**: Boundary exploration — ideator already explores possibilities
-- **completion-architect**: Integration authority — implementation-lead integrates what it builds
-- **solution-steward**: Delivery docs — system-steward handles documentation
-- **ho-liaison**: Deep analysis — HO uses Explore subagents for analysis
-- **north-star-architect**: Immutable extraction — requirements-steward extracts AND validates
-- **visual-architect**: Visual design — design-architect loads visual skills
-- **technical-architect**: **DEFERRED** — used as senior technical advisor, not spec writer. Empirical testing needed before cut decision
-- **error-architect**: Error triage — implementation-lead loads error-triage skill
-- **complexity-guard**: Complexity gate — code-review checks complexity
-- **test-methodology-guardian**: **DEFERRED** — has empirical test data (A012). Test integrity guarding may be distinct from test writing
-- **test-infrastructure-steward**: CI integrity — universal-test-engineer manages its infra
+### The Fundamental Problem: Paper Analysis Was Wrong
+
+The v1 proposal cut agents based on comparing agent FILES. This missed:
+
+1. **Workflow embedding**: error-architect and TMG are constitutionally required by ERROR_RESOLUTION.md
+2. **Usage vs definition**: TA is used as a senior advisor, not a spec writer. CG is a MIP enforcer.
+3. **Phase ownership**: visual-architect, solution-steward, completion-architect each own specific workflow phases
+4. **Different jobs, same cognition**: TMG (guards methodology), TIS (owns CI), UTE (writes tests) — three genuinely different jobs sharing ETHOS cognition
+
+**Conclusion**: We cannot determine the right agent count from agent files alone. We must start from the OPERATIONAL WORKFLOW, define what tasks need doing, and then determine what roles serve them.
 
 ---
 
@@ -347,59 +348,57 @@ Skills are declared in agent files but many don't exist. This creates "phantom c
 
 ---
 
-## Part 7: Methodology Correction (v2)
+## Part 7: Methodology Correction (v3) — Workflow-First
 
-### Problem with v1 Approach
-The initial proposal reasoned about agent FILES on paper — comparing agent definitions and declaring overlaps. This missed:
+### Why v1 and v2 Were Both Insufficient
 
-1. **Lived experience vs paper analysis**: TA is USED as a senior technical advisor, not a spec writer. ho-liaison has shown genuine analytical value. TMG has empirical test data. Paper analysis of agent files misses how agents are actually experienced.
-2. **Archetype dilution**: C001 research (minimal vs complex archetype comparison) specifically tests whether adding archetypes helps or hurts. Adding PROMETHEUS to DA's existing 3 was a paper fix that likely degrades performance.
-3. **WHO vs WHAT**: The v1 approach focused on WHAT roles do (their mission/output) rather than WHO they are (their cognitive identity and how they show up). Two agents can share a cognition type but have genuinely different identities.
-4. **Task-first, not role-first**: We should start from "what tasks does a solo developer need done?" and test agents against those tasks, not reason about role overlaps abstractly.
+**v1** (paper analysis): Compared agent files, declared overlaps, proposed cuts. Missed lived experience, workflow embedding, and constitutional dependencies.
 
-### Corrected Approach: Task-First Empirical Testing
+**v2** (task-first): Better — start from tasks, not roles. But still didn't anchor to the OPERATIONAL WORKFLOW as the source of truth for what tasks actually exist.
 
-**Phase 1: Define the task taxonomy**
-What distinct TASKS does a solo developer need agents for? Not what roles exist — what WORK needs doing? Examples:
-- "I need senior technical guidance on an architecture decision"
-- "I need deep codebase analysis before making a change"
-- "I need someone to guard test integrity during a refactor"
-- "I need creative exploration of solution alternatives"
-- "I need cold truth about whether this design will work"
+**v3** (workflow-first): Start from the OPERATIONAL-WORKFLOW.oct.md, which defines every phase (D0→B5), every subphase, every RACI assignment, and every deliverable. This is the authoritative map of what work needs doing. Then ask: what TYPES of cognitive work do those tasks require? Then: can fewer roles serve those types?
 
-**Phase 2: Map current agents to tasks**
-For each task, identify which current agent(s) serve it. Some tasks may have multiple candidates. Some agents may serve multiple tasks.
+### The KEAPH Insight
 
-**Phase 3: Test via oa-router**
-For each task with multiple candidate agents, actually invoke them via oa-router with a representative scenario. Compare outputs. Empirical evidence over paper analysis.
+The 5-stage MCP binding ceremony (REQUEST→SEA→SHANK→ARM→FLUKES) implements KEAPH sequential loading science:
 
-**Phase 4: Design from evidence**
-Where one agent fully covers another's task: merge. Where two agents each bring unique value to the same task: consider a HYBRID role that combines the best of both. Where an agent serves a task no other can: keep.
+| KEAPH Phase | Anchor Stage | What It Does | Scientific Purpose |
+|---|---|---|---|
+| **K**nowledge | REQUEST | Receives pointers to Constitution, North Star, Cognition | Semantic priming before identity |
+| **E**stablish | SEA | Proves comprehension of Constitution | Loads absolute laws without role-confusion |
+| **A**bsorb | SHANK | Loads Agent Identity + Cognition overlay | Identity formation on stable foundation |
+| **P**rocess | ARM | Reads PROJECT-CONTEXT and git state | Applies identity to real-world problem |
+| **H**armonise | FLUKES | Receives skill atoms via COMMIT payload | On-demand capabilities AFTER identity is secure |
 
-**Phase 5: Test hybrid candidates**
-For any proposed hybrid roles, test them against the original agents on the same scenarios. Does the hybrid preserve what both originals brought? Or does merging dilute both?
+This means we have MORE FREEDOM than static agent files imply. The ceremony forces sequential cognitive loading — the agent digests constraints one by one. This raises the question: is there a CORE identity model (like the 3 cognitions) that composes dynamically, or do the specific archetype combinations in each agent file genuinely matter?
 
-### Agents Flagged for Empirical Testing (Not Paper Cuts)
-These agents were proposed for removal but have signals of genuine value that require testing:
+### The Correct Next Steps
 
-| Agent | Why It Needs Testing | Test Task |
-|---|---|---|
-| **technical-architect** | Used as senior technical advisor, not spec writer. Different from DA in practice. | Architecture guidance scenario |
-| **ho-liaison** | Genuine analytical value as deep-analysis proxy for HO | Complex codebase analysis scenario |
-| **test-methodology-guardian** | Has empirical test data (A012, hestai-tests). Integrity-guarding is specific discipline | Test manipulation detection scenario |
-| **validator** | Fantasy enumeration (F1-Fn) and pure cold truth may be distinct from CE | Feasibility assessment scenario |
-| **principal-engineer** | Strategic 6-month horizon thinking may be distinct from CE's tactical focus | Long-term architecture health scenario |
+**Step 1: Audit the OPERATIONAL WORKFLOW**
+Go through D0→B5 and extract every distinct task that requires a specialist agent. The workflow is the source of truth, but it's also out of date — some agents referenced don't exist, some phases reference roles that have evolved.
 
-### Updated Migration Strategy
+**Step 2: Classify tasks by cognitive TYPE**
+For each task, what TYPE of cognitive work is it?
+- Divergent exploration (PATHOS)
+- Constraint validation (ETHOS)
+- Structural synthesis (LOGOS)
+- Domain expertise (specialist knowledge)
 
-1. **Phase 1**: Define task taxonomy from actual solo developer workflows
-2. **Phase 2**: Run empirical tests via oa-router on flagged agents
-3. **Phase 3**: Design final roster from empirical evidence (may be 16, may be 18, may be 14)
-4. **Phase 4**: Create/update agent files based on evidence
-5. **Phase 5**: Update workflow mapping
-6. **Phase 6**: Archive agents confirmed redundant (don't delete)
-7. **Phase 7**: Update Constitution with philosophy section
-8. **Phase 8**: Update cognitions with CRAFT line
+**Step 3: Identify where multiple agents serve the same cognitive type on the same task**
+These are the candidates for merging or hybrid creation.
+
+**Step 4: Test empirically**
+For contested merges, invoke both agents via oa-router on the same representative scenario. Compare outputs. Where a hybrid is proposed, create it and test it against the originals.
+
+**Step 5: Consider whether to run a debate**
+A Wind/Wall/Door debate on "What is the optimal agent ecosystem for a solo developer?" might surface genius solutions we're overlooking through pure analysis. The debate-hall evidence shows that multi-model debates find emergent solutions that single-model exploration misses.
+
+### Open Questions for the Debate or Next Phase
+
+1. **Is there a CORE identity model?** Like we reduced to 3 cognitions, is there a set of 5-7 core agent IDENTITIES that compose with skills to cover all tasks?
+2. **Do archetype combinations genuinely matter?** Or does the cognition type carry 80% of the value with archetypes being marginal?
+3. **Should the OPERATIONAL WORKFLOW be redesigned first?** The current workflow references 30+ agents. If the workflow is simplified, the agent count may naturally fall.
+4. **Does KEAPH ceremony freedom change the design?** If skills load dynamically at FLUKES stage, maybe we need fewer fixed agent files and more dynamic composition.
 
 ---
 
@@ -421,20 +420,32 @@ These agents were proposed for removal but have signals of genuine value that re
 **13 core + 3 domain specialists = 16.** Every iteration in the evolution reduced count while increasing depth. 31 was regression.
 
 ### Which current agents are profiles of a shared identity?
-Confirmed (paper analysis sufficient):
-- **complexity-guard** = ETHOS profile (code-review checks complexity)
-- **quality-observer** = ETHOS profile (code-review observes quality)
-- **edge-optimizer** = PATHOS profile (ideator covers exploration)
 
-Needs empirical testing before deciding:
-- **validator** — fantasy enumeration and pure cold truth MAY be distinct from CE
-- **technical-architect** — used as senior advisor, not spec writer. Different from DA in practice.
-- **test-methodology-guardian** — integrity guarding may be distinct from test writing
-- **ho-liaison** — genuine analytical value as deep-analysis proxy
-- **principal-engineer** — strategic 6-month horizon may be distinct from CE tactical
+**Likely absorbable** (test to confirm):
+- **quality-observer** — probably redundant with CRS/CE, but user notes it sometimes gives different results
+- **edge-optimizer** — debate-hall evidence shows it finds different (not better) solutions. Ideator with on-demand skill likely covers it.
+- **north-star-architect** — requirements-steward can handle extraction + validation
 
-Reinstated after analysis:
-- **synthesizer** — TENSION_ANALYSIS, EMERGENCE_PROOF, anti-tiebreaker are genuinely distinct operational protocols
+**Embedded in constitutional workflows** (cannot paper-cut):
+- **error-architect** — constitutionally required by ERROR_RESOLUTION.md
+- **test-methodology-guardian** — mandatorily invoked before any error fix (Phase 2)
+- **test-infrastructure-steward** — owns CI pipeline, distinct from TMG and UTE
+
+**Has specific workflow phase ownership** (need workflow audit first):
+- **complexity-guard** — user uses as MIP enforcer (not just code review)
+- **visual-architect** — D3_02 visual phase. Could be DA + skill, but purpose-built.
+- **solution-steward** — B4_01 delivery. Could be SS + skill.
+- **completion-architect** — B3_01 integration. Could be IL + skill.
+- **security-specialist** — three distinct workflow phases (D3_04, B3_03, B4_04)
+- **validator** — D2_02 feasibility. Fantasy enumeration unique.
+- **principal-engineer** — strategic horizon, post-mortem analysis
+- **ho-liaison** — deep-analysis proxy, genuine value
+- **technical-architect** — senior advisor, different from DA spec writing
+
+**Reinstated after analysis**:
+- **synthesizer** — TENSION_ANALYSIS, EMERGENCE_PROOF, anti-tiebreaker are genuinely distinct
+
+**Bottom line**: The answer isn't a number yet. It's a methodology — start from the workflow, classify the tasks, test the candidates.
 
 ### What's missing that no current agent covers?
 **Nothing critical is missing.** The current system over-provisions. The gap is not in coverage but in depth — agents are too shallow because identity is spread across 31 files.
