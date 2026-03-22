@@ -1099,8 +1099,15 @@ This means the agent file declares WHICH archetypes activate at which tier, but 
 ├── cognitions/       ← logos, ethos, pathos (SHANK — 35-line lean kernels + CRAFT)
 ├── phases/           ← d1-understand, d2-explore, etc. (ARM — phase context payloads)
 ├── agents/           ← identity files (archetype scaling per tier, no pre-declared skills)
-└── skills/           ← on-demand capabilities (FLUKES — loaded dynamically at anchor time)
+├── skills/           ← procedural capabilities (FLUKES — HOW to do the job)
+└── patterns/         ← principle capabilities (FLUKES — HOW to constrain the job)
 ```
+
+**Skills vs Patterns** (both load at Harmonise/FLUKES stage):
+- **Skills** = procedures ("do these steps") — e.g., build-execution, agent-interview, error-triage
+- **Patterns** = principles ("apply this lens while working") — e.g., tdd-discipline, mip-build, verification-protocols
+
+An agent doing build work loads `build-execution` (skill: what steps) + `tdd-discipline` (pattern: what discipline) + `mip-build` (pattern: what principle). Skills tell it WHAT to do; patterns tell it HOW to think while doing it.
 
 **All decisions locked. Validated by HO analysis + independent external assessment (Gemini via workbench).**
 
