@@ -457,6 +457,65 @@ A Wind/Wall/Door debate on "What is the optimal agent ecosystem for a solo devel
 
 ---
 
+## Part 9: Phase Definitions (Workflow-First)
+
+### Methodology
+Each phase is defined by: ACTIVITIES → DELIVERABLES → COGNITIVE TYPES → TIERING → EXIT CRITERIA → ANTI-PATTERNS. Cognitive types are GENERIC (e.g., "Problem Explorer"), not agent-specific. Agent mapping comes after all phases are defined.
+
+Analysis method: HO assessment + ho-liaison analysis (via PAL clink to Gemini), synthesized.
+
+### D1: UNDERSTAND
+
+**Purpose**: Transition from "I want to build X" to "I understand why X matters and what constraints govern it." An externalized pre-frontal cortex. Not a bureaucratic hurdle.
+
+**Activities** (in order, not all mandatory):
+1. **Map the problem space** — without solution bias. What is the actual problem?
+2. **Research prior art** — what exists? What can we learn from? Market options, libraries, approaches.
+3. **Extract assumptions** — surface implicit beliefs for future validation
+4. **Formalize intent** — distill scattered needs into immutable requirements
+5. **Define anti-scope** — explicitly declare what will NOT be built
+
+**Deliverable**: North Star document (scaled to tier):
+- Immutable core (5-9 unbreakable requirements)
+- Constrained variables (flexible elements within boundaries)
+- Assumption register (unvalidated beliefs requiring proof)
+- Anti-scope (explicit non-requirements)
+
+**Cognitive Types Needed** (generic):
+
+| Cognitive Type | What It Does | When Needed |
+|---|---|---|
+| **Problem Explorer** (divergent) | Challenges initial framing. "Is this the REAL problem?" Maps edges. | T2, T3 |
+| **Researcher** (analytical) | Investigates prior art, existing solutions, market landscape | T2, T3 |
+| **Requirements Crystallizer** (convergent) | Distills scattered needs into immutable requirements | All tiers |
+| **Assumption Challenger** (validating) | Pressure-tests stated and implicit assumptions | T2, T3 |
+
+**Tiering**:
+
+| Tier | When | What Happens | Deliverable |
+|---|---|---|---|
+| **T1** | Problem is known, intent is clear | Formalize what you know into bullet points. Quick exercise. | Simple requirements list, anti-scope notes |
+| **T2** | Problem needs clarification, prior art exists | Structured research + formal North Star document | Full North Star with immutables, assumptions, anti-scope |
+| **T3** | High complexity, high risk, unknown space | Multi-perspective debate (Wind/Wall/Door) + assumption audit | North Star + debate record + validated assumptions |
+
+**Exit Criteria**:
+- Immutables defined and locked
+- Assumptions extracted and documented
+- Anti-scope explicitly stated
+- Problem space understood WITHOUT premature solution bias (no architecture in D1)
+
+**Anti-Patterns**:
+- **Solution jumping** — defining architecture in D1 (violates "understand fully first")
+- **Coordination theater** — forcing T3 process on a T1 problem (violates MIP)
+- **Vague immutables** — requirements that can't be empirically tested
+- **Assumption cascade** — implicit beliefs treated as facts (causes late-stage failure)
+
+---
+
+*Phases D2, D3, B0, B1, B2 to follow — same methodology.*
+
+---
+
 ## Appendix: Agent Count Through History
 
 | Era | System | Core Agents | Key Insight |
