@@ -103,10 +103,17 @@ Structurally similar to a debate (sequential multi-perspective analysis). Evolut
 library/
   constitution/     Laws of the system (SEA)
   cognitions/       How agents think (SHANK) — 3 files: logos, ethos, pathos
-  agents/           Who agents are (Identity) — archetype tiers, authority, triggers
+  agents/           Who agents are (Identity) — core archetype, task profile names
   phases/           Where agents operate (ARM) — phase context payloads
   skills/           What agents do: procedures (FLUKES)
   patterns/         What agents do: principles (FLUKES)
+
+config/
+  archetype-matrix  Maps {agent × task_profile → archetype(s) + qualifiers + skills + patterns}
+  pipelines         Multi-agent sequence definitions (B3, D2, reviews, error resolution)
+  dispatch-rules    Automatic colleague dispatch triggers
+  tier-definitions  Review tiers, debate tiers, phase tiers
+  role-model-map    Agent → primary model + fallback model
 ```
 
 ### 2.2 Component Definitions
@@ -122,12 +129,12 @@ library/
 - RULES: MODE, PRIME_DIRECTIVE, CRAFT (philosopher-engineer DNA), THINK[], THINK_NEVER[]
 - MUST_USE grammar patterns (used for Applied Cognitive Grammar validation)
 
-**agents/** — Identity files. Define WHO an agent is. Contains:
-- §1::IDENTITY: Role name, cognition type, mission, principles, authority model. Archetype placement here is currently the only empirically validated position (see §2.4 — EXPERIMENTAL).
-- §3::CAPABILITIES: May contain contextual archetype profiles pending C047 ablation study results.
+**agents/** — Identity files (~50 lines). Define WHO an agent is. Contains:
+- §1::IDENTITY: Role, cognition, mission, principles, authority, ONE core archetype (permanent lens)
+- §2::TASK_PROFILES: Named list of task modes (e.g., code_writing, test_building) + DEFAULT
+- No archetypes per profile. No skills. No patterns. Those live in the Archetype Matrix (§2.4).
 - Triggers (what work activates this agent)
 - Relationships (who it works with)
-- NO pre-declared skills (skills resolve dynamically)
 
 **phases/** — Phase context payloads (revived ARM files). Define WHERE an agent is operating. Contains:
 - COGNITIVE_ADAPTATION: how each cognition type (LOGOS/ETHOS/PATHOS) emphasizes differently in this phase
@@ -145,12 +152,12 @@ library/
 | Decision | Answer | Evidence |
 |---|---|---|
 | Cognition schema | 35-line lean kernels + CRAFT line. No NATURE blocks, no PHILOSOPHY blocks. | Prose dilutes constraints. Anchor only extracts FORCE/ESSENCE/ELEMENT/MODE/PRIME_DIRECTIVE/CRAFT/THINK/THINK_NEVER. Dead tokens waste context. |
-| Archetype architecture | **EXPERIMENTAL — two competing models, not yet locked.** See §2.4. Triads for stability, singles for steering is proven. Optimal placement requires C047 ablation study. | C045/C046: triads = 28.7 mean lowest variance; singles = peaks at 30 dips to 21. Cross-model validated. But ALL data used §1 IDENTITY placement — no data exists for alternative positions. |
+| Archetype architecture | **Matrix Model**: agent file has identity + core archetype + profile names. External matrix maps {agent × profile → archetypes + qualifiers + skills}. Injection timing EXPERIMENTAL (C047 needed). | C045/C046: archetypes are cost-functions. Qualifier words matter. Triads=stability, singles=steering. Same archetype + different qualifier = different behaviour. Matrix enables experimentation without rewriting agent files. |
 | File references | Direct paths relative to library root. No URI aliases. | Filesystem = API. LLMs read paths natively. lib:// resolvers are tech debt. |
 | Skills vs patterns | Separate directories. Skills = procedures, patterns = principles. | Different purposes warrant distinct organisation. |
 | Pre-declared skills | None in agent files. Skills resolve dynamically at bind time. | Prevents phantom skill references (50-80% found in agent interviews). |
 
-### 2.4 Archetype Architecture — EXPERIMENTAL (Not Yet Locked)
+### 2.4 Archetype Architecture — The Matrix Model
 
 **What's proven** (C045/C046, cross-model validated):
 - Archetypes are mathematical cost-functions that alter trade-off weighting
@@ -158,32 +165,144 @@ library/
 - Singles produce steering (peaks at 30, dips to 21)
 - Context-fit matters: HEPHAESTUS is right for constrained work, wrong for rapid prototyping
 - The effect operates through trade-off weighting, not issue detection
+- The qualifier word matters: DAEDALUS<systemic_ingenuity> is meaningfully different from DAEDALUS<architectural_elegance>
 
-**What's NOT proven**: Optimal placement in the file or loading sequence. ALL empirical data (C045/C046) used archetypes in §1::IDENTITY with the current anchor ceremony. Zero data exists for FLUKES-stage loading, compiler injection, or any alternative.
+**Attention physics insight** (from dual debates 2026-03-23): Storage location ≠ injection point. The compiler can extract archetypes from wherever they're stored and inject at optimal attention positions. This decouples file organisation from prompt compilation.
 
-**Two competing models** (from dual debates 2026-03-23):
+**Placement note**: ALL empirical data (C045/C046) used archetypes in §1::IDENTITY. Optimal injection timing requires C047 ablation study. The matrix model below is agnostic to placement — it defines WHAT gets loaded, not WHERE in the prompt it appears. The compiler handles attention physics.
 
-**Model A: Bifocal Loading** (standard debate synthesis)
-- §1::IDENTITY holds immutable `ARCHETYPE_TRIAD` (baseline — loads at SHANK, primacy)
-- §3::PROFILES holds contextual `ARCHETYPE_MODULATOR` (single catalyst — loads at FLUKES, recency)
-- Modulator ADDS TO triad, never replaces. Creates emergent behaviour: HEPHAESTUS base + PROMETHEUS modulator = "Accelerated Durability"
-- Metaphor: Bifocal glasses — prescription (permanent) + reading pane (contextual)
+#### The Three-Layer Separation
 
-**Model B: Holographic Compilation** (premium debate synthesis)
-- ALL archetypes STORED in §3::PROFILES (zero redundancy, full swappability)
-- Compiler EXTRACTS from §3 and INJECTS at TWO attention points: early (pre-Constitution as "Prescription") + late (alongside Phase as "Tint")
-- Storage location ≠ injection point. The file is declarative; the prompt is a compiled projection.
-- Proposes KVAEPH sequence: K(Cognition) → V(Valuation) → E(Constitution) → A(Identity) → P(Phase+Tint) → H(Skills)
+**Layer 1: Agent DNA** (in the agent file — stable, rarely changes)
+- Role, cognition, mission, principles, authority
+- ONE core archetype permanently fused with cognition (the permanent prescription lens)
+- A short list of TASK PROFILE NAMES — the high-level types of work this agent does
+- A DEFAULT profile (the most common task type, used when context can't determine)
 
-**Core insight both models share**: Storage location ≠ injection point. The compiler/router can extract archetypes from wherever they're stored and inject them at the optimal attention position. This decouples file organisation (human/tool readability) from prompt compilation (LLM attention physics).
+**Layer 2: Task Profiles** (named in the agent file — stable, changes when role evolves)
+- Each agent has 3-5 named task profiles representing distinct modes of work
+- These are just NAMES — no archetypes, skills, or details attached in the agent file
+- Examples for Implementation Lead: `code_writing`, `test_building`, `error_diagnosis`, `refactoring`
+- Examples for Code Review Specialist: `system_coherence`, `flaw_detection`, `security_audit`
 
-**Current position**: Keep archetypes in §1::IDENTITY (the only empirically validated position). The compiler may extract and reinject at different attention points in the future. **Requires C047 ablation study**: same scenario, same agent, same archetype, vary ONLY placement/timing. N=10 per condition minimum.
+**Layer 3: The Archetype Matrix** (external config — experimental, changes as we learn)
+- A lookup table mapping `{agent} × {task_profile} → {archetype(s) + qualifiers + skills}`
+- Lives outside agent files. Editable from the Glass. One change propagates to all agents using that mapping.
+- Each matrix row can specify ONE OR MULTIPLE archetypes with specific qualifiers per profile.
 
-**What IS locked regardless of placement model**:
-- Triads for default/stability profiles
-- Singles for specialized/steering profiles
-- Context-swappability must exist (C045 scenario-fit finding)
-- The compiler handles attention physics, not the agent file structure
+#### Agent File Structure (Lean — ~50 lines)
+
+```
+§1::IDENTITY
+  ROLE::IMPLEMENTATION_LEAD
+  COGNITION::LOGOS
+  CORE_ARCHETYPE::HEPHAESTUS<implementation_craft>    // permanent lens, always loaded
+  MISSION::"Translate requirements into robust, working code."
+  PRINCIPLES::[...]
+  AUTHORITY::[...]
+
+§2::TASK_PROFILES
+  PROFILES::[code_writing, test_building, error_diagnosis, refactoring]
+  DEFAULT::code_writing
+```
+
+No archetypes listed per profile. No skills listed. Just identity + profile names + default.
+
+#### The Archetype Matrix (External Config)
+
+```yaml
+archetype-matrix:
+  # Implementation Lead profiles
+  implementation-lead:
+    code_writing:
+      archetypes:
+        - HEPHAESTUS<systemic_ingenuity>
+        - ATLAS<structural_foundation>
+      skills: [build-execution]
+      patterns: [tdd-discipline, mip-build]
+
+    test_building:
+      archetypes:
+        - DAEDALUS<systematic_verification>
+      skills: [test-generation]
+      patterns: [tdd-discipline]
+
+    error_diagnosis:
+      archetypes:
+        - ASCLEPIUS<root_cause_analysis>
+        - ATHENA<pattern_recognition>
+      skills: [error-triage]
+      patterns: [verification-protocols]
+
+    refactoring:
+      archetypes:
+        - DAEDALUS<architectural_elegance>
+      skills: [build-execution]
+      patterns: [mip-build, progressive-simplification]
+
+  # Code Review Specialist profiles
+  code-review-specialist:
+    system_coherence:
+      archetypes:
+        - ATHENA<architectural_coherence>
+        - ARGUS<systemic_observation>
+      skills: [code-quality-standards]
+      patterns: [verification-protocols]
+
+    flaw_detection:
+      archetypes:
+        - ARGUS<defect_discovery>
+      skills: [code-quality-standards]
+      patterns: [verification-protocols]
+
+    security_audit:
+      archetypes:
+        - ATHENA<threat_awareness>
+        - ARGUS<vulnerability_detection>
+      skills: [security-analysis]
+      patterns: [verification-protocols]
+```
+
+#### How It Works at Runtime
+
+1. **Engine reads agent file** → gets identity + core archetype + task profiles list + default
+2. **Profile selector determines active profile** — from task context, explicit selection, or default
+3. **Engine reads matrix** → gets archetype(s) + qualifier(s) + skills + patterns for that profile
+4. **Payload compiler assembles injection** → core archetype (from identity) + profile archetypes (from matrix) + skills + patterns, placed at optimal attention positions
+
+The **profile selector** can be:
+- Explicit: human or orchestrating agent specifies the profile name
+- Rule-based: pattern matching on task description
+- Intelligent: a lightweight LLM call determines the best profile
+- Fallback: uses the DEFAULT profile from the agent file
+
+#### Why This Is Better
+
+| Problem | How Matrix Solves It |
+|---|---|
+| Changing an archetype requires rewriting agent file | Change one cell in the matrix config |
+| Testing DAEDALUS vs HEPHAESTUS for test_building | Swap the matrix row, run the test, compare |
+| Discovering a better qualifier word | Update one string in one config row |
+| Same archetype works differently across agents | Matrix maps archetype+qualifier PER agent PER profile |
+| Agent files are bloated with PROFILES blocks | Agent files are ~50 lines. Matrix lives externally. |
+| Skills declared in agent files create phantom references | Skills live in matrix, resolved at runtime. No phantom refs. |
+| Triads vs singles for different contexts | Matrix rows can have 1, 2, or 3 archetypes as appropriate |
+
+#### What's Locked
+
+- Archetypes are mathematical cost-functions (C045/C046 proven)
+- The qualifier word is part of the cost function (not just decoration)
+- Triads for stability, singles for steering, multiple archetypes per profile supported
+- Agent files contain identity + profile names only
+- Matrix is external, configurable, experimental
+- Core archetype (one, permanent) lives in §1::IDENTITY
+- Profile archetypes (contextual) live in the matrix
+- Compiler handles injection timing (storage ≠ injection point)
+- C047 ablation study still needed for optimal injection positioning
+
+#### What Requires C047
+
+The matrix model defines WHAT gets loaded. The open question is WHERE in the prompt the compiler places it. C047 should test: same agent, same archetype, same scenario, vary only injection timing. The matrix model works regardless of which injection point wins.
 
 ---
 
@@ -300,6 +419,7 @@ LAYER 1: THE ENGINE
 LAYER 2: THE GLASS
 ├── Workflow Editor      — define phases, map agents to steps, set tiers
 ├── Library Browser      — view/edit cognitions, agents, skills, patterns, phases
+├── Archetype Matrix     — map {agent × task_profile → archetypes + qualifiers + skills}
 ├── Tier Configurator    — map agents to roles per tier, set model routing + fallbacks
 ├── Pipeline Designer    — compose multi-agent sequences (B3, D2, reviews, error resolution)
 ├── Rule Editor          — "when X happens, dispatch Y with Z model"
@@ -514,6 +634,6 @@ Concrete phase definitions exist in the proposal (Part 9) for all 8 phases.
 | BLOCK signal enforcement | P7 #16 gap analysis | Linguistic enforcement must become mechanical enforcement |
 | Semantic conflict detection | P7 #17 gap analysis | Library-level awareness of component dependencies |
 | Epistemic gate | P15 #322 gap analysis | Structural prevention of claims without evidence |
-| Battle Gear archetypes | C045 + C046 empirical studies | Triads=stability(28.7 mean), singles=steering(peaks 30 dips 21). Archetypes are cost-functions, not identity. Move to PROFILES. Cross-model validated (Claude+Codex agree). |
+| Archetype Matrix model | C045/C046 + dual debates + user design | Archetypes are cost-functions. Qualifier words matter. Same archetype works differently across agents. Matrix externalises the mapping for cheap experimentation. Agent files stay lean (~50 lines). Core archetype in identity, profile archetypes in matrix. |
 | D2 as configurable pipeline | P7 #2 gap analysis | Same engine as B3/reviews — different config |
 | Living Orchestra = Glass | P7 #40 mapping | Session Dashboard + system map IS the living orchestra vision |
