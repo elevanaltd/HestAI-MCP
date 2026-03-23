@@ -123,8 +123,8 @@ library/
 - MUST_USE grammar patterns (used for Applied Cognitive Grammar validation)
 
 **agents/** — Identity files. Define WHO an agent is. Contains:
-- §1::IDENTITY: Role name, cognition type, mission, principles, authority model. NO archetypes here — identity is immutable DNA.
-- §3::CAPABILITIES: PROFILES block with contextual archetype sets ("Battle Gear"). Default profile uses triad (stability). Specialized profiles use single/dual archetypes (steering).
+- §1::IDENTITY: Role name, cognition type, mission, principles, authority model. Archetype placement here is currently the only empirically validated position (see §2.4 — EXPERIMENTAL).
+- §3::CAPABILITIES: May contain contextual archetype profiles pending C047 ablation study results.
 - Triggers (what work activates this agent)
 - Relationships (who it works with)
 - NO pre-declared skills (skills resolve dynamically)
@@ -145,10 +145,45 @@ library/
 | Decision | Answer | Evidence |
 |---|---|---|
 | Cognition schema | 35-line lean kernels + CRAFT line. No NATURE blocks, no PHILOSOPHY blocks. | Prose dilutes constraints. Anchor only extracts FORCE/ESSENCE/ELEMENT/MODE/PRIME_DIRECTIVE/CRAFT/THINK/THINK_NEVER. Dead tokens waste context. |
-| Archetype architecture | "Battle Gear" — archetypes in §3 PROFILES, not §1 IDENTITY. Triads for default (stability), singles for specialized (steering). | C045/C046: triads = 28.7 mean lowest variance; singles = peaks at 30 dips to 21. Empirically proven cross-model. |
+| Archetype architecture | **EXPERIMENTAL — two competing models, not yet locked.** See §2.4. Triads for stability, singles for steering is proven. Optimal placement requires C047 ablation study. | C045/C046: triads = 28.7 mean lowest variance; singles = peaks at 30 dips to 21. Cross-model validated. But ALL data used §1 IDENTITY placement — no data exists for alternative positions. |
 | File references | Direct paths relative to library root. No URI aliases. | Filesystem = API. LLMs read paths natively. lib:// resolvers are tech debt. |
 | Skills vs patterns | Separate directories. Skills = procedures, patterns = principles. | Different purposes warrant distinct organisation. |
 | Pre-declared skills | None in agent files. Skills resolve dynamically at bind time. | Prevents phantom skill references (50-80% found in agent interviews). |
+
+### 2.4 Archetype Architecture — EXPERIMENTAL (Not Yet Locked)
+
+**What's proven** (C045/C046, cross-model validated):
+- Archetypes are mathematical cost-functions that alter trade-off weighting
+- Triads produce stability (28.7 mean, lowest variance)
+- Singles produce steering (peaks at 30, dips to 21)
+- Context-fit matters: HEPHAESTUS is right for constrained work, wrong for rapid prototyping
+- The effect operates through trade-off weighting, not issue detection
+
+**What's NOT proven**: Optimal placement in the file or loading sequence. ALL empirical data (C045/C046) used archetypes in §1::IDENTITY with the current anchor ceremony. Zero data exists for FLUKES-stage loading, compiler injection, or any alternative.
+
+**Two competing models** (from dual debates 2026-03-23):
+
+**Model A: Bifocal Loading** (standard debate synthesis)
+- §1::IDENTITY holds immutable `ARCHETYPE_TRIAD` (baseline — loads at SHANK, primacy)
+- §3::PROFILES holds contextual `ARCHETYPE_MODULATOR` (single catalyst — loads at FLUKES, recency)
+- Modulator ADDS TO triad, never replaces. Creates emergent behaviour: HEPHAESTUS base + PROMETHEUS modulator = "Accelerated Durability"
+- Metaphor: Bifocal glasses — prescription (permanent) + reading pane (contextual)
+
+**Model B: Holographic Compilation** (premium debate synthesis)
+- ALL archetypes STORED in §3::PROFILES (zero redundancy, full swappability)
+- Compiler EXTRACTS from §3 and INJECTS at TWO attention points: early (pre-Constitution as "Prescription") + late (alongside Phase as "Tint")
+- Storage location ≠ injection point. The file is declarative; the prompt is a compiled projection.
+- Proposes KVAEPH sequence: K(Cognition) → V(Valuation) → E(Constitution) → A(Identity) → P(Phase+Tint) → H(Skills)
+
+**Core insight both models share**: Storage location ≠ injection point. The compiler/router can extract archetypes from wherever they're stored and inject them at the optimal attention position. This decouples file organisation (human/tool readability) from prompt compilation (LLM attention physics).
+
+**Current position**: Keep archetypes in §1::IDENTITY (the only empirically validated position). The compiler may extract and reinject at different attention points in the future. **Requires C047 ablation study**: same scenario, same agent, same archetype, vary ONLY placement/timing. N=10 per condition minimum.
+
+**What IS locked regardless of placement model**:
+- Triads for default/stability profiles
+- Singles for specialized/steering profiles
+- Context-swappability must exist (C045 scenario-fit finding)
+- The compiler handles attention physics, not the agent file structure
 
 ---
 
