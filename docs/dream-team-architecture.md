@@ -254,23 +254,26 @@ The system is a **Dual-Faced Application**: an engine that executes and a glass 
 
 ```
 LAYER 1: THE ENGINE
-├── Library Index      — watches library files, indexes components
-├── Payload Compiler   — JIT assembles injection payloads from library
-├── Dispatcher         — sends payloads to models (CLI, API, MCP)
-├── Anchor Validator   — validates cognitive grammar proofs (formal path)
-├── Pipeline Runner    — executes multi-step agent chains (B3, reviews)
-└── Session Manager    — permits, state, memory
+├── Library Index        — watches library files, indexes components, detects semantic conflicts
+├── Payload Compiler     — JIT assembles injection payloads from library
+├── Dispatcher           — sends payloads to models (CLI, API, MCP) with fallback routing
+├── Continuation Store   — tracks dispatch chains (dispatch_id, parent, result, state)
+├── Anchor Validator     — validates cognitive grammar proofs (formal path)
+├── Pipeline Runner      — executes multi-step agent chains with BLOCK signal enforcement
+├── Session Manager      — permits, state, memory
+└── Epistemic Gate       — structural claim verification (receipts before action)
 
 LAYER 2: THE GLASS
-├── Workflow Editor    — define phases, map agents to steps, set tiers
-├── Library Browser    — view/edit cognitions, agents, skills, patterns, phases
-├── Tier Configurator  — map agents to roles per tier, set model routing
-├── Pipeline Designer  — compose multi-agent sequences (like B3, review chains)
-├── Rule Editor        — "when X happens, dispatch Y with Z model"
-└── Session Dashboard  — observe running sessions, review history
+├── Workflow Editor      — define phases, map agents to steps, set tiers
+├── Library Browser      — view/edit cognitions, agents, skills, patterns, phases
+├── Tier Configurator    — map agents to roles per tier, set model routing + fallbacks
+├── Pipeline Designer    — compose multi-agent sequences (B3, D2, reviews, error resolution)
+├── Rule Editor          — "when X happens, dispatch Y with Z model"
+├── Dispatch Chain View  — trace who dispatched whom, with what result, full chain visibility
+└── Session Dashboard    — observe running sessions, phase tracking, system map (Living Orchestra)
 
 EXTERNAL DEPENDENCY:
-└── OCTAVE             — format tooling, validation, compression (standalone)
+└── OCTAVE               — format tooling, validation, compression (standalone)
 ```
 
 **Layer 1** is the machinery. It reads configuration and executes: compiles payloads from library, dispatches to providers, validates proofs, runs pipelines. It doesn't know what agents exist — it reads config.
@@ -348,11 +351,44 @@ review-tiers:
 | OCTAVE tooling (octave-mcp) | External dependency | Format spec, reusable across projects. |
 | .oct.md library files | Indexed by Layer 1, edited via Layer 2 | Library is data, not code. |
 
-### 4.4 Modularity Note
+### 4.4 Engine Capabilities (from P15/P7 Gap Analysis)
+
+**Continuation Store** (P15 #81)
+When the dispatcher sends a payload to a model, the response chain must be traceable. Each dispatch gets a `dispatch_id`. The store tracks: who dispatched, which agent was invoked, what loading path was used, what the result was, and whether it was part of a chain (parent dispatch_id). This enables the Glass to show full dispatch chain visibility and enables resumed/continued dispatches.
+
+**Provider Fallback** (P15 #45)
+Each role→model mapping in config gets a `fallback` field. When the primary model is unavailable (rate limit, timeout, outage), the dispatcher automatically routes to the fallback. Example: if Opus rate-limits during B3 EXTRACT step, fallback to Gemini Pro. Config-driven, not code-driven.
+
+```yaml
+role-model-map:
+  ideator:
+    primary: { provider: anthropic, model: claude-opus-4-6 }
+    fallback: { provider: google, model: gemini-2.5-pro }
+  critical-engineer:
+    primary: { provider: openai, model: codex-mini }
+    fallback: { provider: anthropic, model: claude-sonnet-4-6 }
+```
+
+**BLOCK Signal Enforcement** (P7 #16)
+When a pipeline step returns a BLOCK signal, the pipeline runner mechanically halts — not just text saying "BLOCKED" but actual process termination. The runner then routes to diagnosis (B0 Rubicon pattern for design failures, rework loop for review failures). This converts linguistic enforcement into functional enforcement.
+
+**Semantic Conflict Detection** (P7 #17)
+The Library Index doesn't just track files — it knows component dependencies. When changes to one component violate constraints of another, the index flags it. Example: if an agent file references a skill that was just deleted, or if two agents claim the same authority domain, the index detects the semantic conflict before it causes runtime failure.
+
+**Epistemic Gate** (P15 #322)
+Structural prevention of agents making confident claims without evidence. Three layers:
+1. Tool schema enforcement — dispatch payloads include an `epistemic_receipt` field
+2. Oracle verification — a `verify_artifact_state` capability checks claims against reality
+3. Pattern — `epistemic-action-gate` loaded as a cross-cutting principle for high-stakes operations
+
+**D2 EXPLORE as Pipeline** (P7 #2)
+D2 is not just "run a debate." At T2-T3, it can be a configurable multi-agent pipeline: problem statement → ideation (PATHOS) → critique (ETHOS) → synthesis (LOGOS). Same engine as B3 REINTEGRATE and review tiers — different config. The Pipeline Designer in the Glass lets you compose this.
+
+### 4.5 Modularity Note
 
 Layer 1 (engine) and Layer 2 (glass) should be architecturally separable even if deployed together. If the engine needs to be rebuilt, the glass wraps the new engine. If the glass needs to be rebuilt, the engine keeps running. This is internal modularity within a single application — not microservice fragmentation.
 
-### 4.5 Implementation Sequence
+### 4.6 Implementation Sequence
 
 | Order | What | Layer | Depends On | Outcome |
 |---|---|---|---|---|
@@ -438,3 +474,11 @@ Concrete phase definitions exist in the proposal (Part 9) for all 8 phases.
 | ARM files revived | Historical library analysis | Original library independently discovered phase payloads |
 | Constitution amendment | Human authority | Solo developer owns the constitution |
 | B2 reviewer diversity | M016 study | Role diversity > model diversity for defect detection |
+| Two-layer Engine+Glass | Consolidation analysis + user direction | Fragmentation was organic not designed; same engine pattern for all use cases |
+| Continuation store | P15 #81 gap analysis | Dispatch chain traceability required for multi-agent orchestration |
+| Provider fallback | P15 #45 gap analysis | Config-driven resilience for model availability |
+| BLOCK signal enforcement | P7 #16 gap analysis | Linguistic enforcement must become mechanical enforcement |
+| Semantic conflict detection | P7 #17 gap analysis | Library-level awareness of component dependencies |
+| Epistemic gate | P15 #322 gap analysis | Structural prevention of claims without evidence |
+| D2 as configurable pipeline | P7 #2 gap analysis | Same engine as B3/reviews — different config |
+| Living Orchestra = Glass | P7 #40 mapping | Session Dashboard + system map IS the living orchestra vision |
