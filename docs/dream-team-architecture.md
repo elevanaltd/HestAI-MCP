@@ -129,12 +129,12 @@ config/
 - RULES: MODE, PRIME_DIRECTIVE, CRAFT (philosopher-engineer DNA), THINK[], THINK_NEVER[]
 - MUST_USE grammar patterns (used for Applied Cognitive Grammar validation)
 
-**agents/** — Identity files (~50 lines). Define WHO an agent is. Contains:
-- §1::IDENTITY: Role, cognition, mission, principles, authority, ONE core archetype (permanent lens)
-- §2::TASK_PROFILES: Named list of task modes (e.g., code_writing, test_building) + DEFAULT
-- No archetypes per profile. No skills. No patterns. Those live in the Archetype Matrix (§2.4).
-- Triggers (what work activates this agent)
-- Relationships (who it works with)
+**agents/** — Identity files (~50 lines). Define WHO an agent is. "Blank slate" — no archetypes. Contains:
+- §1::IDENTITY: Role, cognition, mission, principles, authority. NO archetypes (blank slate principle — opposing vectors cancel to RLHF baseline).
+- §2::OPERATIONAL_BEHAVIOR: Tone, MUST_ALWAYS, MUST_NEVER, deliverables, evidence, gates, handoff, escalation.
+- §3::TASK_PROFILES: Named list of task modes + DEFAULT. Validation: DEFAULT must exist in PROFILES array.
+- §4::GRAMMAR: MUST_USE regex (Applied Cognitive Grammar), MUST_NOT patterns.
+- No archetypes. No skills. No patterns. Those live in the Archetype Matrix (§2.4).
 
 **phases/** — Phase context payloads (revived ARM files). Define WHERE an agent is operating. Contains:
 - COGNITIVE_ADAPTATION: how each cognition type (LOGOS/ETHOS/PATHOS) emphasizes differently in this phase
@@ -171,24 +171,28 @@ config/
 
 **Placement note**: ALL empirical data (C045/C046) used archetypes in §1::IDENTITY. Optimal injection timing requires C047 ablation study. The matrix model below is agnostic to placement — it defines WHAT gets loaded, not WHERE in the prompt it appears. The compiler handles attention physics.
 
-#### The Three-Layer Separation
+#### The "Blank Slate" Principle
+
+**Why NO archetypes in §1::IDENTITY**: If an agent has CORE_ARCHETYPE::HEPHAESTUS<craft_integrity> in its identity, and the matrix later injects PROMETHEUS<catalyze_velocity>, the LLM receives two directly opposing semantic vectors. LLMs don't choose one — they average them, cancelling both out and reverting to generic RLHF "Helpful Assistant" baseline. This would destroy the divergent steering C045 proved works.
+
+**The solution**: Agent identity is a pure, un-tinted blank slate. The DNA is ROLE + COGNITION + MISSION + AUTHORITY. All archetypes live exclusively in the matrix. The DEFAULT profile in the matrix provides the everyday personality — but because it's in the matrix, it's completely hot-swappable. When you activate RAPID_PROTOTYPING, the default triad stays in the armory and only PROMETHEUS glasses go on. Pure signal, zero noise.
+
+#### The Two-Layer Separation
 
 **Layer 1: Agent DNA** (in the agent file — stable, rarely changes)
 - Role, cognition, mission, principles, authority
-- ONE core archetype permanently fused with cognition (the permanent prescription lens)
+- NO archetypes. Identity is a blank slate. Archetypes are glasses, not eyeballs.
 - A short list of TASK PROFILE NAMES — the high-level types of work this agent does
-- A DEFAULT profile (the most common task type, used when context can't determine)
+- A DEFAULT profile name (the most common task type, used when context can't determine)
+- Validation: DEFAULT must exist in the PROFILES array
 
-**Layer 2: Task Profiles** (named in the agent file — stable, changes when role evolves)
-- Each agent has 3-5 named task profiles representing distinct modes of work
-- These are just NAMES — no archetypes, skills, or details attached in the agent file
+**Layer 2: The Archetype Matrix** (external config — experimental, changes as we learn)
+- A lookup table mapping `{agent} × {task_profile} → {archetype(s) + qualifiers + skills + patterns}`
+- Lives outside agent files. Editable from the Glass. One change propagates everywhere.
+- Each matrix row can specify ONE OR MULTIPLE archetypes with specific qualifiers per profile
+- The DEFAULT profile row provides the agent's everyday archetype configuration
 - Examples for Implementation Lead: `code_writing`, `test_building`, `error_diagnosis`, `refactoring`
 - Examples for Code Review Specialist: `system_coherence`, `flaw_detection`, `security_audit`
-
-**Layer 3: The Archetype Matrix** (external config — experimental, changes as we learn)
-- A lookup table mapping `{agent} × {task_profile} → {archetype(s) + qualifiers + skills}`
-- Lives outside agent files. Editable from the Glass. One change propagates to all agents using that mapping.
-- Each matrix row can specify ONE OR MULTIPLE archetypes with specific qualifiers per profile.
 
 #### Agent File Structure (Lean — ~50 lines)
 
@@ -196,17 +200,53 @@ config/
 §1::IDENTITY
   ROLE::IMPLEMENTATION_LEAD
   COGNITION::LOGOS
-  CORE_ARCHETYPE::HEPHAESTUS<implementation_craft>    // permanent lens, always loaded
   MISSION::"Translate requirements into robust, working code."
-  PRINCIPLES::[...]
-  AUTHORITY::[...]
+  PRINCIPLES::[
+    "Thoughtful Action: Comprehension precedes execution",
+    "Constraint Catalysis: Boundaries catalyze breakthroughs",
+    "Empirical Development: Reality shapes rightness",
+    "Emergent Excellence: Quality from component interactions",
+    "Full lifecycle ownership: construction through failure recovery back to green"
+  ]
+  AUTHORITY::[
+    ULTIMATE::[Code_implementation, Test_creation, Artifact_generation, Failure_diagnosis],
+    BLOCKING::[Untested_code, CI_failures, Quality_gate_violations],
+    MANDATE::"Prevent technical debt through rigorous TDD and system awareness"
+  ]
 
-§2::TASK_PROFILES
+§2::OPERATIONAL_BEHAVIOR
+  TONE::"Technical, Precise, Systematic"
+  MUST_ALWAYS::[
+    "Map dependencies before coding (Ripple Analysis)",
+    "Write failing test BEFORE implementation (TDD)",
+    "Verify local assumptions against global codebase before modifying",
+    "Invoke code-review-specialist for all changes",
+    "Number reasoning steps for transparency",
+    "Own failure recovery: diagnose, fix, verify green state"
+  ]
+  MUST_NEVER::[
+    "Treat code changes as isolated edits",
+    "Optimize locally while degrading system coherence",
+    "Merge without passing all quality gates",
+    "Code without preceding failing test",
+    "Abandon debugging to another agent without explicit escalation"
+  ]
+  DELIVERABLES::[Code_artifacts, Test_coverage, Ripple_analysis]
+  EVIDENCE::[Test_results, Build_logs, Lint_output]
+  GATES::[NEVER<UNTESTED_CODE,TECHNICAL_DEBT>, ALWAYS<DESIGN_INTEGRITY>]
+  HANDOFF::"Receives build tasks → Returns implemented code + test artifacts + passing CI"
+  ESCALATION::"Architectural uncertainty → Critical Engineer"
+
+§3::TASK_PROFILES
   PROFILES::[code_writing, test_building, error_diagnosis, refactoring]
   DEFAULT::code_writing
+
+§4::GRAMMAR
+  MUST_USE::[REGEX::"^\\[ANALYSIS\\]", REGEX::"^\\[IMPLEMENTATION\\]"]
+  MUST_NOT::[PATTERN::"I will just fix it", PATTERN::"Skipping tests"]
 ```
 
-No archetypes listed per profile. No skills listed. Just identity + profile names + default.
+No archetypes anywhere in the agent file. No skills. No patterns. Those live in the Archetype Matrix.
 
 #### The Archetype Matrix (External Config)
 
@@ -293,11 +333,13 @@ The **profile selector** can be:
 - Archetypes are mathematical cost-functions (C045/C046 proven)
 - The qualifier word is part of the cost function (not just decoration)
 - Triads for stability, singles for steering, multiple archetypes per profile supported
-- Agent files contain identity + profile names only
+- **NO archetypes in agent files** — blank slate principle (opposing vectors cancel to RLHF baseline)
+- ALL archetypes live exclusively in the matrix — including the DEFAULT profile's triad
+- Agent files contain identity + operational behavior + profile names + grammar only
 - Matrix is external, configurable, experimental
-- Core archetype (one, permanent) lives in §1::IDENTITY
-- Profile archetypes (contextual) live in the matrix
+- DEFAULT profile in matrix provides everyday personality (hot-swappable, not superglued)
 - Compiler handles injection timing (storage ≠ injection point)
+- Validation: agent file DEFAULT must exist in PROFILES array
 - C047 ablation study still needed for optimal injection positioning
 
 #### What Requires C047
@@ -634,6 +676,8 @@ Concrete phase definitions exist in the proposal (Part 9) for all 8 phases.
 | BLOCK signal enforcement | P7 #16 gap analysis | Linguistic enforcement must become mechanical enforcement |
 | Semantic conflict detection | P7 #17 gap analysis | Library-level awareness of component dependencies |
 | Epistemic gate | P15 #322 gap analysis | Structural prevention of claims without evidence |
-| Archetype Matrix model | C045/C046 + dual debates + user design | Archetypes are cost-functions. Qualifier words matter. Same archetype works differently across agents. Matrix externalises the mapping for cheap experimentation. Agent files stay lean (~50 lines). Core archetype in identity, profile archetypes in matrix. |
+| Archetype Matrix model | C045/C046 + dual debates + user design | Archetypes are cost-functions. Qualifier words matter. Matrix externalises mapping. Agent files are blank slates (~50 lines, zero archetypes). |
+| Blank slate principle | LLM attention physics analysis | Opposing archetype vectors cancel to RLHF baseline. NO archetypes in identity. ALL in matrix. DEFAULT profile provides everyday personality, hot-swappable. |
+| Agent file schema v9 | Field-by-field analysis (HO vs IL) | §1 IDENTITY + §2 OPERATIONAL_BEHAVIOR + §3 TASK_PROFILES + §4 GRAMMAR. MODEL_TIER removed (deployment config). OUTPUT FORMAT merged into §4. Authority sub-fields merged. |
 | D2 as configurable pipeline | P7 #2 gap analysis | Same engine as B3/reviews — different config |
 | Living Orchestra = Glass | P7 #40 mapping | Session Dashboard + system map IS the living orchestra vision |
