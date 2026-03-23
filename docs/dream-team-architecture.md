@@ -123,9 +123,8 @@ library/
 - MUST_USE grammar patterns (used for Applied Cognitive Grammar validation)
 
 **agents/** — Identity files. Define WHO an agent is. Contains:
-- Role name, cognition type, archetype set
-- Mission, principles, authority model (ultimate/blocking/advisory)
-- Archetype scaling per tier (which archetypes activate at T1 vs T3)
+- §1::IDENTITY: Role name, cognition type, mission, principles, authority model. NO archetypes here — identity is immutable DNA.
+- §3::CAPABILITIES: PROFILES block with contextual archetype sets ("Battle Gear"). Default profile uses triad (stability). Specialized profiles use single/dual archetypes (steering).
 - Triggers (what work activates this agent)
 - Relationships (who it works with)
 - NO pre-declared skills (skills resolve dynamically)
@@ -146,7 +145,7 @@ library/
 | Decision | Answer | Evidence |
 |---|---|---|
 | Cognition schema | 35-line lean kernels + CRAFT line. No NATURE blocks, no PHILOSOPHY blocks. | Prose dilutes constraints. Anchor only extracts FORCE/ESSENCE/ELEMENT/MODE/PRIME_DIRECTIVE/CRAFT/THINK/THINK_NEVER. Dead tokens waste context. |
-| Scope activation | In agent file (archetype tiers), not phase file. | Agent-specific: CE at T3 needs different archetypes than Ideator at T3. |
+| Archetype architecture | "Battle Gear" — archetypes in §3 PROFILES, not §1 IDENTITY. Triads for default (stability), singles for specialized (steering). | C045/C046: triads = 28.7 mean lowest variance; singles = peaks at 30 dips to 21. Empirically proven cross-model. |
 | File references | Direct paths relative to library root. No URI aliases. | Filesystem = API. LLMs read paths natively. lib:// resolvers are tech debt. |
 | Skills vs patterns | Separate directories. Skills = procedures, patterns = principles. | Different purposes warrant distinct organisation. |
 | Pre-declared skills | None in agent files. Skills resolve dynamically at bind time. | Prevents phantom skill references (50-80% found in agent interviews). |
@@ -480,5 +479,6 @@ Concrete phase definitions exist in the proposal (Part 9) for all 8 phases.
 | BLOCK signal enforcement | P7 #16 gap analysis | Linguistic enforcement must become mechanical enforcement |
 | Semantic conflict detection | P7 #17 gap analysis | Library-level awareness of component dependencies |
 | Epistemic gate | P15 #322 gap analysis | Structural prevention of claims without evidence |
+| Battle Gear archetypes | C045 + C046 empirical studies | Triads=stability(28.7 mean), singles=steering(peaks 30 dips 21). Archetypes are cost-functions, not identity. Move to PROFILES. Cross-model validated (Claude+Codex agree). |
 | D2 as configurable pipeline | P7 #2 gap analysis | Same engine as B3/reviews — different config |
 | Living Orchestra = Glass | P7 #40 mapping | Session Dashboard + system map IS the living orchestra vision |
