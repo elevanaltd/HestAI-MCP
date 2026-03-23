@@ -171,23 +171,36 @@ config/
 
 **Placement note**: ALL empirical data (C045/C046) used archetypes in §1::IDENTITY. Optimal injection timing requires C047 ablation study. The matrix model below is agnostic to placement — it defines WHAT gets loaded, not WHERE in the prompt it appears. The compiler handles attention physics.
 
-#### The "Blank Slate" Principle
+#### Core Archetype: Optional Gravitational Center
 
-**Why NO archetypes in §1::IDENTITY**: If an agent has CORE_ARCHETYPE::HEPHAESTUS<craft_integrity> in its identity, and the matrix later injects PROMETHEUS<catalyze_velocity>, the LLM receives two directly opposing semantic vectors. LLMs don't choose one — they average them, cancelling both out and reverting to generic RLHF "Helpful Assistant" baseline. This would destroy the divergent steering C045 proved works.
+**The competing models**:
+- **Blank Slate**: NO archetypes in identity. Prevents opposing vector cancellation (HEPHAESTUS + PROMETHEUS → RLHF baseline). Maximum matrix freedom.
+- **Gravitational Center**: ONE core archetype in identity provides psychological continuity. Matrix injects 1-2 complementary archetypes to dynamically form triads at runtime. Core + injected must be complementary, never opposing.
 
-**The solution**: Agent identity is a pure, un-tinted blank slate. The DNA is ROLE + COGNITION + MISSION + AUTHORITY. All archetypes live exclusively in the matrix. The DEFAULT profile in the matrix provides the everyday personality — but because it's in the matrix, it's completely hot-swappable. When you activate RAPID_PROTOTYPING, the default triad stays in the armory and only PROMETHEUS glasses go on. Pure signal, zero noise.
+**Why this is unresolvable without empirical data**: C045/C046 tested FIXED archetype sets (all declared together). Neither "blank slate + full injection" nor "core + complementary injection" has been tested. Both have valid theoretical arguments. Neither has data.
+
+**Resolution: Make core_archetype OPTIONAL in the matrix config.**
+
+If present: the engine includes it alongside matrix-injected archetypes. The core provides a permanent gravitational center; the matrix injects complementary archetypes to form runtime triads. The matrix designer is responsible for ensuring core + injected are complementary, not opposing.
+
+If absent (blank slate): the engine uses matrix archetypes only. Maximum flexibility but requires the matrix to provide the full archetype set for every profile.
+
+C047 will test both: same scenario, same agent, same final archetype set, vary whether one is "core" or all are "injected." If there's a measurable difference, we lock the winner. If not, blank slate wins by simplicity (MIP principle).
+
+**The agent file schema supports BOTH models** — §1::IDENTITY has no archetypes either way. The core_archetype, if used, lives in the matrix as a per-agent default. This preserves clean identity files regardless of which model wins.
 
 #### The Two-Layer Separation
 
 **Layer 1: Agent DNA** (in the agent file — stable, rarely changes)
 - Role, cognition, mission, principles, authority
-- NO archetypes. Identity is a blank slate. Archetypes are glasses, not eyeballs.
+- NO archetypes in the file itself. Archetypes are glasses, not eyeballs.
 - A short list of TASK PROFILE NAMES — the high-level types of work this agent does
 - A DEFAULT profile name (the most common task type, used when context can't determine)
 - Validation: DEFAULT must exist in the PROFILES array
 
 **Layer 2: The Archetype Matrix** (external config — experimental, changes as we learn)
 - A lookup table mapping `{agent} × {task_profile} → {archetype(s) + qualifiers + skills + patterns}`
+- OPTIONAL `core_archetype` per agent — permanent gravitational center (omit for blank slate)
 - Lives outside agent files. Editable from the Glass. One change propagates everywhere.
 - Each matrix row can specify ONE OR MULTIPLE archetypes with specific qualifiers per profile
 - The DEFAULT profile row provides the agent's everyday archetype configuration
@@ -252,63 +265,69 @@ No archetypes anywhere in the agent file. No skills. No patterns. Those live in 
 
 ```yaml
 archetype-matrix:
-  # Implementation Lead profiles
+
+  # Implementation Lead — with optional core archetype (gravitational center model)
   implementation-lead:
-    code_writing:
-      archetypes:
-        - HEPHAESTUS<systemic_ingenuity>
-        - ATLAS<structural_foundation>
-      skills: [build-execution]
-      patterns: [tdd-discipline, mip-build]
+    core_archetype: HEPHAESTUS<implementation_craft>  # OPTIONAL — omit for blank slate
+    profiles:
+      code_writing:
+        archetypes:                          # injected alongside core (if present)
+          - ATLAS<structural_foundation>
+        skills: [build-execution]
+        patterns: [tdd-discipline, mip-build]
 
-    test_building:
-      archetypes:
-        - DAEDALUS<systematic_verification>
-      skills: [test-generation]
-      patterns: [tdd-discipline]
+      test_building:
+        archetypes:
+          - DAEDALUS<systematic_verification>
+        skills: [test-generation]
+        patterns: [tdd-discipline]
 
-    error_diagnosis:
-      archetypes:
-        - ASCLEPIUS<root_cause_analysis>
-        - ATHENA<pattern_recognition>
-      skills: [error-triage]
-      patterns: [verification-protocols]
+      error_diagnosis:
+        archetypes:
+          - ASCLEPIUS<root_cause_analysis>
+          - ATHENA<pattern_recognition>
+        skills: [error-triage]
+        patterns: [verification-protocols]
 
-    refactoring:
-      archetypes:
-        - DAEDALUS<architectural_elegance>
-      skills: [build-execution]
-      patterns: [mip-build, progressive-simplification]
+      refactoring:
+        archetypes:
+          - DAEDALUS<architectural_elegance>
+        skills: [build-execution]
+        patterns: [mip-build, progressive-simplification]
 
-  # Code Review Specialist profiles
+  # Code Review Specialist — blank slate model (no core archetype)
   code-review-specialist:
-    system_coherence:
-      archetypes:
-        - ATHENA<architectural_coherence>
-        - ARGUS<systemic_observation>
-      skills: [code-quality-standards]
-      patterns: [verification-protocols]
+    # core_archetype: absent — full blank slate, matrix provides everything
+    profiles:
+      system_coherence:
+        archetypes:
+          - ATHENA<architectural_coherence>
+          - ARGUS<systemic_observation>
+        skills: [code-quality-standards]
+        patterns: [verification-protocols]
 
-    flaw_detection:
-      archetypes:
-        - ARGUS<defect_discovery>
-      skills: [code-quality-standards]
-      patterns: [verification-protocols]
+      flaw_detection:
+        archetypes:
+          - ARGUS<defect_discovery>
+        skills: [code-quality-standards]
+        patterns: [verification-protocols]
 
-    security_audit:
-      archetypes:
-        - ATHENA<threat_awareness>
-        - ARGUS<vulnerability_detection>
-      skills: [security-analysis]
-      patterns: [verification-protocols]
+      security_audit:
+        archetypes:
+          - ATHENA<threat_awareness>
+          - ARGUS<vulnerability_detection>
+        skills: [security-analysis]
+        patterns: [verification-protocols]
 ```
+
+Note: IL example shows gravitational center model (core + 1-2 injected = runtime triad). CRS example shows blank slate model (no core, matrix provides all archetypes per profile). Both are valid. C047 will determine which produces better results.
 
 #### How It Works at Runtime
 
-1. **Engine reads agent file** → gets identity + core archetype + task profiles list + default
+1. **Engine reads agent file** → gets identity + task profiles list + default
 2. **Profile selector determines active profile** — from task context, explicit selection, or default
-3. **Engine reads matrix** → gets archetype(s) + qualifier(s) + skills + patterns for that profile
-4. **Payload compiler assembles injection** → core archetype (from identity) + profile archetypes (from matrix) + skills + patterns, placed at optimal attention positions
+3. **Engine reads matrix** → gets core_archetype (if present) + profile archetype(s) + qualifier(s) + skills + patterns
+4. **Payload compiler assembles injection** → core archetype (if present) + profile archetypes (from matrix) + skills + patterns, placed at optimal attention positions
 
 The **profile selector** can be:
 - Explicit: human or orchestrating agent specifies the profile name
@@ -333,18 +352,23 @@ The **profile selector** can be:
 - Archetypes are mathematical cost-functions (C045/C046 proven)
 - The qualifier word is part of the cost function (not just decoration)
 - Triads for stability, singles for steering, multiple archetypes per profile supported
-- **NO archetypes in agent files** — blank slate principle (opposing vectors cancel to RLHF baseline)
-- ALL archetypes live exclusively in the matrix — including the DEFAULT profile's triad
+- **NO archetypes in agent files** — agent files are always blank slate
+- Archetypes live exclusively in the matrix config
+- `core_archetype` per agent is **OPTIONAL** in the matrix — gravitational center or blank slate, per agent
 - Agent files contain identity + operational behavior + profile names + grammar only
 - Matrix is external, configurable, experimental
-- DEFAULT profile in matrix provides everyday personality (hot-swappable, not superglued)
+- DEFAULT profile in matrix provides everyday personality (hot-swappable)
 - Compiler handles injection timing (storage ≠ injection point)
 - Validation: agent file DEFAULT must exist in PROFILES array
-- C047 ablation study still needed for optimal injection positioning
+- If core_archetype is used, matrix designer ensures core + injected are complementary, never opposing
 
 #### What Requires C047
 
-The matrix model defines WHAT gets loaded. The open question is WHERE in the prompt the compiler places it. C047 should test: same agent, same archetype, same scenario, vary only injection timing. The matrix model works regardless of which injection point wins.
+Two open questions for empirical testing:
+1. **Injection timing**: WHERE in the prompt does the compiler place archetypes? Same scenario, same archetype set, vary only injection position.
+2. **Core vs blank slate**: Does a permanent core_archetype + complementary injections outperform full injection? Same scenario, same final archetype set, vary whether one is "core" or all are "injected."
+
+The matrix model works regardless of which model wins for either question.
 
 ---
 
@@ -677,7 +701,7 @@ Concrete phase definitions exist in the proposal (Part 9) for all 8 phases.
 | Semantic conflict detection | P7 #17 gap analysis | Library-level awareness of component dependencies |
 | Epistemic gate | P15 #322 gap analysis | Structural prevention of claims without evidence |
 | Archetype Matrix model | C045/C046 + dual debates + user design | Archetypes are cost-functions. Qualifier words matter. Matrix externalises mapping. Agent files are blank slates (~50 lines, zero archetypes). |
-| Blank slate principle | LLM attention physics analysis | Opposing archetype vectors cancel to RLHF baseline. NO archetypes in identity. ALL in matrix. DEFAULT profile provides everyday personality, hot-swappable. |
+| Core archetype optional | Blank slate vs gravitational center analysis | Both models valid, neither tested. core_archetype OPTIONAL in matrix config. Agent files always blank slate. C047 decides winner. If no difference, blank slate wins by MIP. |
 | Agent file schema v9 | Field-by-field analysis (HO vs IL) | §1 IDENTITY + §2 OPERATIONAL_BEHAVIOR + §3 TASK_PROFILES + §4 GRAMMAR. MODEL_TIER removed (deployment config). OUTPUT FORMAT merged into §4. Authority sub-fields merged. |
 | D2 as configurable pipeline | P7 #2 gap analysis | Same engine as B3/reviews — different config |
 | Living Orchestra = Glass | P7 #40 mapping | Session Dashboard + system map IS the living orchestra vision |
