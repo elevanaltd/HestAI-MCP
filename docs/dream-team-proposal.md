@@ -184,10 +184,10 @@ Skills are discovered and loaded at anchor time based on the topic/task, not pre
 **Why it exists**: Maintains documentation, git history, and system patterns. The librarian.
 **Cognition**: ETHOS — preservation, accuracy, completeness.
 **Authority**: ULTIMATE over documentation integrity — NO code modification.
-**Triggers**: Documentation updates, context freshness, pattern preservation, delivery (B4).
+**Triggers**: Documentation updates, context freshness, pattern preservation, pre-merge delivery documentation.
 **Relationships**: Receives from HO. Updates .hestai/ state documents.
 **Core skills**: documentation-placement
-**What changed**: Absorbs solution-steward's B4 delivery documentation duties.
+**What changed**: Absorbs solution-steward's delivery documentation duties (in the new workflow, delivery = merge PR, documentation happens before merge).
 
 #### 9. IDEATOR (PATHOS) — Keep, essential
 **Why it exists**: Generates creative possibilities. The "what could be" voice.

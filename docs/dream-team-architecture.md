@@ -125,9 +125,10 @@ config/
 - "The conductor never plays an instrument — diagnose and delegate"
 
 **cognitions/** — 3 lean execution kernels (~35 lines each). Define HOW an agent thinks. Loaded by all three paths. Each contains:
-- NATURE: FORCE, ESSENCE, ELEMENT
-- RULES: MODE, PRIME_DIRECTIVE, CRAFT (philosopher-engineer DNA), THINK[], THINK_NEVER[]
-- MUST_USE grammar patterns (used for Applied Cognitive Grammar validation)
+- §1 COGNITIVE_IDENTITY: FORCE, ESSENCE, ELEMENT (lean identity fields — NOT the old narrative NATURE blocks with PHILOSOPHY/CORE_GIFT/TRUTH_DEFINITION)
+- §2 COGNITIVE_RULES: MODE, PRIME_DIRECTIVE, CRAFT (philosopher-engineer DNA), THINK[], THINK_NEVER[]
+- §4 GRAMMAR: MUST_USE regex patterns (used for Applied Cognitive Grammar validation)
+- CRAFT field is implemented in v2.1.0 (PR #334)
 
 **agents/** — Identity files (~50 lines). Define WHO an agent is. "Blank slate" — no archetypes. Contains:
 - §1::IDENTITY: Role, cognition, mission, principles, authority. NO archetypes (blank slate principle — opposing vectors cancel to RLHF baseline).
@@ -151,7 +152,7 @@ config/
 
 | Decision | Answer | Evidence |
 |---|---|---|
-| Cognition schema | 35-line lean kernels + CRAFT line. No NATURE blocks, no PHILOSOPHY blocks. | Prose dilutes constraints. Anchor only extracts FORCE/ESSENCE/ELEMENT/MODE/PRIME_DIRECTIVE/CRAFT/THINK/THINK_NEVER. Dead tokens waste context. |
+| Cognition schema | 35-line lean kernels + CRAFT line. No narrative blocks (PHILOSOPHY/CORE_GIFT/TRUTH_DEFINITION). Keep lean identity fields (FORCE/ESSENCE/ELEMENT) which ARE extracted by anchor. | Prose dilutes constraints. Anchor extracts FORCE/ESSENCE/ELEMENT/MODE/PRIME_DIRECTIVE/CRAFT/THINK/THINK_NEVER. Anything not in extraction list is dead tokens. CRAFT implemented in v2.1.0 (PR #334). |
 | Archetype architecture | **Matrix Model**: agent file has identity + core archetype + profile names. External matrix maps {agent × profile → archetypes + qualifiers + skills}. Injection timing EXPERIMENTAL (C047 needed). | C045/C046: archetypes are cost-functions. Qualifier words matter. Triads=stability, singles=steering. Same archetype + different qualifier = different behaviour. Matrix enables experimentation without rewriting agent files. |
 | File references | Direct paths relative to library root. No URI aliases. | Filesystem = API. LLMs read paths natively. lib:// resolvers are tech debt. |
 | Skills vs patterns | Separate directories. Skills = procedures, patterns = principles. | Different purposes warrant distinct organisation. |
@@ -436,7 +437,8 @@ Cognition-focused loading for multi-perspective analysis. Identity is the cognit
 | Skills | Not loaded (no procedural execution in debates) |
 
 **Cost**: ~2-3k tokens per turn. **Permit**: DEBATE (cognition + identity, no execution).
-**When**: D2 exploration debates, B3 REINTEGRATE pipeline, architectural tension resolution, contested decisions at B0.
+**When**: D2 exploration debates, architectural tension resolution, contested decisions at B0. Analysis-only — no direct execution.
+**NOT for**: B3 REINTEGRATE pipeline (which requires skill execution for document updates — use Colleague path).
 **Exit point**: After identity proof. No ARM/FLUKES stages.
 
 ### 3.3 Applied Cognitive Grammar (The Fulcrum)
@@ -514,16 +516,10 @@ pipelines:
     automated: true
     steps:
       - role: "critical-engineer"
-        cognition: ethos
-        model: codex
         task: "Compare D3 blueprint to B2 reality."
       - role: "ideator"
-        cognition: pathos
-        model: opus
         task: "Identify reusable patterns."
       - role: "system-steward"
-        cognition: logos
-        model: gemini-pro
         task: "Compress findings into updated constraints."
 ```
 
@@ -533,12 +529,10 @@ dispatch-rules:
   - trigger: "ho_needs_deep_analysis"
     action: dispatch_colleague
     role: "ho-liaison"
-    model: gemini-pro
     loading: colleague
   - trigger: "error_system_wide"
     action: dispatch_colleague
     role: "error-architect"
-    model: opus
     loading: colleague
 ```
 
@@ -548,15 +542,23 @@ review-tiers:
   t2-standard:
     steps:
       - role: "test-methodology-guardian"
-        cognition: ethos
-        model: goose
       - role: "code-review-specialist"
-        cognition: ethos
-        model: gemini
       - role: "critical-engineer"
-        cognition: ethos
-        model: claude
 ```
+
+Note: all config examples reference ROLE only. Model resolution happens via `config/role-model-map` which maps each role to a primary + fallback model:
+
+```yaml
+role-model-map:
+  critical-engineer:
+    primary: { provider: anthropic, model: claude-sonnet-4-6 }
+    fallback: { provider: openai, model: codex-mini }
+  ideator:
+    primary: { provider: anthropic, model: claude-opus-4-6 }
+    fallback: { provider: google, model: gemini-2.5-pro }
+```
+
+Pipelines, dispatch rules, and tier definitions don't hardcode models — the role-model-map is the single source of truth for model assignment. Change the model for any role in one place.
 
 **All configurable from Layer 2.** Adding a new pipeline, dispatch rule, or tier means editing config in the admin panel — not writing code.
 
