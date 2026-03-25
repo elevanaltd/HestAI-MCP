@@ -8,7 +8,7 @@ triggers: ["subagent", "oa-router", "Task delegation", "anchor ceremony", "subag
 ===SKILL:SUBAGENT_RULES===
 META:
   TYPE::SKILL
-  VERSION::"2.2.0"
+  VERSION::"2.3.0"
   STATUS::ACTIVE
   PURPOSE::"Enforce oa-router delegation with anchor ceremony for all subagent Task() calls"
 
@@ -59,11 +59,24 @@ META:
     SUBSEQUENT::Task({resume: stored_agent_id, prompt: "continue: ..."})→reuse_context
   ]
   EXCEPTION::"Launch fresh only when role changes OR context has fundamentally shifted (different branch, different project)"
-  RELATED::"External model tools (PAL continuation_id, future equivalents) follow same principle — preserve conversation thread via tool-native continuation IDs. This rule covers Task() delegation; tool-level continuation is tool-specific."
+
+§4c::CONTINUATION_RULE
+  RULE::"Subagents using external tools with continuation/thread IDs (PAL continuation_id, future equivalents) MUST store and reuse the ID returned from the first call in ALL subsequent calls to the same tool within the session."
+  RATIONALE::"Each call without continuation_id starts a fresh conversation — losing accumulated context, wasting tokens on re-explanation, and risking inconsistent responses across calls."
+  SCOPE::[
+    PAL_CHAT::continuation_id[returned_in_response→pass_in_next_call],
+    PAL_CLINK::continuation_id[same_principle],
+    FUTURE_TOOLS::"Any tool returning a thread/session/continuation identifier"
+  ]
+  PATTERN::[
+    FIRST_CALL::mcp__pal__chat({prompt: "...", ...})→store_continuation_id_from_response,
+    SUBSEQUENT::mcp__pal__chat({prompt: "...", continuation_id: stored_id, ...})→reuse_thread
+  ]
+  NEVER::["Discard continuation_id between calls to the same tool", "Start fresh PAL conversations when continuation_id is available"]
 
 §5::ANCHOR_KERNEL
 TARGET::governance_compliant_oa-router_delegation
-NEVER::[bypass_anchor_ceremony,pre_assign_identity,omit_role,run_in_background_for_oa-router,launch_fresh_when_agent_id_exists]
-MUST::[use_oa-router_subagent_type,include_anchor-first_instruction,store_and_reuse_agent_id,foreground_execution_for_ceremony_auditability]
-GATE::"Does this delegation use oa-router, run in foreground, include role, and preserve agent_id for reuse?"
+NEVER::[bypass_anchor_ceremony,pre_assign_identity,omit_role,run_in_background_for_oa-router,launch_fresh_when_agent_id_exists,discard_continuation_ids]
+MUST::[use_oa-router_subagent_type,include_anchor-first_instruction,store_and_reuse_agent_id,foreground_execution_for_ceremony_auditability,reuse_continuation_ids_across_tool_calls]
+GATE::"Does this delegation use oa-router, run in foreground, include role, preserve agent_id for reuse, and maintain continuation IDs?"
 ===END===
