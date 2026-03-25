@@ -429,8 +429,8 @@ Cognition-focused loading for multi-perspective analysis. Identity is the cognit
 
 | What's Loaded | How |
 |---|---|
-| Cognition | Loaded and proven (via Applied Cognitive Grammar at SEA) |
-| Constitution | Proven alongside cognition |
+| Cognition | Loaded and proven via Applied Cognitive Grammar at SEA (TARGET-STATE — will be validated when ceremony is rebuilt) |
+| Constitution | Proven alongside cognition (TARGET-STATE) |
 | Identity | Minimal — role name + core authority only |
 | Phase context | Debate TOPIC serves as ARM context |
 | Patterns | Not loaded (debate methodology embedded) |

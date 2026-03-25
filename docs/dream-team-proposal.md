@@ -1131,7 +1131,7 @@ COGNITIVE STACK              ANCHOR STAGE           MECHANISM
 6. skills/ (Tools)        → FLUKES (bundled)       Patterns + Skills both at FLUKES
 ```
 
-**The key innovation — Applied Cognitive Grammar**: At SEA stage, the agent must format its Constitution proof strictly through its Cognitive lens. LOGOS must output `[TENSION] → [INSIGHT] → [SYNTHESIS]`. ETHOS must output `[VERDICT] → [EVIDENCE]`. If the cognition file wasn't absorbed, the agent doesn't know the syntax. Server regex-validates the framing. Anti-theater through mechanism, not trust.
+**The key innovation — Applied Cognitive Grammar (TARGET-STATE)**: At SEA stage, the agent will format its Constitution proof strictly through its Cognitive lens. LOGOS must output `[TENSION] → [INSIGHT] → [SYNTHESIS]`. ETHOS must output `[VERDICT] → [EVIDENCE]`. If the cognition file wasn't absorbed, the agent won't know the syntax. Server will regex-validate the framing when the ceremony is rebuilt. Targets anti-theater through mechanism, not trust.
 
 **LLM Attention Physics**:
 - **Primacy** (Stages 0-1): Cognition + Constitution load first → heaviest conditioning weight
