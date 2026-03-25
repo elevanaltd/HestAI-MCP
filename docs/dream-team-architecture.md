@@ -113,7 +113,7 @@ config/
   pipelines         Multi-agent sequence definitions (B3, D2, reviews, error resolution)
   dispatch-rules    Automatic colleague dispatch triggers
   tier-definitions  Review tiers, debate tiers, phase tiers
-  role-model-map    Agent → primary model + fallback model
+  role-model-map    Role → primary model + fallback model
 ```
 
 ### 2.2 Component Definitions
