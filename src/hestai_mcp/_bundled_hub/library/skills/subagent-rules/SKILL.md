@@ -8,7 +8,7 @@ triggers: ["subagent", "oa-router", "Task delegation", "anchor ceremony", "subag
 ===SKILL:SUBAGENT_RULES===
 META:
   TYPE::SKILL
-  VERSION::"2.1.0"
+  VERSION::"2.2.0"
   STATUS::ACTIVE
   PURPOSE::"Enforce oa-router delegation with anchor ceremony for all subagent Task() calls"
 
@@ -42,10 +42,16 @@ META:
 
 §4::CALLER_RULES
   MUST::["Include anchor-first instruction in every prompt (baked into §2 template)", "Include role field (oa-router cannot bind without it)", "Store agent_id from Task() result for same-role reuse", "Use resume parameter with stored agent_id for subsequent calls to same role"]
-  NEVER::["Skip/bypass anchor ceremony", "Pre-assign identity (e.g., 'You are an implementation-lead')", "Omit role from prompt", "Include pre-ceremony instructions that bypass binding", "Launch fresh Task() for same role when previous agent_id exists in session"]
+  NEVER::["Skip/bypass anchor ceremony", "Pre-assign identity (e.g., 'You are an implementation-lead')", "Omit role from prompt", "Include pre-ceremony instructions that bypass binding", "Launch fresh Task() for same role when previous agent_id exists in session", "Use run_in_background:true for oa-router delegations"]
+  BACKGROUND_RULE::[
+    PROHIBITION::"oa-router Task() calls MUST run in foreground (run_in_background MUST be false or omitted)",
+    RATIONALE::"Background execution hides the anchor ceremony — multi-stage identity proofs (I5) become unauditable. Foreground shows every sub-agent action (anchor_request, file reads, anchor_lock, anchor_commit) enabling real-time verification.",
+    PARALLEL_ALTERNATIVE::"For throughput, use multiple foreground Task() calls in a single message — Claude Code executes independent calls concurrently while preserving visibility.",
+    DETECTION::"IF oa-router output contains 'Async agent launched successfully' THEN ceremony auditability is lost → treat as governance concern"
+  ]
   INVALID_WORK::"IF subagent produces output without valid PERMIT_SID THEN work is INVALID per I5 → discard and re-delegate"
 
-§5::RESUME_RULE
+§4b::RESUME_RULE
   RULE::"When delegating to a role previously invoked in the same session, MUST use Task({resume: agent_id}) instead of launching fresh"
   RATIONALE::"Fresh launch forces full re-anchor (~50k+ tokens). Resume preserves anchor context, governance state, and loaded capabilities."
   PATTERN::[
@@ -54,4 +60,10 @@ META:
   ]
   EXCEPTION::"Launch fresh only when role changes OR context has fundamentally shifted (different branch, different project)"
   RELATED::"External model tools (PAL continuation_id, future equivalents) follow same principle — preserve conversation thread via tool-native continuation IDs. This rule covers Task() delegation; tool-level continuation is tool-specific."
+
+§5::ANCHOR_KERNEL
+TARGET::governance_compliant_oa-router_delegation
+NEVER::[bypass_anchor_ceremony,pre_assign_identity,omit_role,run_in_background_for_oa-router,launch_fresh_when_agent_id_exists]
+MUST::[use_oa-router_subagent_type,include_anchor-first_instruction,store_and_reuse_agent_id,foreground_execution_for_ceremony_auditability]
+GATE::"Does this delegation use oa-router, run in foreground, include role, and preserve agent_id for reuse?"
 ===END===
