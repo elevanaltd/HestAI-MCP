@@ -110,6 +110,9 @@ def determine_review_tier(files: list[dict[str, Any]]) -> tuple[str, str]:
 # the module file directly without triggering the package's __init__.py.
 try:
     from hestai_mcp.modules.tools.shared.review_formats import (
+        VALID_ROLES as _VALID_ROLES,
+    )
+    from hestai_mcp.modules.tools.shared.review_formats import (
         has_ce_approval as _has_ce_approval,
     )
     from hestai_mcp.modules.tools.shared.review_formats import (
@@ -150,6 +153,7 @@ except (ImportError, ModuleNotFoundError):
     _has_ce_approval = _review_formats.has_ce_approval
     _has_ho_review = _review_formats.has_ho_review
     _parse_review_metadata = _review_formats.parse_review_metadata
+    _VALID_ROLES = _review_formats.VALID_ROLES
 
 
 def _has_approval(texts: list[str], prefix: str, keyword: str) -> bool:
@@ -220,8 +224,7 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
                     # "code-review-specialist") cannot satisfy any gate
                     # check, so mismatched metadata is irrelevant -- not
                     # a spoofing vector.
-                    # Source of truth: review_formats.VALID_ROLES
-                    if meta_role not in {"CRS", "CE", "IL", "HO"}:
+                    if meta_role not in _VALID_ROLES:
                         continue
                     # Only cross-validate approval verdicts (not BLOCKED/CONDITIONAL)
                     approval_keywords = {"APPROVED", "SELF-REVIEWED", "REVIEWED", "GO"}

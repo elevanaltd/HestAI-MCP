@@ -309,9 +309,7 @@ class TestReviewTierLogic:
             }
         ]
         tier, reason = validate_review.determine_review_tier(files)
-        assert (
-            tier != "TIER_0_EXEMPT"
-        ), ".oct.md files must NOT be exempt - they are governance code"
+        assert tier == "TIER_1_SELF", f".oct.md files must be TIER_1_SELF, got {tier}"
 
     def test_oct_md_agent_files_are_not_exempt(self):
         """GOVERNANCE: Agent definition .oct.md files must NOT be exempt."""
@@ -324,9 +322,7 @@ class TestReviewTierLogic:
             }
         ]
         tier, reason = validate_review.determine_review_tier(files)
-        assert (
-            tier != "TIER_0_EXEMPT"
-        ), "Agent .oct.md files must NOT be exempt - they are governance code"
+        assert tier == "TIER_1_SELF", f"Agent .oct.md files must be TIER_1_SELF, got {tier}"
 
     def test_regular_md_files_remain_exempt(self):
         """Regular .md files (README, CLAUDE, docs) must still be exempt."""
