@@ -293,6 +293,65 @@ class TestReviewTierLogic:
         assert tier == "TIER_0_EXEMPT"
         assert "exempt" in reason.lower()
 
+    def test_oct_md_files_are_not_exempt(self):
+        """GOVERNANCE: .oct.md files must NOT be exempt from review tier calculation.
+
+        .oct.md files are governance code (cognition definitions, agent definitions,
+        skills, patterns) and must be subject to review requirements per I3
+        (Dual-Layer Authority). The markdown exemption must not apply to them.
+        """
+        files = [
+            {
+                "path": ".hestai-sys/library/cognitions/logos.oct.md",
+                "added": 10,
+                "deleted": 5,
+                "total_changed": 15,
+            }
+        ]
+        tier, reason = validate_review.determine_review_tier(files)
+        assert tier == "TIER_1_SELF", f".oct.md files must be TIER_1_SELF, got {tier}"
+
+    def test_oct_md_agent_files_are_not_exempt(self):
+        """GOVERNANCE: Agent definition .oct.md files must NOT be exempt."""
+        files = [
+            {
+                "path": "src/hestai_mcp/_bundled_hub/library/agents/implementation-lead.oct.md",
+                "added": 30,
+                "deleted": 10,
+                "total_changed": 40,
+            }
+        ]
+        tier, reason = validate_review.determine_review_tier(files)
+        assert tier == "TIER_1_SELF", f"Agent .oct.md files must be TIER_1_SELF, got {tier}"
+
+    def test_regular_md_files_remain_exempt(self):
+        """Regular .md files (README, CLAUDE, docs) must still be exempt."""
+        files = [
+            {"path": "README.md", "added": 5, "deleted": 2, "total_changed": 7},
+            {"path": "CLAUDE.md", "added": 3, "deleted": 1, "total_changed": 4},
+            {"path": "docs/ARCHITECTURE.md", "added": 10, "deleted": 5, "total_changed": 15},
+        ]
+        tier, reason = validate_review.determine_review_tier(files)
+        assert (
+            tier == "TIER_0_EXEMPT"
+        ), "Regular .md files must remain exempt from review tier calculation"
+
+    def test_mixed_oct_md_and_regular_md_only_oct_md_counts(self):
+        """When .oct.md and regular .md are mixed, only .oct.md should count."""
+        files = [
+            {"path": "README.md", "added": 50, "deleted": 20, "total_changed": 70},
+            {
+                "path": ".hestai-sys/library/cognitions/logos.oct.md",
+                "added": 10,
+                "deleted": 5,
+                "total_changed": 15,
+            },
+        ]
+        tier, reason = validate_review.determine_review_tier(files)
+        assert (
+            tier != "TIER_0_EXEMPT"
+        ), ".oct.md changes must prevent TIER_0_EXEMPT even when mixed with regular .md"
+
 
 @pytest.mark.behavior
 class TestPRCommentValidation:
@@ -1157,3 +1216,141 @@ class TestCRSModelApprovalSpoofing:
         assert validate_review._has_crs_model_approval(
             texts, "Gemini"
         ), "Double-dash-separated model approval must pass"
+
+
+@pytest.mark.security
+class TestCrossValidationUnrecognizedRoles:
+    """Regression tests for cross-validation false positive on unrecognized roles.
+
+    When a comment contains review metadata with a role not in VALID_ROLES
+    (e.g., "code-review-specialist"), cross-validation should skip it because
+    unrecognized roles cannot satisfy any gate check. Cross-validating them
+    causes a false positive "spoofing detected" failure that blocks the PR.
+
+    Security invariant: recognized roles (CRS, CE, IL, HO) with mismatched
+    metadata MUST still fail cross-validation (spoofing detection preserved).
+    """
+
+    def test_unrecognized_role_in_metadata_does_not_trigger_cross_validation(
+        self, ci_environment, monkeypatch
+    ):
+        """Unrecognized role (e.g., code-review-specialist) must NOT cause false positive.
+
+        When metadata has role='code-review-specialist' and verdict='APPROVED',
+        the cross-validation should skip it because 'code-review-specialist' is
+        not in VALID_ROLES {CRS, CE, IL, HO}. Previously this caused a hard
+        fail: "possible spoofing detected."
+        """
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [
+                            {
+                                "body": (
+                                    "code-review-specialist APPROVED: looks good\n"
+                                    '<!-- review: {"role": "code-review-specialist", '
+                                    '"verdict": "APPROVED", "provider": "gemini"} -->'
+                                )
+                            },
+                            {"body": "CRS APPROVED: Logic correct"},
+                            {"body": "CE APPROVED: Architecture sound"},
+                        ],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        assert approved is True, (
+            "Unrecognized role in metadata must not cause cross-validation failure. "
+            f"Got: {message}"
+        )
+
+    def test_unrecognized_role_without_visible_match_does_not_fail(
+        self, ci_environment, monkeypatch
+    ):
+        """Unrecognized role with no visible text match must NOT fail.
+
+        This is the exact failure scenario: metadata says role='code-review-specialist'
+        verdict='APPROVED', but visible text does NOT contain
+        'code-review-specialist APPROVED:' pattern. Previously this caused the
+        cross-validation to fail with "possible spoofing detected."
+        """
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [
+                            {
+                                "body": (
+                                    "## Review Assessment\n\nAll checks pass.\n"
+                                    '<!-- review: {"role": "code-review-specialist", '
+                                    '"verdict": "APPROVED", "provider": "gemini"} -->'
+                                )
+                            },
+                            {"body": "CRS APPROVED: Logic correct"},
+                            {"body": "CE APPROVED: Architecture sound"},
+                        ],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        assert approved is True, (
+            "Unrecognized role without visible text match must not trigger spoofing detection. "
+            f"Got: {message}"
+        )
+
+    def test_recognized_role_with_mismatched_metadata_still_fails(
+        self, ci_environment, monkeypatch
+    ):
+        """SECURITY: Recognized role (CRS) with mismatched visible text MUST still fail.
+
+        If metadata says role='CRS' verdict='APPROVED' but visible text shows
+        'CRS BLOCKED:', this mismatch must be detected as potential spoofing.
+        This test ensures the security behavior is preserved for recognized roles.
+        """
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [
+                            {
+                                "body": (
+                                    "CRS BLOCKED: Major issues found\n"
+                                    '<!-- review: {"role": "CRS", '
+                                    '"verdict": "APPROVED", "provider": "gemini"} -->'
+                                )
+                            },
+                        ],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        assert approved is False, (
+            "Recognized role with mismatched metadata must fail cross-validation "
+            "(spoofing detection). "
+            f"Got: {message}"
+        )
+        assert (
+            "spoofing" in message.lower() or "cross-validation" in message.lower()
+        ), f"Error message should mention spoofing or cross-validation. Got: {message}"
