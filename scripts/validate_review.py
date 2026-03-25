@@ -215,6 +215,14 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
                 meta_role = meta.get("role")
                 meta_verdict = meta.get("verdict")
                 if meta_role and meta_verdict:
+                    # Only cross-validate recognized review roles.
+                    # Unrecognized roles (e.g., agent names like
+                    # "code-review-specialist") cannot satisfy any gate
+                    # check, so mismatched metadata is irrelevant -- not
+                    # a spoofing vector.
+                    # Source of truth: review_formats.VALID_ROLES
+                    if meta_role not in {"CRS", "CE", "IL", "HO"}:
+                        continue
                     # Only cross-validate approval verdicts (not BLOCKED/CONDITIONAL)
                     approval_keywords = {"APPROVED", "SELF-REVIEWED", "REVIEWED", "GO"}
                     if meta_verdict in approval_keywords:
