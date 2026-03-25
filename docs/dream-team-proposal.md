@@ -76,6 +76,8 @@ However, add one line to each cognition to carry the philosopher-engineer DNA:
 - ETHOS: Add `CRAFT::"Prove the structure holds before declaring victory"`
 - PATHOS: Add `CRAFT::"Explore widely before the wall narrows the path"`
 
+*Note: These were the original CRAFT proposals. They have been superseded by the debate-derived v2.2.0 values shown in Part 11, which are now implemented in the cognition files.*
+
 ---
 
 ## Part 3: The Key Design Question — Skills vs. Chassis-Profile
@@ -454,7 +456,7 @@ A Wind/Wall/Door debate on "What is the optimal agent ecosystem for a solo devel
 **Not yet.** The philosopher-engineer DNA is scattered across archived documents. It needs to be crystallized into the Constitution and cognition files.
 
 ### Are the cognition files rich enough?
-**Yes, as execution kernels. DECISION LOCKED.** Prose dilutes constraints. The anchor ceremony extracts FORCE, ESSENCE, ELEMENT, MODE, PRIME_DIRECTIVE, CRAFT, THINK, THINK_NEVER — anything else is dead tokens. CRAFT field is now implemented (v2.2.0). Old SHANK behaviours rescued into THINK/THINK_NEVER arrays. Do NOT inflate the schema with narrative blocks. See Part 11 for full reasoning.
+**Yes, as execution kernels. DECISION LOCKED.** Prose dilutes constraints. The anchor ceremony currently extracts FORCE, ESSENCE, ELEMENT, MODE, PRIME_DIRECTIVE, THINK, THINK_NEVER — anything else is dead tokens. CRAFT is now part of the cognition schema (v2.2.0) and the extraction list will be updated to include CRAFT when the anchor ceremony is rebuilt (see Part 11 for the v2.2.0 values). Old SHANK behaviours rescued into THINK/THINK_NEVER arrays. Do NOT inflate the schema with narrative blocks. See Part 11 for full reasoning.
 
 ### Should we have on-demand skill loading instead of chassis-profile?
 **Hybrid.** Keep minimal CHASSIS (1-2 core skills), remove PROFILES. Let anchor ceremony resolve additional skills dynamically.
@@ -1062,7 +1064,7 @@ library/
 - ETHOS: `CRAFT::"Stress the limits to failure before endorsing the structural foundation."`
 - PATHOS: `CRAFT::"Push the option space sideways before driving a single direction forward."`
 
-**Implementation note**: CRAFT is now part of the cognition schema (v2.2.0). The anchor ceremony extraction list should include CRAFT alongside PRIME_DIRECTIVE. Old SHANK behaviours have been rescued into THINK/THINK_NEVER arrays in the current cognition files.
+**Implementation note**: CRAFT is now part of the cognition schema (v2.2.0). The anchor ceremony extraction list will be updated to include CRAFT alongside PRIME_DIRECTIVE when the ceremony is rebuilt — the current anchor does not yet extract CRAFT. Old SHANK behaviours have been rescued into THINK/THINK_NEVER arrays in the current cognition files.
 
 ### RESOLVED: Scope Activation Lives in Agent File (Decision Locked)
 

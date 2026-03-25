@@ -134,7 +134,7 @@ config/
 - §1::IDENTITY: Role, cognition, mission, principles, authority. NO archetypes (blank slate principle — opposing vectors cancel to RLHF baseline).
 - §2::OPERATIONAL_BEHAVIOR: Tone, MUST_ALWAYS, MUST_NEVER, deliverables, evidence, gates, handoff, escalation.
 - §3::TASK_PROFILES: Named list of task modes + DEFAULT. Validation: DEFAULT must exist in PROFILES array.
-- §4::GRAMMAR: MUST_USE regex (Applied Cognitive Grammar), MUST_NOT patterns.
+- §4::GRAMMAR: MUST_USE regex (Applied Cognitive Grammar — TARGET-STATE, not yet implemented), MUST_NOT patterns.
 - No archetypes. No skills. No patterns. Those live in the Archetype Matrix (§2.4).
 
 **phases/** — Phase context payloads (revived ARM files). Define WHERE an agent is operating. Contains:
@@ -399,7 +399,7 @@ Full binding ceremony. Agent proves comprehension at each stage.
 | Stage | Loads | Proves | Mechanism |
 |---|---|---|---|
 | Stage 0 | Cognition + Constitution pointers | — | Pointers delivered |
-| Stage 1 (SEA) | — | Cognition + Constitution | Applied Cognitive Grammar: agent formats Constitution proof THROUGH its cognitive lens. LOGOS: [TENSION]→[INSIGHT]→[SYNTHESIS]. ETHOS: [VERDICT]→[EVIDENCE]. PATHOS: [STIMULUS]→[CONNECTIONS]→[POSSIBILITIES]. Server regex-validates framing. |
+| Stage 1 (SEA) | — | Cognition + Constitution | Applied Cognitive Grammar (TARGET-STATE — not yet implemented): agent formats Constitution proof THROUGH its cognitive lens. LOGOS: [TENSION]→[INSIGHT]→[SYNTHESIS]. ETHOS: [VERDICT]→[EVIDENCE]. PATHOS: [STIMULUS]→[CONNECTIONS]→[POSSIBILITIES]. Server will regex-validate framing. |
 | Stage 2 (SHANK) | Agent identity | Identity | Agent cites MISSION and AUTHORITY from its identity file. |
 | Stage 3 (ARM) | Phase context | Work context | Agent maps current phase to reality, identifies tension. |
 | Stage 4 (FLUKES) | Patterns + Skills | Capabilities | Agent declares which patterns and skills it will use. |
@@ -443,14 +443,16 @@ Cognition-focused loading for multi-perspective analysis. Identity is the cognit
 
 ### 3.3 Applied Cognitive Grammar (The Fulcrum)
 
+> **TARGET-STATE**: Applied Cognitive Grammar is designed but not yet implemented. The regex validation mechanism described below will be built when the anchor ceremony is rebuilt. The current anchor ceremony does not perform grammar-based proof validation. See `docs/decisions/2026-03-22-anchor-ceremony-redesign.oct.md` §10::OPEN_QUESTIONS for outstanding implementation questions.
+
 The key anti-theater mechanism. At Stage 1, the agent must prove Constitution comprehension formatted strictly through its cognitive lens:
 - If LOGOS: output must contain [TENSION], [INSIGHT], [SYNTHESIS] blocks
 - If ETHOS: output must contain [VERDICT], [EVIDENCE] blocks
 - If PATHOS: output must contain [STIMULUS], [CONNECTIONS], [POSSIBILITIES] blocks
 
-The binding system validates using the MUST_USE regex patterns defined in the cognition files. If the agent hasn't absorbed the cognition, it doesn't know the syntax, and validation fails.
+The binding system will validate using the MUST_USE regex patterns defined in the cognition files. If the agent hasn't absorbed the cognition, it doesn't know the syntax, and validation fails.
 
-This is **mechanical enforcement**, not trust. Zero additional API calls. Zero token overhead.
+This targets **mechanical enforcement**, not trust. Zero additional API calls. Zero token overhead.
 
 ### 3.4 Component Ownership Matrix
 

@@ -68,6 +68,7 @@ PROVES::"PATTERNS + SKILLS"
 ANTI_THEATER::"Agent declares exactly which patterns and skills it will invoke for the ARM tension."
 RETURNS::PERMIT
 §5::THREE_PATH_SUPPORT
+SUPERSEDED_NOTE::"The path definitions below captured the initial debate outcome. The architecture spec (dream-team-architecture.md §3.2) refines these with updated loading semantics: Debate path exits after SHANK (not SEA) to include Identity, and Colleague path injects Cognition + Identity + phase context + skill (not Identity only). The architecture spec supersedes this section for implementation purposes."
 ROUTING::"\n"
 PATH_FORMAL::"\n"
 FLOW::"request → lock_sea → lock_shank → lock_arm → commit_flukes"
