@@ -128,7 +128,7 @@ config/
 - §1 COGNITIVE_IDENTITY: FORCE, ESSENCE, ELEMENT (lean identity fields — NOT the old narrative NATURE blocks with PHILOSOPHY/CORE_GIFT/TRUTH_DEFINITION)
 - §2 COGNITIVE_RULES: MODE, PRIME_DIRECTIVE, CRAFT (philosopher-engineer DNA), THINK[], THINK_NEVER[]
 - §4 GRAMMAR: MUST_USE regex patterns (used for Applied Cognitive Grammar validation)
-- CRAFT field is implemented in v2.1.0 (PR #334)
+- CRAFT field is part of the current cognition schema (v2.2.0)
 
 **agents/** — Identity files (~50 lines). Define WHO an agent is. "Blank slate" — no archetypes. Contains:
 - §1::IDENTITY: Role, cognition, mission, principles, authority. NO archetypes (blank slate principle — opposing vectors cancel to RLHF baseline).
@@ -152,8 +152,8 @@ config/
 
 | Decision | Answer | Evidence |
 |---|---|---|
-| Cognition schema | 35-line lean kernels + CRAFT line. No narrative blocks (PHILOSOPHY/CORE_GIFT/TRUTH_DEFINITION). Keep lean identity fields (FORCE/ESSENCE/ELEMENT) which ARE extracted by anchor. | Prose dilutes constraints. Anchor extracts FORCE/ESSENCE/ELEMENT/MODE/PRIME_DIRECTIVE/CRAFT/THINK/THINK_NEVER. Anything not in extraction list is dead tokens. CRAFT implemented in v2.1.0 (PR #334). |
-| Archetype architecture | **Matrix Model**: agent file has identity + core archetype + profile names. External matrix maps {agent × profile → archetypes + qualifiers + skills}. Injection timing EXPERIMENTAL (C047 needed). | C045/C046: archetypes are cost-functions. Qualifier words matter. Triads=stability, singles=steering. Same archetype + different qualifier = different behaviour. Matrix enables experimentation without rewriting agent files. |
+| Cognition schema | 35-line lean kernels + CRAFT line. No narrative blocks (PHILOSOPHY/CORE_GIFT/TRUTH_DEFINITION). Keep lean identity fields (FORCE/ESSENCE/ELEMENT) which ARE extracted by anchor. | Prose dilutes constraints. Anchor extracts FORCE/ESSENCE/ELEMENT/MODE/PRIME_DIRECTIVE/CRAFT/THINK/THINK_NEVER. Anything not in extraction list is dead tokens. CRAFT is part of the current cognition schema (v2.2.0). |
+| Archetype architecture | **Matrix Model**: agent file has identity + task profile names (NO archetypes — blank slate). External matrix maps {agent × profile → archetypes + qualifiers + skills}. Optional core_archetype per agent in matrix config. Injection timing EXPERIMENTAL (C047 needed). | C045/C046: archetypes are cost-functions. Qualifier words matter. Triads=stability, singles=steering. Matrix enables experimentation without rewriting agent files. Blank slate prevents opposing vector cancellation. |
 | File references | Direct paths relative to library root. No URI aliases. | Filesystem = API. LLMs read paths natively. lib:// resolvers are tech debt. |
 | Skills vs patterns | Separate directories. Skills = procedures, patterns = principles. | Different purposes warrant distinct organisation. |
 | Pre-declared skills | None in agent files. Skills resolve dynamically at bind time. | Prevents phantom skill references (50-80% found in agent interviews). |

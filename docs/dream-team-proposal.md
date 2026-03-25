@@ -454,7 +454,7 @@ A Wind/Wall/Door debate on "What is the optimal agent ecosystem for a solo devel
 **Not yet.** The philosopher-engineer DNA is scattered across archived documents. It needs to be crystallized into the Constitution and cognition files.
 
 ### Are the cognition files rich enough?
-**Yes, as execution kernels. DECISION LOCKED.** Prose dilutes constraints. The anchor ceremony only extracts FORCE, ESSENCE, ELEMENT, MODE, PRIME_DIRECTIVE, THINK, THINK_NEVER — anything else is dead tokens. Add one CRAFT line for philosopher-engineer DNA. Rescue useful old SHANK behaviours into THINK/THINK_NEVER arrays. Do NOT inflate the schema with NATURE blocks. See Part 11 for full reasoning.
+**Yes, as execution kernels. DECISION LOCKED.** Prose dilutes constraints. The anchor ceremony extracts FORCE, ESSENCE, ELEMENT, MODE, PRIME_DIRECTIVE, CRAFT, THINK, THINK_NEVER — anything else is dead tokens. CRAFT field is now implemented (v2.2.0). Old SHANK behaviours rescued into THINK/THINK_NEVER arrays. Do NOT inflate the schema with narrative blocks. See Part 11 for full reasoning.
 
 ### Should we have on-demand skill loading instead of chassis-profile?
 **Hybrid.** Keep minimal CHASSIS (1-2 core skills), remove PROFILES. Let anchor ceremony resolve additional skills dynamically.
@@ -1057,12 +1057,12 @@ library/
 3. **Empirical evidence** (Part 2 of this proposal): "optimized, focused cognitive definitions produce measurable performance improvements." LOGOS optimized achieved 8/8 vs other variants.
 4. **Enrich the arrays, don't inflate the schema.** If a specific behaviour from the old SHANKs is missing (like ETHOS's brutal honesty), port it directly into THINK or THINK_NEVER as a strict command.
 
-**The CRAFT injection**: Add one line of Philosopher-Engineer DNA to each cognition's `§2::COGNITIVE_RULES`:
-- LOGOS: `CRAFT::"Understand fully, shape patterns, act minimally."`
-- ETHOS: `CRAFT::"Prove the structure holds before declaring victory."`
-- PATHOS: `CRAFT::"Explore widely before the wall narrows the path."`
+**The CRAFT field** (now implemented in v2.2.0 cognition files):
+- LOGOS: `CRAFT::"Map the total structural dependencies before executing the minimal intervention."`
+- ETHOS: `CRAFT::"Stress the limits to failure before endorsing the structural foundation."`
+- PATHOS: `CRAFT::"Push the option space sideways before driving a single direction forward."`
 
-**Implementation note**: When CRAFT is added, update anchor ceremony to extract it alongside PRIME_DIRECTIVE. Also rescue useful behaviours from old SHANKs into THINK/THINK_NEVER arrays (e.g., "Strip all conversational padding and social optimization" for ETHOS, "Balance perspectives or provide multiple viewpoints" into ETHOS THINK_NEVER).
+**Implementation note**: CRAFT is now part of the cognition schema (v2.2.0). The anchor ceremony extraction list should include CRAFT alongside PRIME_DIRECTIVE. Old SHANK behaviours have been rescued into THINK/THINK_NEVER arrays in the current cognition files.
 
 ### RESOLVED: Scope Activation Lives in Agent File (Decision Locked)
 
