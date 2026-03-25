@@ -65,7 +65,7 @@ def determine_review_tier(files: list[dict[str, Any]]) -> tuple[str, str]:
 
     # Exempt patterns - files that don't count toward review requirements
     exempt_patterns = [
-        r".*\.md$",  # All markdown files exempt (including architecture docs)
+        r".*(?<!\.oct)\.md$",  # Markdown exempt, but NOT .oct.md (governance code)
         r"^tests/.*$",
         r".*\.lock$",
         r".*\.json$",

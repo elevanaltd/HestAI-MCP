@@ -293,6 +293,69 @@ class TestReviewTierLogic:
         assert tier == "TIER_0_EXEMPT"
         assert "exempt" in reason.lower()
 
+    def test_oct_md_files_are_not_exempt(self):
+        """GOVERNANCE: .oct.md files must NOT be exempt from review tier calculation.
+
+        .oct.md files are governance code (cognition definitions, agent definitions,
+        skills, patterns) and must be subject to review requirements per I3
+        (Dual-Layer Authority). The markdown exemption must not apply to them.
+        """
+        files = [
+            {
+                "path": ".hestai-sys/library/cognitions/logos.oct.md",
+                "added": 10,
+                "deleted": 5,
+                "total_changed": 15,
+            }
+        ]
+        tier, reason = validate_review.determine_review_tier(files)
+        assert (
+            tier != "TIER_0_EXEMPT"
+        ), ".oct.md files must NOT be exempt - they are governance code"
+
+    def test_oct_md_agent_files_are_not_exempt(self):
+        """GOVERNANCE: Agent definition .oct.md files must NOT be exempt."""
+        files = [
+            {
+                "path": "src/hestai_mcp/_bundled_hub/library/agents/implementation-lead.oct.md",
+                "added": 30,
+                "deleted": 10,
+                "total_changed": 40,
+            }
+        ]
+        tier, reason = validate_review.determine_review_tier(files)
+        assert (
+            tier != "TIER_0_EXEMPT"
+        ), "Agent .oct.md files must NOT be exempt - they are governance code"
+
+    def test_regular_md_files_remain_exempt(self):
+        """Regular .md files (README, CLAUDE, docs) must still be exempt."""
+        files = [
+            {"path": "README.md", "added": 5, "deleted": 2, "total_changed": 7},
+            {"path": "CLAUDE.md", "added": 3, "deleted": 1, "total_changed": 4},
+            {"path": "docs/ARCHITECTURE.md", "added": 10, "deleted": 5, "total_changed": 15},
+        ]
+        tier, reason = validate_review.determine_review_tier(files)
+        assert (
+            tier == "TIER_0_EXEMPT"
+        ), "Regular .md files must remain exempt from review tier calculation"
+
+    def test_mixed_oct_md_and_regular_md_only_oct_md_counts(self):
+        """When .oct.md and regular .md are mixed, only .oct.md should count."""
+        files = [
+            {"path": "README.md", "added": 50, "deleted": 20, "total_changed": 70},
+            {
+                "path": ".hestai-sys/library/cognitions/logos.oct.md",
+                "added": 10,
+                "deleted": 5,
+                "total_changed": 15,
+            },
+        ]
+        tier, reason = validate_review.determine_review_tier(files)
+        assert (
+            tier != "TIER_0_EXEMPT"
+        ), ".oct.md changes must prevent TIER_0_EXEMPT even when mixed with regular .md"
+
 
 @pytest.mark.behavior
 class TestPRCommentValidation:
