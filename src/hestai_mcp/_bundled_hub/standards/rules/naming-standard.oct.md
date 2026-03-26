@@ -326,11 +326,11 @@ EXAMPLE_NEW::"naming-standard.md"[with_type:standard_in_frontmatter]
 SOURCE::system_steward_analysis+LLM_first_research[2025-12-18]
 SUPERSEDES::101-DOC-STRUCTURE-AND-NAMING-STANDARDS.oct.md[for_new_artifacts]
 COMPANION::VISIBILITY-RULES.md[placement_logic]
-VERSION::1.3[governance_workflow_directory_whitelist]
+VERSION::1.3[standards_workflow_directory_whitelist]
 
 ===CHANGELOG===
 
-v1.3::2026-01-13→added_GOVERNANCE_WORKFLOW_DIRECTORY_rule[whitelists_CAPS_in_.hestai-sys/standards/workflow/+fixes_naming_gap_for_process_methodology_docs]
+v1.3::2026-01-13→added_STANDARDS_WORKFLOW_DIRECTORY_rule[whitelists_CAPS_in_.hestai-sys/standards/workflow/+fixes_naming_gap_for_process_methodology_docs]
 v1.2::2025-12-24→issue_based_document_numbering[RFC-0031]+RFC_pattern_added+grandfathering_legacy_docs
 v1.1::2025-12-19→bundled_in_HestAI_MCP_Hub+OCTAVE_format_conversion
 v1.1::2025-12-18→lifecycle_statuses+controlled_vocabulary+.oct.md_canonical+whitelist+stable_references+regex_patterns

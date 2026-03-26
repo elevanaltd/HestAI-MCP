@@ -59,6 +59,6 @@ DOCUMENT_DECLARATION::"Standards documents declare namespace in META as NAMESPAC
 §4::STRUCTURAL_PRECEDENCE [The_Seal_of_Authority]
 HIERARCHY::SYSTEM_STANDARD → NORTH_STARS[SYSTEM+PRODUCT] → ADRs → WORKFLOWS
 AMENDMENT::"Only human authority can modify system standard law"
-INHERITANCE::"Lower documents inherit governance as read-only (I3)"
+INHERITANCE::"Lower documents inherit standards as read-only (I3)"
 
 ===END===

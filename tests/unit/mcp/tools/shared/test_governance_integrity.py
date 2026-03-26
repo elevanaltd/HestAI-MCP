@@ -1,5 +1,5 @@
 """
-Tests for governance integrity module - Holographic Constitution (#235).
+Tests for governance integrity module - Holographic System Standard (#235).
 
 TDD Discipline:
 1. RED: Write failing tests first

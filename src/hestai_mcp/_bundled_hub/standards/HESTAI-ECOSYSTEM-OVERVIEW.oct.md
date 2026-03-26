@@ -16,7 +16,7 @@ CURRENT_SEPARATION::[
   "DECIDED: merge into single hestai-core-mcp (ADR-0275 accepted, rebuild not yet started)"
 ]
 §1::WHAT_THIS_IS
-HESTAI::"Design-and-build system for AI-assisted software development with installed governance"
+HESTAI::"Design-and-build system for AI-assisted software development with installed operating discipline"
 OPERATOR::"Single developer + laptop + multiple terminals + multi-model AI orchestration"
 ECOSYSTEM::"Six systems (converging to four) that together provide agent identity, governance, deliberation, semantic compression, and a unified control panel"
 §2::THE_SIX_SYSTEMS

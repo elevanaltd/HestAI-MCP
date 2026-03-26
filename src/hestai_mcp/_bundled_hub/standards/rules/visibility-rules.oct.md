@@ -26,7 +26,7 @@ PLACEMENT_LOGIC::[
 
 ===PLACEMENT_RULES===
 
-RULE_0::SYSTEM_GOVERNANCE→.hestai-sys/::[
+RULE_0::SYSTEM_STANDARDS→.hestai-sys/::[
   AUDIENCE::all_HestAI_products+agents,
   LIFECYCLE::committed_in_source+read_only_when_injected,
   TRACKING::git_history+MCP_injection_as_.hestai-sys/,
@@ -34,7 +34,7 @@ RULE_0::SYSTEM_GOVERNANCE→.hestai-sys/::[
   WHAT_GOES_HERE::[
     system_north_star[universal_immutables],
     agent_definition_templates[.oct.md],
-    governance_rules[naming+visibility+test_standards],
+    standards_rules[naming+visibility+test_standards],
     project_templates[north_star_templates],
     reference_libraries[octave_pointers+guides],
     system_skills[ecosystem_wide_operational_knowledge],

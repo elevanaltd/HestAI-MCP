@@ -2,7 +2,7 @@
 
 Each protocol is task-scoped (~50 lines) and composed with the identity kernel
 at runtime. This separation enables:
-- Constitutional coherence (identity always loaded)
+- Identity coherence (identity always loaded)
 - Task-specific behavior (protocol varies per operation)
 - Modularity (add new protocols without changing identity)
 

@@ -131,9 +131,9 @@ This document represents the immutable requirements for HestAI. All work must al
 - **I5** (Blocking Verification) — Quality checks must block
 - **I6** (Explicit Accountability) — Ownership records required
 
-**Anti-Drift Clause:** Under pressure, ceremony density may decrease, but **Gate Evidence** and **Accountability Records** cannot be omitted. Erosion of these elements constitutes violation of I2, I5, and I6.
+**Anti-Drift Clause:** Under pressure, ceremony density may decrease, but **Gate Evidence** and **Accountability Records** cannot be omitted. Erosion of these elements constitutes misalignment with I2, I5, and I6.
 
-**Rationale:** Governance is mechanism, not truth. Success criterion is "does the built thing work properly," not "did we follow the process." But minimum ceremonies are protected by system standard.
+**Rationale:** Operating discipline is mechanism, not truth. Success criterion is "does the built thing work properly," not "did we follow the process." But minimum ceremonies are protected by system standard.
 
 ---
 
