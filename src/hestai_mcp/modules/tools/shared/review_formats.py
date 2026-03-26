@@ -15,10 +15,12 @@ import re
 TIER_0_EXEMPT = "TIER_0_EXEMPT"
 TIER_1_SELF = "TIER_1_SELF"
 TIER_2_STANDARD = "TIER_2_STANDARD"
-TIER_3_STRICT = "TIER_3_STRICT"
+TIER_3_STRICT = "TIER_3_STRICT"  # Deprecated: use TIER_3_CRITICAL
+TIER_3_CRITICAL = "TIER_3_CRITICAL"
+TIER_4_STRATEGIC = "TIER_4_STRATEGIC"
 
 # --- Valid roles and verdicts ---
-VALID_ROLES: frozenset[str] = frozenset({"CRS", "CE", "IL", "HO"})
+VALID_ROLES: frozenset[str] = frozenset({"CRS", "CE", "IL", "HO", "TMG", "CIV", "PE"})
 VALID_VERDICTS: frozenset[str] = frozenset({"APPROVED", "BLOCKED", "CONDITIONAL"})
 
 # --- IL uses SELF-REVIEWED keyword instead of APPROVED ---
@@ -167,6 +169,49 @@ def has_ho_review(texts: list[str]) -> bool:
         True if HO REVIEWED found.
     """
     return _has_approval(texts, "HO", "REVIEWED")
+
+
+def has_tmg_approval(texts: list[str]) -> bool:
+    """Check if any text contains a TMG approval (APPROVED or GO).
+
+    TMG (Test Methodology Guardian) validates test coverage and quality.
+
+    Args:
+        texts: List of comment/body texts to search.
+
+    Returns:
+        True if TMG approval found.
+    """
+    return _has_approval(texts, "TMG", "APPROVED") or _has_approval(texts, "TMG", "GO")
+
+
+def has_civ_approval(texts: list[str]) -> bool:
+    """Check if any text contains a CIV approval (APPROVED or GO).
+
+    CIV (Critical Implementation Validator) validates implementation
+    correctness against specifications.
+
+    Args:
+        texts: List of comment/body texts to search.
+
+    Returns:
+        True if CIV approval found.
+    """
+    return _has_approval(texts, "CIV", "APPROVED") or _has_approval(texts, "CIV", "GO")
+
+
+def has_pe_approval(texts: list[str]) -> bool:
+    """Check if any text contains a PE approval (APPROVED or GO).
+
+    PE (Principal Engineer) validates long-term architectural sustainability.
+
+    Args:
+        texts: List of comment/body texts to search.
+
+    Returns:
+        True if PE approval found.
+    """
+    return _has_approval(texts, "PE", "APPROVED") or _has_approval(texts, "PE", "GO")
 
 
 def format_review_comment(

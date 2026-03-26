@@ -60,21 +60,57 @@ def get_changed_files() -> list[dict[str, Any]]:
         return []
 
 
+def _is_generated_json(path: str) -> bool:
+    """Check if a JSON file is a generated/lock file (exempt) vs hand-edited (not exempt).
+
+    Generated JSON files (package-lock.json, coverage reports, etc.) are exempt.
+    Hand-edited JSON config files (src/config/settings.json) are NOT exempt.
+    """
+    generated_patterns = [
+        r"(^|/)package-lock\.json$",
+        r"(^|/)package\.json$",
+        r"(^|/)tsconfig\.json$",
+        r"(^|/)\.eslintrc\.json$",
+        r"(^|/)coverage/.*\.json$",
+        r"(^|/)\.vscode/.*\.json$",
+        r"(^|/)pyrightconfig\.json$",
+    ]
+    return any(re.search(pattern, path) for pattern in generated_patterns)
+
+
 def determine_review_tier(files: list[dict[str, Any]]) -> tuple[str, str]:
-    """Determine required review tier based on changed files."""
+    """Determine required review tier based on changed files.
+
+    5-tier system (v2.0):
+      T0: Only exempt files changed (docs, tests, locks, generated JSON)
+      T1: <10 non-exempt lines, single file, no security paths, no new test files
+      T2: 10-500 lines, no T3 triggers
+      T3: >500 lines OR security/architecture triggers
+      T4: Manual only (never auto-detected)
+    """
 
     # Exempt patterns - files that don't count toward review requirements
     exempt_patterns = [
         r".*(?<!\.oct)\.md$",  # Markdown exempt, but NOT .oct.md (governance code)
         r"^tests/.*$",
         r".*\.lock$",
-        r".*\.json$",
     ]
 
+    def _is_exempt(path: str) -> bool:
+        """Check if a file path is exempt from review."""
+        # Check standard patterns
+        if any(re.match(pattern, path) for pattern in exempt_patterns):
+            return True
+        # JSON files: only generated ones are exempt
+        if path.endswith(".json"):
+            return _is_generated_json(path)
+        return False
+
+    # Check if any test files are present (for T1 new_test_files guard)
+    has_test_files = any(f["path"].startswith("tests/") for f in files)
+
     # Filter out exempt files for tier calculation
-    non_exempt_files = [
-        f for f in files if not any(re.match(pattern, f["path"]) for pattern in exempt_patterns)
-    ]
+    non_exempt_files = [f for f in files if not _is_exempt(f["path"])]
 
     # If only exempt files changed, no review needed
     if not non_exempt_files:
@@ -84,25 +120,71 @@ def determine_review_tier(files: list[dict[str, Any]]) -> tuple[str, str]:
     total_lines = sum(f["total_changed"] for f in non_exempt_files)
     changed_paths = [f["path"] for f in non_exempt_files]
 
-    # Check for Tier 3 triggers (highest priority)
+    # --- Security path patterns (T3 triggers) ---
+    security_patterns = [
+        r"(^|/)auth/",  # Authentication code
+        r"(^|/)session/",  # Session management
+        r"(^|/)config/env",  # Environment variable handling
+        r"(^|/)path_utils",  # Path handling utilities
+    ]
+
+    # --- Architecture/base class patterns (T3 triggers) ---
+    architecture_patterns = [
+        r"(^|/)base\.py$",  # Base class files
+        r"/shared/",  # Shared modules
+        r"(^|/)abstract/",  # Abstract classes
+        r"(^|/)hooks/",  # Hook files (new_hooks trigger)
+    ]
+
+    # --- New tool/endpoint patterns (T3 triggers) ---
+    new_tool_patterns = [
+        r"(^|/)modules/tools/",  # Tool files
+        r"(^|/)mcp/tools/",  # MCP endpoint files
+        r"^clink/agents/",  # Agent config files
+    ]
+
+    def _has_security_path() -> bool:
+        """Check if any changed path touches security-sensitive code."""
+        return any(
+            re.search(pattern, path) for path in changed_paths for pattern in security_patterns
+        )
+
+    def _has_architecture_path() -> bool:
+        """Check if any changed path touches base classes or shared modules."""
+        return any(
+            re.search(pattern, path) for path in changed_paths for pattern in architecture_patterns
+        )
+
+    def _has_new_tool_path() -> bool:
+        """Check if any changed path is a new tool or MCP endpoint."""
+        return any(
+            re.search(pattern, path) for path in changed_paths for pattern in new_tool_patterns
+        )
+
+    # Check for Tier 3 triggers (highest priority - checked before line count tiers)
     tier3_triggers = [
         any(path.endswith(".sql") for path in changed_paths),
         total_lines > 500,
+        _has_security_path(),
+        _has_architecture_path(),
+        _has_new_tool_path(),
     ]
 
     if any(tier3_triggers):
-        return "TIER_3_STRICT", f"Strict review required - {total_lines} lines, critical paths"
+        return "TIER_3_CRITICAL", (
+            f"Critical review required - {total_lines} lines, critical paths"
+        )
 
-    # Check for Tier 2
-    if 50 <= total_lines <= 500:
-        return "TIER_2_STANDARD", f"CRS + CE review required - {total_lines} lines changed"
+    # Check for Tier 2 (10-500 lines)
+    if 10 <= total_lines <= 500:
+        return "TIER_2_STANDARD", (f"TMG + CRS + CE review required - {total_lines} lines changed")
 
-    # Check for Tier 1
-    if total_lines < 50 and len(non_exempt_files) == 1:
-        return "TIER_1_SELF", f"Self-review sufficient - {total_lines} lines in single file"
+    # Check for Tier 1 (<10 lines, single non-exempt file, no security, no new tests)
+    if total_lines < 10 and len(non_exempt_files) == 1 and not has_test_files:
+        return "TIER_1_SELF", (f"Self-review sufficient - {total_lines} lines in single file")
 
-    # Default to Tier 2 if unsure
-    return "TIER_2_STANDARD", "CRS + CE review required - default tier"
+    # Default to Tier 2 if unsure (multiple files, etc.)
+    return "TIER_2_STANDARD", "TMG + CRS + CE review required - default tier"
 
 
 # Import shared review format utilities (single source of truth).
@@ -116,6 +198,9 @@ try:
         has_ce_approval as _has_ce_approval,
     )
     from hestai_mcp.modules.tools.shared.review_formats import (
+        has_civ_approval as _has_civ_approval,
+    )
+    from hestai_mcp.modules.tools.shared.review_formats import (
         has_crs_approval as _has_crs_approval,
     )
     from hestai_mcp.modules.tools.shared.review_formats import (
@@ -123,6 +208,12 @@ try:
     )
     from hestai_mcp.modules.tools.shared.review_formats import (
         has_ho_review as _has_ho_review,
+    )
+    from hestai_mcp.modules.tools.shared.review_formats import (
+        has_pe_approval as _has_pe_approval,
+    )
+    from hestai_mcp.modules.tools.shared.review_formats import (
+        has_tmg_approval as _has_tmg_approval,
     )
     from hestai_mcp.modules.tools.shared.review_formats import (
         matches_approval_pattern as _matches_approval_pattern,
@@ -152,6 +243,9 @@ except (ImportError, ModuleNotFoundError):
     _has_crs_model_approval = _review_formats.has_crs_model_approval
     _has_ce_approval = _review_formats.has_ce_approval
     _has_ho_review = _review_formats.has_ho_review
+    _has_tmg_approval = _review_formats.has_tmg_approval
+    _has_civ_approval = _review_formats.has_civ_approval
+    _has_pe_approval = _review_formats.has_pe_approval
     _parse_review_metadata = _review_formats.parse_review_metadata
     _VALID_ROLES = _review_formats.VALID_ROLES
 
@@ -264,10 +358,11 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
             return False
 
         # Check for required approvals based on tier.
-        # Higher-tier reviews satisfy lower-tier requirements (hierarchy rule):
-        #   TIER_1_SELF: IL SELF-REVIEWED OR CRS OR CRS+CE
-        #   TIER_2_STANDARD:  CRS + CE
-        #   TIER_3_STRICT: CRS(Gemini) + CRS(Codex) + CE
+        # 5-tier system (v2.0):
+        #   TIER_1_SELF: IL SELF-REVIEWED OR HO REVIEWED OR CRS
+        #   TIER_2_STANDARD: TMG + CRS + CE
+        #   TIER_3_CRITICAL: TMG + CRS + CE + CIV
+        #   TIER_4_STRATEGIC: TMG + CRS + CE + CIV + PE
         if tier == "TIER_1_SELF":
             # Try metadata first, then regex fallback
             if _meta_has("IL", "SELF-REVIEWED"):
@@ -286,58 +381,106 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
             return False, "❌ Missing: IL SELF-REVIEWED or HO REVIEWED comment"
 
         elif tier == "TIER_2_STANDARD":
-            # Try metadata first
+            # T2 requires TMG + CRS + CE
+            meta_tmg = _meta_has("TMG", "APPROVED")
             meta_crs = _meta_has("CRS", "APPROVED")
             meta_ce = _meta_has("CE", "APPROVED")
-            if meta_crs and meta_ce:
-                return True, "✓ CRS and CE approvals found (metadata)"
 
-            # Regex fallback
+            has_tmg = _has_tmg_approval(searchable_texts)
             has_crs = _has_crs_approval(searchable_texts)
             has_ce = _has_ce_approval(searchable_texts)
 
-            if has_crs and has_ce:
-                return True, "✓ CRS and CE approvals found"
+            got_tmg = meta_tmg or has_tmg
+            got_crs = meta_crs or has_crs
+            got_ce = meta_ce or has_ce
+
+            if got_tmg and got_crs and got_ce:
+                return True, "✓ TMG, CRS, and CE approvals found"
 
             missing = []
-            if not (meta_crs or has_crs):
+            if not got_tmg:
+                missing.append("TMG APPROVED or TMG GO")
+            if not got_crs:
                 missing.append("CRS APPROVED or CRS GO")
-            if not (meta_ce or has_ce):
+            if not got_ce:
                 missing.append("CE APPROVED or CE GO")
             return False, f"❌ Missing: {', '.join(missing)}"
 
-        elif tier == "TIER_3_STRICT":
-            # Try metadata first
-            meta_gemini = _meta_has("CRS", "APPROVED", provider="gemini")
-            meta_codex = _meta_has("CRS", "APPROVED", provider="codex")
+        elif tier == "TIER_3_CRITICAL":
+            # T3 requires TMG + CRS + CE + CIV
+            meta_tmg = _meta_has("TMG", "APPROVED")
+            meta_crs = _meta_has("CRS", "APPROVED")
             meta_ce = _meta_has("CE", "APPROVED")
-            if meta_gemini and meta_codex and meta_ce:
-                return True, "✓ Dual CRS + CE approvals found (metadata)"
+            meta_civ = _meta_has("CIV", "APPROVED")
 
-            # Regex fallback
-            has_crs_gemini = _has_crs_model_approval(searchable_texts, "Gemini")
-            has_crs_codex = _has_crs_model_approval(searchable_texts, "Codex")
+            has_tmg = _has_tmg_approval(searchable_texts)
+            has_crs = _has_crs_approval(searchable_texts)
             has_ce = _has_ce_approval(searchable_texts)
+            has_civ = _has_civ_approval(searchable_texts)
 
-            if has_crs_gemini and has_crs_codex and has_ce:
-                return True, "✓ Dual CRS (Gemini + Codex) and CE approvals found"
+            got_tmg = meta_tmg or has_tmg
+            got_crs = meta_crs or has_crs
+            got_ce = meta_ce or has_ce
+            got_civ = meta_civ or has_civ
+
+            if got_tmg and got_crs and got_ce and got_civ:
+                return True, "✓ TMG, CRS, CE, and CIV approvals found"
 
             missing = []
-            if not (meta_gemini or has_crs_gemini):
-                missing.append("CRS (Gemini) APPROVED or CRS (Gemini) GO")
-            if not (meta_codex or has_crs_codex):
-                missing.append("CRS (Codex) APPROVED or CRS (Codex) GO")
-            if not (meta_ce or has_ce):
+            if not got_tmg:
+                missing.append("TMG APPROVED or TMG GO")
+            if not got_crs:
+                missing.append("CRS APPROVED or CRS GO")
+            if not got_ce:
                 missing.append("CE APPROVED or CE GO")
+            if not got_civ:
+                missing.append("CIV APPROVED or CIV GO")
             return False, f"❌ Missing: {', '.join(missing)}"
+
+        elif tier == "TIER_4_STRATEGIC":
+            # T4 requires TMG + CRS + CE + CIV + PE
+            meta_tmg = _meta_has("TMG", "APPROVED")
+            meta_crs = _meta_has("CRS", "APPROVED")
+            meta_ce = _meta_has("CE", "APPROVED")
+            meta_civ = _meta_has("CIV", "APPROVED")
+            meta_pe = _meta_has("PE", "APPROVED")
+
+            has_tmg = _has_tmg_approval(searchable_texts)
+            has_crs = _has_crs_approval(searchable_texts)
+            has_ce = _has_ce_approval(searchable_texts)
+            has_civ = _has_civ_approval(searchable_texts)
+            has_pe = _has_pe_approval(searchable_texts)
+
+            got_tmg = meta_tmg or has_tmg
+            got_crs = meta_crs or has_crs
+            got_ce = meta_ce or has_ce
+            got_civ = meta_civ or has_civ
+            got_pe = meta_pe or has_pe
+
+            if got_tmg and got_crs and got_ce and got_civ and got_pe:
+                return True, "✓ TMG, CRS, CE, CIV, and PE approvals found"
+
+            missing = []
+            if not got_tmg:
+                missing.append("TMG APPROVED or TMG GO")
+            if not got_crs:
+                missing.append("CRS APPROVED or CRS GO")
+            if not got_ce:
+                missing.append("CE APPROVED or CE GO")
+            if not got_civ:
+                missing.append("CIV APPROVED or CIV GO")
+            if not got_pe:
+                missing.append("PE APPROVED or PE GO")
+            return False, f"❌ Missing: {', '.join(missing)}"
+
+        # SECURITY: Fail closed for unrecognized tiers (no silent approval)
+        return False, f"❌ Unrecognized tier: {tier}"
 
     except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
         # SECURITY FIX: Fail closed in CI, permissive locally
         if "CI" in os.environ:
             return False, f"❌ Error checking PR comments: {e}"
         return True, "Unable to check PR comments (local mode)"
-
-    return True, "No review required for this tier"
 
 
 def log_emergency_bypass() -> None:
@@ -442,15 +585,22 @@ def main() -> int:
             print("   Example: 'IL SELF-REVIEWED: Fixed typo in error message'")
         elif tier == "TIER_2_STANDARD":
             print("   Need comments:")
-            print("   - 'CRS APPROVED: [assessment]' (or CRS (Gemini) APPROVED:)")
-            print("   - 'CE APPROVED: [critical assessment]'")
-            print("   Example: 'CRS APPROVED: Logic correct, tests pass, no security issues'")
-        elif tier == "TIER_3_STRICT":
+            print("   - 'TMG APPROVED: [test assessment]' (or TMG GO:)")
+            print("   - 'CRS APPROVED: [assessment]' (or CRS GO:)")
+            print("   - 'CE APPROVED: [critical assessment]' (or CE GO:)")
+        elif tier == "TIER_3_CRITICAL":
             print("   Need comments:")
-            print("   - 'CRS (Gemini) APPROVED: [assessment]'")
-            print("   - 'CRS (Codex) APPROVED: [assessment]'")
-            print("   - 'CE APPROVED: [critical assessment]'")
-            print("   Example: 'CRS (Gemini) APPROVED: Logic verified, patterns sound'")
+            print("   - 'TMG APPROVED: [test assessment]' (or TMG GO:)")
+            print("   - 'CRS APPROVED: [assessment]' (or CRS GO:)")
+            print("   - 'CE APPROVED: [critical assessment]' (or CE GO:)")
+            print("   - 'CIV APPROVED: [implementation assessment]' (or CIV GO:)")
+        elif tier == "TIER_4_STRATEGIC":
+            print("   Need comments:")
+            print("   - 'TMG APPROVED: [test assessment]' (or TMG GO:)")
+            print("   - 'CRS APPROVED: [assessment]' (or CRS GO:)")
+            print("   - 'CE APPROVED: [critical assessment]' (or CE GO:)")
+            print("   - 'CIV APPROVED: [implementation assessment]' (or CIV GO:)")
+            print("   - 'PE APPROVED: [strategic assessment]' (or PE GO:)")
 
         # Only block in CI context
         if "CI" in os.environ:
