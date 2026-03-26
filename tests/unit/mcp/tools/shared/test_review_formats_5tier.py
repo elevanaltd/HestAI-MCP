@@ -351,32 +351,43 @@ class TestFormatReviewCommentNewRoles:
         assert "Goose" in comment
 
     def test_format_tmg_blocked(self) -> None:
-        """Format TMG BLOCKED comment."""
+        """Format TMG BLOCKED comment with correct prefix and metadata."""
         from hestai_mcp.modules.tools.shared.review_formats import format_review_comment
 
         comment = format_review_comment(
             role="TMG", verdict="BLOCKED", assessment="Tests insufficient"
         )
-        assert "BLOCKED" in comment
+        assert comment.startswith(
+            "TMG BLOCKED:"
+        ), f"TMG BLOCKED comment must start with 'TMG BLOCKED:', got: {comment[:30]}"
         assert "Tests insufficient" in comment
+        assert "<!-- review:" in comment, "BLOCKED comment must contain metadata line"
 
     def test_format_civ_blocked(self) -> None:
-        """Format CIV BLOCKED comment."""
+        """Format CIV BLOCKED comment with correct prefix and metadata."""
         from hestai_mcp.modules.tools.shared.review_formats import format_review_comment
 
         comment = format_review_comment(
             role="CIV", verdict="BLOCKED", assessment="Implementation flawed"
         )
-        assert "BLOCKED" in comment
+        assert comment.startswith(
+            "CIV BLOCKED:"
+        ), f"CIV BLOCKED comment must start with 'CIV BLOCKED:', got: {comment[:30]}"
+        assert "Implementation flawed" in comment
+        assert "<!-- review:" in comment, "BLOCKED comment must contain metadata line"
 
     def test_format_pe_blocked(self) -> None:
-        """Format PE BLOCKED comment."""
+        """Format PE BLOCKED comment with correct prefix and metadata."""
         from hestai_mcp.modules.tools.shared.review_formats import format_review_comment
 
         comment = format_review_comment(
             role="PE", verdict="BLOCKED", assessment="Architecture unsound"
         )
-        assert "BLOCKED" in comment
+        assert comment.startswith(
+            "PE BLOCKED:"
+        ), f"PE BLOCKED comment must start with 'PE BLOCKED:', got: {comment[:30]}"
+        assert "Architecture unsound" in comment
+        assert "<!-- review:" in comment, "BLOCKED comment must contain metadata line"
 
 
 # ---------------------------------------------------------------------------
