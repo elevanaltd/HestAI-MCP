@@ -75,7 +75,7 @@ DEBATE_ARTIFACTS[debates/]::[
 ]
 
 CLAUDE_CODE[.claude/]::[
-  agents/→"Agent constitutions (.oct.md)",
+  agents/→"Agent definitions (.oct.md)",
   commands/→"Slash commands",
   skills/→"Project-specific skills (per-repo, NOT ecosystem-wide)",
   hooks/→"Git workflow automation"
@@ -117,7 +117,7 @@ ADR_SUPREMACY::[
 // Per visibility-rules.oct.md FORMAT_RULES + FILE_RETENTION_POLICY
 
 OCTAVE_FORMAT[.oct.md]::[
-  agent_constitutions,
+  agent_definitions,
   governance_rules,
   north_star_summaries[agent_consumed],
   methodology_docs,

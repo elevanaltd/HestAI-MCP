@@ -32,7 +32,7 @@ HESTAI_MCP::[
     submit_review
   ],
   BLOCKERS::none_technical<discovery_phase>,
-  KEY_FACT::"Operational but still discovering what to build. Calls odyssean-anchor at runtime via MCP tool names (not Python imports). Bundles agent constitutions, skills, governance docs."
+  KEY_FACT::"Operational but still discovering what to build. Calls odyssean-anchor at runtime via MCP tool names (not Python imports). Bundles agent definitions, skills, standards docs."
 ]
 ODYSSEAN_ANCHOR_MCP::[
   VERSION::"0.1.1",

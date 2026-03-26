@@ -44,7 +44,7 @@ RULE_0::SYSTEM_GOVERNANCE→.hestai-sys/::[
   STRUCTURE::[
     .hestai-sys/standards/workflow/→[000-SYSTEM-HESTAI-NORTH-STAR.md],
     .hestai-sys/standards/rules/→[naming-standard.oct.md|visibility-rules.oct.md],
-    .hestai-sys/agents/→[agent_constitution_templates],
+    .hestai-sys/agents/→[agent_definition_templates],
     .hestai-sys/templates/→[project_templates],
     .hestai-sys/library/skills/→[ecosystem_wide_skills],
     .hestai-sys/library/agents/→[agent_definitions],
@@ -193,7 +193,7 @@ RULE_5::CLAUDE_CODE_CONFIG→.claude/::[
   TRACKING::git+sync_commands[cfg-config-sync],
 
   WHAT_GOES_HERE::[
-    agent_constitutions[.oct.md_files],
+    agent_definitions[.oct.md_files],
     slash_commands[/activate|/role],
     skills[operational_knowledge_modules],
     hooks[git_workflow_automation]
@@ -288,7 +288,7 @@ PLACEMENT_TABLE::[
   debate_transcripts→debates/[split_tracking:json_ignored|octave_committed|cognitive_evidence|durable],
 
   // CLAUDE CODE INFRASTRUCTURE (.claude/)
-  agent_constitutions→.claude/agents/[committed|Claude_Code|infrastructure],
+  agent_definitions→.claude/agents/[committed|Claude_Code|infrastructure],
   project_skills→.claude/skills/[committed|Claude_Code|infrastructure]
 ]
 
@@ -389,7 +389,7 @@ FROM_OLD→TO_THREE_TIER::[
 // When to use OCTAVE (.oct.md) vs Markdown (.md)
 
 OCTAVE_FORMAT[.oct.md]::[
-  agent_constitutions,
+  agent_definitions,
   governance_rules,
   north_star_summaries[agent_consumed_compressed],
   methodology_docs,
@@ -414,7 +414,7 @@ NOTE_NORTH_STAR_FORMAT::[
 
 FORMAT_DECISION_TREE::[
   "Primary audience AI agents?"→YES→.oct.md,
-  "Governance/methodology/constitution?"→YES→.oct.md,
+  "Standards/methodology/system-standard?"→YES→.oct.md,
   "Primary audience human developers?"→YES→.md,
   "ADR or setup guide?"→YES→.md
 ]

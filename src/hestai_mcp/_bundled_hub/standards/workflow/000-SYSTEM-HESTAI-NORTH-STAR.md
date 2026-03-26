@@ -3,7 +3,7 @@ type: NORTH_STAR
 id: system-hestai-north-star
 version: 1.1
 status: APPROVED
-purpose: Constitutional methodology and governance for all HestAI projects
+purpose: Operating discipline and standards for all HestAI projects
 inherits: NONE[ROOT_DOCUMENT]
 approved_by: Shaun Buswell (Human Primacy Authority)
 approval_date: 2025-12-05
@@ -144,7 +144,7 @@ This document represents the immutable requirements for HestAI. All work must al
 | **Ceremony Intensity** | Phases exist (I2) | Duration per phase | Specific artifacts |
 | **Documentation Depth** | Discoverable persistence (I4) | Format and length | Storage location |
 | **Model Implementation** | Governance applies | Which AI provider | Specific model versions |
-| **Agent Architecture** | Constitutional binding | Number of agents | Specific role definitions |
+| **Agent Architecture** | Standards binding | Number of agents | Specific role definitions |
 | **Coordination Structure** | Accountability required (I6) | RACI vs other models | Role naming conventions |
 
 ---
@@ -202,7 +202,7 @@ HestAI's compressed notation system:
 |----|------------|------------|--------|----------|--------|
 | A0 | This methodology produces better North Stars | 70% | LOW | Post-cycle | Pending |
 | A1 | Multi-agent coordination scales | 70% | CRITICAL | **Before B0** | Pending |
-| A2 | Constitutional binding affects behavior | 85% | HIGH | Quarterly | **Validating (B1)** |
+| A2 | Standards binding affects behavior | 85% | HIGH | Quarterly | **Validating (B1)** |
 | A3 | Single developer can maintain system | 85% | MEDIUM | Monthly | Ongoing |
 | A4 | OCTAVE compression preserves meaning | 95% | HIGH | **Before B0** | **RESOLVED** |
 | A5 | Phase gates add more value than overhead | 80% | MEDIUM | Per-project | Validating |
@@ -262,7 +262,7 @@ If ANY agent detects misalignment between work and this North Star:
 
 ---
 
-<!-- Constitutional Authority: north-star-architect (PATHOS cognition) -->
+<!-- Standards Authority: north-star-architect (PATHOS cognition) -->
 <!-- Approval Authority: Human (I3 Human Primacy) -->
 <!-- Validation: Multi-model consensus (Codex + Gemini) -->
 <!-- Date: 2025-12-05 -->
