@@ -256,6 +256,9 @@ try:
         has_pe_approval as _has_pe_approval,
     )
     from hestai_mcp.modules.tools.shared.review_formats import (
+        has_self_review as _has_self_review,
+    )
+    from hestai_mcp.modules.tools.shared.review_formats import (
         has_tmg_approval as _has_tmg_approval,
     )
     from hestai_mcp.modules.tools.shared.review_formats import (
@@ -289,6 +292,7 @@ except (ImportError, ModuleNotFoundError):
     _has_tmg_approval = _review_formats.has_tmg_approval
     _has_civ_approval = _review_formats.has_civ_approval
     _has_pe_approval = _review_formats.has_pe_approval
+    _has_self_review = _review_formats.has_self_review
     _parse_review_metadata = _review_formats.parse_review_metadata
     _VALID_ROLES = _review_formats.VALID_ROLES
 
@@ -412,26 +416,30 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
 
         # Check for required approvals based on tier.
         # 5-tier system (v2.0):
-        #   TIER_1_SELF: IL SELF-REVIEWED OR HO REVIEWED OR CRS
+        #   TIER_1_SELF: {any role} SELF-REVIEWED OR HO REVIEWED OR CRS
         #   TIER_2_STANDARD: TMG + CRS + CE
         #   TIER_3_CRITICAL: TMG + CRS + CE + CIV
         #   TIER_4_STRATEGIC: TMG + CRS + CE + CIV + PE
         if tier == "TIER_1_SELF":
-            # Try metadata first, then regex fallback
-            if _meta_has("IL", "SELF-REVIEWED"):
-                return True, "✓ Self-review found (metadata)"
+            # Try metadata first: any role with SELF-REVIEWED verdict
+            for entry in metadata_entries:
+                if entry.get("verdict") == "SELF-REVIEWED":
+                    return True, "✓ Self-review found (metadata)"
             if _meta_has("HO", "REVIEWED"):
                 return True, "✓ HO supervisory review found (metadata)"
             if _meta_has("CRS", "APPROVED"):
                 return True, "✓ CRS approval satisfies self-review (metadata)"
-            # Regex fallback for old comments without metadata
-            if _has_approval(searchable_texts, "IL", "SELF-REVIEWED"):
+            # Regex fallback: role-agnostic SELF-REVIEWED
+            if _has_self_review(searchable_texts):
                 return True, "✓ Self-review found"
             if _has_approval(searchable_texts, "HO", "REVIEWED"):
                 return True, "✓ HO supervisory review found"
             if _has_crs_approval(searchable_texts):
                 return True, "✓ CRS approval satisfies self-review requirement"
-            return False, "❌ Missing: IL SELF-REVIEWED or HO REVIEWED comment"
+            return (
+                False,
+                "❌ Missing: {role} SELF-REVIEWED or HO REVIEWED comment",
+            )
 
         elif tier == "TIER_2_STANDARD":
             # T2 requires TMG + CRS + CE
@@ -632,9 +640,9 @@ def main() -> int:
     if not approved:
         print("\n⚠️  Review Requirements:")
         if tier == "TIER_1_SELF":
-            print("   Add comment: 'IL SELF-REVIEWED: [your rationale]'")
+            print("   Add comment: '{role} SELF-REVIEWED: [your rationale]'")
             print("   -- or --")
-            print("   Add comment: 'HO REVIEWED: [rationale after delegated implementation]'")
+            print("   Add comment: 'HO REVIEWED: [rationale after delegated work]'")
             print("   Example: 'IL SELF-REVIEWED: Fixed typo in error message'")
         elif tier == "TIER_2_STANDARD":
             print("   Need comments:")

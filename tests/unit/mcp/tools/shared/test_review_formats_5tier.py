@@ -473,3 +473,65 @@ class TestMetadataParsingNewRoles:
         assert meta is not None
         assert meta["role"] == "TMG"
         assert meta["verdict"] == "BLOCKED"
+
+
+# ---------------------------------------------------------------------------
+# H. Role-agnostic self-review matching
+# ---------------------------------------------------------------------------
+@pytest.mark.unit
+class TestGenericSelfReview:
+    """has_self_review() must match any word/identifier followed by SELF-REVIEWED."""
+
+    def test_has_self_review_with_il(self) -> None:
+        """IL SELF-REVIEWED must match (backward compat)."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_self_review
+
+        assert has_self_review(["IL SELF-REVIEWED: fixed typo"])
+
+    def test_has_self_review_with_skills_expert(self) -> None:
+        """skills-expert SELF-REVIEWED must match (hyphenated role name)."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_self_review
+
+        assert has_self_review(["skills-expert SELF-REVIEWED: updated GATES"])
+
+    def test_has_self_review_with_human_name(self) -> None:
+        """Human name like Shaun SELF-REVIEWED must match."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_self_review
+
+        assert has_self_review(["Shaun SELF-REVIEWED: quick config change"])
+
+    def test_has_self_review_with_agent_expert(self) -> None:
+        """agent-expert SELF-REVIEWED must match."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_self_review
+
+        assert has_self_review(["agent-expert SELF-REVIEWED: new agent definition"])
+
+    def test_has_self_review_negative(self) -> None:
+        """Comment without SELF-REVIEWED must not match."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_self_review
+
+        assert not has_self_review(["NOT-A-REVIEW: just a comment"])
+
+    def test_has_self_review_partial_match(self) -> None:
+        """SELF-REVIEWED alone without role prefix must not match."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_self_review
+
+        assert not has_self_review(["SELF-REVIEWED"])
+
+    def test_has_il_self_review_backward_compat(self) -> None:
+        """has_il_self_review() must still work as deprecated wrapper."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_il_self_review
+
+        assert has_il_self_review(["IL SELF-REVIEWED: backward compat test"])
+
+    def test_has_self_review_empty_list(self) -> None:
+        """Empty list returns False."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_self_review
+
+        assert not has_self_review([])
+
+    def test_has_self_review_with_model_annotation(self) -> None:
+        """IL (Claude) SELF-REVIEWED must match via flexible pattern."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_self_review
+
+        assert has_self_review(["IL (Claude): SELF-REVIEWED: quick fix"])

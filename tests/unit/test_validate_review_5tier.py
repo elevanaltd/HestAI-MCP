@@ -1064,6 +1064,33 @@ class TestTier1ApprovalInValidator:
         approved, message = validate_review.check_pr_comments("TIER_1_SELF")
         assert approved is False, f"T1 without self-review should fail, got: {message}"
 
+    def test_tier_1_with_generic_role_self_reviewed(self, ci_environment, monkeypatch) -> None:
+        """T1 passes with any role name followed by SELF-REVIEWED.
+
+        The self-review pattern should be role-agnostic: 'skills-expert SELF-REVIEWED'
+        or 'Shaun SELF-REVIEWED' should satisfy T1, not just 'IL SELF-REVIEWED'.
+        """
+        import subprocess
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [
+                            {"body": "skills-expert SELF-REVIEWED: updated GATES section"},
+                        ],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments("TIER_1_SELF")
+        assert approved is True, f"T1 with generic role SELF-REVIEWED should pass, got: {message}"
+
 
 # ---------------------------------------------------------------------------
 # M2: Missing negative approval tests for new roles in validator

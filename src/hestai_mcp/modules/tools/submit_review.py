@@ -29,8 +29,8 @@ from hestai_mcp.modules.tools.shared.review_formats import (
     has_civ_approval,
     has_crs_approval,
     has_ho_review,
-    has_il_self_review,
     has_pe_approval,
+    has_self_review,
     has_tmg_approval,
 )
 
@@ -91,7 +91,8 @@ def _check_would_clear_gate(comment: str, role: str, verdict: str) -> bool:
     elif role == "PE":
         return has_pe_approval([comment])
     elif role == "IL":
-        return has_il_self_review([comment])
+        # Any role can self-review for T1; IL maps APPROVED -> SELF-REVIEWED
+        return has_self_review([comment])
     elif role == "HO":
         return has_ho_review([comment])
 

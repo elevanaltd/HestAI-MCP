@@ -140,8 +140,51 @@ def has_ce_approval(texts: list[str]) -> bool:
     return _has_approval(texts, "CE", "APPROVED") or _has_approval(texts, "CE", "GO")
 
 
+# Compiled regex for role-agnostic self-review matching.
+# Matches any word (including hyphenated identifiers like "skills-expert")
+# optionally followed by a parenthetical model annotation and separators,
+# then SELF-REVIEWED with word boundary.
+_SELF_REVIEW_RE = re.compile(
+    r"\b\w[\w-]*"  # Role/name word (e.g., IL, skills-expert, Shaun)
+    r"(?:\s*\([^)]*\))?"  # Optional parenthetical (e.g., (Claude))
+    r"[\s:—–\-]*"  # Separators (whitespace, colon, dashes)
+    r"SELF-REVIEWED\b"  # Keyword with word boundary
+)
+
+
+def has_self_review(texts: list[str]) -> bool:
+    """Check if any text contains a self-review from any role or person.
+
+    Role-agnostic: matches any word/identifier followed by SELF-REVIEWED.
+
+    Matches patterns like:
+      - 'IL SELF-REVIEWED: fixed typo'
+      - 'skills-expert SELF-REVIEWED: updated GATES'
+      - 'Shaun SELF-REVIEWED: quick config change'
+      - 'IL (Claude): SELF-REVIEWED: quick fix' (via flexible matching)
+
+    A bare 'SELF-REVIEWED' without a preceding role/name does NOT match.
+
+    Args:
+        texts: List of comment/body texts to search.
+
+    Returns:
+        True if any text contains a valid self-review pattern.
+    """
+    for text in texts:
+        # Strip markdown bold/italic markers for consistency
+        cleaned = re.sub(r"\*{1,2}([^*]+)\*{1,2}", r"\1", text)
+        for line in cleaned.splitlines():
+            if _SELF_REVIEW_RE.search(line):
+                return True
+    return False
+
+
 def has_il_self_review(texts: list[str]) -> bool:
     """Check if any text contains an IL self-review.
+
+    Deprecated: Use has_self_review() for role-agnostic matching.
+    Kept for backward compatibility.
 
     Args:
         texts: List of comment/body texts to search.
@@ -149,7 +192,7 @@ def has_il_self_review(texts: list[str]) -> bool:
     Returns:
         True if IL SELF-REVIEWED found.
     """
-    return _has_approval(texts, "IL", _IL_APPROVED_KEYWORD)
+    return has_self_review(texts)
 
 
 def has_ho_review(texts: list[str]) -> bool:
