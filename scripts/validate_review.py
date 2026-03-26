@@ -19,6 +19,18 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+# --- Known bot account logins whose comments must be excluded from approval matching ---
+_BOT_LOGIN_SET: frozenset[str] = frozenset(
+    {
+        "github-actions",
+        "coderabbitai",
+        "copilot",
+        "cubic-bot",
+        "qodo-merge-pro",
+        "qodo-merge-pro-for-open-source",
+    }
+)
+
 
 def get_changed_files() -> list[dict[str, Any]]:
     """Get list of changed files with line counts and file status.
@@ -316,16 +328,26 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
         pr_data = json.loads(result.stdout)
 
         # Collect all searchable text: PR body + comment bodies
-        # Exclude bot status comments to prevent self-referencing approval
-        # (the bot's guidance text contains "CRS APPROVED:" which would falsely match)
+        # Exclude ALL bot comments to prevent false positive approval matches.
+        # Bot review prose (CodeRabbit, Copilot, Cubic, github-actions) often
+        # contains "APPROVED", "GO", etc. which would falsely clear the gate.
+        def _is_bot_comment(comment: dict[str, Any]) -> bool:
+            """Check if a comment is from a bot author."""
+            login = comment.get("author", {}).get("login", "")
+            if login in _BOT_LOGIN_SET:
+                return True
+            # Catch any other [bot]-suffixed accounts (GitHub convention)
+            if login.endswith("[bot]"):
+                return True
+            # Legacy marker check for review-gate status comments
+            return "<!-- review-gate-status -->" in comment.get("body", "")
+
         searchable_texts: list[str] = []
         pr_body = pr_data.get("body")
         if pr_body:
             searchable_texts.append(pr_body)
         searchable_texts.extend(
-            c["body"]
-            for c in pr_data.get("comments", [])
-            if "<!-- review-gate-status -->" not in c["body"]
+            c.get("body", "") for c in pr_data.get("comments", []) if not _is_bot_comment(c)
         )
 
         # --- Metadata extraction and cross-validation ---

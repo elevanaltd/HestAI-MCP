@@ -1158,3 +1158,120 @@ class TestOldTier3DualCRSRegression:
 
         approved, message = validate_review.check_pr_comments("TIER_3_CRITICAL")
         assert approved is False, f"Old dual-CRS+CE model should NOT satisfy new T3, got: {message}"
+
+
+# ---------------------------------------------------------------------------
+# Bot comment filtering
+# ---------------------------------------------------------------------------
+@pytest.mark.unit
+class TestBotCommentFiltering:
+    """Bot comments must NOT be included in approval pattern matching.
+
+    CodeRabbit, Copilot, Cubic, and github-actions bot comments often contain
+    approval-like text ('APPROVED', 'GO', etc.) in their review prose. These
+    must be excluded so only human/agent review comments count.
+    """
+
+    def test_coderabbit_approval_text_not_counted(self, ci_environment, monkeypatch) -> None:
+        """CodeRabbit bot comment with 'APPROVED' in body must NOT satisfy gate."""
+        import subprocess
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [
+                            {
+                                "author": {"login": "coderabbitai"},
+                                "body": (
+                                    "<!-- This is an auto-generated comment: review by "
+                                    "coderabbit.ai -->\n"
+                                    "## Summary\n"
+                                    "TMG APPROVED: all tests pass\n"
+                                    "CRS APPROVED: logic correct\n"
+                                    "CE APPROVED: architecture sound"
+                                ),
+                            },
+                        ],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        assert (
+            approved is False
+        ), f"CodeRabbit bot comment must NOT satisfy approval gate, got: {message}"
+
+    def test_copilot_approval_text_not_counted(self, ci_environment, monkeypatch) -> None:
+        """Copilot bot comment with approval text must NOT satisfy gate."""
+        import subprocess
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [
+                            {
+                                "author": {"login": "copilot"},
+                                "body": "CRS APPROVED: All checks pass\nCE APPROVED: Sound",
+                            },
+                        ],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        assert (
+            approved is False
+        ), f"Copilot bot comment must NOT satisfy approval gate, got: {message}"
+
+    def test_human_approval_still_counted(self, ci_environment, monkeypatch) -> None:
+        """Human comments alongside bot comments must still be counted."""
+        import subprocess
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [
+                            {
+                                "author": {"login": "coderabbitai"},
+                                "body": "TMG APPROVED: bot text (should be ignored)",
+                            },
+                            {
+                                "author": {"login": "real-user"},
+                                "body": "TMG APPROVED: tests verified",
+                            },
+                            {
+                                "author": {"login": "another-user"},
+                                "body": "CRS APPROVED: Logic correct",
+                            },
+                            {
+                                "author": {"login": "ce-user"},
+                                "body": "CE APPROVED: Architecture sound",
+                            },
+                        ],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        assert approved is True, (
+            f"Human comments should still satisfy gate even with bot comments present, "
+            f"got: {message}"
+        )

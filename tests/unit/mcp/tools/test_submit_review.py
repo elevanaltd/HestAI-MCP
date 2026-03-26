@@ -854,7 +854,7 @@ class TestCrsModelAnnotationAdvisory:
         )
         assert result["success"] is True
         assert "advisory" in result
-        assert "TIER_3_STRICT" in result["advisory"]
+        assert "TIER_3_CRITICAL" in result["advisory"]
         assert "model_annotation" in result["advisory"]
 
     @pytest.mark.asyncio
@@ -934,7 +934,7 @@ class TestCrsModelAnnotationAdvisory:
 
         assert result["success"] is True
         assert "advisory" in result
-        assert "TIER_3_STRICT" in result["advisory"]
+        assert "TIER_3_CRITICAL" in result["advisory"]
 
 
 @pytest.mark.unit
@@ -1069,3 +1069,123 @@ class TestFailClosed:
             dry_run=True,
         )
         assert "tier_requirements" in result["validation"]
+
+
+# ---------------------------------------------------------------------------
+# 5-tier system alignment: TMG, CIV, PE gate clearance
+# ---------------------------------------------------------------------------
+@pytest.mark.unit
+class TestNewRoleGateClearance:
+    """TMG, CIV, PE APPROVED must clear the review gate via _check_would_clear_gate."""
+
+    def test_tmg_approved_clears_gate(self) -> None:
+        """TMG APPROVED formatted comment must clear the gate."""
+        from hestai_mcp.modules.tools.submit_review import _check_would_clear_gate
+
+        comment = "TMG APPROVED: tests cover critical paths"
+        assert _check_would_clear_gate(comment, "TMG", "APPROVED") is True
+
+    def test_civ_approved_clears_gate(self) -> None:
+        """CIV APPROVED formatted comment must clear the gate."""
+        from hestai_mcp.modules.tools.submit_review import _check_would_clear_gate
+
+        comment = "CIV APPROVED: implementation matches spec"
+        assert _check_would_clear_gate(comment, "CIV", "APPROVED") is True
+
+    def test_pe_approved_clears_gate(self) -> None:
+        """PE APPROVED formatted comment must clear the gate."""
+        from hestai_mcp.modules.tools.submit_review import _check_would_clear_gate
+
+        comment = "PE APPROVED: architecture sound for 6 months"
+        assert _check_would_clear_gate(comment, "PE", "APPROVED") is True
+
+    def test_tmg_blocked_does_not_clear_gate(self) -> None:
+        """TMG BLOCKED must NOT clear the gate."""
+        from hestai_mcp.modules.tools.submit_review import _check_would_clear_gate
+
+        assert _check_would_clear_gate("TMG BLOCKED: tests insufficient", "TMG", "BLOCKED") is False
+
+    @pytest.mark.asyncio
+    async def test_tmg_dry_run_succeeds(self) -> None:
+        """TMG APPROVED dry-run must succeed with would_clear_gate=True."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        result = await submit_review(
+            repo="elevanaltd/HestAI-MCP",
+            pr_number=123,
+            role="TMG",
+            verdict="APPROVED",
+            assessment="Tests cover critical paths",
+            dry_run=True,
+        )
+        assert result["success"] is True
+        assert result["validation"]["would_clear_gate"] is True
+
+    @pytest.mark.asyncio
+    async def test_civ_dry_run_succeeds(self) -> None:
+        """CIV APPROVED dry-run must succeed with would_clear_gate=True."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        result = await submit_review(
+            repo="elevanaltd/HestAI-MCP",
+            pr_number=123,
+            role="CIV",
+            verdict="APPROVED",
+            assessment="Implementation matches spec",
+            dry_run=True,
+        )
+        assert result["success"] is True
+        assert result["validation"]["would_clear_gate"] is True
+
+    @pytest.mark.asyncio
+    async def test_pe_dry_run_succeeds(self) -> None:
+        """PE APPROVED dry-run must succeed with would_clear_gate=True."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        result = await submit_review(
+            repo="elevanaltd/HestAI-MCP",
+            pr_number=123,
+            role="PE",
+            verdict="APPROVED",
+            assessment="Architecture sound for 6 months",
+            dry_run=True,
+        )
+        assert result["success"] is True
+        assert result["validation"]["would_clear_gate"] is True
+
+
+@pytest.mark.unit
+class TestNewRoleTierRequirements:
+    """Tier requirement text must include TMG, CIV, PE roles."""
+
+    def test_tmg_tier_requirements(self) -> None:
+        """TMG gets correct tier requirement text."""
+        from hestai_mcp.modules.tools.submit_review import _get_tier_requirements
+
+        req = _get_tier_requirements("TMG")
+        assert "TMG" in req
+        assert "TIER_2" in req or "T2" in req.upper()
+
+    def test_civ_tier_requirements(self) -> None:
+        """CIV gets correct tier requirement text."""
+        from hestai_mcp.modules.tools.submit_review import _get_tier_requirements
+
+        req = _get_tier_requirements("CIV")
+        assert "CIV" in req
+        assert "TIER_3" in req or "T3" in req.upper()
+
+    def test_pe_tier_requirements(self) -> None:
+        """PE gets correct tier requirement text."""
+        from hestai_mcp.modules.tools.submit_review import _get_tier_requirements
+
+        req = _get_tier_requirements("PE")
+        assert "PE" in req
+        assert "TIER_4" in req or "T4" in req.upper()
+
+    def test_no_unknown_tier_requirement(self) -> None:
+        """All 7 roles must have known tier requirements (not 'Unknown')."""
+        from hestai_mcp.modules.tools.submit_review import _get_tier_requirements
+
+        for role in ("TMG", "CRS", "CE", "CIV", "PE", "IL", "HO"):
+            req = _get_tier_requirements(role)
+            assert "Unknown" not in req, f"Role {role} has unknown tier requirement"
