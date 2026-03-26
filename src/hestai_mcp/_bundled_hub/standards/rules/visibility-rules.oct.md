@@ -44,10 +44,9 @@ RULE_0::SYSTEM_GOVERNANCE→.hestai-sys/::[
   STRUCTURE::[
     .hestai-sys/standards/workflow/→[000-SYSTEM-HESTAI-NORTH-STAR.md],
     .hestai-sys/standards/rules/→[naming-standard.oct.md|visibility-rules.oct.md],
-    .hestai-sys/agents/→[agent_definition_templates],
     .hestai-sys/templates/→[project_templates],
     .hestai-sys/library/skills/→[ecosystem_wide_skills],
-    .hestai-sys/library/agents/→[agent_definitions],
+    .hestai-sys/library/agents/→[agent_definitions+agent_definition_templates],
     .hestai-sys/library/patterns/→[reusable_patterns],
     .hestai-sys/library/schemas/→[schema_definitions],
     .hestai-sys/library/octave/→[octave_usage_guides],
@@ -257,7 +256,7 @@ PLACEMENT_TABLE::[
   // SYSTEM GOVERNANCE (.hestai-sys/)
   system_north_star→.hestai-sys/standards/workflow/[committed_in_source|all_products|read_only_injection],
   governance_rules→.hestai-sys/standards/rules/[committed_in_source|all_products|read_only_injection],
-  agent_templates→.hestai-sys/agents/[committed_in_source|all_products|read_only_injection],
+  agent_templates→.hestai-sys/library/agents/[committed_in_source|all_products|read_only_injection],
   project_templates→.hestai-sys/templates/[committed_in_source|all_products|read_only_injection],
   reference_libraries→.hestai-sys/library/[committed_in_source|all_products|read_only_injection],
   system_skills→.hestai-sys/library/skills/[committed_in_source|all_products|read_only_injection],
