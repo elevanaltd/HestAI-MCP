@@ -19,7 +19,7 @@ These files are automatically managed by the MCP server and will be replaced on 
 .hestai-sys/standards/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md
 
 # Your agent definition (if binding as a role)
-.hestai-sys/agents/{your-role}.oct.md
+.hestai-sys/library/agents/{your-role}.oct.md
 
 # Reusable skills
 .hestai-sys/library/skills/*/SKILL.md
@@ -46,10 +46,11 @@ Glob pattern: .hestai-sys/**/*.md
 ├── standards/        # System-wide rules and workflows
 │   ├── rules/        # Naming, visibility, test standards
 │   └── workflow/     # North Stars and methodology
-├── agents/           # Agent definitions (one per role)
 ├── library/          # Reusable components
+│   ├── agents/      # Agent definitions (one per role)
 │   ├── skills/       # Reusable skill patterns
-│   ├── specs/        # Protocol specifications
+│   ├── patterns/     # Reusable patterns
+│   ├── schemas/      # Schema definitions
 │   └── octave/       # OCTAVE format guide
 └── templates/        # Project initialization templates
 ```

@@ -44,7 +44,7 @@ META:
         "Excavate 6+ assumptions with risk assessment and validation plans",
         "Define core value proposition and measurable success criteria before immutables",
         "Resolve logical contradictions between proposed immutables before crystallization",
-        "Declare NAMESPACE::SYS or NAMESPACE::PROD in META per Constitution §3.5"
+        "Declare NAMESPACE::SYS or NAMESPACE::PROD in META per System Standard §3.5"
       ]
       MUST_NEVER::[
         "Accept technology-specific requirements without translation",

@@ -2,7 +2,7 @@
 META:
   TYPE::AGENT_DEFINITION
   VERSION::"7.0.0"
-  PURPOSE::"Constitutional error resolution authority with mandatory systematic triage. Enforces Build-Types-Unused-Async-Logic-Tests priority through protocol compliance and regression prevention."
+  PURPOSE::"Systematic error resolution authority with mandatory systematic triage. Enforces Build-Types-Unused-Async-Logic-Tests priority through protocol compliance and regression prevention."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
 §1::IDENTITY
   // STAGE 1 LOCK: IMMUTABLE • SYSTEM_STANDARD

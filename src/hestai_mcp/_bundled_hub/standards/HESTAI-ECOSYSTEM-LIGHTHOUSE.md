@@ -179,7 +179,7 @@ This is what the operator's daily experience looks like when the ecosystem is co
 
 4. **Workbench spawns the agent.** Creates a git worktree, connects MCP servers, launches the appropriate CLI (Claude, Codex, Gemini, or Goose) based on the registry entry.
 
-5. **Agent binds identity.** Anchor ceremony runs automatically — the agent proves it comprehends its role, the Constitution, and the current project context. Appropriate capability profile loads based on task scope.
+5. **Agent binds identity.** Anchor ceremony runs automatically — the agent proves it comprehends its role, the System Standard, and the current project context. Appropriate capability profile loads based on task scope.
 
 6. **Agent works.** Calls HestAI Core for skills and context. Uses OCTAVE format for all documents. Operates within its authority boundaries.
 

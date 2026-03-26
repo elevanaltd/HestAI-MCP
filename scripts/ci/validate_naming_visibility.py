@@ -118,7 +118,7 @@ def main(argv: list[str]) -> int:
                 raise SystemExit(
                     f"ERROR visibility-rules: Root-level doc '{p}' not allowed. "
                     f"Move to {allowed} per "
-                    f".hestai-sys/governance/rules/visibility-rules.oct.md"
+                    f".hestai-sys/standards/rules/visibility-rules.oct.md"
                 )
             # Whitelisted root files pass without further validation
             continue

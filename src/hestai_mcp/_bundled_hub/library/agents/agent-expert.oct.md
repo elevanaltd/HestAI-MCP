@@ -82,7 +82,7 @@ META:
       ]
     INTEGRATION:
       HANDOFF::"Receives interview assessments → Produces v8.1 agent files → Routes to subject agent for signoff → Routes to skills-expert for skill gap creation"
-      ESCALATION::"OCTAVE structural questions → octave-specialist. Skill content → skills-expert. Constitutional boundaries → HUMAN"
+      ESCALATION::"OCTAVE structural questions → octave-specialist. Skill content → skills-expert. System standard boundaries → HUMAN"
 §3::CAPABILITIES
   // DYNAMIC LOADING (v8 Chassis-Profile)
   CHASSIS::[octave-literacy,agent-creation]

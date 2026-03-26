@@ -134,7 +134,7 @@ def _bind_todos() -> list[dict[str, str]]:
     """
     return [
         {"content": "T0: TodoWrite", "status": "in_progress", "activeForm": "Sequencing"},
-        {"content": "T1: Constitution", "status": "pending", "activeForm": "Identity"},
+        {"content": "T1: System Standard", "status": "pending", "activeForm": "Identity"},
         {"content": "T2: clock_in + ARM", "status": "pending", "activeForm": "Context"},
         {"content": "T3: TENSION", "status": "pending", "activeForm": "Cognitive proof"},
         {"content": "T4: COMMIT", "status": "pending", "activeForm": "Contract"},
