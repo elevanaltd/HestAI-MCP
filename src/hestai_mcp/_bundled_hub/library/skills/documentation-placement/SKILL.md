@@ -25,7 +25,7 @@ TIMELINE_TEST::[
 
 RATIONALE::"Timeline→placement: planning=.hestai/, implementation=docs/, operational=.hestai/state/"
 
-CANONICAL_REFERENCE::.hestai-sys/governance/rules/visibility-rules.oct.md
+CANONICAL_REFERENCE::.hestai-sys/standards/rules/visibility-rules.oct.md
 
 §2::REPOSITORY_STRUCTURE
 
@@ -33,9 +33,9 @@ CANONICAL_REFERENCE::.hestai-sys/governance/rules/visibility-rules.oct.md
 
 SYSTEM_GOVERNANCE[.hestai-sys/]::[
   READ_ONLY[injected_from_src/hestai_mcp/_bundled_hub/],
-  governance/workflow/→"System North Star (000-SYSTEM-HESTAI-NORTH-STAR.md)",
-  governance/rules/→"Naming standard, visibility rules, test standards",
-  agents/→"Agent constitution templates (.oct.md)",
+  standards/workflow/→"System North Star (000-SYSTEM-HESTAI-NORTH-STAR.md)",
+  standards/rules/→"Naming standard, visibility rules, test standards",
+  agents/→"Agent definition templates (.oct.md)",
   templates/→"Project scaffolding templates",
   library/skills/→"Ecosystem-wide operational skills",
   library/agents/→"Agent definitions",
@@ -138,7 +138,7 @@ NOTE::"Full North Stars (.md) are human-authored vision; summaries (.oct.md) are
 
 FORMAT_DECISION_TREE::[
   "Primary audience AI agents?"→YES→.oct.md,
-  "Governance/methodology/constitution?"→YES→.oct.md,
+  "Standards/methodology/system-standard?"→YES→.oct.md,
   "Primary audience human developers?"→YES→.md,
   "ADR or setup guide?"→YES→.md
 ]
@@ -258,8 +258,8 @@ TRIGGERS_WHEN::[documentation_created, artifact_placed, B1_migration]
 CONSULT::[holistic-orchestrator, workspace-architect, system-steward]
 
 COMPANION_DOCS::[
-  .hestai-sys/governance/rules/visibility-rules.oct.md→"WHERE does artifact belong?",
-  .hestai-sys/governance/rules/naming-standard.oct.md→"HOW to name once placed?",
+  .hestai-sys/standards/rules/visibility-rules.oct.md→"WHERE does artifact belong?",
+  .hestai-sys/standards/rules/naming-standard.oct.md→"HOW to name once placed?",
   .hestai/rules/hub-authoring-rules.oct.md→"WHERE in system governance payload?"
 ]
 

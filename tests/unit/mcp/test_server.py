@@ -197,7 +197,7 @@ class TestInjectSystemGovernance:
         fake_hub = tmp_path / "hub"
         fake_hub.mkdir()
         (fake_hub / "VERSION").write_text("1.0.0")
-        for dir_name in ["governance", "agents", "library", "templates"]:
+        for dir_name in ["standards", "agents", "library", "templates"]:
             (fake_hub / dir_name).mkdir()
 
         with patch.object(server, "get_hub_path", return_value=fake_hub):
@@ -220,13 +220,13 @@ class TestInjectSystemGovernance:
         (fake_hub / "VERSION").write_text("1.0.0")
 
         # Create governance, library, templates directories
-        for dir_name in ["governance", "library", "templates"]:
+        for dir_name in ["standards", "library", "templates"]:
             source_dir = fake_hub / dir_name
             source_dir.mkdir()
             (source_dir / "test-file.md").write_text(f"Content from {dir_name}")
 
         # Create root files
-        (fake_hub / "CONSTITUTION.md").write_text("Constitution Content")
+        (fake_hub / "SYSTEM-STANDARD.md").write_text("System Standard Content")
         (fake_hub / "README.md").write_text("Readme Content")
 
         # Create agents inside library directory
@@ -238,14 +238,14 @@ class TestInjectSystemGovernance:
             server.inject_system_governance(project_root)
 
         # Verify directories were copied
-        for dir_name in ["governance", "library", "templates"]:
+        for dir_name in ["standards", "library", "templates"]:
             dest = project_root / ".hestai-sys" / dir_name
             assert dest.exists()
             assert (dest / "test-file.md").exists()
             assert (dest / "test-file.md").read_text() == f"Content from {dir_name}"
 
         # Verify root files were copied
-        for file_name in ["CONSTITUTION.md", "README.md"]:
+        for file_name in ["SYSTEM-STANDARD.md", "README.md"]:
             dest = project_root / ".hestai-sys" / file_name
             assert dest.exists()
             assert dest.read_text().endswith("Content")
@@ -267,7 +267,7 @@ class TestInjectSystemGovernance:
         fake_hub = tmp_path / "hub"
         fake_hub.mkdir()
         (fake_hub / "VERSION").write_text("2.0.0")
-        for dir_name in ["governance", "agents", "library", "templates"]:
+        for dir_name in ["standards", "agents", "library", "templates"]:
             (fake_hub / dir_name).mkdir()
 
         with patch.object(server, "get_hub_path", return_value=fake_hub):
@@ -295,7 +295,7 @@ class TestInjectSystemGovernance:
         fake_hub = tmp_path / "hub"
         fake_hub.mkdir()
         (fake_hub / "VERSION").write_text("1.0.0")
-        for dir_name in ["governance", "library", "templates"]:
+        for dir_name in ["standards", "library", "templates"]:
             (fake_hub / dir_name).mkdir(exist_ok=True)
 
         # Create agents in library directory
@@ -334,7 +334,7 @@ class TestEnsureSystemGovernance:
         fake_hub = tmp_path / "hub"
         fake_hub.mkdir()
         (fake_hub / "VERSION").write_text("1.0.0")
-        for dir_name in ["governance", "agents", "library", "templates"]:
+        for dir_name in ["standards", "agents", "library", "templates"]:
             (fake_hub / dir_name).mkdir()
 
         with patch.object(server, "get_hub_path", return_value=fake_hub):
@@ -355,9 +355,9 @@ class TestEnsureSystemGovernance:
         hestai_sys = project_root / ".hestai-sys"
         hestai_sys.mkdir()
         (hestai_sys / ".version").write_text("1.0.0")
-        for dir_name in ["governance", "agents", "library", "templates"]:
+        for dir_name in ["standards", "agents", "library", "templates"]:
             (hestai_sys / dir_name).mkdir()
-        for file_name in ["CONSTITUTION.md", "README.md"]:
+        for file_name in ["SYSTEM-STANDARD.md", "README.md"]:
             (hestai_sys / file_name).write_text("content")
 
         with (
@@ -381,7 +381,7 @@ class TestEnsureSystemGovernance:
         hestai_sys = project_root / ".hestai-sys"
         hestai_sys.mkdir()
         (hestai_sys / ".version").write_text("1.0.0")
-        # Intentionally do NOT create governance/agents/library/templates
+        # Intentionally do NOT create standards/agents/library/templates
 
         with (
             patch.object(server, "get_hub_version", return_value="1.0.0"),
@@ -408,7 +408,7 @@ class TestEnsureSystemGovernance:
         fake_hub = tmp_path / "hub"
         fake_hub.mkdir()
         (fake_hub / "VERSION").write_text("1.0.0")
-        for dir_name in ["governance", "agents", "library", "templates"]:
+        for dir_name in ["standards", "agents", "library", "templates"]:
             (fake_hub / dir_name).mkdir()
 
         with patch.object(server, "get_hub_path", return_value=fake_hub):
@@ -985,8 +985,8 @@ class TestGovernanceIntegrityAtSessionBoundaries:
         # Create .hestai-sys with integrity hash
         hestai_sys = project / ".hestai-sys"
         hestai_sys.mkdir()
-        (hestai_sys / "CONSTITUTION.md").write_text("Original content")
-        (hestai_sys / "governance").mkdir()
+        (hestai_sys / "SYSTEM-STANDARD.md").write_text("Original content")
+        (hestai_sys / "standards").mkdir()
         (hestai_sys / "library").mkdir()
         (hestai_sys / "templates").mkdir()
 
@@ -997,7 +997,7 @@ class TestGovernanceIntegrityAtSessionBoundaries:
         store_governance_hash(hestai_sys)
 
         # Tamper with governance
-        (hestai_sys / "CONSTITUTION.md").write_text("TAMPERED content")
+        (hestai_sys / "SYSTEM-STANDARD.md").write_text("TAMPERED content")
 
         # Mock ensure_system_governance to not overwrite our setup
         # Mock inject_system_governance to track if self-healing was triggered
@@ -1029,8 +1029,8 @@ class TestGovernanceIntegrityAtSessionBoundaries:
 
         hestai_sys = project / ".hestai-sys"
         hestai_sys.mkdir()
-        (hestai_sys / "CONSTITUTION.md").write_text("Original content")
-        (hestai_sys / "governance").mkdir()
+        (hestai_sys / "SYSTEM-STANDARD.md").write_text("Original content")
+        (hestai_sys / "standards").mkdir()
         (hestai_sys / "library").mkdir()
         (hestai_sys / "templates").mkdir()
 
@@ -1080,8 +1080,8 @@ class TestGovernanceIntegrityAtSessionBoundaries:
         # Create .hestai-sys with integrity hash
         hestai_sys = project / ".hestai-sys"
         hestai_sys.mkdir()
-        (hestai_sys / "CONSTITUTION.md").write_text("Original content")
-        (hestai_sys / "governance").mkdir()
+        (hestai_sys / "SYSTEM-STANDARD.md").write_text("Original content")
+        (hestai_sys / "standards").mkdir()
         (hestai_sys / "library").mkdir()
         (hestai_sys / "templates").mkdir()
 
@@ -1092,7 +1092,7 @@ class TestGovernanceIntegrityAtSessionBoundaries:
         store_governance_hash(hestai_sys)
 
         # Tamper with governance (simulating mid-session modification)
-        (hestai_sys / "CONSTITUTION.md").write_text("TAMPERED by agent")
+        (hestai_sys / "SYSTEM-STANDARD.md").write_text("TAMPERED by agent")
 
         with (
             patch("hestai_mcp.mcp.server.clock_out", new_callable=AsyncMock) as mock_clock_out,
@@ -1197,9 +1197,9 @@ class TestIntegrityBackfillOnUpToDate:
         hestai_sys = project_root / ".hestai-sys"
         hestai_sys.mkdir()
         (hestai_sys / ".version").write_text("1.0.0")
-        for dir_name in ["governance", "library", "templates"]:
+        for dir_name in ["standards", "library", "templates"]:
             (hestai_sys / dir_name).mkdir()
-        for file_name in ["CONSTITUTION.md", "README.md"]:
+        for file_name in ["SYSTEM-STANDARD.md", "README.md"]:
             (hestai_sys / file_name).write_text("content")
 
         # No .integrity file present — pre-existing deployment scenario
@@ -1232,9 +1232,9 @@ class TestIntegrityBackfillOnUpToDate:
         hestai_sys = project_root / ".hestai-sys"
         hestai_sys.mkdir()
         (hestai_sys / ".version").write_text("1.0.0")
-        for dir_name in ["governance", "library", "templates"]:
+        for dir_name in ["standards", "library", "templates"]:
             (hestai_sys / dir_name).mkdir()
-        for file_name in ["CONSTITUTION.md", "README.md"]:
+        for file_name in ["SYSTEM-STANDARD.md", "README.md"]:
             (hestai_sys / file_name).write_text("content")
 
         # .integrity IS present
@@ -1273,7 +1273,7 @@ class TestInjectSystemGovernanceSymlinkEdge:
         fake_hub = tmp_path / "hub"
         fake_hub.mkdir()
         (fake_hub / "VERSION").write_text("1.0.0")
-        for dir_name in ["governance", "library", "templates"]:
+        for dir_name in ["standards", "library", "templates"]:
             (fake_hub / dir_name).mkdir()
 
         # Simulate the scenario: pre-create __old__ as a symlink
@@ -1310,7 +1310,7 @@ class TestInjectSystemGovernanceSymlinkEdge:
         fake_hub = tmp_path / "hub"
         fake_hub.mkdir()
         (fake_hub / "VERSION").write_text("1.0.0")
-        for dir_name in ["governance", "library", "templates"]:
+        for dir_name in ["standards", "library", "templates"]:
             (fake_hub / dir_name).mkdir()
 
         # Pre-create __old__ as a real directory (not symlink)

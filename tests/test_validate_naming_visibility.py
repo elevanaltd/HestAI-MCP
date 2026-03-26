@@ -86,5 +86,5 @@ class TestRootLevelDocValidation:
         """Bundled hub payload docs should pass validation."""
         from scripts.ci.validate_naming_visibility import main
 
-        result = main(["src/hestai_mcp/_bundled_hub/governance/rules/naming-standard.oct.md"])
+        result = main(["src/hestai_mcp/_bundled_hub/standards/rules/naming-standard.oct.md"])
         assert result == 0

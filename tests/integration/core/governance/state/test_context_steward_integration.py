@@ -22,7 +22,7 @@ class TestContextStewardIntegration:
             / "src"
             / "hestai_mcp"
             / "_bundled_hub"
-            / "governance"
+            / "standards"
             / "workflow"
             / "OPERATIONAL-WORKFLOW.oct.md"
         )

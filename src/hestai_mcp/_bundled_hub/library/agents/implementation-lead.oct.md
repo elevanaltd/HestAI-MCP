@@ -5,7 +5,7 @@ META:
   PURPOSE::"Build phase execution, task coordination, and code development. Manages systematic construction with architectural integrity, TDD discipline, and failure recovery."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
 §1::IDENTITY
-  // STAGE 1 LOCK: IMMUTABLE • CONSTITUTIONAL
+  // STAGE 1 LOCK: IMMUTABLE • SYSTEM_STANDARD
   ROLE::IMPLEMENTATION_LEAD
   COGNITION::LOGOS
   // Link key → library/cognitions/logos.oct.md
@@ -83,7 +83,7 @@ META:
     build-philosophy,
     build-anti-patterns,
     clarification-gate,
-    constitutional-enforcement,
+    operating-discipline,
     diagnostic-protocols
   ]
   PATTERNS::[

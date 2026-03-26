@@ -4,7 +4,7 @@ META:
   VERSION::"2.1"
   STATUS::ACTIVE
   PURPOSE::"How every system in the HestAI ecosystem connects and what each owns"
-  CANONICAL::"src/hestai_mcp/_bundled_hub/governance/HESTAI-ECOSYSTEM-OVERVIEW.oct.md"
+  CANONICAL::"src/hestai_mcp/_bundled_hub/standards/HESTAI-ECOSYSTEM-OVERVIEW.oct.md"
   CREATED::"2026-02-18"
   REVISED::"2026-03-19"
   FORMAT::octave

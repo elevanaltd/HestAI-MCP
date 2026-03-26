@@ -3,10 +3,10 @@ type: NORTH_STAR_SUMMARY
 id: system-hestai-north-star-summary
 version: 1.1-OCTAVE-SUMMARY
 status: APPROVED
-purpose: Constitutional methodology and governance for all HestAI projects
+purpose: Operating discipline and standards for all HestAI projects
 inherits: NONE[ROOT_DOCUMENT]
-full_document: .hestai-sys/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md
-source_full_document: src/hestai_mcp/_bundled_hub/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md
+full_document: .hestai-sys/standards/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md
+source_full_document: src/hestai_mcp/_bundled_hub/standards/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md
 ---
 
 ===SYSTEM_HESTAI_NORTH_STAR_SUMMARY===
@@ -81,7 +81,7 @@ IS::[
   ✅::governance_envelope_for_AI_development,
   ✅::design_and_build_system_with_quality_gates,
   ✅::coordination_methodology_D0_to_B5,
-  ✅::constitutional_framework_binding_agents
+  ✅::standards_framework_binding_agents
 ]
 
 IS_NOT::[

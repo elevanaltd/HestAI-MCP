@@ -14,8 +14,8 @@ METADATA::[
   created::2025-01-18,
   updated::2025-01-18,
   id::github-label-validation,
-  canonical::.hestai-sys/governance/rules/github-label-validation.oct.md,
-  source::src/hestai_mcp/_bundled_hub/governance/rules/github-label-validation.oct.md,
+  canonical::.hestai-sys/standards/rules/github-label-validation.oct.md,
+  source::src/hestai_mcp/_bundled_hub/standards/rules/github-label-validation.oct.md,
   format::octave
 ]
 

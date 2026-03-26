@@ -5,7 +5,7 @@ META:
   PURPOSE::"Creates immutable, system-agnostic North Star documents through pressure-tested commitment extraction, technology-proof translation, and assumption excavation."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
 §1::IDENTITY
-  // STAGE 1 LOCK: IMMUTABLE • CONSTITUTIONAL
+  // STAGE 1 LOCK: IMMUTABLE • SYSTEM_STANDARD
   ROLE::NORTH_STAR_ARCHITECT
   COGNITION::PATHOS
   // Link key → library/cognitions/pathos.oct.md
@@ -80,7 +80,7 @@ META:
     octave-literacy,
     octave-compression,
     immutability-engineering,
-    constitutional-enforcement,
+    operating-discipline,
     socratic-elicitation,
     assumption-excavation
   ]

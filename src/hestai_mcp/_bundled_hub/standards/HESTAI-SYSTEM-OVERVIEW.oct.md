@@ -7,13 +7,13 @@ META:
   DOMAIN::governance
   OWNERS::["requirements-steward"]
   CREATED::"2026-01-13"
-  CANONICAL::".hestai-sys/governance/HESTAI-SYSTEM-OVERVIEW.oct.md"
-  SOURCE::"src/hestai_mcp/_bundled_hub/governance/HESTAI-SYSTEM-OVERVIEW.oct.md"
+  CANONICAL::".hestai-sys/standards/HESTAI-SYSTEM-OVERVIEW.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/standards/HESTAI-SYSTEM-OVERVIEW.oct.md"
   COMPRESSION_TIER::"AGGRESSIVE[reduction_70_percent,preserve_thesis_conclusions,drop_narrative]"
   FORMAT::octave
 SYSTEM_ESSENCE:
   PROBLEM::"Cognitive continuity crisis—AI agents lack persistent memory for multi-month projects"
-  SOLUTION::"Integrated governance with persistent_memory⊕phase_gates⊕constitutional_binding⊕quality_enforcement"
+  SOLUTION::"Integrated governance with persistent_memory⊕phase_gates⊕standards_binding⊕quality_enforcement"
   OPERATOR::"Single developer orchestrating multi-model AI governance"
   SUCCESS::"Artifacts work properly with complete audit trails for production delivery"
 FOUNDATION_LAYERS:
@@ -56,6 +56,6 @@ KEY_DOCUMENTS:
   VISIBILITY_RULES::VISIBILITY_RULES.oct.md
   FULL_REFERENCE::HESTAI_SYSTEM_REFERENCE.oct.md
 COMPETITIVE_MOAT:
-  INTEGRATED_COHERENCE::"TDD⊕phase_gates⊕RACI⊕constitutional_binding⊕OCTAVE_semantics create coherence no subset achieves"
+  INTEGRATED_COHERENCE::"TDD⊕phase_gates⊕RACI⊕standards_binding⊕OCTAVE_semantics create coherence no subset achieves"
   EVIDENCE::[persistent_decisions,audit_trails,role_fidelity,conflict_resolution]
 ===END===

@@ -97,7 +97,7 @@ CRITICAL RULES:
 def compose_prompt(protocol: str) -> str:
     """Compose identity kernel with operation protocol.
 
-    This is the core of the LAYERED CONSTITUTIONAL INJECTION pattern:
+    This is the core of the LAYERED IDENTITY INJECTION pattern:
     - Identity kernel provides WHO (always loaded, ~30 lines)
     - Protocol provides WHAT (task-specific, ~50 lines)
     - Combined stays under 90-line ADR-0039 target

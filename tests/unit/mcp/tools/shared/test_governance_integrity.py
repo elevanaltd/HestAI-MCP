@@ -339,7 +339,7 @@ class TestVerifyGovernanceIntegrity:
         # Create a real directory with content
         real_dir = tmp_path / "real_governance"
         real_dir.mkdir()
-        (real_dir / "CONSTITUTION.md").write_text("real content")
+        (real_dir / "SYSTEM-STANDARD.md").write_text("real content")
 
         # Create a symlink that points to the real directory
         symlink_dir = tmp_path / "symlink_governance"
@@ -366,7 +366,7 @@ class TestComputeGovernanceHashSymlinkRejection:
 
         real_dir = tmp_path / "real_governance"
         real_dir.mkdir()
-        (real_dir / "CONSTITUTION.md").write_text("real content")
+        (real_dir / "SYSTEM-STANDARD.md").write_text("real content")
 
         symlink_dir = tmp_path / "symlink_governance"
         symlink_dir.symlink_to(real_dir)
@@ -391,7 +391,7 @@ class TestApplyReadonlyPermissionsSymlinkRejection:
 
         real_dir = tmp_path / "real_governance"
         real_dir.mkdir()
-        (real_dir / "CONSTITUTION.md").write_text("real content")
+        (real_dir / "SYSTEM-STANDARD.md").write_text("real content")
 
         symlink_dir = tmp_path / "symlink_governance"
         symlink_dir.symlink_to(real_dir)
@@ -416,7 +416,7 @@ class TestRestoreWritablePermissionsSymlinkRejection:
 
         real_dir = tmp_path / "real_governance"
         real_dir.mkdir()
-        (real_dir / "CONSTITUTION.md").write_text("real content")
+        (real_dir / "SYSTEM-STANDARD.md").write_text("real content")
 
         symlink_dir = tmp_path / "symlink_governance"
         symlink_dir.symlink_to(real_dir)
@@ -439,7 +439,7 @@ class TestStoreGovernanceHashSymlinkRejection:
 
         real_dir = tmp_path / "real_governance"
         real_dir.mkdir()
-        (real_dir / "CONSTITUTION.md").write_text("real content")
+        (real_dir / "SYSTEM-STANDARD.md").write_text("real content")
 
         symlink_dir = tmp_path / "symlink_governance"
         symlink_dir.symlink_to(real_dir)

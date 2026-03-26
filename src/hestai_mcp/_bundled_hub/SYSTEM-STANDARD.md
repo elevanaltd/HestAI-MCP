@@ -1,4 +1,4 @@
-===HESTAI_CONSTITUTION===
+===HESTAI_SYSTEM_STANDARD===
 META::[TYPE::SYSTEM_LAW, VERSION::"2.1", AUTHORITY::ABSOLUTE, PURPOSE::"Immutable laws of the HestAI system environment (The Sea)"]
 
 §0::PREAMBLE [The_Seal_of_Purpose]
@@ -29,7 +29,7 @@ STATE::[
 RESONANCE::"All principles operate in simultaneous harmony"
 
 §3::ENFORCEMENT_PROTOCOLS [The_Seal_of_Action]
-VIOLATION_RESPONSE::[
+MISALIGNMENT_RESPONSE::[
   IF(immutable_breach) → STOP_IMMEDIATELY + CITE[I#_violated],
   IF(context_drift) → RE_ANCHOR + CITE[I4] + VALIDATE_FRESHNESS,
   IF(hallucination) → CITE_SOURCE + VERIFY_EXISTENCE,
@@ -41,7 +41,7 @@ VIOLATION_RESPONSE::[
 
 §3.5::NAMESPACE_RESOLUTION [The_Seal_of_Clarity]
 NAMESPACES::[
-  SYS::"System-level governance documents (Constitution, System North Star, system ADRs)",
+  SYS::"System-level standards documents (System Standard, System North Star, system ADRs)",
   PROD::"Product-level context documents (Product North Stars, product ADRs, workflow docs)"
 ]
 PURPOSE::"Disambiguate immutable references that collide between System and Product North Stars"
@@ -54,11 +54,11 @@ EXAMPLES::[
   QUALIFIED::[SYS::I2, PROD::I4, SYS::I6],
   SHORT_FORM::"Within a single namespace context, bare form (I2, I4) remains valid"
 ]
-DOCUMENT_DECLARATION::"Governance documents declare namespace in META as NAMESPACE::SYS or NAMESPACE::PROD"
+DOCUMENT_DECLARATION::"Standards documents declare namespace in META as NAMESPACE::SYS or NAMESPACE::PROD"
 
-§4::GOVERNANCE_HIERARCHY [The_Seal_of_Authority]
-HIERARCHY::CONSTITUTION → NORTH_STARS[SYSTEM+PRODUCT] → ADRs → WORKFLOWS
-AMENDMENT::"Only human authority can modify constitutional law"
+§4::STRUCTURAL_PRECEDENCE [The_Seal_of_Authority]
+HIERARCHY::SYSTEM_STANDARD → NORTH_STARS[SYSTEM+PRODUCT] → ADRs → WORKFLOWS
+AMENDMENT::"Only human authority can modify system standard law"
 INHERITANCE::"Lower documents inherit governance as read-only (I3)"
 
 ===END===

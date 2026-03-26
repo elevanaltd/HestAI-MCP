@@ -13,7 +13,7 @@ NAMESPACE::SYS
 ---
 
 <!-- HestAI-Doc-Steward: consulted for document-creation-and-placement -->
-<!-- Relationship: COMPLEMENT to 001-WORKFLOW-NORTH-STAR.oct.md (constitutional→operational hierarchy) -->
+<!-- Relationship: COMPLEMENT to 001-WORKFLOW-NORTH-STAR.oct.md (standards→operational hierarchy) -->
 <!-- Note: This is the foundational System North Star. All other workflow documents must satisfy these immutables. -->
 
 # HESTAI SYSTEM NORTH STAR
@@ -32,7 +32,7 @@ This document represents the immutable requirements for HestAI. All work must al
 
 **Authority:** This North Star was extracted through the full Immutability Funnel (HERMES → PSYCHE → APOLLO), pressure-tested via What-If Gauntlet, crystallized via Immutability Oath, and validated by multi-model consensus.
 
-**Relationship to 001-WORKFLOW-NORTH-STAR:** This document establishes constitutional principles that 001-WORKFLOW-NORTH-STAR.oct.md must satisfy. This is the "WHAT cannot change"; 001 is the "HOW it works operationally."
+**Relationship to 001-WORKFLOW-NORTH-STAR:** This document establishes system standard principles that 001-WORKFLOW-NORTH-STAR.oct.md must satisfy. This is the "WHAT cannot change"; 001 is the "HOW it works operationally."
 
 ---
 
@@ -101,7 +101,7 @@ This document represents the immutable requirements for HestAI. All work must al
 > Quality must be verified before work progresses to next stage. Verification may be automated, manual, or hybrid. Verification must block progression when quality criteria are not met.
 
 **INTERPRETIVE CLAUSE:**
-> Quality verification includes enforcement of constitutional controls (tests, gates, RACI evidence) and blocks progression if any control is bypassed.
+> Quality verification includes enforcement of operating discipline controls (tests, gates, RACI evidence) and blocks progression if any control is bypassed.
 
 **Rationale:** Gates block, not warn. The mechanism may evolve; the blocking behavior is constant.
 
@@ -133,7 +133,7 @@ This document represents the immutable requirements for HestAI. All work must al
 
 **Anti-Drift Clause:** Under pressure, ceremony density may decrease, but **Gate Evidence** and **Accountability Records** cannot be omitted. Erosion of these elements constitutes violation of I2, I5, and I6.
 
-**Rationale:** Governance is mechanism, not truth. Success criterion is "does the built thing work properly," not "did we follow the process." But minimum ceremonies are constitutionally protected.
+**Rationale:** Governance is mechanism, not truth. Success criterion is "does the built thing work properly," not "did we follow the process." But minimum ceremonies are protected by system standard.
 
 ---
 
@@ -182,7 +182,7 @@ HestAI's compressed notation system:
 - A governance envelope for AI-assisted development
 - A design-and-build system with mandatory quality gates
 - A coordination methodology spanning D0→B5 phases
-- A constitutional framework binding agent behavior
+- A standards framework binding agent behavior
 - A bridge between "vibe coding" and reliable AI-assisted development
 
 ### What HestAI is NOT

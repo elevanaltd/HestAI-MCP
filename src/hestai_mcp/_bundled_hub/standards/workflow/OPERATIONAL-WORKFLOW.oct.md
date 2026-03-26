@@ -8,8 +8,8 @@ META:
   OWNERS::["system-steward"]
   CREATED::"2026 -01 -08"
   UPDATED::"2026-03-04"
-  CANONICAL::".hestai-sys/governance/workflow/OPERATIONAL-WORKFLOW.oct.md"
-  SOURCE::"src/hestai_mcp/_bundled_hub/governance/workflow/OPERATIONAL-WORKFLOW.oct.md"
+  CANONICAL::".hestai-sys/standards/workflow/OPERATIONAL-WORKFLOW.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/standards/workflow/OPERATIONAL-WORKFLOW.oct.md"
   FORMAT::octave
   ID::"operational-workflow"
 RACI_FOUNDATION:
@@ -128,7 +128,7 @@ POST_MORTEM_ANALYSIS:
 ARTIFACT_PLACEMENT:
   LIFECYCLE_MODEL::"Spec[.hestai/rules/specs/]→Report[.hestai/state/reports/]→Doc[docs/]"
   DOCUMENT_PLACEMENT_PROTOCOL::"Load documentation-placement skill for placement rules and visibility protocols"
-  CANONICAL_REFERENCE::".hestai-sys/governance/rules/visibility-rules.oct.md"
+  CANONICAL_REFERENCE::".hestai-sys/standards/rules/visibility-rules.oct.md"
   PHASE_TRANSITION_CLEANUP::["B1_02, B2_04, B3_04, B4_05 require cleanup validation","holistic-orchestrator→directory-curator→workspace-architect pattern"]
 SESSION_COORDINATION:
   IDEATION_GRADUATION_EXECUTION::[[[D0_IDEATION::".hestai/state/sessions/[structured_exploration+thread_messaging+manifest_tracking]"]],[[PROJECT_MIGRATION_EXECUTION::"workspace-architect[B1_02]→migration[ideation→project/sessions/]→MIGRATION_GATE[directory_change_required]→state_symlink[.hestai/state/]→using_graduation_assessment_from_D0"]],[[ARTIFACT_DISTRIBUTION::"D1→.hestai/north-star/, D2-D3→.hestai/rules/specs/, B0-B3→.hestai/state/reports/, B4→docs/"]]]

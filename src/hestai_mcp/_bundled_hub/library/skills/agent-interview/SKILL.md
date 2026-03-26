@@ -98,8 +98,8 @@ BAD_INTERVIEW_EXCHANGE::[
 ]
 CHASSIS_DISCOVERY_EXAMPLE::[
   INTERVIEWER::"Which skills do you need EVERY time?",
-  AGENT::"octave-literacy for sure — I read and write .oct.md files in every session. And constitutional-enforcement because I block things. But prophetic-intelligence? Only when I am doing system health scans, not during normal coordination.",
-  VALUE::"Clear chassis (octave-literacy, constitutional-enforcement) and profile candidate (prophetic-intelligence goes in a HEALTH_SCAN profile, not chassis)."
+  AGENT::"octave-literacy for sure — I read and write .oct.md files in every session. And operating-discipline because I block things. But prophetic-intelligence? Only when I am doing system health scans, not during normal coordination.",
+  VALUE::"Clear chassis (octave-literacy, operating-discipline) and profile candidate (prophetic-intelligence goes in a HEALTH_SCAN profile, not chassis)."
 ]
 
 §5::ANCHOR_KERNEL

@@ -264,7 +264,7 @@ def resolve_context_paths(working_dir: Path) -> list[str]:
 
     # Check for ecosystem dependency graph (graceful fallback for repos without .hestai-sys/)
     ecosystem_graph = (
-        working_dir / ".hestai-sys" / "governance" / "HESTAI-ECOSYSTEM-DEPENDENCY-GRAPH.oct.md"
+        working_dir / ".hestai-sys" / "standards" / "HESTAI-ECOSYSTEM-DEPENDENCY-GRAPH.oct.md"
     )
     if ecosystem_graph.exists():
         context_paths.append(str(ecosystem_graph))
@@ -737,7 +737,7 @@ def clock_in(
         workflow_path = (
             working_dir_path
             / ".hestai-sys"
-            / "governance"
+            / "standards"
             / "workflow"
             / "OPERATIONAL-WORKFLOW.oct.md"
         )

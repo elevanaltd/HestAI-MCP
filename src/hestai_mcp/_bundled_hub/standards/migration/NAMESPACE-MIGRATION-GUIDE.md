@@ -27,7 +27,7 @@ A bare citation like "violates I2" is ambiguous. SYS::I2 and PROD::I2 describe d
 
 **SYS::** — System-level governance documents
 - `000-SYSTEM-HESTAI-NORTH-STAR.md`
-- `CONSTITUTION.md`
+- `SYSTEM-STANDARD.md`
 - System ADRs (governance methodology)
 
 **PROD::** — Product-level context documents

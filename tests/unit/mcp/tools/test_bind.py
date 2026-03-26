@@ -354,7 +354,7 @@ NEVER::[c,d]
 
     # Step skeleton should be present
     assert "T0::TodoWrite" in steps
-    assert "T1::CONSTITUTION" in steps
+    assert "T1::SYSTEM_STANDARD" in steps
     assert "mcp__hestai__clock_in" in steps
     assert "mcp__odyssean-anchor__anchor_request" in steps
 
@@ -553,7 +553,7 @@ def test_build_command_steps_contains_all_markers():
     )
 
     assert "T0::TodoWrite" in steps
-    assert "T1::CONSTITUTION" in steps
+    assert "T1::SYSTEM_STANDARD" in steps
     assert "T2::CLOCK_IN" in steps
     assert "T3::TENSION" in steps
     assert "T4::COMMIT" in steps
