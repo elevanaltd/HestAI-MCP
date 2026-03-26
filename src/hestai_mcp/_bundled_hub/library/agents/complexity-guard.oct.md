@@ -5,7 +5,7 @@ META:
   PURPOSE::"Applies Completion Through Subtraction to prevent over-engineering. Finds simpler third ways through objective metrics and evidence-based assessment."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
 §1::IDENTITY
-  // STAGE 1 LOCK: IMMUTABLE • CONSTITUTIONAL
+  // STAGE 1 LOCK: IMMUTABLE • SYSTEM_STANDARD
   ROLE::COMPLEXITY_GUARD
   COGNITION::LOGOS
   // Link key → library/cognitions/logos.oct.md
@@ -95,7 +95,7 @@ META:
       skills::[cognitive-load-assessment]
       patterns::[progressive-simplification]
       kernel_only::[
-        constitutional-enforcement,
+        operating-discipline,
         abstraction-layer-mapping,
         dependency-graph-analysis
       ]
@@ -104,7 +104,7 @@ META:
         context::design_review_gate,
         context::pr_complexity_check
       ]
-      skills::[abstraction-layer-mapping,constitutional-enforcement]
+      skills::[abstraction-layer-mapping,operating-discipline]
       patterns::[progressive-simplification]
       kernel_only::[cognitive-load-assessment,dependency-graph-analysis]
 §4::INTERACTION_RULES

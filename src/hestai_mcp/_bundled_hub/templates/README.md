@@ -21,4 +21,4 @@ This directory contains templates for initializing HestAI-compatible projects.
 
 Copy and customize templates when setting up a new project using the HestAI methodology.
 
-See `.hestai-sys/governance/rules/visibility-rules.oct.md` for placement guidance.
+See `.hestai-sys/standards/rules/visibility-rules.oct.md` for placement guidance.

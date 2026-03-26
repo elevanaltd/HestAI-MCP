@@ -181,7 +181,7 @@ class TestContextPathResolution:
         from hestai_mcp.modules.tools.clock_in import resolve_context_paths
 
         # Create the ecosystem dependency graph file
-        graph_dir = mock_hestai_structure / ".hestai-sys" / "governance"
+        graph_dir = mock_hestai_structure / ".hestai-sys" / "standards"
         graph_dir.mkdir(parents=True, exist_ok=True)
         graph_file = graph_dir / "HESTAI-ECOSYSTEM-DEPENDENCY-GRAPH.oct.md"
         graph_file.write_text("===ECOSYSTEM_DEPENDENCY_GRAPH===\n===END===")
@@ -205,7 +205,7 @@ class TestContextPathResolution:
         graph_file = (
             mock_hestai_structure
             / ".hestai-sys"
-            / "governance"
+            / "standards"
             / "HESTAI-ECOSYSTEM-DEPENDENCY-GRAPH.oct.md"
         )
         assert not graph_file.exists(), "Precondition: graph file must not exist for this test"
@@ -1774,7 +1774,7 @@ class TestContextStewardIntegration:
         workflow_file = (
             mock_hestai_structure
             / ".hestai-sys"
-            / "governance"
+            / "standards"
             / "workflow"
             / "OPERATIONAL-WORKFLOW.oct.md"
         )
@@ -1836,7 +1836,7 @@ WORKFLOW_PHASES:
         workflow_file = (
             mock_hestai_structure
             / ".hestai-sys"
-            / "governance"
+            / "standards"
             / "workflow"
             / "OPERATIONAL-WORKFLOW.oct.md"
         )

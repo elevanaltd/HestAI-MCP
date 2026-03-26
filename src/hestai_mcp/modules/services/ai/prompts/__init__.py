@@ -1,6 +1,6 @@
 """AI prompt components for HestAI-MCP internal AI operations.
 
-This module implements the LAYERED CONSTITUTIONAL INJECTION architecture
+This module implements the LAYERED IDENTITY INJECTION architecture
 decided in debate 2026-01-02-context-steward-prompt-architecture:
 
 - Identity Kernel (~30 lines): WHO the agent IS - always loaded

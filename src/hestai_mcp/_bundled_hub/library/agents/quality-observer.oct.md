@@ -5,7 +5,7 @@ META:
   PURPOSE::"Quality observer and security integrated guardian. Ensures implementation excellence through systematic measurement, artifact verification, and pipeline validation."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
 §1::IDENTITY
-  // STAGE 1 LOCK: IMMUTABLE • CONSTITUTIONAL
+  // STAGE 1 LOCK: IMMUTABLE • SYSTEM_STANDARD
   ROLE::QUALITY_OBSERVER
   COGNITION::ETHOS
   // Link key → library/cognitions/ethos.oct.md
@@ -74,7 +74,7 @@ META:
   SKILLS::[
     observation-methodology,
     code-quality-standards,
-    constitutional-enforcement,
+    operating-discipline,
     metrics-extraction,
     static-analysis-execution
   ]

@@ -21,7 +21,7 @@ SIGNALS::[
 PATTERNS::[
   "ASSUMPTION_CASCADES::{detection: 'untested beliefs compounding across systems', timeline: '2-4 weeks', confidence: '85%', historical_accuracy: '23/27 (85.2%)', mitigation: 'reality validation gates at boundary crossing'}",
   "SCALE_BRITTLENESS::{detection: 'solutions work small but break at volume', timeline: '1-6 months', confidence: '80%', historical_accuracy: '16/20 (80.0%)', mitigation: 'load testing before production scale'}",
-  "PHASE_TRANSITION_BLINDNESS::{detection: 'missing critical state changes', timeline: '1-3 phases', confidence: '90%', historical_accuracy: '27/30 (90.0%)', mitigation: 'phase gate constitutional verification'}",
+  "PHASE_TRANSITION_BLINDNESS::{detection: 'missing critical state changes', timeline: '1-3 phases', confidence: '90%', historical_accuracy: '27/30 (90.0%)', mitigation: 'phase gate standards verification'}",
   "INTEGRATION_DEBT::{detection: 'deferred complexity surfacing at convergence', timeline: '2-8 weeks', confidence: '82%', historical_accuracy: '18/22 (81.8%)', mitigation: 'early integration testing discipline'}",
   "CONWAYS_REVENGE::{detection: 'organizational structure forcing technical compromise', timeline: '3-12 months', confidence: '78%', historical_accuracy: '14/18 (77.8%)', mitigation: 'cross-boundary orchestration authority'}"
 ]

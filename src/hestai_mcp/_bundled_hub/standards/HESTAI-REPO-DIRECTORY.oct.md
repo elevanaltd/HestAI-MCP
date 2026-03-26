@@ -18,7 +18,7 @@ HESTAI_MCP::[
   VERSION::"1.2.0",
   TOOLS::[clock_in,clock_out,bind,submit_review],
   STATUS::operational,
-  NOTES::"Planned merge with odyssean-anchor-mcp into hestai-core-mcp. Hosts agent constitutions, skills library, governance rules in .hestai-sys/"
+  NOTES::"Planned merge with odyssean-anchor-mcp into hestai-core-mcp. Hosts agent definitions, skills library, standards rules in .hestai-sys/"
 ]
 
 ODYSSEAN_ANCHOR_MCP::[

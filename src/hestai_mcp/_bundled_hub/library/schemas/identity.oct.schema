@@ -9,7 +9,7 @@ META:
 DESCRIPTION::[
   "Defines the structure for runtime identity binding proofs.",
   "Used by the unified bind tool to validate agent identity vectors.",
-  "This is the runtime proof, distinct from design-time constitutions."
+  "This is the runtime proof, distinct from design-time agent definitions."
 ]
 
 STRUCTURE:

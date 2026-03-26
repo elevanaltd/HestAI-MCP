@@ -14,8 +14,8 @@ METADATA::[
   created::2025-12-18,
   updated::2025-12-19,
   id::naming-standard,
-  canonical::.hestai-sys/governance/rules/naming-standard.oct.md,
-  source::src/hestai_mcp/_bundled_hub/governance/rules/naming-standard.oct.md,
+  canonical::.hestai-sys/standards/rules/naming-standard.oct.md,
+  source::src/hestai_mcp/_bundled_hub/standards/rules/naming-standard.oct.md,
   format::octave
 ]
 
@@ -214,8 +214,8 @@ EXAMPLES::[
 PRINCIPLE::folders_carry_semantic_context→DO_NOT_repeat_in_filenames
 
 STANDARD_STRUCTURE::[
-  .hestai-sys/governance/rules/→visibility-rules.oct.md+naming-standard.oct.md,
-  .hestai-sys/governance/workflow/→000-SYSTEM-HESTAI-NORTH-STAR.md,
+  .hestai-sys/standards/rules/→visibility-rules.oct.md+naming-standard.oct.md,
+  .hestai-sys/standards/workflow/→000-SYSTEM-HESTAI-NORTH-STAR.md,
   .hestai/north-star/→000-*-NORTH-STAR.md+components/,
   .hestai/decisions/→architectural_decision_records,
   .hestai/state/context/→PROJECT-CONTEXT.md+PROJECT-CHECKLIST.md,
@@ -225,7 +225,7 @@ STANDARD_STRUCTURE::[
 ]
 
 FOLDER_SEMANTICS::[
-  governance/rules/→standards+enforcement→topic["naming-standard.md"],
+  standards/rules/→standards+enforcement→topic["naming-standard.md"],
   workflow/→processes+methodology→purpose["north-star.md"],
   context/→operational_state→entity["PROJECT-CONTEXT.md"],
   reports/→evidence+audits→event_finding["api-timeout-incident.md"],
@@ -257,13 +257,13 @@ HESTAI_SYSTEM_FILES::[
   VISIBILITY-RULES.md,
   NAMING-STANDARD.md,
   TEST-STRUCTURE-STANDARD.md,
-  CONSTITUTION.md,
+  SYSTEM-STANDARD.md,
   current_state.oct.md[underscore_for_MCP_compatibility]
 ]
 
-GOVERNANCE_RULES_DIRECTORY::ALL_files_in[.hestai-sys/governance/rules/]→whitelisted_CAPS[system_level_governance]
+STANDARDS_RULES_DIRECTORY::ALL_files_in[.hestai-sys/standards/rules/]→whitelisted_CAPS[system_level_standards]
 
-GOVERNANCE_WORKFLOW_DIRECTORY::ALL_files_in[.hestai-sys/governance/workflow/]→whitelisted_CAPS[system_level_governance+process_methodology]
+STANDARDS_WORKFLOW_DIRECTORY::ALL_files_in[.hestai-sys/standards/workflow/]→whitelisted_CAPS[system_level_standards+process_methodology]
 
 NORTH_STAR_PATTERN::[
   format::000-{PROJECT}-NORTH-STAR.md,
@@ -283,7 +283,7 @@ REGEX_DATE_PREFIXED::"^\d{4}-\d{2}-\d{2}-[a-z0-9-]+\.md$"
 REGEX_ADR::"^adr-\d{4}-[a-z0-9-]+\.md$"
 REGEX_REPORT::"^report-\d{3}-[a-z0-9-]+\.md$"
 NOTE::REGEX_RFC_removed_per_ADR-0060
-REGEX_WHITELIST::"^(README|LICENSE|CONTRIBUTING|CHANGELOG|SECURITY|CODE_OF_CONDUCT|CLAUDE|CODEOWNERS|ARCHITECTURE|PROJECT-CONTEXT|PROJECT-CHECKLIST|PROJECT-HISTORY|PROJECT-ROADMAP|APP-CONTEXT|APP-CHECKLIST|DECISIONS|VISIBILITY-RULES|NAMING-STANDARD|CONSTITUTION)(\\.md)?$"
+REGEX_WHITELIST::"^(README|LICENSE|CONTRIBUTING|CHANGELOG|SECURITY|CODE_OF_CONDUCT|CLAUDE|CODEOWNERS|ARCHITECTURE|PROJECT-CONTEXT|PROJECT-CHECKLIST|PROJECT-HISTORY|PROJECT-ROADMAP|APP-CONTEXT|APP-CHECKLIST|DECISIONS|VISIBILITY-RULES|NAMING-STANDARD|SYSTEM-STANDARD)(\\.md)?$"
 REGEX_NORTH_STAR::"^000-[A-Z0-9-]+-NORTH-STAR(-SUMMARY)?(\.oct)?\.md$"
 
 FILENAME_MUST::[
@@ -326,11 +326,11 @@ EXAMPLE_NEW::"naming-standard.md"[with_type:standard_in_frontmatter]
 SOURCE::system_steward_analysis+LLM_first_research[2025-12-18]
 SUPERSEDES::101-DOC-STRUCTURE-AND-NAMING-STANDARDS.oct.md[for_new_artifacts]
 COMPANION::VISIBILITY-RULES.md[placement_logic]
-VERSION::1.3[governance_workflow_directory_whitelist]
+VERSION::1.3[standards_workflow_directory_whitelist]
 
 ===CHANGELOG===
 
-v1.3::2026-01-13→added_GOVERNANCE_WORKFLOW_DIRECTORY_rule[whitelists_CAPS_in_.hestai-sys/governance/workflow/+fixes_naming_gap_for_process_methodology_docs]
+v1.3::2026-01-13→added_STANDARDS_WORKFLOW_DIRECTORY_rule[whitelists_CAPS_in_.hestai-sys/standards/workflow/+fixes_naming_gap_for_process_methodology_docs]
 v1.2::2025-12-24→issue_based_document_numbering[RFC-0031]+RFC_pattern_added+grandfathering_legacy_docs
 v1.1::2025-12-19→bundled_in_HestAI_MCP_Hub+OCTAVE_format_conversion
 v1.1::2025-12-18→lifecycle_statuses+controlled_vocabulary+.oct.md_canonical+whitelist+stable_references+regex_patterns

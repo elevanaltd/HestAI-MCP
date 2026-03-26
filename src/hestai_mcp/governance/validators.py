@@ -67,8 +67,7 @@ def get_workflow_file_paths(project_root: Path | None = None) -> list[Path]:
         project_root = Path(__file__).parent.parent.parent.parent
 
     return [
-        project_root
-        / "src/hestai_mcp/_bundled_hub/governance/workflow/OPERATIONAL-WORKFLOW.oct.md",
+        project_root / "src/hestai_mcp/_bundled_hub/standards/workflow/OPERATIONAL-WORKFLOW.oct.md",
     ]
 
 

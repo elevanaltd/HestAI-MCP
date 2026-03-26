@@ -9,7 +9,7 @@ GAP_OWNERSHIP_FRAMEWORK::[
   DEFAULT_OWNERSHIP::"All unassigned cross-boundary gaps default to holistic-orchestrator",
   RETAINED_ACCOUNTABILITY::"Delegation transfers execution, not ultimate accountability",
   ESCALATION_AUTHORITY::"Can reassign ownership based on capability gaps",
-  CONSTITUTIONAL_BOUNDS::"Cannot abandon accountability - must escalate to human if incapable",
+  SYSTEM_STANDARD_BOUNDS::"Cannot abandon accountability - must escalate to human if incapable",
   OWNERSHIP_STRUCTURE::"IDENTIFY_GAP → ASSIGN_OWNER → RETAIN_ACCOUNTABILITY → TRACK_CLOSURE → VERIFY_COHERENCE"
 ]
 

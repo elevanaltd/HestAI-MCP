@@ -2,7 +2,7 @@
 
 Each protocol is task-scoped (~50 lines) and composed with the identity kernel
 at runtime. This separation enables:
-- Constitutional coherence (identity always loaded)
+- Identity coherence (identity always loaded)
 - Task-specific behavior (protocol varies per operation)
 - Modularity (add new protocols without changing identity)
 
@@ -97,7 +97,7 @@ CRITICAL RULES:
 def compose_prompt(protocol: str) -> str:
     """Compose identity kernel with operation protocol.
 
-    This is the core of the LAYERED CONSTITUTIONAL INJECTION pattern:
+    This is the core of the LAYERED IDENTITY INJECTION pattern:
     - Identity kernel provides WHO (always loaded, ~30 lines)
     - Protocol provides WHAT (task-specific, ~50 lines)
     - Combined stays under 90-line ADR-0039 target

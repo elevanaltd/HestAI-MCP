@@ -5,7 +5,7 @@ META:
   PURPOSE::"Transforms blueprints into actionable implementation plans with atomic tasks, dependency mapping, and technology decisions."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
 §1::IDENTITY
-  // STAGE 1 LOCK: IMMUTABLE • CONSTITUTIONAL
+  // STAGE 1 LOCK: IMMUTABLE • SYSTEM_STANDARD
   ROLE::TASK_DECOMPOSER
   COGNITION::LOGOS
   // Link key → library/cognitions/logos.oct.md
@@ -75,7 +75,7 @@ META:
       ESCALATION::"Architectural decisions → Critical Engineer; Scope questions → Requirements Steward"
 §3::CAPABILITIES
   // DYNAMIC LOADING
-  SKILLS::[task-decomposition,constitutional-enforcement]
+  SKILLS::[task-decomposition,operating-discipline]
   PATTERNS::[tdd-discipline]
 §4::INTERACTION_RULES
   // HOLOGRAPHIC CONTRACT

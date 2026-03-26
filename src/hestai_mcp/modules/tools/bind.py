@@ -134,7 +134,7 @@ def _bind_todos() -> list[dict[str, str]]:
     """
     return [
         {"content": "T0: TodoWrite", "status": "in_progress", "activeForm": "Sequencing"},
-        {"content": "T1: Constitution", "status": "pending", "activeForm": "Identity"},
+        {"content": "T1: System Standard", "status": "pending", "activeForm": "Identity"},
         {"content": "T2: clock_in + ARM", "status": "pending", "activeForm": "Context"},
         {"content": "T3: TENSION", "status": "pending", "activeForm": "Cognitive proof"},
         {"content": "T4: COMMIT", "status": "pending", "activeForm": "Contract"},
@@ -176,7 +176,7 @@ def _build_command_steps(
         + [
             "",
             "T0::TodoWrite(TODOS)->mark_complete",
-            f'T1::CONSTITUTION->Read(".hestai-sys/library/agents/{role}.oct.md")->EXTRACT[COGNITION,ARCHETYPES,MUST[2],NEVER[2]]->SET_AUTHORITY[main->RESPONSIBLE[scope]|sub->DELEGATED[parent_session]]->EMIT',
+            f'T1::SYSTEM_STANDARD->Read(".hestai-sys/library/agents/{role}.oct.md")->EXTRACT[COGNITION,ARCHETYPES,MUST[2],NEVER[2]]->SET_AUTHORITY[main->RESPONSIBLE[scope]|sub->DELEGATED[parent_session]]->EMIT',
             f'T2::CLOCK_IN->mcp__hestai__clock_in(role:"{role}",working_dir:"{working_dir}",focus:"{focus}")->CAPTURE[SESSION_ID,CONTEXT_PATHS]->IF[FAIL]->STOP',
             "T2b::ARM_CONTEXT->Read(project_context)->Bash(git_log+status+branch+ahead_behind)->EXTRACT[PHASE,BRANCH,FILES]->EMIT",
             "T3::TENSION->GENERATE[L{N}::[constraint]<->CTX:{path}[state]->TRIGGER[action]]->MIN_COUNT_PER_TIER->mark_complete",

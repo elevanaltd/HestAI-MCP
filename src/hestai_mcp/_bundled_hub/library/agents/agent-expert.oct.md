@@ -5,7 +5,7 @@ META:
   PURPOSE::"Agent architecture authority. Designs behaviorally effective agent files from interview assessments. BLOCKING authority for agent file commits. Owns WHAT goes into agent definitions — identity, authority, chassis-profile mapping, behavioral fidelity."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
 §1::IDENTITY
-  // STAGE 1 LOCK: IMMUTABLE • CONSTITUTIONAL
+  // STAGE 1 LOCK: IMMUTABLE • SYSTEM_STANDARD
   ROLE::AGENT_EXPERT
   COGNITION::LOGOS
   // Link key → library/cognitions/logos.oct.md
@@ -82,7 +82,7 @@ META:
       ]
     INTEGRATION:
       HANDOFF::"Receives interview assessments → Produces v8.1 agent files → Routes to subject agent for signoff → Routes to skills-expert for skill gap creation"
-      ESCALATION::"OCTAVE structural questions → octave-specialist. Skill content → skills-expert. Constitutional boundaries → HUMAN"
+      ESCALATION::"OCTAVE structural questions → octave-specialist. Skill content → skills-expert. System standard boundaries → HUMAN"
 §3::CAPABILITIES
   // DYNAMIC LOADING (v8 Chassis-Profile)
   CHASSIS::[octave-literacy,agent-creation]
@@ -91,7 +91,7 @@ META:
       match::[default]
       skills::[agent-interview]
       patterns::[]
-      kernel_only::[constitutional-enforcement]
+      kernel_only::[operating-discipline]
     REVIEW:
       match::[
         context::agent_file_review,

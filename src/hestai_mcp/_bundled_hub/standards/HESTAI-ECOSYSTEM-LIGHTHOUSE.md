@@ -23,7 +23,7 @@ tracking: https://github.com/orgs/elevanaltd/projects/15
 
 This describes **where we're headed** — the target state of the HestAI ecosystem when fully integrated. It is the destination, not the law.
 
-It is **not** a constitution (that's the System North Star), **not** a build plan (that's Project 15), **not** a snapshot of current state (that's the Ecosystem Overview), and **not** a methodology (that's the System North Star I1-I6).
+It is **not** a system standard (that's the System North Star), **not** a build plan (that's Project 15), **not** a snapshot of current state (that's the Ecosystem Overview), and **not** a methodology (that's the System North Star I1-I6).
 
 **This document will change.** When reality contradicts this vision, update the document. When a better architecture emerges, rewrite the section. The value is in having a shared picture of where we're going, not in defending a frozen plan.
 
@@ -45,7 +45,7 @@ The system is not a single application. It is an ecosystem of cooperating system
 
 ### The End State in One Paragraph
 
-An operator opens the Workbench, picks a role from the agent registry, selects a provider and model, and starts working. The agent binds its identity through the anchor ceremony, loads its constitution and skills, and operates within its authority boundaries. When it needs a decision, it opens a structured debate. When it needs another perspective, the Workbench dispatches a different agent on a different model. All communication uses OCTAVE format. All sessions are persistent. All decisions are auditable. The operator sees the whole system through one GUI and never needs to configure MCP servers, manage worktrees, or remember which agent does what.
+An operator opens the Workbench, picks a role from the agent registry, selects a provider and model, and starts working. The agent binds its identity through the anchor ceremony, loads its definition and skills, and operates within its authority boundaries. When it needs a decision, it opens a structured debate. When it needs another perspective, the Workbench dispatches a different agent on a different model. All communication uses OCTAVE format. All sessions are persistent. All decisions are auditable. The operator sees the whole system through one GUI and never needs to configure MCP servers, manage worktrees, or remember which agent does what.
 
 ---
 
@@ -79,7 +79,7 @@ The ecosystem converges from the current six repos to three MCP servers plus a c
 **What it is:** The single source of truth for agent identity, governance, and context management.
 
 **What it owns:**
-- Agent constitutions and skills library (one canonical source)
+- Agent definitions and skills library (one canonical source)
 - Anchor ceremony (identity binding via progressive interrogation)
 - Context stewardship (session lifecycle, clock in/out)
 - Governance rules and enforcement
@@ -179,7 +179,7 @@ This is what the operator's daily experience looks like when the ecosystem is co
 
 4. **Workbench spawns the agent.** Creates a git worktree, connects MCP servers, launches the appropriate CLI (Claude, Codex, Gemini, or Goose) based on the registry entry.
 
-5. **Agent binds identity.** Anchor ceremony runs automatically — the agent proves it comprehends its role, the Constitution, and the current project context. Appropriate capability profile loads based on task scope.
+5. **Agent binds identity.** Anchor ceremony runs automatically — the agent proves it comprehends its role, the System Standard, and the current project context. Appropriate capability profile loads based on task scope.
 
 6. **Agent works.** Calls HestAI Core for skills and context. Uses OCTAVE format for all documents. Operates within its authority boundaries.
 
@@ -207,7 +207,7 @@ Each system owns exactly one concern. Identity is not deliberation. Deliberation
 
 ### One canonical source
 
-Agent definitions exist in exactly one place: HestAI Core. Not duplicated in the Workbench, not embedded in debate-hall. When an agent's constitution changes, it changes in one file. The Workbench's agent registry maps roles to providers — it references identity, never duplicates it.
+Agent definitions exist in exactly one place: HestAI Core. Not duplicated in the Workbench, not embedded in debate-hall. When an agent's definition changes, it changes in one file. The Workbench's agent registry maps roles to providers — it references identity, never duplicates it.
 
 ### Provider agnosticism
 
@@ -223,7 +223,7 @@ Debate Hall works without HestAI. A team that doesn't use HestAI governance can 
 
 Not every task needs a full anchor ceremony. Trivial read-only tasks get a micro permit. Standard work gets the full ceremony. Critical decisions get extra scrutiny. Governance weight scales with risk.
 
-In the Workbench, ceremony streamlines via **hybrid injection**: the Workbench pre-injects raw governance context (Constitution, agent definition, North Star, project context) into the system prompt, then the agent writes a short synthesis proving comprehension — one tool call instead of six. The Odyssean Anchor / HestAI Core binding and proof validation still execute and are server-validated; the optimization only reduces round-trips and prompt I/O, not the verification itself. This preserves the cognitive alignment that makes the ceremony valuable (the agent generates its own proof, engaging its reasoning) while collapsing the I/O overhead. Inject the data, force the agent to write the synthesis.
+In the Workbench, ceremony streamlines via **hybrid injection**: the Workbench pre-injects raw governance context (System Standard, agent definition, North Star, project context) into the system prompt, then the agent writes a short synthesis proving comprehension — one tool call instead of six. The Odyssean Anchor / HestAI Core binding and proof validation still execute and are server-validated; the optimization only reduces round-trips and prompt I/O, not the verification itself. This preserves the cognitive alignment that makes the ceremony valuable (the agent generates its own proof, engaging its reasoning) while collapsing the I/O overhead. Inject the data, force the agent to write the synthesis.
 
 For **API-dispatched agents** (advisory roles via OpenRouter), ceremony further streamlines via **assistant prefilling**: the Workbench constructs the full system prompt (agent definition + skill kernels + governance context), then injects a prefilled assistant turn that demonstrates cognitive alignment before the actual task is delivered. This avoids attention decay — simply dumping governance context into a system prompt and hoping for compliance is insufficient. The prefilled synthesis primes the model into the correct operating mode zero-shot. The Workbench's `ApiDispatcher` constructs this server-side; the calling agent never sees the priming exchange. Provider-aware message construction is required, as not all OpenRouter backends handle prefilling identically.
 

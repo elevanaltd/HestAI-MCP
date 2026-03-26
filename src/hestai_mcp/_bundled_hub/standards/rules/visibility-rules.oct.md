@@ -10,8 +10,8 @@ META:
   OWNERS::[system-steward]
   CREATED::2025-12-09
   UPDATED::2026-03-04
-  CANONICAL::.hestai-sys/governance/rules/visibility-rules.oct.md
-  SOURCE::src/hestai_mcp/_bundled_hub/governance/rules/visibility-rules.oct.md
+  CANONICAL::.hestai-sys/standards/rules/visibility-rules.oct.md
+  SOURCE::src/hestai_mcp/_bundled_hub/standards/rules/visibility-rules.oct.md
   TAGS::[placement, visibility, documentation, lifecycle, hestai-sys, bundled-hub]
 
 ===CORE_PRINCIPLE===
@@ -26,15 +26,15 @@ PLACEMENT_LOGIC::[
 
 ===PLACEMENT_RULES===
 
-RULE_0::SYSTEM_GOVERNANCE→.hestai-sys/::[
+RULE_0::SYSTEM_STANDARDS→.hestai-sys/::[
   AUDIENCE::all_HestAI_products+agents,
   LIFECYCLE::committed_in_source+read_only_when_injected,
   TRACKING::git_history+MCP_injection_as_.hestai-sys/,
 
   WHAT_GOES_HERE::[
     system_north_star[universal_immutables],
-    agent_constitution_templates[.oct.md],
-    governance_rules[naming+visibility+test_standards],
+    agent_definition_templates[.oct.md],
+    standards_rules[naming+visibility+test_standards],
     project_templates[north_star_templates],
     reference_libraries[octave_pointers+guides],
     system_skills[ecosystem_wide_operational_knowledge],
@@ -42,12 +42,11 @@ RULE_0::SYSTEM_GOVERNANCE→.hestai-sys/::[
   ],
 
   STRUCTURE::[
-    .hestai-sys/governance/workflow/→[000-SYSTEM-HESTAI-NORTH-STAR.md],
-    .hestai-sys/governance/rules/→[naming-standard.oct.md|visibility-rules.oct.md],
-    .hestai-sys/agents/→[agent_constitution_templates],
+    .hestai-sys/standards/workflow/→[000-SYSTEM-HESTAI-NORTH-STAR.md],
+    .hestai-sys/standards/rules/→[naming-standard.oct.md|visibility-rules.oct.md],
     .hestai-sys/templates/→[project_templates],
     .hestai-sys/library/skills/→[ecosystem_wide_skills],
-    .hestai-sys/library/agents/→[agent_definitions],
+    .hestai-sys/library/agents/→[agent_definitions+agent_definition_templates],
     .hestai-sys/library/patterns/→[reusable_patterns],
     .hestai-sys/library/schemas/→[schema_definitions],
     .hestai-sys/library/octave/→[octave_usage_guides],
@@ -193,7 +192,7 @@ RULE_5::CLAUDE_CODE_CONFIG→.claude/::[
   TRACKING::git+sync_commands[cfg-config-sync],
 
   WHAT_GOES_HERE::[
-    agent_constitutions[.oct.md_files],
+    agent_definitions[.oct.md_files],
     slash_commands[/activate|/role],
     skills[operational_knowledge_modules],
     hooks[git_workflow_automation]
@@ -255,9 +254,9 @@ RULE_6::REPORTS→.hestai/state/reports/::[
 
 PLACEMENT_TABLE::[
   // SYSTEM GOVERNANCE (.hestai-sys/)
-  system_north_star→.hestai-sys/governance/workflow/[committed_in_source|all_products|read_only_injection],
-  governance_rules→.hestai-sys/governance/rules/[committed_in_source|all_products|read_only_injection],
-  agent_templates→.hestai-sys/agents/[committed_in_source|all_products|read_only_injection],
+  system_north_star→.hestai-sys/standards/workflow/[committed_in_source|all_products|read_only_injection],
+  governance_rules→.hestai-sys/standards/rules/[committed_in_source|all_products|read_only_injection],
+  agent_templates→.hestai-sys/library/agents/[committed_in_source|all_products|read_only_injection],
   project_templates→.hestai-sys/templates/[committed_in_source|all_products|read_only_injection],
   reference_libraries→.hestai-sys/library/[committed_in_source|all_products|read_only_injection],
   system_skills→.hestai-sys/library/skills/[committed_in_source|all_products|read_only_injection],
@@ -288,7 +287,7 @@ PLACEMENT_TABLE::[
   debate_transcripts→debates/[split_tracking:json_ignored|octave_committed|cognitive_evidence|durable],
 
   // CLAUDE CODE INFRASTRUCTURE (.claude/)
-  agent_constitutions→.claude/agents/[committed|Claude_Code|infrastructure],
+  agent_definitions→.claude/agents/[committed|Claude_Code|infrastructure],
   project_skills→.claude/skills/[committed|Claude_Code|infrastructure]
 ]
 
@@ -389,7 +388,7 @@ FROM_OLD→TO_THREE_TIER::[
 // When to use OCTAVE (.oct.md) vs Markdown (.md)
 
 OCTAVE_FORMAT[.oct.md]::[
-  agent_constitutions,
+  agent_definitions,
   governance_rules,
   north_star_summaries[agent_consumed_compressed],
   methodology_docs,
@@ -414,7 +413,7 @@ NOTE_NORTH_STAR_FORMAT::[
 
 FORMAT_DECISION_TREE::[
   "Primary audience AI agents?"→YES→.oct.md,
-  "Governance/methodology/constitution?"→YES→.oct.md,
+  "Standards/methodology/system-standard?"→YES→.oct.md,
   "Primary audience human developers?"→YES→.md,
   "ADR or setup guide?"→YES→.md
 ]
@@ -472,12 +471,12 @@ FUTURE_EVOLUTION::[
 ===COMPATIBILITY===
 
 WITH_NAMING_STANDARD::[
-  .hestai-sys/governance/rules/visibility-rules.oct.md→answers["WHERE does artifact belong?"],
-  .hestai-sys/governance/rules/naming-standard.oct.md→answers["HOW to name once placed?"]
+  .hestai-sys/standards/rules/visibility-rules.oct.md→answers["WHERE does artifact belong?"],
+  .hestai-sys/standards/rules/naming-standard.oct.md→answers["HOW to name once placed?"]
 ]
 
 WITH_HUB_AUTHORING_RULES::[
-  .hestai-sys/governance/rules/visibility-rules.oct.md→answers["WHERE in PRODUCT?"],
+  .hestai-sys/standards/rules/visibility-rules.oct.md→answers["WHERE in PRODUCT?"],
   .hestai/rules/hub-authoring-rules.oct.md→answers["WHERE in SYSTEM governance payload?" ]
 ]
 
@@ -490,7 +489,7 @@ COMPANION::naming-standard.md[naming+frontmatter_logic]
 
 ===CHANGELOG===
 
-v1.8::2026-03-04→clarified_north_star_format[full_.md_summary_.oct.md]+harmonized_RULE_4_and_ADR_SUPREMACY[.hestai/decisions/_is_compiled_debate_decisions_not_constitutional_amendments_only]+added_DISTINCTION_to_ADR_SUPREMACY[debate-hall_exports_vs_developer_ADRs]
+v1.8::2026-03-04→clarified_north_star_format[full_.md_summary_.oct.md]+harmonized_RULE_4_and_ADR_SUPREMACY[.hestai/decisions/_is_compiled_debate_decisions_not_system_standard_amendments_only]+added_DISTINCTION_to_ADR_SUPREMACY[debate-hall_exports_vs_developer_ADRs]
 v1.7::2026-03-04→added_PHASE_DELIVERABLES_section[lifecycle_model:Spec→Report→Doc]+phase_mapping_D1-B4+graduation_rules+ADR_SUPREMACY_policy+phase_deliverables_in_PLACEMENT_TABLE+phase_gate_evidence_in_RULE_6
 v1.6::2026-02-26→fixed_ADR_path_to_docs/adr/[per_ADR-0031]+clarified_.hestai/decisions/_as_compiled_governance_decisions[not_ADRs]+expanded_.hestai-sys/library/_structure[skills/agents/patterns/schemas/octave]+added_system_skills_to_RULE_0+added_skill_distinction_NOTE_to_RULE_5+added_CONFUSE_DECISIONS_WITH_ADRS_anti-pattern+added_system_skills_to_PLACEMENT_TABLE
 v1.5::2026-02-23→clarified_north-star_folder_strict_contents+expanded_rules_folder_scope+added_implementation_spec_placement+anti-pattern_for_north-star_contamination

@@ -1,6 +1,6 @@
-# System Governance Directory (.hestai-sys)
+# System Standards Directory (.hestai-sys)
 
-This directory contains **read-only system governance** delivered by the HestAI MCP server.
+This directory contains **read-only system standards** delivered by the HestAI MCP server.
 
 ## ⚠️ DO NOT MODIFY
 
@@ -8,18 +8,18 @@ These files are automatically managed by the MCP server and will be replaced on 
 
 ## For AI Agents
 
-**You have access to these governance files!** Even though `.hestai-sys` is gitignored, you can read these files using the `Read` tool.
+**You have access to these standards files!** Even though `.hestai-sys` is gitignored, you can read these files using the `Read` tool.
 
-### Key Governance Files
+### Key Standards Files
 
 ```bash
 # System-wide rules (READ THESE FIRST)
-.hestai-sys/governance/rules/naming-standard.oct.md
-.hestai-sys/governance/rules/visibility-rules.oct.md
-.hestai-sys/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md
+.hestai-sys/standards/rules/naming-standard.oct.md
+.hestai-sys/standards/rules/visibility-rules.oct.md
+.hestai-sys/standards/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md
 
-# Your agent constitution (if binding as a role)
-.hestai-sys/agents/{your-role}.oct.md
+# Your agent definition (if binding as a role)
+.hestai-sys/library/agents/{your-role}.oct.md
 
 # Reusable skills
 .hestai-sys/library/skills/*/SKILL.md
@@ -29,7 +29,7 @@ These files are automatically managed by the MCP server and will be replaced on 
 
 Use the `Read` tool:
 ```
-Read .hestai-sys/governance/rules/naming-standard.oct.md
+Read .hestai-sys/standards/rules/naming-standard.oct.md
 ```
 
 Use `Glob` to discover:
@@ -43,13 +43,14 @@ Glob pattern: .hestai-sys/**/*.md
 .hestai-sys/
 ├── README.md           # This file (you are here)
 ├── .version           # Hub version for auto-updates
-├── governance/        # System-wide rules and workflows
+├── standards/        # System-wide rules and workflows
 │   ├── rules/        # Naming, visibility, test standards
 │   └── workflow/     # North Stars and methodology
-├── agents/           # Agent constitutions (one per role)
 ├── library/          # Reusable components
+│   ├── agents/      # Agent definitions (one per role)
 │   ├── skills/       # Reusable skill patterns
-│   ├── specs/        # Protocol specifications
+│   ├── patterns/     # Reusable patterns
+│   ├── schemas/      # Schema definitions
 │   └── octave/       # OCTAVE format guide
 └── templates/        # Project initialization templates
 ```

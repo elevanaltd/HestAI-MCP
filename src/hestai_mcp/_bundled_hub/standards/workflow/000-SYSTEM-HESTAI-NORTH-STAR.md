@@ -3,7 +3,7 @@ type: NORTH_STAR
 id: system-hestai-north-star
 version: 1.1
 status: APPROVED
-purpose: Constitutional methodology and governance for all HestAI projects
+purpose: Operating discipline and standards for all HestAI projects
 inherits: NONE[ROOT_DOCUMENT]
 approved_by: Shaun Buswell (Human Primacy Authority)
 approval_date: 2025-12-05
@@ -13,7 +13,7 @@ NAMESPACE::SYS
 ---
 
 <!-- HestAI-Doc-Steward: consulted for document-creation-and-placement -->
-<!-- Relationship: COMPLEMENT to 001-WORKFLOW-NORTH-STAR.oct.md (constitutional→operational hierarchy) -->
+<!-- Relationship: COMPLEMENT to 001-WORKFLOW-NORTH-STAR.oct.md (standards→operational hierarchy) -->
 <!-- Note: This is the foundational System North Star. All other workflow documents must satisfy these immutables. -->
 
 # HESTAI SYSTEM NORTH STAR
@@ -32,7 +32,7 @@ This document represents the immutable requirements for HestAI. All work must al
 
 **Authority:** This North Star was extracted through the full Immutability Funnel (HERMES → PSYCHE → APOLLO), pressure-tested via What-If Gauntlet, crystallized via Immutability Oath, and validated by multi-model consensus.
 
-**Relationship to 001-WORKFLOW-NORTH-STAR:** This document establishes constitutional principles that 001-WORKFLOW-NORTH-STAR.oct.md must satisfy. This is the "WHAT cannot change"; 001 is the "HOW it works operationally."
+**Relationship to 001-WORKFLOW-NORTH-STAR:** This document establishes system standard principles that 001-WORKFLOW-NORTH-STAR.oct.md must satisfy. This is the "WHAT cannot change"; 001 is the "HOW it works operationally."
 
 ---
 
@@ -101,7 +101,7 @@ This document represents the immutable requirements for HestAI. All work must al
 > Quality must be verified before work progresses to next stage. Verification may be automated, manual, or hybrid. Verification must block progression when quality criteria are not met.
 
 **INTERPRETIVE CLAUSE:**
-> Quality verification includes enforcement of constitutional controls (tests, gates, RACI evidence) and blocks progression if any control is bypassed.
+> Quality verification includes enforcement of operating discipline controls (tests, gates, RACI evidence) and blocks progression if any control is bypassed.
 
 **Rationale:** Gates block, not warn. The mechanism may evolve; the blocking behavior is constant.
 
@@ -131,9 +131,9 @@ This document represents the immutable requirements for HestAI. All work must al
 - **I5** (Blocking Verification) — Quality checks must block
 - **I6** (Explicit Accountability) — Ownership records required
 
-**Anti-Drift Clause:** Under pressure, ceremony density may decrease, but **Gate Evidence** and **Accountability Records** cannot be omitted. Erosion of these elements constitutes violation of I2, I5, and I6.
+**Anti-Drift Clause:** Under pressure, ceremony density may decrease, but **Gate Evidence** and **Accountability Records** cannot be omitted. Erosion of these elements constitutes misalignment with I2, I5, and I6.
 
-**Rationale:** Governance is mechanism, not truth. Success criterion is "does the built thing work properly," not "did we follow the process." But minimum ceremonies are constitutionally protected.
+**Rationale:** Operating discipline is mechanism, not truth. Success criterion is "does the built thing work properly," not "did we follow the process." But minimum ceremonies are protected by system standard.
 
 ---
 
@@ -144,7 +144,7 @@ This document represents the immutable requirements for HestAI. All work must al
 | **Ceremony Intensity** | Phases exist (I2) | Duration per phase | Specific artifacts |
 | **Documentation Depth** | Discoverable persistence (I4) | Format and length | Storage location |
 | **Model Implementation** | Governance applies | Which AI provider | Specific model versions |
-| **Agent Architecture** | Constitutional binding | Number of agents | Specific role definitions |
+| **Agent Architecture** | Standards binding | Number of agents | Specific role definitions |
 | **Coordination Structure** | Accountability required (I6) | RACI vs other models | Role naming conventions |
 
 ---
@@ -182,7 +182,7 @@ HestAI's compressed notation system:
 - A governance envelope for AI-assisted development
 - A design-and-build system with mandatory quality gates
 - A coordination methodology spanning D0→B5 phases
-- A constitutional framework binding agent behavior
+- A standards framework binding agent behavior
 - A bridge between "vibe coding" and reliable AI-assisted development
 
 ### What HestAI is NOT
@@ -202,7 +202,7 @@ HestAI's compressed notation system:
 |----|------------|------------|--------|----------|--------|
 | A0 | This methodology produces better North Stars | 70% | LOW | Post-cycle | Pending |
 | A1 | Multi-agent coordination scales | 70% | CRITICAL | **Before B0** | Pending |
-| A2 | Constitutional binding affects behavior | 85% | HIGH | Quarterly | **Validating (B1)** |
+| A2 | Standards binding affects behavior | 85% | HIGH | Quarterly | **Validating (B1)** |
 | A3 | Single developer can maintain system | 85% | MEDIUM | Monthly | Ongoing |
 | A4 | OCTAVE compression preserves meaning | 95% | HIGH | **Before B0** | **RESOLVED** |
 | A5 | Phase gates add more value than overhead | 80% | MEDIUM | Per-project | Validating |
@@ -262,7 +262,7 @@ If ANY agent detects misalignment between work and this North Star:
 
 ---
 
-<!-- Constitutional Authority: north-star-architect (PATHOS cognition) -->
+<!-- Standards Authority: north-star-architect (PATHOS cognition) -->
 <!-- Approval Authority: Human (I3 Human Primacy) -->
 <!-- Validation: Multi-model consensus (Codex + Gemini) -->
 <!-- Date: 2025-12-05 -->

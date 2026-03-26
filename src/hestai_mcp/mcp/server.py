@@ -214,14 +214,14 @@ def inject_system_governance(project_root: Path) -> None:
     hub_path = get_hub_path()
 
     # Agents are now part of library directory
-    required_dirs = ["governance", "library", "templates"]
+    required_dirs = ["standards", "library", "templates"]
     for d in required_dirs:
         if not (hub_path / d).exists():
             raise FileNotFoundError(f"Bundled hub missing required directory: {hub_path / d}")
 
     hestai_sys_dir = project_root / ".hestai-sys"
 
-    # Holographic Constitution: restore writable permissions before re-injection
+    # Holographic System Standard: restore writable permissions before re-injection
     if hestai_sys_dir.exists():
         from hestai_mcp.modules.tools.shared.governance_integrity import (
             restore_writable_permissions,
@@ -237,7 +237,7 @@ def inject_system_governance(project_root: Path) -> None:
     tmp_dir.mkdir(parents=True, exist_ok=True)
 
     # Copy all files from bundled hub into tmp tree
-    # This includes CONSTITUTION.md, README.md, and all subdirectories
+    # This includes SYSTEM-STANDARD.md, README.md, and all subdirectories
     # Exclude __pycache__ and other temporary artifacts
     shutil.copytree(
         hub_path,
@@ -260,7 +260,7 @@ def inject_system_governance(project_root: Path) -> None:
     tmp_dir.rename(hestai_sys_dir)
 
     if old_dir.exists() or old_dir.is_symlink():
-        # Holographic Constitution: guard against symlink edge — old_dir may be a symlink
+        # Holographic System Standard: guard against symlink edge — old_dir may be a symlink
         # if a previous cleanup was interrupted. Use unlink() for symlinks to avoid
         # shutil.rmtree() following or failing on the symlink target.
         if old_dir.is_symlink():
@@ -268,7 +268,7 @@ def inject_system_governance(project_root: Path) -> None:
         else:
             shutil.rmtree(old_dir)
 
-    # Holographic Constitution: store integrity hash and apply read-only permissions
+    # Holographic System Standard: store integrity hash and apply read-only permissions
     from hestai_mcp.modules.tools.shared.governance_integrity import (
         apply_readonly_permissions,
     )
@@ -302,8 +302,8 @@ def ensure_system_governance(project_root: Path) -> dict[str, Any]:
         return {"status": "skipped", "reason": "opt_in_required"}
 
     # Agents are now part of library directory
-    required_dirs = ["governance", "library", "templates"]
-    required_files = ["CONSTITUTION.md", "README.md"]
+    required_dirs = ["standards", "library", "templates"]
+    required_files = ["SYSTEM-STANDARD.md", "README.md"]
 
     hestai_sys_dir = project_root / ".hestai-sys"
     version_path = hestai_sys_dir / ".version"
@@ -319,7 +319,7 @@ def ensure_system_governance(project_root: Path) -> dict[str, Any]:
     )
 
     if current == desired and has_required_tree:
-        # Holographic Constitution: backfill .integrity if absent on pre-existing deployments.
+        # Holographic System Standard: backfill .integrity if absent on pre-existing deployments.
         # Without this, trees that were deployed before the integrity feature was introduced
         # would stay in "first_run" mode (no enforcement) indefinitely.
         integrity_file = hestai_sys_dir / ".integrity"
@@ -569,7 +569,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         # Ensure governance is present in the target working directory.
         ensure_system_governance(working_dir_path)
 
-        # Holographic Constitution: verify governance integrity at session start
+        # Holographic System Standard: verify governance integrity at session start
         hestai_sys_dir = working_dir_path / ".hestai-sys"
         if hestai_sys_dir.exists():
             from hestai_mcp.modules.tools.shared.governance_integrity import (
@@ -647,7 +647,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             assert project_root is not None  # guaranteed by FileNotFoundError above
             actual_project_root = project_root
 
-        # Holographic Constitution: verify governance integrity at session end
+        # Holographic System Standard: verify governance integrity at session end
         hestai_sys_dir = actual_project_root / ".hestai-sys"
         if hestai_sys_dir.exists():
             from hestai_mcp.modules.tools.shared.governance_integrity import (
