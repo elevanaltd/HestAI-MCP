@@ -1,17 +1,15 @@
 """
-RED phase tests for 5-tier review system expansion in validate_review.py.
+Contract tests for the 5-tier review system in validate_review.py.
 
-These tests define the contract for:
-- New T1 threshold (<10 lines, not <50)
-- T1 security path and new test file guards
-- T2 range change (10-500 lines)
-- T3 trigger expansion (base class, security, tools, MCP endpoints)
-- Tier name changes (TIER_3_CRITICAL, TIER_4_STRATEGIC)
-- New approval requirements per tier (TMG, CIV, PE roles)
+Tests verify tier determination, approval requirements, and governance compliance
+for the expanded TMG/CIV/PE role structure:
+- T1 threshold (<10 lines, single non-exempt file, no security paths, no new tests)
+- T2 range (10-500 lines, requires TMG + CRS + CE)
+- T3 triggers (>500 lines, security/architecture paths, requires TMG + CRS + CE + CIV)
+- T4 strategic (manual-only, requires TMG + CRS + CE + CIV + PE)
+- T0 exemptions (docs, tests, locks, generated JSON only)
 
 Source of truth: review-requirements.oct.md v2.0 (5-tier system)
-
-Tests MUST FAIL until production code is updated.
 """
 
 import json
@@ -144,14 +142,17 @@ class TestTier1NewTestFileUpgrade:
         New tests indicate functional changes that need TMG review.
         """
         files = [
-            {"path": "src/utils.py", "added": 3, "deleted": 0, "total_changed": 3},
-            {"path": "tests/test_utils.py", "added": 5, "deleted": 0, "total_changed": 5},
+            {"path": "src/utils.py", "added": 3, "deleted": 0, "total_changed": 3, "status": "M"},
+            {
+                "path": "tests/test_utils.py",
+                "added": 5,
+                "deleted": 0,
+                "total_changed": 5,
+                "status": "A",
+            },
         ]
-        # Note: tests are exempt in the current system, but the governance rule
-        # says "includes_new_test_files" should trigger T2. The file count check
-        # for T1 already requires single_non_exempt_file, but the governance rule
-        # also explicitly guards against new test files in non-exempt calculation.
-        # This test checks the intent: new tests present -> not T1.
+        # Governance says no_new_test_files for T1. The "status": "A" marks the
+        # test file as newly added, which should disqualify T1 self-review.
         tier, _ = validate_review.determine_review_tier(files)
         assert (
             tier == "TIER_2_STANDARD"
@@ -894,11 +895,8 @@ class TestTier4NeverAutoDetected:
         assert (
             tier != "TIER_4_STRATEGIC"
         ), f"determine_review_tier must never auto-detect T4, got {tier}"
-        # It should be T3 at most
-        assert tier in (
-            "TIER_3_CRITICAL",
-            "TIER_3_STRICT",
-        ), f"Extreme inputs should be T3 level, got {tier}"
+        # It should be T3 (TIER_3_CRITICAL under the 5-tier system)
+        assert tier == "TIER_3_CRITICAL", f"Extreme inputs should be TIER_3_CRITICAL, got {tier}"
 
 
 # ---------------------------------------------------------------------------

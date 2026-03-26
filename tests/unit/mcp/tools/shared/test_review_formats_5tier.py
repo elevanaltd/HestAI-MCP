@@ -1,12 +1,11 @@
 """
-RED phase tests for 5-tier review system expansion in review_formats.py.
+Contract tests for 5-tier review system roles and constants in review_formats.py.
 
-These tests define the contract for adding TMG, CIV, PE roles and
-TIER_3_CRITICAL / TIER_4_STRATEGIC tier constants to the review_formats module.
+Tests verify TMG, CIV, PE role support including approval pattern matching,
+format_review_comment() output, metadata roundtrip, and tier constants
+(TIER_3_CRITICAL, TIER_4_STRATEGIC) for the expanded review structure.
 
 Source of truth: review-requirements.oct.md v2.0 (5-tier system)
-
-Tests MUST FAIL until production code is updated.
 """
 
 import pytest

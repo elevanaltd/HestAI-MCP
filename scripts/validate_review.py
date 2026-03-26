@@ -21,19 +21,29 @@ from typing import Any
 
 
 def get_changed_files() -> list[dict[str, Any]]:
-    """Get list of changed files with line counts."""
+    """Get list of changed files with line counts and file status.
+
+    Each returned dict includes:
+      - path: file path
+      - added: lines added
+      - deleted: lines deleted
+      - total_changed: added + deleted
+      - status: git status letter (A=added, M=modified, D=deleted, R=renamed)
+    """
     try:
         # In CI, compare against base branch; locally use cached
         if "CI" in os.environ:
             # Get the base branch (usually main)
             base_ref = os.environ.get("GITHUB_BASE_REF", "origin/main")
-            cmd = ["git", "diff", f"{base_ref}...HEAD", "--numstat"]
+            numstat_cmd = ["git", "diff", f"{base_ref}...HEAD", "--numstat"]
+            status_cmd = ["git", "diff", f"{base_ref}...HEAD", "--name-status"]
         else:
             # Local: check staged files
-            cmd = ["git", "diff", "--cached", "--numstat"]
+            numstat_cmd = ["git", "diff", "--cached", "--numstat"]
+            status_cmd = ["git", "diff", "--cached", "--name-status"]
 
-        # Get diff stats
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        # Get diff stats (line counts)
+        result = subprocess.run(numstat_cmd, capture_output=True, text=True, check=True)
 
         files = []
         for line in result.stdout.strip().split("\n"):
@@ -51,6 +61,24 @@ def get_changed_files() -> list[dict[str, Any]]:
                         + (int(deleted) if deleted != "-" else 0),
                     }
                 )
+
+        # Get file statuses (A=added, M=modified, D=deleted, R=renamed)
+        status_result = subprocess.run(status_cmd, capture_output=True, text=True, check=True)
+        status_map: dict[str, str] = {}
+        for line in status_result.stdout.strip().split("\n"):
+            if not line:
+                continue
+            parts = line.split("\t")
+            if len(parts) >= 2:
+                # Status is first char of first field (e.g., "M", "A", "R100")
+                status_letter = parts[0][0]
+                filename = parts[-1]  # Last field is the path (handles renames)
+                status_map[filename] = status_letter
+
+        # Merge status into file dicts
+        for f in files:
+            f["status"] = status_map.get(f["path"], "M")  # Default to M if unknown
+
         return files
     except subprocess.CalledProcessError as e:
         # SECURITY FIX: Fail closed in CI, permissive locally
@@ -63,17 +91,16 @@ def get_changed_files() -> list[dict[str, Any]]:
 def _is_generated_json(path: str) -> bool:
     """Check if a JSON file is a generated/lock file (exempt) vs hand-edited (not exempt).
 
-    Generated JSON files (package-lock.json, coverage reports, etc.) are exempt.
-    Hand-edited JSON config files (src/config/settings.json) are NOT exempt.
+    Per governance rule ``**/*.json[when:generated_file]``, JSON is exempt ONLY
+    when it is a generated file. Hand-edited config files (package.json,
+    tsconfig.json, .eslintrc.json, pyrightconfig.json, .vscode/*.json) are NOT
+    exempt because humans maintain them and changes can introduce bugs.
+
+    Only truly auto-generated JSON (lock files, coverage reports) qualifies.
     """
     generated_patterns = [
         r"(^|/)package-lock\.json$",
-        r"(^|/)package\.json$",
-        r"(^|/)tsconfig\.json$",
-        r"(^|/)\.eslintrc\.json$",
         r"(^|/)coverage/.*\.json$",
-        r"(^|/)\.vscode/.*\.json$",
-        r"(^|/)pyrightconfig\.json$",
     ]
     return any(re.search(pattern, path) for pattern in generated_patterns)
 
@@ -106,8 +133,12 @@ def determine_review_tier(files: list[dict[str, Any]]) -> tuple[str, str]:
             return _is_generated_json(path)
         return False
 
-    # Check if any test files are present (for T1 new_test_files guard)
-    has_test_files = any(f["path"].startswith("tests/") for f in files)
+    # Check if any NEW (added) test files are present (for T1 new_test_files guard).
+    # Per governance: no_new_test_files. Modified test files don't disqualify T1 —
+    # only newly added test files indicate substantive changes requiring TMG review.
+    has_new_test_files = any(
+        f.get("status") == "A" and f["path"].startswith("tests/") for f in files
+    )
 
     # Filter out exempt files for tier calculation
     non_exempt_files = [f for f in files if not _is_exempt(f["path"])]
@@ -180,7 +211,7 @@ def determine_review_tier(files: list[dict[str, Any]]) -> tuple[str, str]:
         return "TIER_2_STANDARD", (f"TMG + CRS + CE review required - {total_lines} lines changed")
 
     # Check for Tier 1 (<10 lines, single non-exempt file, no security, no new tests)
-    if total_lines < 10 and len(non_exempt_files) == 1 and not has_test_files:
+    if total_lines < 10 and len(non_exempt_files) == 1 and not has_new_test_files:
         return "TIER_1_SELF", (f"Self-review sufficient - {total_lines} lines in single file")
 
     # Default to Tier 2 if unsure (multiple files, etc.)
