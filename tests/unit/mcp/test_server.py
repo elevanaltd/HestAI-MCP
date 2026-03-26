@@ -961,13 +961,13 @@ class TestMCPClockInAISynthesisIntegration:
 
 
 # =============================================================================
-# Holographic Constitution: governance integrity at session boundaries (#235)
+# Holographic System Standard: standards integrity at session boundaries (#235)
 # =============================================================================
 
 
 @pytest.mark.unit
 class TestGovernanceIntegrityAtSessionBoundaries:
-    """Test Holographic Constitution integrity checks at clock_in and clock_out."""
+    """Test Holographic System Standard integrity checks at clock_in and clock_out."""
 
     @pytest.mark.asyncio
     async def test_clock_in_detects_and_heals_tampering(self, tmp_path: Path):
