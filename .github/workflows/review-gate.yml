@@ -202,11 +202,14 @@ jobs:
                 message += '**Required**: Self-review or HO supervisory review:\n';
                 message += '```\nIL SELF-REVIEWED: [your rationale]\n-- or --\nHO REVIEWED: [rationale after delegated implementation]\n```\n';
               } else if (tier === 'TIER_2_STANDARD') {
-                message += '**Required**: CRS + CE approval:\n';
-                message += '```\nCRS APPROVED: [assessment of change]\nCE APPROVED: [critical assessment]\n```\n';
-              } else if (tier === 'TIER_3_STRICT') {
-                message += '**Required**: Dual CRS + CE approval:\n';
-                message += '```\nCRS (Gemini) APPROVED: [assessment]\nCRS (Codex) APPROVED: [assessment]\nCE APPROVED: [critical assessment]\n```\n';
+                message += '**Required**: TMG + CRS + CE approval:\n';
+                message += '```\nTMG APPROVED: [test assessment] (or TMG GO:)\nCRS APPROVED: [assessment] (or CRS GO:)\nCE APPROVED: [critical assessment] (or CE GO:)\n```\n';
+              } else if (tier === 'TIER_3_CRITICAL') {
+                message += '**Required**: TMG + CRS + CE + CIV approval:\n';
+                message += '```\nTMG APPROVED: [test assessment] (or TMG GO:)\nCRS APPROVED: [assessment] (or CRS GO:)\nCE APPROVED: [critical assessment] (or CE GO:)\nCIV APPROVED: [implementation assessment] (or CIV GO:)\n```\n';
+              } else if (tier === 'TIER_4_STRATEGIC') {
+                message += '**Required**: TMG + CRS + CE + CIV + PE approval:\n';
+                message += '```\nTMG APPROVED: [test assessment] (or TMG GO:)\nCRS APPROVED: [assessment] (or CRS GO:)\nCE APPROVED: [critical assessment] (or CE GO:)\nCIV APPROVED: [implementation assessment] (or CIV GO:)\nPE APPROVED: [strategic assessment] (or PE GO:)\n```\n';
               }
 
               message += '\n<details><summary>📋 Full Validation Output</summary>\n\n';
