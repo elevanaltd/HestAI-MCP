@@ -630,6 +630,29 @@ class TestTier0Exemption:
         tier, _ = validate_review.determine_review_tier(files)
         assert tier != "TIER_0_EXEMPT", f"Mixed PR must NOT be exempt, got {tier}"
 
+    def test_non_generated_json_not_exempt(self) -> None:
+        """Hand-edited .json config files must NOT be TIER_0_EXEMPT.
+
+        Governance says **/*.json[when:generated_file] — JSON is exempt ONLY
+        when it's a generated file (package-lock.json, coverage reports, etc.).
+        A hand-edited config file like src/config/settings.json should NOT be
+        exempt. This test should FAIL because production currently exempts ALL
+        .json files unconditionally via r".*\\.json$".
+        """
+        files = [
+            {
+                "path": "src/config/settings.json",
+                "added": 5,
+                "deleted": 2,
+                "total_changed": 7,
+            },
+        ]
+        tier, _ = validate_review.determine_review_tier(files)
+        assert tier != "TIER_0_EXEMPT", (
+            f"Hand-edited JSON (src/config/settings.json) must NOT be exempt, got {tier}. "
+            "Governance says **/*.json[when:generated_file] — only generated JSON is exempt."
+        )
+
     def test_oct_md_files_are_not_exempt(self) -> None:
         """.oct.md files are governance code and must NOT be exempt.
 
@@ -787,6 +810,28 @@ class TestTier3TriggersMissing:
         ]
         tier, _ = validate_review.determine_review_tier(files)
         assert tier == "TIER_3_CRITICAL", f"clink/agents path should be TIER_3_CRITICAL, got {tier}"
+
+    def test_new_hooks_change_triggers_tier_3(self) -> None:
+        """New hooks must trigger TIER_3_CRITICAL.
+
+        Per governance: architecture_changes[base_class_mods,new_hooks] is a T3
+        trigger. A file in a hooks directory (e.g., src/hestai_mcp/hooks/pre_commit.py)
+        should be classified as TIER_3_CRITICAL. This test should FAIL because
+        production has no hook detection in its T3 trigger logic.
+        """
+        files = [
+            {
+                "path": "src/hestai_mcp/hooks/pre_commit.py",
+                "added": 20,
+                "deleted": 5,
+                "total_changed": 25,
+            }
+        ]
+        tier, _ = validate_review.determine_review_tier(files)
+        assert tier == "TIER_3_CRITICAL", (
+            f"New hooks file should be TIER_3_CRITICAL, got {tier}. "
+            "Governance says architecture_changes[base_class_mods,new_hooks] triggers T3."
+        )
 
     def test_501_lines_boundary_is_tier_3(self) -> None:
         """501 lines (just over the 500 boundary) -> TIER_3_CRITICAL."""
