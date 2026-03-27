@@ -41,7 +41,8 @@ INTEGRATION::"Context7 for external contracts + Repomix for internal structure =
 DISCIPLINE::"See tdd-discipline pattern"
 WORKFLOW::[
   "RED: Write failing test first",
-  "GREEN: Minimal code to pass",
+  "TMG_GATE(T2+): Return to caller after RED. For T2+ tiers, TMG reviews tests via /review-red before GREEN proceeds. Do NOT implement until TMG APPROVED.",
+  "GREEN: Minimal code to pass (T2+: only after TMG approval)",
   "REFACTOR: Improve while green",
   "COMMIT: test: → feat: → refactor: pattern"
 ]
