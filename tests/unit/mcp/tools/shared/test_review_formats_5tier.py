@@ -535,3 +535,83 @@ class TestGenericSelfReview:
         from hestai_mcp.modules.tools.shared.review_formats import has_self_review
 
         assert has_self_review(["IL (Claude): SELF-REVIEWED: quick fix"])
+
+
+# ---------------------------------------------------------------------------
+# I. Approval matcher line-start enforcement
+# ---------------------------------------------------------------------------
+@pytest.mark.unit
+class TestApprovalMatcherLineStartEnforcement:
+    """matches_approval_pattern() must require role at line-start position.
+
+    Prevents false positives from prose like 'TMG+CRS+CE+CIV+PE by tier), GO aliases'
+    where CE and GO appear on the same line but CE is not at the line start.
+    """
+
+    def test_ce_go_in_prose_not_matched(self) -> None:
+        """CE and GO in prose must NOT match as CE approval.
+
+        Reproduction case from PR #338: TMG review comment contains
+        'TMG+CRS+CE+CIV+PE by tier), GO aliases' which falsely satisfies
+        has_ce_approval() because CE and GO are on the same line.
+        """
+        from hestai_mcp.modules.tools.shared.review_formats import has_ce_approval
+
+        assert not has_ce_approval(
+            ["TMG+CRS+CE+CIV+PE by tier), GO aliases"]
+        ), "CE in prose must NOT satisfy approval gate"
+
+    def test_ce_approved_in_prose_not_matched(self) -> None:
+        """'The CE review found APPROVED patterns' must NOT match."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            matches_approval_pattern,
+        )
+
+        assert not matches_approval_pattern(
+            "The CE review found APPROVED patterns", "CE", "APPROVED"
+        )
+
+    def test_tmg_in_prose_not_matched(self) -> None:
+        """TMG in compound expression must NOT satisfy approval."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_tmg_approval
+
+        assert not has_tmg_approval(["Required: TMG+CRS+CE, with GO keyword support"])
+
+    def test_crs_in_prose_not_matched(self) -> None:
+        """CRS in compound expression must NOT satisfy approval."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_crs_approval
+
+        assert not has_crs_approval(["Required: TMG+CRS+CE, then APPROVED by reviewers"])
+
+    def test_approval_at_line_start_still_matches(self) -> None:
+        """CE APPROVED at actual line start must still match."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            matches_approval_pattern,
+        )
+
+        assert matches_approval_pattern("CE APPROVED: looks good", "CE", "APPROVED")
+
+    def test_approval_after_pipe_still_matches(self) -> None:
+        """CE in markdown table (after pipe) must still match."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            matches_approval_pattern,
+        )
+
+        assert matches_approval_pattern("| CE | APPROVED | assessment |", "CE", "APPROVED")
+
+    def test_approval_with_leading_whitespace_matches(self) -> None:
+        """CE APPROVED with leading whitespace must still match."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            matches_approval_pattern,
+        )
+
+        assert matches_approval_pattern("  CE APPROVED: looks good", "CE", "APPROVED")
+
+    def test_multiline_prose_then_approval(self) -> None:
+        """Role in prose on line 1 must NOT match, but role at line start on line 2 must."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            matches_approval_pattern,
+        )
+
+        text = "Need CE and CRS reviews\nCE APPROVED: assessment here"
+        assert matches_approval_pattern(text, "CE", "APPROVED")

@@ -63,7 +63,11 @@ def matches_approval_pattern(text: str, prefix: str, keyword: str) -> bool:
     # Strip markdown bold/italic markers so **APPROVED** matches as APPROVED
     cleaned = re.sub(r"\*{1,2}([^*]+)\*{1,2}", r"\1", text)
 
-    prefix_re = re.compile(rf"\b{re.escape(prefix)}\b")
+    # Role must appear at a line-start position to prevent false positives
+    # from prose like "TMG+CRS+CE+CIV+PE by tier), GO aliases".
+    # Valid positions: actual start of line (with optional whitespace) or
+    # after a markdown table pipe character.
+    prefix_re = re.compile(rf"(?:^|(?<=\|))\s*{re.escape(prefix)}\b", re.MULTILINE)
     keyword_re = re.compile(rf"\b{re.escape(keyword)}\b")
 
     for line in cleaned.splitlines():
@@ -114,9 +118,10 @@ def has_crs_model_approval(texts: list[str], model: str) -> bool:
     # Strict pattern: CRS(model) followed by only separator chars then APPROVED|GO.
     # Allowed separators: whitespace, colon, em dash, en dash, hyphen (0 or more).
     # No arbitrary tokens (like "and CRS (Codex)" or "BLOCKED") permitted between.
+    # CRS must appear at line-start position (same rule as matches_approval_pattern).
     pattern = re.compile(
-        rf"\bCRS\s*\(\s*{re.escape(model)}\s*\)\s*[:—–\-]*\s*(?:APPROVED|GO)\b",
-        re.IGNORECASE,
+        rf"(?:^|(?<=\|))\s*CRS\s*\(\s*{re.escape(model)}\s*\)\s*[:—–\-]*\s*(?:APPROVED|GO)\b",
+        re.IGNORECASE | re.MULTILINE,
     )
 
     for text in texts:
