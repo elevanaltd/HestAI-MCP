@@ -26,9 +26,12 @@ from hestai_mcp.modules.tools.shared.review_formats import (
     VALID_VERDICTS,
     format_review_comment,
     has_ce_approval,
+    has_civ_approval,
     has_crs_approval,
     has_ho_review,
-    has_il_self_review,
+    has_pe_approval,
+    has_self_review,
+    has_tmg_approval,
 )
 
 
@@ -81,8 +84,15 @@ def _check_would_clear_gate(comment: str, role: str, verdict: str) -> bool:
         return has_crs_approval([comment])
     elif role == "CE":
         return has_ce_approval([comment])
+    elif role == "TMG":
+        return has_tmg_approval([comment])
+    elif role == "CIV":
+        return has_civ_approval([comment])
+    elif role == "PE":
+        return has_pe_approval([comment])
     elif role == "IL":
-        return has_il_self_review([comment])
+        # Any role can self-review for T1; IL maps APPROVED -> SELF-REVIEWED
+        return has_self_review([comment])
     elif role == "HO":
         return has_ho_review([comment])
 
@@ -92,8 +102,11 @@ def _check_would_clear_gate(comment: str, role: str, verdict: str) -> bool:
 def _get_tier_requirements(role: str) -> str:
     """Get human-readable tier requirement description for a role."""
     requirements = {
-        "CRS": "TIER_2_STANDARD+: CRS APPROVED comment required (with CE at TIER_2, dual CRS at TIER_3)",
-        "CE": "TIER_2_STANDARD+: CE APPROVED comment required (alongside CRS)",
+        "TMG": "TIER_2+: TMG APPROVED/GO required (test methodology review)",
+        "CRS": "TIER_2+: CRS APPROVED/GO required",
+        "CE": "TIER_2+: CE APPROVED/GO required",
+        "CIV": "TIER_3+: CIV APPROVED/GO required (implementation validation)",
+        "PE": "TIER_4: PE APPROVED/GO required (strategic review)",
         "IL": "TIER_1_SELF: IL SELF-REVIEWED comment required",
         "HO": "TIER_1_SELF: HO REVIEWED comment required (supervisory review)",
     }
@@ -318,7 +331,7 @@ async def submit_review(
     Args:
         repo: Repository in owner/name format (e.g., 'elevanaltd/HestAI-MCP').
         pr_number: PR number to comment on.
-        role: Reviewer role (CRS, CE, IL).
+        role: Reviewer role (TMG, CRS, CE, CIV, PE, IL, HO).
         verdict: Review verdict (APPROVED, BLOCKED, CONDITIONAL).
         assessment: Review assessment content.
         model_annotation: Optional model name (e.g., 'Gemini') for annotation.
@@ -336,15 +349,15 @@ async def submit_review(
         return {"success": False, "error": error, "error_type": "validation"}
 
     # Step 1.5: Compute CRS model_annotation advisory
-    # CRS reviews should include model_annotation for TIER_3_STRICT compatibility.
+    # CRS reviews benefit from model_annotation for audit trail clarity.
     # This is advisory-only and does NOT block the submission.
     advisory: str | None = None
     if role == "CRS" and not model_annotation:
         advisory = (
             "Advisory: CRS reviews should include model_annotation "
-            "(e.g., 'Gemini' or 'Codex') for TIER_3_STRICT compatibility. "
-            "Without annotation, this comment will satisfy TIER_2_STANDARD "
-            "but may not satisfy TIER_3_STRICT dual-CRS requirements."
+            "(e.g., 'Gemini' or 'Codex') for TIER_3_CRITICAL audit trail. "
+            "Without annotation, approval still counts but lacks "
+            "provenance tracking for the model that performed the review."
         )
 
     # Step 2: Format the comment using shared module

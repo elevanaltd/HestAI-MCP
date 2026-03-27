@@ -21,7 +21,7 @@ DONE_WHEN::[diagnosis_with_evidence, coordination_docs_updated, impl_delegated, 
 NOT_DONE::[code_applied_directly, fix_without_delegation, gates_bypassed]
 
 §2::PROTOCOL
-WORKFLOW::[receive→diagnose→delegate→capture_id→gate[CRS→CE]→debate_if_complex→merge]
+WORKFLOW::[receive→diagnose→delegate→capture_id→gate[TMG→CRS→CE(+CIV+PE by tier)]→debate_if_complex→merge]
 
 DELEGATION_MATRIX:
   CODE_FIX::Task(oa-router,role:implementation-lead)[+build-execution]
@@ -38,11 +38,12 @@ MUST_DELEGATE_PATHS:
   technical-architect::supabase/**
 
 QUALITY_GATES:
-  CHAIN::CRS[gemini,code-review-specialist]→CE[codex,critical-engineer]→merge
-  T0::[docs, tests]→exempt
-  T1::[<50_lines]→self_review
-  T2::[50-500_lines]→CRS
-  T3::[arch, SQL, >500_lines]→CRS⊕CE
+  CHAIN::TMG[goose,test-methodology-guardian]→CRS[gemini,code-review-specialist]→CE[codex,critical-engineer]→merge
+  T0::[docs, tests, locks, generated JSON]→exempt
+  T1::[<10_lines, single_file, no_security, no_new_tests]→self_review
+  T2::[10-500_lines]→TMG⊕CRS⊕CE
+  T3::[>500_lines, security, architecture, hooks, tools, MCP]→TMG⊕CRS⊕CE⊕CIV[goose,critical-implementation-validator]
+  T4::[manual_only]→TMG⊕CRS⊕CE⊕CIV⊕PE[goose,principal-engineer]
   REWORK::blocking→resume(implementation-lead,agent_id)→fix→signoff→cycle
 
 DEBATE_ESCALATION:
@@ -104,7 +105,7 @@ MUST::[
 ]
 DELEGATE_BY_PATH::[src/**→IL, electron/**→IL, **/*.test.*→UTE, **/*.ts→IL, **/*.tsx→IL, **/*.js→IL, package*.json→IL, supabase/**→TechArch]
 DELEGATE_BY_TYPE::[CODE→IL, TEST→UTE, ARCH→TechArch, ERROR→ErrorArch, SEC→SecSpec, DOCS→SysSteward]
-GATES::[T0:exempt, T1:self, T2:CRS[gemini], T3:CRS⊕CE[codex]]
+GATES::[T0:exempt, T1:self, T2:TMG⊕CRS[gemini]⊕CE[codex], T3:TMG⊕CRS⊕CE⊕CIV, T4:TMG⊕CRS⊕CE⊕CIV⊕PE]
 DEBATE::IF[complex_arch∨reviewer_disagreement]→Wind[claude]→Wall[codex]→Door[gemini]
 TEMPLATE::HANDOFF[TARGET,FILE,CAUSE,FIX,TEST,RISKS]
 GATE::"Zero HO code edits. All execution delegated. Quality gates passed?"

@@ -15,10 +15,12 @@ import re
 TIER_0_EXEMPT = "TIER_0_EXEMPT"
 TIER_1_SELF = "TIER_1_SELF"
 TIER_2_STANDARD = "TIER_2_STANDARD"
-TIER_3_STRICT = "TIER_3_STRICT"
+TIER_3_STRICT = "TIER_3_STRICT"  # Deprecated: use TIER_3_CRITICAL
+TIER_3_CRITICAL = "TIER_3_CRITICAL"
+TIER_4_STRATEGIC = "TIER_4_STRATEGIC"
 
 # --- Valid roles and verdicts ---
-VALID_ROLES: frozenset[str] = frozenset({"CRS", "CE", "IL", "HO"})
+VALID_ROLES: frozenset[str] = frozenset({"CRS", "CE", "IL", "HO", "TMG", "CIV", "PE"})
 VALID_VERDICTS: frozenset[str] = frozenset({"APPROVED", "BLOCKED", "CONDITIONAL"})
 
 # --- IL uses SELF-REVIEWED keyword instead of APPROVED ---
@@ -61,7 +63,11 @@ def matches_approval_pattern(text: str, prefix: str, keyword: str) -> bool:
     # Strip markdown bold/italic markers so **APPROVED** matches as APPROVED
     cleaned = re.sub(r"\*{1,2}([^*]+)\*{1,2}", r"\1", text)
 
-    prefix_re = re.compile(rf"\b{re.escape(prefix)}\b")
+    # Role must appear at a line-start position to prevent false positives
+    # from prose like "TMG+CRS+CE+CIV+PE by tier), GO aliases".
+    # Valid positions: actual start of line (with optional whitespace) or
+    # after a markdown table pipe character.
+    prefix_re = re.compile(rf"(?:^|(?<=\|))\s*{re.escape(prefix)}\b", re.MULTILINE)
     keyword_re = re.compile(rf"\b{re.escape(keyword)}\b")
 
     for line in cleaned.splitlines():
@@ -112,9 +118,10 @@ def has_crs_model_approval(texts: list[str], model: str) -> bool:
     # Strict pattern: CRS(model) followed by only separator chars then APPROVED|GO.
     # Allowed separators: whitespace, colon, em dash, en dash, hyphen (0 or more).
     # No arbitrary tokens (like "and CRS (Codex)" or "BLOCKED") permitted between.
+    # CRS must appear at line-start position (same rule as matches_approval_pattern).
     pattern = re.compile(
-        rf"\bCRS\s*\(\s*{re.escape(model)}\s*\)\s*[:—–\-]*\s*(?:APPROVED|GO)\b",
-        re.IGNORECASE,
+        rf"(?:^|(?<=\|))\s*CRS\s*\(\s*{re.escape(model)}\s*\)\s*[:—–\-]*\s*(?:APPROVED|GO)\b",
+        re.IGNORECASE | re.MULTILINE,
     )
 
     for text in texts:
@@ -138,8 +145,54 @@ def has_ce_approval(texts: list[str]) -> bool:
     return _has_approval(texts, "CE", "APPROVED") or _has_approval(texts, "CE", "GO")
 
 
+# Compiled regex for role-agnostic self-review matching.
+# Matches any word (including hyphenated identifiers like "skills-expert")
+# at line-start position (consistent with matches_approval_pattern),
+# optionally followed by a parenthetical model annotation and separators,
+# then SELF-REVIEWED with word boundary.
+_SELF_REVIEW_RE = re.compile(
+    r"(?:^|(?<=\|))\s*"  # Line-start or after pipe (consistent with approval matcher)
+    r"\w[\w-]*"  # Role/name word (e.g., IL, skills-expert, Shaun)
+    r"(?:\s*\([^)]*\))?"  # Optional parenthetical (e.g., (Claude))
+    r"[\s:—–\-]*"  # Separators (whitespace, colon, dashes)
+    r"SELF-REVIEWED\b",  # Keyword with word boundary
+    re.MULTILINE,
+)
+
+
+def has_self_review(texts: list[str]) -> bool:
+    """Check if any text contains a self-review from any role or person.
+
+    Role-agnostic: matches any word/identifier followed by SELF-REVIEWED.
+
+    Matches patterns like:
+      - 'IL SELF-REVIEWED: fixed typo'
+      - 'skills-expert SELF-REVIEWED: updated GATES'
+      - 'Shaun SELF-REVIEWED: quick config change'
+      - 'IL (Claude): SELF-REVIEWED: quick fix' (via flexible matching)
+
+    A bare 'SELF-REVIEWED' without a preceding role/name does NOT match.
+
+    Args:
+        texts: List of comment/body texts to search.
+
+    Returns:
+        True if any text contains a valid self-review pattern.
+    """
+    for text in texts:
+        # Strip markdown bold/italic markers for consistency
+        cleaned = re.sub(r"\*{1,2}([^*]+)\*{1,2}", r"\1", text)
+        for line in cleaned.splitlines():
+            if _SELF_REVIEW_RE.search(line):
+                return True
+    return False
+
+
 def has_il_self_review(texts: list[str]) -> bool:
     """Check if any text contains an IL self-review.
+
+    Deprecated: Use has_self_review() for role-agnostic matching.
+    Kept for backward compatibility.
 
     Args:
         texts: List of comment/body texts to search.
@@ -147,7 +200,7 @@ def has_il_self_review(texts: list[str]) -> bool:
     Returns:
         True if IL SELF-REVIEWED found.
     """
-    return _has_approval(texts, "IL", _IL_APPROVED_KEYWORD)
+    return has_self_review(texts)
 
 
 def has_ho_review(texts: list[str]) -> bool:
@@ -167,6 +220,49 @@ def has_ho_review(texts: list[str]) -> bool:
         True if HO REVIEWED found.
     """
     return _has_approval(texts, "HO", "REVIEWED")
+
+
+def has_tmg_approval(texts: list[str]) -> bool:
+    """Check if any text contains a TMG approval (APPROVED or GO).
+
+    TMG (Test Methodology Guardian) validates test coverage and quality.
+
+    Args:
+        texts: List of comment/body texts to search.
+
+    Returns:
+        True if TMG approval found.
+    """
+    return _has_approval(texts, "TMG", "APPROVED") or _has_approval(texts, "TMG", "GO")
+
+
+def has_civ_approval(texts: list[str]) -> bool:
+    """Check if any text contains a CIV approval (APPROVED or GO).
+
+    CIV (Critical Implementation Validator) validates implementation
+    correctness against specifications.
+
+    Args:
+        texts: List of comment/body texts to search.
+
+    Returns:
+        True if CIV approval found.
+    """
+    return _has_approval(texts, "CIV", "APPROVED") or _has_approval(texts, "CIV", "GO")
+
+
+def has_pe_approval(texts: list[str]) -> bool:
+    """Check if any text contains a PE approval (APPROVED or GO).
+
+    PE (Principal Engineer) validates long-term architectural sustainability.
+
+    Args:
+        texts: List of comment/body texts to search.
+
+    Returns:
+        True if PE approval found.
+    """
+    return _has_approval(texts, "PE", "APPROVED") or _has_approval(texts, "PE", "GO")
 
 
 def format_review_comment(
@@ -190,7 +286,7 @@ def format_review_comment(
     structured audit trail parsing.
 
     Args:
-        role: Reviewer role (CRS, CE, IL, HO).
+        role: Reviewer role (TMG, CRS, CE, CIV, PE, IL, HO).
         verdict: Review verdict (APPROVED, BLOCKED, CONDITIONAL).
         assessment: Review assessment content.
         model_annotation: Optional model name (e.g., 'Gemini') for annotation.
