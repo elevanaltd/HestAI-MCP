@@ -536,6 +536,12 @@ class TestGenericSelfReview:
 
         assert has_self_review(["IL (Claude): SELF-REVIEWED: quick fix"])
 
+    def test_has_self_review_not_matched_in_prose(self) -> None:
+        """SELF-REVIEWED in mid-line prose must not match (line-start anchoring)."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_self_review
+
+        assert not has_self_review(["The author submits a SELF-REVIEWED marker for the change"])
+
 
 # ---------------------------------------------------------------------------
 # I. Approval matcher line-start enforcement

@@ -634,11 +634,9 @@ class TestTier0Exemption:
     def test_non_generated_json_not_exempt(self) -> None:
         """Hand-edited .json config files must NOT be TIER_0_EXEMPT.
 
-        Governance says **/*.json[when:generated_file] — JSON is exempt ONLY
-        when it's a generated file (package-lock.json, coverage reports, etc.).
-        A hand-edited config file like src/config/settings.json should NOT be
-        exempt. This test should FAIL because production currently exempts ALL
-        .json files unconditionally via r".*\\.json$".
+        Governance says **/*.json[when:generated_file] -- JSON is exempt ONLY
+        when it is a generated file (package-lock.json, coverage reports).
+        Hand-edited config files like src/config/settings.json are NOT exempt.
         """
         files = [
             {
@@ -813,12 +811,11 @@ class TestTier3TriggersMissing:
         assert tier == "TIER_3_CRITICAL", f"clink/agents path should be TIER_3_CRITICAL, got {tier}"
 
     def test_new_hooks_change_triggers_tier_3(self) -> None:
-        """New hooks must trigger TIER_3_CRITICAL.
+        """Hooks directory files must trigger TIER_3_CRITICAL.
 
         Per governance: architecture_changes[base_class_mods,new_hooks] is a T3
-        trigger. A file in a hooks directory (e.g., src/hestai_mcp/hooks/pre_commit.py)
-        should be classified as TIER_3_CRITICAL. This test should FAIL because
-        production has no hook detection in its T3 trigger logic.
+        trigger. Files in a hooks directory (e.g., src/hestai_mcp/hooks/pre_commit.py)
+        are classified as TIER_3_CRITICAL.
         """
         files = [
             {

@@ -200,7 +200,7 @@ jobs:
               // Extract required reviews from output
               if (tier === 'TIER_1_SELF') {
                 message += '**Required**: Self-review or HO supervisory review:\n';
-                message += '```\n{role} SELF-REVIEWED: [your rationale]\n-- or --\nHO REVIEWED: [rationale after delegated work]\n```\n';
+                message += '```\nIL SELF-REVIEWED: [your rationale] (any role name accepted)\n-- or --\nHO REVIEWED: [rationale after delegated work]\n```\n';
               } else if (tier === 'TIER_2_STANDARD') {
                 message += '**Required**: TMG + CRS + CE approval:\n';
                 message += '```\nTMG APPROVED: [test assessment] (or TMG GO:)\nCRS APPROVED: [assessment] (or CRS GO:)\nCE APPROVED: [critical assessment] (or CE GO:)\n```\n';

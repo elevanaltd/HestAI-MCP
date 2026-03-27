@@ -7,14 +7,14 @@ META:
   ENFORCEMENT::PRE_COMMIT⊕CI⊕PR_MERGE
 §1::REVIEW_TIERS
 TIER_0_EXEMPT::[
-  "**/*.md",
+  "**/*.md[except:*.oct.md]",
   "tests/**/*[when:no_src_changes]",
   "**/*.json[when:generated_file]",
   "**/*.lock"
 ]
 TIER_1_SELF_REVIEW::[
   TRIGGER::"non_exempt_lines<10 AND single_non_exempt_file AND no_security_paths AND no_new_test_files",
-  PROOF::"PR_comment[IL SELF-REVIEWED: {rationale}] OR PR_comment[HO REVIEWED: {rationale}]",
+  PROOF::"PR_comment[{role} SELF-REVIEWED: {rationale}] OR PR_comment[HO REVIEWED: {rationale}]",
   ENFORCEMENT::check_pr_comment_exists
 ]
 TIER_2_STANDARD_REVIEW::[
@@ -64,9 +64,11 @@ PR_COMMENT_MAGIC::[
   TMG_APPROVED::"TMG APPROVED:",
   TMG_GO::"TMG GO:",
   CRS_APPROVED::"CRS APPROVED:",
+  CRS_GO::"CRS GO:",
   CRS_GEMINI_APPROVED::"CRS (Gemini) APPROVED:",
   CRS_CODEX_APPROVED::"CRS (Codex) APPROVED:",
   CE_APPROVED::"CE APPROVED:",
+  CE_GO::"CE GO:",
   CIV_APPROVED::"CIV APPROVED:",
   CIV_GO::"CIV GO:",
   PE_APPROVED::"PE APPROVED:",

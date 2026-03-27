@@ -438,7 +438,7 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
                 return True, "✓ CRS approval satisfies self-review requirement"
             return (
                 False,
-                "❌ Missing: {role} SELF-REVIEWED or HO REVIEWED comment",
+                "❌ Missing: SELF-REVIEWED or HO REVIEWED comment",
             )
 
         elif tier == "TIER_2_STANDARD":
@@ -640,7 +640,7 @@ def main() -> int:
     if not approved:
         print("\n⚠️  Review Requirements:")
         if tier == "TIER_1_SELF":
-            print("   Add comment: '{role} SELF-REVIEWED: [your rationale]'")
+            print("   Add comment: 'IL SELF-REVIEWED: [your rationale]' (any role name accepted)")
             print("   -- or --")
             print("   Add comment: 'HO REVIEWED: [rationale after delegated work]'")
             print("   Example: 'IL SELF-REVIEWED: Fixed typo in error message'")

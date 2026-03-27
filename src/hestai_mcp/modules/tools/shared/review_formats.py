@@ -147,13 +147,16 @@ def has_ce_approval(texts: list[str]) -> bool:
 
 # Compiled regex for role-agnostic self-review matching.
 # Matches any word (including hyphenated identifiers like "skills-expert")
+# at line-start position (consistent with matches_approval_pattern),
 # optionally followed by a parenthetical model annotation and separators,
 # then SELF-REVIEWED with word boundary.
 _SELF_REVIEW_RE = re.compile(
-    r"\b\w[\w-]*"  # Role/name word (e.g., IL, skills-expert, Shaun)
+    r"(?:^|(?<=\|))\s*"  # Line-start or after pipe (consistent with approval matcher)
+    r"\w[\w-]*"  # Role/name word (e.g., IL, skills-expert, Shaun)
     r"(?:\s*\([^)]*\))?"  # Optional parenthetical (e.g., (Claude))
     r"[\s:—–\-]*"  # Separators (whitespace, colon, dashes)
-    r"SELF-REVIEWED\b"  # Keyword with word boundary
+    r"SELF-REVIEWED\b",  # Keyword with word boundary
+    re.MULTILINE,
 )
 
 
@@ -283,7 +286,7 @@ def format_review_comment(
     structured audit trail parsing.
 
     Args:
-        role: Reviewer role (CRS, CE, IL, HO).
+        role: Reviewer role (TMG, CRS, CE, CIV, PE, IL, HO).
         verdict: Review verdict (APPROVED, BLOCKED, CONDITIONAL).
         assessment: Review assessment content.
         model_annotation: Optional model name (e.g., 'Gemini') for annotation.
