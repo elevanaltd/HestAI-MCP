@@ -67,7 +67,7 @@ ODYSSEAN_ANCHOR_MCP::[
     verify_permit
   ],
   STATUS::being_absorbed_into_workbench,
-  KEY_FACT::"5-stage KEAPH ceremony. 2144-line Steward state machine. Logic will be rebuilt in TypeScript inside workbench Engine. ADR-0275 target changed from hestai-mcp to workbench. Full ceremony remains mandatory until port complete."
+  KEY_FACT::"5-stage KEAPH ceremony. 2144-line Steward state machine. Logic will be rebuilt in TypeScript inside workbench Engine. ADR-0275 decided merger into hestai-mcp; HO assessment (2026-03-28) redirected target to workbench (human-approved). Full ceremony remains mandatory until port complete."
 ]
 PAL_MCP_SERVER::[
   VERSION::"1.0.3",
@@ -111,7 +111,7 @@ STEP_3::[
   RATIONALE::"Workbench spawns CLIs (Claude, Codex, Gemini, Goose) and calls APIs (OpenRouter) directly. Registry maps role to provider to model to dispatch mode. Replaces PAL.",
   EFFORT::"medium — cli spawning, api dispatch, provider configs",
   PREREQ::STEP_1,
-  BLOCKS::[STEP_5,STEP_7]
+  BLOCKS::[STEP_6,STEP_7]
 ]
 STEP_4::[
   WHAT::"Payload Compiler — pre-compiled anchor payloads",
@@ -158,8 +158,8 @@ STEP_9::[
   ]
 ]
 §5::CRITICAL_PATH
-CRITICAL_PATH::"STEP_1 then STEP_2+STEP_3+STEP_4 (parallel) then STEP_5 then STEP_6"
-EXPLANATION::"Agent registry (1) unlocks three parallel tracks: library (2), dispatch (3), and payload compiler (4). All three must complete before anchor validator port (5). Anchor validator unlocks multi-agent pipelines (6). Glass (7) builds in parallel once dispatch exists. Archive (9) waits for full capability replacement."
+CRITICAL_PATH::"STEP_1 then STEP_2+STEP_4 (parallel, STEP_3 parallel but feeds STEP_6) then STEP_5 then STEP_6"
+EXPLANATION::"Agent registry (1) unlocks three parallel tracks: library (2), dispatch (3), and payload compiler (4). Library + payload compiler unlock anchor validator port (5). Dispatch + anchor validator unlock multi-agent pipelines (6). Glass (7) builds in parallel once dispatch exists. Archive (9) waits for full capability replacement."
 VISUAL::[
   "     octave-mcp (solid, no action)      debate-hall (solid, own pace)",
   "            |                                  |",
@@ -186,7 +186,7 @@ PARALLEL_TRACKS::[
 DECISION_1::[
   QUESTION::"Should odyssean-anchor-mcp merge into hestai-mcp?",
   STATUS::"SUPERSEDED — originally ADR-0275",
-  ANSWER::"Original: YES merge into hestai-mcp. UPDATED: Merge into workbench instead. Same logic, different target platform.",
+  ANSWER::"ADR-0275 decided merger into hestai-mcp. HO assessment (2026-03-28) redirected target to workbench (human-approved). Same logic, different target platform.",
   RATIONALE::[
     "Workbench controls PTY and sessions — headless session management is redundant",
     "Glass UI changes should immediately affect the system (no IPC hop)",
@@ -211,7 +211,7 @@ DECISION_4::[
 ]
 §7::ISSUE_MAPPING
 ISSUES::[
-  "#265 (this graph)::STEP_0 meta_coordination",
+  "#265 (this graph)::meta_coordination",
   "#263 (blind assessor)::STEP_6 needs_pipeline_runner",
   "#262 (governance chat)::STEP_8",
   "#279-282 (OA rebuild phases)::STEP_5 target_changed_to_workbench",
