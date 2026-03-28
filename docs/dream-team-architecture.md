@@ -3,9 +3,9 @@
 **Date**: 2026-03-22
 **Status**: SPECIFICATION
 **Scope**: Agent ecosystem architecture for AI-augmented systems building
-**Implementation**: Target platform TBD (likely hestai-workbench). This spec is implementation-agnostic.
+**Implementation**: Target platform decided — hestai-workbench (Thick Client model, approved 2026-03-28). Engine + Glass + Library all within the workbench.
 
-This document specifies WHAT to build and WHY. It does not specify WHERE (which server, which repository) or specific file paths. Physical location is an implementation decision. For exploration history and decision reasoning, see `dream-team-proposal.md`.
+This document specifies WHAT to build and WHY. Implementation target is hestai-workbench (decided 2026-03-28). For exploration history and decision reasoning, see `dream-team-proposal.md`.
 
 ---
 
