@@ -505,7 +505,7 @@ async def list_tools() -> list[Tool]:
                     },
                     "role": {
                         "type": "string",
-                        "enum": ["CRS", "CE", "IL"],
+                        "enum": ["TMG", "CRS", "CE", "CIV", "PE", "IL", "HO"],
                         "description": "Reviewer role",
                     },
                     "verdict": {
