@@ -27,6 +27,8 @@ It is **not** a system standard (that's the System North Star), **not** a build 
 
 **This document will change.** When reality contradicts this vision, update the document. When a better architecture emerges, rewrite the section. The value is in having a shared picture of where we're going, not in defending a frozen plan.
 
+> **SUPERSESSION NOTE (2026-03-28):** The Ecosystem Overview v3.0 and Dependency Graph v3.0 now describe a Thick Client architecture where hestai-workbench absorbs hestai-mcp and odyssean-anchor-mcp. This Lighthouse predates that decision and still references the federation model. Sections describing HestAI Core as a separate server, OA rebuilding into hestai-mcp, and the old critical path are superseded by the v3.0 TARGET docs. This Lighthouse will be updated to align in a future PR.
+
 **Relationship to other documents:**
 - **System North Star:** Immutable methodology (I1-I6). The Lighthouse operates within those laws.
 - **Ecosystem Overview:** Describes what exists today. This describes what we're building toward.

@@ -2,7 +2,7 @@
 META:
   TYPE::ECOSYSTEM_DEPENDENCY_GRAPH
   VERSION::"3.0"
-  STATUS::ACTIVE
+  STATUS::TARGET
   PURPOSE::"Cross-system build sequence, blocking relationships, and phase alignment"
   CREATED::"2026-02-22"
   REVISED::"2026-03-28"
@@ -12,6 +12,7 @@ META:
 §0::PREAMBLE
 CONTEXT::"Single developer + AI agents. Thick Client architecture — workbench absorbs hestai-mcp and odyssean-anchor-mcp. Three target systems: workbench, debate-hall-mcp, octave-mcp."
 ARCHITECTURE_DECISION::"Federation model (v2.1) replaced by Thick Client model (v3.0). See dream-team-architecture.md and HO assessment session 2026-03-28."
+CURRENT_REALITY::"Until workbench migration is complete, the current federation (hestai-mcp + odyssean-anchor-mcp as separate MCP servers) remains operational. This graph describes the approved build sequence toward the target state."
 §1::CURRENT_STATE
 OCTAVE_MCP::[
   VERSION::"1.9.2",
@@ -51,7 +52,7 @@ HESTAI_MCP::[
     submit_review
   ],
   STATUS::being_absorbed_into_workbench,
-  KEY_FACT::"Library content (52+ skills, 20+ agents, standards, cognitions) migrating to workbench. Repository will be archived after migration."
+  KEY_FACT::"Library content (52+ skills, 20+ agents, standards, cognitions) migrating to workbench. Repository remains source-of-truth during migration, archived after."
 ]
 ODYSSEAN_ANCHOR_MCP::[
   VERSION::"0.1.1",
@@ -66,7 +67,7 @@ ODYSSEAN_ANCHOR_MCP::[
     verify_permit
   ],
   STATUS::being_absorbed_into_workbench,
-  KEY_FACT::"5-stage KEAPH ceremony. 2144-line Steward state machine. Logic will be rebuilt in TypeScript inside workbench Engine. ADR-0275 target changed from hestai-mcp to workbench."
+  KEY_FACT::"5-stage KEAPH ceremony. 2144-line Steward state machine. Logic will be rebuilt in TypeScript inside workbench Engine. ADR-0275 target changed from hestai-mcp to workbench. Full ceremony remains mandatory until port complete."
 ]
 PAL_MCP_SERVER::[
   VERSION::"1.0.3",
@@ -121,7 +122,7 @@ STEP_4::[
 ]
 STEP_5::[
   WHAT::"Anchor Validator — TypeScript port of OA ceremony",
-  RATIONALE::"Formal loading path (T3-T4) still needs full ceremony. Port 5-stage KEAPH from Python Steward (2144 lines) into workbench Engine. Colleague path uses pre-compiled payloads (Step 4). Both paths produce valid permits.",
+  RATIONALE::"Formal loading path (T3-T4) still needs full ceremony. Port 5-stage KEAPH from Python Steward (2144 lines) into workbench Engine. Colleague path uses pre-compiled payloads (Step 4). Both paths produce valid permits. Until this step is complete, full ceremony via odyssean-anchor-mcp remains mandatory.",
   EFFORT::"large — 2144-line state machine, 714 tests, TypeScript port",
   PREREQ::[STEP_2,STEP_4],
   BLOCKS::[STEP_6]
@@ -146,17 +147,19 @@ STEP_8::[
 ]
 STEP_9::[
   WHAT::"PAL decommission + hestai-mcp archive",
-  RATIONALE::"After workbench owns all dispatch (Step 3) and library (Step 2), both PAL and hestai-mcp are redundant. Archive repos.",
+  RATIONALE::"After workbench fully replaces all capabilities: dispatch (Step 3), library (Step 2), anchor ceremony (Step 5), pipelines (Step 6), and Glass observability (Step 7). Only then are PAL and hestai-mcp redundant. Archive repos.",
   EFFORT::"small — decommission and archive",
   PREREQ::[
     STEP_2,
     STEP_3,
-    STEP_5
+    STEP_5,
+    STEP_6,
+    STEP_7
   ]
 ]
 §5::CRITICAL_PATH
-CRITICAL_PATH::"STEP_1 then STEP_3 then STEP_5 then STEP_6"
-EXPLANATION::"Agent registry (1) unlocks dispatch (3) and library (2, parallel). Dispatch + library unlock the anchor validator port (5). Anchor validator unlocks multi-agent pipelines (6). Glass (7) builds in parallel once dispatch exists."
+CRITICAL_PATH::"STEP_1 then STEP_2+STEP_3+STEP_4 (parallel) then STEP_5 then STEP_6"
+EXPLANATION::"Agent registry (1) unlocks three parallel tracks: library (2), dispatch (3), and payload compiler (4). All three must complete before anchor validator port (5). Anchor validator unlocks multi-agent pipelines (6). Glass (7) builds in parallel once dispatch exists. Archive (9) waits for full capability replacement."
 VISUAL::[
   "     octave-mcp (solid, no action)      debate-hall (solid, own pace)",
   "            |                                  |",
@@ -169,8 +172,8 @@ VISUAL::[
   "     STEP 5: Anchor Validator    STEP 7: Glass UI",
   "            |                        |",
   "     STEP 6: Pipeline Runner   STEP 8: debate-hall",
-  "                                    in Glass",
-  "            \\                  /",
+  "            |                    in Glass",
+  "            |                        |",
   "         STEP 9: PAL decommission",
   "                + hestai-mcp archive"
 ]
@@ -199,12 +202,12 @@ DECISION_2::[
 DECISION_3::[
   QUESTION::"What happens to hestai-mcp?",
   STATUS::NEW,
-  ANSWER::"Library content migrates to workbench. Repository archived after migration. Its 705 tests and patterns inform the TypeScript port."
+  ANSWER::"Library content migrates to workbench. Repository remains source-of-truth during migration, archived after. Its 705 tests and patterns inform the TypeScript port."
 ]
 DECISION_4::[
   QUESTION::"Does the on-disk structure change?",
   STATUS::NEW,
-  ANSWER::"No. .hestai-sys/ (governance, read-only), .hestai/ (project context, committed), .hestai/state/ (session state) all persist. Writer changes from hestai-mcp to workbench. Format stays OCTAVE."
+  ANSWER::"No. .hestai-sys/ (governance, read-only), .hestai/ (project context, committed), .hestai/state/ (working state including sessions, context, reports, research) all persist. Writer changes from hestai-mcp to workbench. Format stays OCTAVE."
 ]
 §7::ISSUE_MAPPING
 ISSUES::[
@@ -224,6 +227,6 @@ ISSUES::[
   "Project 15 (Ecosystem Build Order)::this_graph full_coordination"
 ]
 §8::OPERATOR_INSIGHT
-DIRECTION::"Thick Client model reflects user confirmed direction: put everything in the workbench so it is all in one place. The dream-team Engine+Glass architecture (2026-03-22) provides the specification. The critical path is: make the agent registry comprehensive first (Step 1), then build dispatch and payload compilation in parallel (Steps 2-4), then port the anchor ceremony (Step 5), then multi-agent pipelines (Step 6)."
+DIRECTION::"Thick Client model reflects user confirmed direction: put everything in the workbench so it is all in one place. The dream-team Engine+Glass architecture (2026-03-22) provides the specification. The critical path is: make the agent registry comprehensive first (Step 1), then build dispatch, library, and payload compilation in parallel (Steps 2-4), then port the anchor ceremony (Step 5), then multi-agent pipelines (Step 6)."
 ANTI_PATTERN::"Continuing to build into hestai-mcp Python when the target platform is TypeScript/Electron workbench. New governance and engine features should target the workbench."
 ===END===
