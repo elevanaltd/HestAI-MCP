@@ -30,18 +30,12 @@ SYSTEM_2::"DEBATE_HALL_MCP[REPO::elevanaltd/debate-hall-mcp, ROLE::The Deliberat
 SYSTEM_3::"OCTAVE_MCP[REPO::elevanaltd/octave-mcp, ROLE::The Language, VERSION::1.9.2, OWNS::[octave_format_spec, validation, generation, compression], TOOLS::[octave_validate, octave_write, octave_eject], KEY_PROPERTY::Pure protocol. Zero dependencies on governance. Maximum community adoption potential. 54-68 percent token reduction., DEPENDS_ON::[nothing], DATA::[v6 grammar specification, GHC (Generative Holographic Contracts)]]"
 §3::SYSTEMS_BEING_ABSORBED
 CANONICAL_SOURCE_DURING_MIGRATION::"During migration, hestai-mcp repository remains the source-of-truth for library content (agents, skills, standards, cognitions). After workbench Library Manager (dependency graph Step 2) is complete and verified, canonical source moves to workbench library. Both repos must not diverge during this period."
-HESTAI_MCP_ABSORPTION::[
-  STATUS::being_absorbed_into_workbench,
-  REPO::"elevanaltd/HestAI-MCP",
-  WHAT_TRANSFERS::[
-    "Library content (52+ skills, 20+ agents, standards docs, cognitions) to workbench library",
-    "Governance delivery (.hestai-sys/ injection) to workbench Library Manager",
-    "Session lifecycle (clock_in/clock_out) to workbench session management",
-    "Context steward tools to workbench Engine"
-  ],
-  WHAT_REMAINS::"Repository remains source-of-truth for library content until workbench Library Manager (Step 2) is complete. Then archived.",
-  EVIDENCE::"705 tests, 92 percent coverage. Patterns and logic to be studied during TypeScript port."
-]
+HESTAI_MCP_ABSORPTION::[STATUS::being_absorbed_into_workbench,REPO::"elevanaltd/HestAI-MCP",WHAT_TRANSFERS::[
+  "Library content (52+ skills, 20+ agents, standards docs, cognitions) to workbench library",
+  "Governance delivery (.hestai-sys/ injection) to workbench Library Manager",
+  "Session lifecycle (clock_in/clock_out) to workbench session management",
+  "Context steward tools to workbench Engine"
+],WHAT_REMAINS::"Repository remains source-of-truth for library content during migration. Archived only after full capability replacement gates are met (dependency graph Step 9 prerequisites: dispatch, library, anchor, pipelines, Glass).",EVIDENCE::"705 tests, 92 percent coverage. Patterns and logic to be studied during TypeScript port."]
 ODYSSEAN_ANCHOR_ABSORPTION::[
   STATUS::being_absorbed_into_workbench,
   REPO::"elevanaltd/odyssean-anchor-mcp",
