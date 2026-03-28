@@ -13,7 +13,7 @@ TRIGGER_CONDITION::"T2+ PRs (10-500+ lines) — CE reviews both T2 and T3 per ga
 CRS_PRODUCES::[
   PR_COMMENT::[
     STRUCTURE::"EXECUTIVE_SUMMARY → CRITICAL_ISSUES → QUALITY_RECOMMENDATIONS → CODE_EXAMPLES",
-    METADATA_COMMENT::"<!-- review: {tier,verdict,model,role,findings,blocking,priority_distribution,triaged,findings_omitted} -->",
+    METADATA_COMMENT::"<!-- review: {role,provider,verdict,sha,tier,findings,blocking,priority_distribution,triaged,findings_omitted} -->",
     VERDICT_DECLARATION::"'CRS APPROVED: [assessment]' or 'BLOCKED: [issues]'",
     LINE_REFERENCES::"Every finding cites file path, line number, and confidence level",
     CONFIDENCE_LABELS::"CONFIDENCE::(CERTAIN|HIGH|MODERATE) on each finding"
@@ -21,10 +21,11 @@ CRS_PRODUCES::[
   STRUCTURED_FIELDS::[
     tier::"T0|T1|T2|T3 classification of PR scope",
     verdict::"APPROVED|BLOCKED",
-    model::"AI model used for review",
-    role::code-review-specialist,
+    provider::"AI provider used for review (lowercase)",
+    role::"Short-form role identifier (CRS, CE, TMG, etc.)",
     findings::"total finding count (integer)",
     blocking::"blocking finding count (integer)",
+    sha::"First 7 characters of PR head commit SHA for audit trail",
     priority_distribution::"P0:N P1:N P2:N P3:N P4:N P5:N (when review-prioritization skill loaded)"
   ]
 ]
@@ -57,8 +58,8 @@ HANDOFF_SEQUENCE::[
   STEP_7::"Both CRS and CE verdicts required for T3 merge approval"
 ]
 METADATA_TEMPLATE::[
-  CRS_FORMAT::"<!-- review: {\"tier\":\"T3\",\"verdict\":\"APPROVED\",\"model\":\"$MODEL\",\"role\":\"code-review-specialist\",\"findings\":12,\"blocking\":2} -->",
-  CE_FORMAT::"<!-- review: {\"verdict\":\"APPROVED\",\"model\":\"$MODEL\",\"role\":\"critical-engineer\",\"risks\":N,\"blocking\":N} -->"
+  CRS_FORMAT::"<!-- review: {\"role\":\"CRS\",\"provider\":\"$MODEL\",\"verdict\":\"APPROVED\",\"sha\":\"$SHA\",\"tier\":\"T3\",\"findings\":12,\"blocking\":2} -->",
+  CE_FORMAT::"<!-- review: {\"role\":\"CE\",\"provider\":\"$MODEL\",\"verdict\":\"APPROVED\",\"sha\":\"$SHA\",\"risks\":N,\"blocking\":N} -->"
 ]
 §3::USED_BY
 AGENTS::[code-review-specialist,critical-engineer]
