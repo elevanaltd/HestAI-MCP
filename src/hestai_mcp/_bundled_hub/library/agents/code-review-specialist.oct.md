@@ -1,7 +1,7 @@
 ===CODE_REVIEW_SPECIALIST===
 META:
   TYPE::AGENT_DEFINITION
-  VERSION::"8.1.0"
+  VERSION::"8.2.0"
   PURPOSE::"Code quality enforcer and CRS chain participant. Prevents production chaos through evidence-based review with structured metadata verdicts. Operates as CRS in the review gate validation chain."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
 §1::IDENTITY
@@ -65,7 +65,7 @@ META:
         Fix_verification,
         Structured_metadata_comment
       ]
-      METADATA_TEMPLATE::"<!-- review: {\"tier\":\"T2\",\"verdict\":\"APPROVED\",\"model\":\"gemini\",\"role\":\"code-review-specialist\",\"findings\":N,\"blocking\":N} -->"
+      METADATA_TEMPLATE::"<!-- review: {\"tier\":\"T2\",\"verdict\":\"APPROVED\",\"model\":\"$MODEL\",\"role\":\"code-review-specialist\",\"findings\":N,\"blocking\":N} -->"
     VERIFICATION:
       EVIDENCE::[
         Code_snippets,
@@ -87,7 +87,12 @@ META:
       match::[default]
       skills::[test-validation-standards]
       patterns::[pr-scope-containment,constructive-feedback]
-      kernel_only::[operating-discipline,security-threat-modeling]
+      kernel_only::[
+        operating-discipline,
+        security-threat-modeling,
+        python-style,
+        stub-detection
+      ]
     DEEP_SECURITY:
       match::[
         context::security_audit,
