@@ -10,7 +10,7 @@ META:
   FORMAT::octave
 §0::ARCHITECTURE_NOTE
 DESCRIPTION::"This document describes the APPROVED TARGET three-system Thick Client architecture. The workbench will absorb hestai-mcp and odyssean-anchor-mcp into a unified platform (Engine + Glass + Library). debate-hall-mcp and octave-mcp remain standalone. See docs/dream-team-architecture.md for the specification."
-CURRENT_REALITY::"Until workbench migration is complete, the current system (hestai-mcp + odyssean-anchor-mcp as separate MCP servers) remains operational. Current-state docs (HESTAI-SYSTEM-REFERENCE, HESTAI-REPO-DIRECTORY, HESTAI-ECOSYSTEM-LIGHTHOUSE) describe the running system. This document describes the approved destination."
+CURRENT_REALITY::"Until workbench migration is complete, the current system (hestai-mcp + odyssean-anchor-mcp as separate MCP servers) remains operational. Current-state docs (HESTAI-SYSTEM-REFERENCE, HESTAI-REPO-DIRECTORY) describe the running system. HESTAI-ECOSYSTEM-LIGHTHOUSE describes prior target-state vision and is superseded by this document for architectural direction. This document describes the approved destination."
 PREVIOUS_MODEL::"Six-repo federation (v2.1) where hestai-mcp, odyssean-anchor-mcp, debate-hall-mcp, octave-mcp, workbench, and pal-mcp operated as separate servers. Converging to three systems."
 DECISION_SOURCE::"HO assessment session 2026-03-28. dream-team-architecture.md (2026-03-22). Human-approved direction."
 THICK_CLIENT_RATIONALE::[
