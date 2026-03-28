@@ -23,7 +23,7 @@ OCTAVE_MCP::[
   KEY_FACT::"Foundation layer. Zero dependencies. debate-hall-mcp consumes it (>=1.2.1). Workbench will consume it for format validation."
 ]
 DEBATE_HALL_MCP::[
-  VERSION::"0.4.0",
+  VERSION::"0.5.0",
   PHASE::"OPERATIONAL, Layer 2 complete",
   HEALTH::PRODUCTION_READY,
   TESTS::"496 passing (491 unit + 5 e2e), 92 percent coverage",
@@ -86,12 +86,12 @@ ARROWS::[
 ]
 §3::LAYER_MODEL_WITH_STATE
 LAYER_0::"FOUNDATION — octave-mcp: SOLID, v1.9.2, production. ACTION: Update deps when releases happen. No structural changes needed."
-LAYER_1::"DELIBERATION — debate-hall-mcp: SOLID, v0.4.0, production, 17 tools. ACTION: Continue independently. Issue 163 (Governance Hall), Issue 159 (RACI mode)."
+LAYER_1::"DELIBERATION — debate-hall-mcp: SOLID, v0.5.0, production, 17 tools. ACTION: Continue independently. Issue 163 (Governance Hall), Issue 159 (RACI mode)."
 LAYER_2::"UNIFIED_PLATFORM — hestai-workbench: PROTOTYPE, Phase_2_complete, absorbing hestai-mcp and OA. ACTION: Build Engine + Glass + Library Manager. Critical path for entire ecosystem."
 §4::SEQUENCED_BUILD_ORDER
 STEP_1::[
   WHAT::"Comprehensive Agent Registry in workbench",
-  RATIONALE::"Foundation of everything. Visual agent cards with role, cognition, model, fallback, tier defaults. Reads from workbench library (migrated from hestai-mcp bundled hub). Enhanced version of current rudimentary registry.",
+  RATIONALE::"Foundation of everything. Visual agent cards with role, cognition, model, fallback, tier defaults. Initially reads from existing hestai-mcp bundled hub until Step 2 migrates content into the workbench library. Enhanced version of current rudimentary registry.",
   EFFORT::"medium — DB schema, UI, library migration",
   BLOCKS::[
     STEP_2,

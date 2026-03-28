@@ -32,7 +32,7 @@ It is **not** a system standard (that's the System North Star), **not** a build 
 **Relationship to other documents:**
 - **System North Star:** Immutable methodology (I1-I6). The Lighthouse operates within those laws.
 - **Ecosystem Overview:** v3.0 (STATUS::TARGET) describes the approved Thick Client architecture. Supersedes this Lighthouse for architectural direction.
-- **Ecosystem Dependency Graph:** The sequenced build order. How we get from Overview to Lighthouse.
+- **Ecosystem Dependency Graph:** The sequenced build order for ecosystem migration. See Overview v3.0 for current target architecture.
 - **Product North Stars:** Per-repo vision. Each should move toward this ecosystem vision.
 
 ---
