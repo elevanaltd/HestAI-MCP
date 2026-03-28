@@ -5,7 +5,7 @@ version: 3.1
 status: ACTIVE
 purpose: Target state vision for the fully integrated HestAI ecosystem
 created: 2026-02-25
-revised: 2026-03-20
+revised: 2026-03-28
 origin: Project 15 ecosystem build order coordination
 tracking: https://github.com/orgs/elevanaltd/projects/15
 # // REFERENCE: points-to-canonical (.hestai-sys/ runtime-injected copy; this is the _bundled_hub source)
@@ -15,7 +15,7 @@ tracking: https://github.com/orgs/elevanaltd/projects/15
 
 **Version:** 3.1
 **Status:** ACTIVE
-**Revised:** 2026-03-20
+**Revised:** 2026-03-28
 
 ---
 
@@ -31,7 +31,7 @@ It is **not** a system standard (that's the System North Star), **not** a build 
 
 **Relationship to other documents:**
 - **System North Star:** Immutable methodology (I1-I6). The Lighthouse operates within those laws.
-- **Ecosystem Overview:** Describes what exists today. This describes what we're building toward.
+- **Ecosystem Overview:** v3.0 (STATUS::TARGET) describes the approved Thick Client architecture. Supersedes this Lighthouse for architectural direction.
 - **Ecosystem Dependency Graph:** The sequenced build order. How we get from Overview to Lighthouse.
 - **Product North Stars:** Per-repo vision. Each should move toward this ecosystem vision.
 
