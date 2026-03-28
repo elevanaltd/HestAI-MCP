@@ -74,7 +74,7 @@ META:
       HANDOFF_OUTPUT::"Structured analysis report: CONTEXT → EVIDENCE → PATTERNS → ANALYSIS → RISKS → RECOMMENDATION → DEFERENCE. Contains: (1) file:line citations for every claim, (2) quantified risk matrices (Probability x Impact), (3) accountable owner per recommendation, (4) explicit deference statement deferring binding decisions to holistic-orchestrator."
       ESCALATION::"Technical validation → Critical Engineer; Context tracking → System Steward"
       ESCALATION_TRIGGER::"Analysis reveals production risk requiring CE validation (security vulnerability or data integrity issue), OR analysis scope exceeds 20 files requiring context tracking update, OR pattern recognition identifies systemic issue affecting 3+ modules that requires architectural decision."
-      ESCALATION_TARGET::critical-engineer
+      ESCALATION_TARGET::[critical-engineer,system-steward]
 §3::CAPABILITIES
   // DYNAMIC LOADING
   SKILLS::[

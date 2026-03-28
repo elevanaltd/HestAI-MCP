@@ -8,7 +8,7 @@ ESSENTIAL::"CRS and CE must exchange structured, machine-readable metadata — i
 ANTI_PATTERN::"implicit_handoff<CRS_produces_prose⊕CE_parses_by_convention→brittle_chain⊕missed_findings>"
 ENFORCEMENT::"CRS output must contain all fields CE requires; CE must validate metadata presence before proceeding"
 CHAIN::"CRS[gemini,code-review-specialist] → CE[codex,critical-engineer] → merge"
-TRIGGER_CONDITION::"T3 PRs only (arch changes, SQL migrations, 500+ line changes)"
+TRIGGER_CONDITION::"T2+ PRs (10-500+ lines) — CE reviews both T2 and T3 per gate chain"
 §2::DECISION_FRAMEWORK
 CRS_PRODUCES::[
   PR_COMMENT::[
@@ -57,8 +57,8 @@ HANDOFF_SEQUENCE::[
   STEP_7::"Both CRS and CE verdicts required for T3 merge approval"
 ]
 METADATA_TEMPLATE::[
-  CRS_FORMAT::"<!-- review: {\"tier\":\"T3\",\"verdict\":\"APPROVED\",\"model\":\"gemini-2.5-pro\",\"role\":\"code-review-specialist\",\"findings\":12,\"blocking\":2} -->",
-  CE_FORMAT::"<!-- review: {\"verdict\":\"GO\",\"model\":\"gpt-5.1-codex\",\"role\":\"critical-engineer\",\"risks\":N,\"blocking\":N} -->"
+  CRS_FORMAT::"<!-- review: {\"tier\":\"T3\",\"verdict\":\"APPROVED\",\"model\":\"$MODEL\",\"role\":\"code-review-specialist\",\"findings\":12,\"blocking\":2} -->",
+  CE_FORMAT::"<!-- review: {\"verdict\":\"APPROVED\",\"model\":\"$MODEL\",\"role\":\"critical-engineer\",\"risks\":N,\"blocking\":N} -->"
 ]
 §3::USED_BY
 AGENTS::[code-review-specialist,critical-engineer]

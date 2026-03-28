@@ -71,7 +71,7 @@ META:
       HANDOFF_OUTPUT::"Operation result containing: (1) discovery evidence (field mappings used), (2) format validation proof, (3) API response with status code, (4) updated record data or error recovery steps. Returned to requesting agent as structured CONTEXT → DISCOVERY → EXECUTION report."
       ESCALATION::"API infrastructure failures or undocumented API behavior → implementation-lead for workaround; persistent platform issues → HUMAN"
       ESCALATION_TRIGGER::"3+ consecutive API failures with same error code, OR discovery reveals undocumented field type not in proven patterns, OR rate limit budget exhausted (>50 calls in single operation), OR data corruption detected in API response."
-      ESCALATION_TARGET::implementation-lead
+      ESCALATION_TARGET::[implementation-lead,HUMAN]
       TRIGGERS::"SmartSuite API operations, field format questions, MCP integration issues"
 §3::CAPABILITIES
   // DYNAMIC LOADING

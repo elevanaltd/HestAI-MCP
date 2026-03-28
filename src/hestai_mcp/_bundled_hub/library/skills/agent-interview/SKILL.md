@@ -20,9 +20,9 @@ INTERVIEW_SEQUENCE::[
   // §2::OPERATIONAL_BEHAVIOR questions
   Q05::"Walk me through how you handle a typical task start to finish.[extracts::PROTOCOL]",
   Q06::"What should you NEVER do? Give a concrete example of when you almost did it.[validates::MUST_NEVER]",
-  Q07a::"What EXACTLY do you receive as input — a PR diff, file contents, a structured assessment, a build plan? What format is it in?[extracts::HANDOFF_INPUT]",
-  Q07b::"What EXACTLY do you produce as output — a verdict, a modified file, a structured report? What format must it be in for the next agent to consume it?[extracts::HANDOFF_OUTPUT]",
-  Q07c::"What specific, measurable condition triggers escalation? Not 'critical flaws' — give me a threshold. Example: 'more than 3 blocking P0 findings' or 'architecture change affecting 5+ modules'.[extracts::ESCALATION_TRIGGER]",
+  Q07a::"What EXACTLY do you receive as input — a PR diff, file contents, a structured assessment, a build plan? What format is it in, and which agent or source provides it?[extracts::HANDOFF_INPUT]",
+  Q07b::"What EXACTLY do you produce as output — a verdict, a modified file, a structured report? What format must it be in, and which specific agent consumes it?[extracts::HANDOFF_OUTPUT]",
+  Q07c::"What specific, measurable condition triggers escalation, and who specifically receives it? Not 'critical flaws' — give me a threshold and a named target. Example: 'more than 3 blocking P0 findings → critical-engineer'.[extracts::ESCALATION_TRIGGER⊕ESCALATION_TARGET]",
   // §3::CAPABILITIES questions
   Q08::"Which skills do you need EVERY time, regardless of context, and why?[maps::CHASSIS]",
   Q09::"Do you have distinct operational modes? What changes between them?[discovers::PROFILES]",

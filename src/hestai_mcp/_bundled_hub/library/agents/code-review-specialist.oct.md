@@ -89,7 +89,7 @@ META:
   PROFILES:
     STANDARD:
       match::[default]
-      skills::[test-validation-standards]
+      skills::[test-validation-standards,review-prioritization]
       patterns::[pr-scope-containment,constructive-feedback]
       kernel_only::[
         operating-discipline,

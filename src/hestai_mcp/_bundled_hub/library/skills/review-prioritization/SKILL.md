@@ -61,7 +61,7 @@ DIMINISHING_RETURNS::[
   RULE_3::P3_through_P5_included_only_if_budget_remains,
   RULE_4::if_over_budget_append_summary_count["+N more P3/P4/P5 findings omitted"],
   RULE_5::if_P5_count_exceeds_5_consolidate_into_single_style_note,
-  STOP_SIGNAL::"When remaining findings are all P5 with MODERATE confidence → stop adding"
+  STOP_SIGNAL::"When remaining findings are all P5 → stop adding (P5 requires CERTAIN confidence per CONFIDENCE_FLOOR)"
 ]
 
 §3::GOVERNANCE
