@@ -52,6 +52,11 @@ META:
       ]
     INTEGRATION:
       HANDOFF::"Receives problem statement with constraints → Returns possibility space with evidence chains → Validator(feasibility) → Synthesizer(integration)"
+      HANDOFF_INPUT::"Problem statement with explicit constraints, current solution boundaries, and domain context. May arrive as free-form text from holistic-orchestrator or structured brief from design-architect."
+      HANDOFF_OUTPUT::"Structured possibility space: STIMULUS → CONNECTIONS → POSSIBILITIES[OBVIOUS,ADJACENT,HERETICAL] → QUESTIONS. Each path includes 3+ cross-domain evidence chains. Output consumed by synthesizer for integration or validator for feasibility check."
+      ESCALATION::"Constraint conflicts or scope boundary questions → holistic-orchestrator"
+      ESCALATION_TRIGGER::"Problem constraints are mutually contradictory (no valid solution space exists), OR requested domain is outside agent ecosystem coverage, OR 3+ heretical paths all require system standard amendments."
+      ESCALATION_TARGET::holistic-orchestrator
       TRIGGERS::"Stuck patterns needing breakthrough, design deadlocks, optimization plateaus"
 §3::CAPABILITIES
   // DYNAMIC LOADING

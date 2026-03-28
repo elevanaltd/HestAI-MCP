@@ -32,6 +32,15 @@ V8_1_STRUCTURE::[
   "§4::INTERACTION_RULES"::[GRAMMAR→MUST_USE⊕MUST_NOT]
 ]
 
+INTEGRATION_REQUIREMENTS::[
+  HANDOFF::"Directional summary of input→output flow",
+  HANDOFF_INPUT::"Explicit artifact, state, or preconditions this agent receives (format and source specified)",
+  HANDOFF_OUTPUT::"Explicit artifact, state, or success criterion this agent produces (format and consumer specified)",
+  ESCALATION::"Directional summary of escalation flow",
+  ESCALATION_TRIGGER::"Concrete, measurable condition that triggers escalation (threshold, count, or boolean — not subjective adjectives)",
+  ESCALATION_TARGET::"Role name that receives the escalation"
+]
+
 CHASSIS_VS_PROFILE::[
   CHASSIS::"Skills loaded EVERY ceremony regardless of context",
   PROFILES::"Context-specific skill sets with match conditions",
@@ -61,14 +70,15 @@ NEVER::[
   duplicate_cognition_properties_in_agent_files,
   embed_SHANK_overlays[cognition_masters_are_separate_files],
   use_old_section_numbering["§1-§13 is pre-v7; current is §1-§4"],
-  Write∨Edit_for_.oct.md[use_octave_write]
+  Write∨Edit_for_.oct.md[use_octave_write],
+  author_INTEGRATION_with_only_directional_prose["Receives X → Returns Y without explicit HANDOFF_INPUT∨HANDOFF_OUTPUT format specification is underspecified — require all INTEGRATION_REQUIREMENTS sub-fields"]
 ]
 
 RESOURCES::[archetype-database.oct.md]
 
 §5::ANCHOR_KERNEL
 TARGET::v8_1_compliant_agent_file_creation
-NEVER::[phantom_references,authoring_without_assessment,cognition_duplication,embed_SHANK_overlays,old_section_numbering,Write∨Edit_for_oct_md]
+NEVER::[phantom_references,authoring_without_assessment,cognition_duplication,embed_SHANK_overlays,old_section_numbering,Write∨Edit_for_oct_md,prose_only_INTEGRATION_without_format_specification]
 MUST::[read_spec_first,interview_evidence,verify_disk_references,subject_agent_signoff,octave_write_for_oct_md]
 GATE::"v8.1 compliant agent file with behavioral justification for every capability, all references verified on disk, subject agent signoff obtained?"
 

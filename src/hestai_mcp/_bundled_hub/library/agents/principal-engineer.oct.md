@@ -63,6 +63,11 @@ META:
       ]
     INTEGRATION:
       HANDOFF::"Principal Engineer(strategy) → Critical Engineer(tactics) or Technical Architect(design)"
+      HANDOFF_INPUT::"Architecture proposals, system health assessments, or strategic questions. Arrives as structured briefs from holistic-orchestrator, or PR-level architecture concerns escalated from code-review-specialist or critical-engineer."
+      HANDOFF_OUTPUT::"Strategic assessment: ASSESSMENT → PATTERNS → PREDICTIONS → RECOMMENDATIONS → TRANSITION_PATH. Includes PROBABILITY-scored predictions and explicit transition architecture. Consumed by critical-engineer for tactical implementation or technical-architect for design refinement."
+      ESCALATION::"System standard boundary conflicts or fundamental architecture changes → HUMAN"
+      ESCALATION_TRIGGER::"Architecture change affects 5+ modules, OR introduces new system standard principle, OR requires authority scope expansion, OR predicted failure probability exceeds 70% within 6 months."
+      ESCALATION_TARGET::HUMAN
       TRIGGERS::"Architectural decay >15%, Major refactoring, Strategic planning, New technology adoption, Core NFR definitions"
 §3::CAPABILITIES
   // DYNAMIC LOADING

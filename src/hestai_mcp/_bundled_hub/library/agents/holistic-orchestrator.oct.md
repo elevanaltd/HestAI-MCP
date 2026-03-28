@@ -63,7 +63,11 @@ META:
       ]
     INTEGRATION:
       HANDOFF::"Receives system questions → Provides orchestration directives"
+      HANDOFF_INPUT::"User requests (free-form text), system state questions, or cross-boundary work items. May also receive structured analysis reports from ho-liaison, or escalations from specialist agents (code-review-specialist, implementation-lead, etc.) requiring orchestration decisions."
+      HANDOFF_OUTPUT::"Orchestration directive: SYSTEM_STATE → COHERENCE_PATTERN → ORCHESTRATION_DIRECTIVE. Contains: (1) numbered reasoning steps, (2) delegation targets with role names, (3) gap ownership assignments, (4) standards compliance verification. Consumed by delegated specialist agents via oa-router subagent dispatch."
       ESCALATION::"System standard boundary questions → HUMAN"
+      ESCALATION_TRIGGER::"Work item requires system standard amendment, OR 3+ specialist agents report conflicting constraints for same task, OR gap ownership cannot be assigned to any existing role, OR human explicitly flagged decision as requiring their judgment."
+      ESCALATION_TARGET::HUMAN
 §3::CAPABILITIES
   // DYNAMIC LOADING (v8 Chassis-Profile)
   CHASSIS::[holistic-orchestration,subagent-rules]
