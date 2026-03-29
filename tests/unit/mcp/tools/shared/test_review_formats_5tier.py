@@ -60,11 +60,17 @@ class TestValidRoles5Tier:
 
         assert "HO" in VALID_ROLES
 
-    def test_valid_roles_has_seven_members(self) -> None:
-        """VALID_ROLES must have exactly 7 members: CRS, CE, IL, HO, TMG, CIV, PE."""
+    def test_valid_roles_contains_gr(self) -> None:
+        """GR (Governance Reviewer) must be in VALID_ROLES."""
         from hestai_mcp.modules.tools.shared.review_formats import VALID_ROLES
 
-        assert len(VALID_ROLES) == 7, f"Expected 7 roles, got {len(VALID_ROLES)}: {VALID_ROLES}"
+        assert "GR" in VALID_ROLES, "GR must be a valid review role"
+
+    def test_valid_roles_has_eight_members(self) -> None:
+        """VALID_ROLES must have exactly 8 members: CRS, CE, GR, IL, HO, TMG, CIV, PE."""
+        from hestai_mcp.modules.tools.shared.review_formats import VALID_ROLES
+
+        assert len(VALID_ROLES) == 8, f"Expected 8 roles, got {len(VALID_ROLES)}: {VALID_ROLES}"
 
 
 # ---------------------------------------------------------------------------
@@ -621,3 +627,147 @@ class TestApprovalMatcherLineStartEnforcement:
 
         text = "Need CE and CRS reviews\nCE APPROVED: assessment here"
         assert matches_approval_pattern(text, "CE", "APPROVED")
+
+
+# ---------------------------------------------------------------------------
+# J. GR (Governance Reviewer) approval matching
+# ---------------------------------------------------------------------------
+@pytest.mark.unit
+class TestGRApprovalMatching:
+    """has_gr_approval() must match GR approval patterns."""
+
+    def test_gr_approved_basic(self) -> None:
+        """'GR APPROVED: governance aligned with North Star' must match."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_gr_approval
+
+        assert has_gr_approval(["GR APPROVED: governance aligned with North Star"])
+
+    def test_gr_approved_with_model_annotation(self) -> None:
+        """'GR (Gemini): APPROVED: no contradictions detected' must match."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_gr_approval
+
+        assert has_gr_approval(["GR (Gemini): APPROVED: no contradictions detected"])
+
+    def test_gr_go_keyword(self) -> None:
+        """'GR GO: governance artifacts complete' must match."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_gr_approval
+
+        assert has_gr_approval(["GR GO: governance artifacts complete"])
+
+    def test_gr_go_with_model(self) -> None:
+        """'GR (Codex): GO: alignment verified' must match."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_gr_approval
+
+        assert has_gr_approval(["GR (Codex): GO: alignment verified"])
+
+    def test_gr_no_false_positive_xgr(self) -> None:
+        """'XGR APPROVED' must NOT match (word boundary)."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_gr_approval
+
+        assert not has_gr_approval(["XGR APPROVED: fake"])
+
+    def test_gr_no_false_positive_blocked(self) -> None:
+        """'GR BLOCKED' must NOT match as approval."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_gr_approval
+
+        assert not has_gr_approval(["GR BLOCKED: North Star contradiction detected"])
+
+    def test_gr_no_match_empty(self) -> None:
+        """Empty list returns False."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_gr_approval
+
+        assert not has_gr_approval([])
+
+    def test_gr_approved_with_em_dash(self) -> None:
+        """'GR (Gemini) --- APPROVED' with em dash must match."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_gr_approval
+
+        assert has_gr_approval(["GR (Gemini) \u2014 APPROVED: governance review passed"])
+
+
+# ---------------------------------------------------------------------------
+# K. format_review_comment and metadata for GR role
+# ---------------------------------------------------------------------------
+@pytest.mark.unit
+class TestFormatReviewCommentGR:
+    """format_review_comment() must work with GR role."""
+
+    def test_format_gr_approved(self) -> None:
+        """Format GR APPROVED comment."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            format_review_comment,
+            matches_approval_pattern,
+        )
+
+        comment = format_review_comment(
+            role="GR", verdict="APPROVED", assessment="Governance aligned with North Star"
+        )
+        assert matches_approval_pattern(comment, "GR", "APPROVED")
+        assert "Governance aligned with North Star" in comment
+
+    def test_format_gr_with_model(self) -> None:
+        """Format GR APPROVED with model annotation."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            format_review_comment,
+            matches_approval_pattern,
+        )
+
+        comment = format_review_comment(
+            role="GR",
+            verdict="APPROVED",
+            assessment="No contradictions detected",
+            model_annotation="Gemini",
+        )
+        assert matches_approval_pattern(comment, "GR", "APPROVED")
+        assert "Gemini" in comment
+
+    def test_format_gr_blocked(self) -> None:
+        """Format GR BLOCKED comment with correct prefix and metadata."""
+        from hestai_mcp.modules.tools.shared.review_formats import format_review_comment
+
+        comment = format_review_comment(
+            role="GR", verdict="BLOCKED", assessment="North Star contradiction detected"
+        )
+        assert comment.startswith(
+            "GR BLOCKED:"
+        ), f"GR BLOCKED comment must start with 'GR BLOCKED:', got: {comment[:30]}"
+        assert "North Star contradiction detected" in comment
+        assert "<!-- review:" in comment, "BLOCKED comment must contain metadata line"
+
+    def test_gr_metadata_roundtrip(self) -> None:
+        """GR formatted comment has parseable metadata with correct role."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            format_review_comment,
+            parse_review_metadata,
+        )
+
+        comment = format_review_comment(
+            role="GR",
+            verdict="APPROVED",
+            assessment="Governance aligned",
+            model_annotation="Gemini",
+            commit_sha="abc1234",
+        )
+        meta = parse_review_metadata(comment)
+        assert meta is not None
+        assert meta["role"] == "GR"
+        assert meta["provider"] == "gemini"
+        assert meta["verdict"] == "APPROVED"
+        assert meta["sha"] == "abc1234"
+
+    def test_gr_blocked_metadata(self) -> None:
+        """GR BLOCKED has correct metadata verdict."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            format_review_comment,
+            parse_review_metadata,
+        )
+
+        comment = format_review_comment(
+            role="GR",
+            verdict="BLOCKED",
+            assessment="Precedence hierarchy violation",
+        )
+        meta = parse_review_metadata(comment)
+        assert meta is not None
+        assert meta["role"] == "GR"
+        assert meta["verdict"] == "BLOCKED"
