@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 """
-OCTAVE Validator - v5.1.0 Implementation
+OCTAVE Validator - v5.1.1 Implementation
 
 VENDORED FROM: /Volumes/OCTAVE/octave-mcp/tools/octave-validator.py
 CANONICAL SOURCE: OCTAVE project at /Volumes/OCTAVE/octave-mcp/
 SYNC DATE: 2026-03-29
 VERSION: 5.1.1 (allowed_meta updated for v6 META fields)
 
-This validator checks OCTAVE v5.1.0 formatted documents for envelope (markers + META) and formatting compliance.
+This validator checks OCTAVE formatted documents for envelope (markers + META) and formatting compliance.
 
 Usage:
-    python octave_validator.py <file_path>
-    # or
-    import octave_validator
-    result = octave_validator.validate_octave_document(octave_text)
+    python octave-validator.py <file_path>
+    # or (via importlib since filename contains a hyphen):
+    from importlib.util import spec_from_file_location, module_from_spec
+    spec = spec_from_file_location("octave_validator", "octave-validator.py")
+    mod = module_from_spec(spec); spec.loader.exec_module(mod)
+    result = mod.validate_octave_document(octave_text)
 """
 
 import argparse

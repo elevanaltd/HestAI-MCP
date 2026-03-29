@@ -92,7 +92,7 @@ class TestAllowedMetaFields:
         """Each newly-allowed META field should not produce warnings under warn policy."""
         doc = _make_doc(f"  {field_name}::{field_value}")
         v = OctaveValidator(unknown_policy="warn")
-        valid, messages = v.validate_octave_document(doc)
+        _valid, messages = v.validate_octave_document(doc)
         unknown_warnings = [m for m in messages if "Unknown META field" in m]
         assert (
             not unknown_warnings
@@ -105,7 +105,7 @@ class TestAllowedMetaFields:
             '  OCTAVE::"Olympian Common Text And Vocabulary Engine — Semantic DSL for LLMs"'
         )
         v = OctaveValidator(profile="hestai-skill", unknown_policy="warn")
-        valid, messages = v.validate_octave_document(doc)
+        _valid, messages = v.validate_octave_document(doc)
         unknown_warnings = [m for m in messages if "Unknown META field" in m]
         assert not unknown_warnings, f"OCTAVE field should be allowed: {unknown_warnings}"
 
@@ -114,7 +114,7 @@ class TestAllowedMetaFields:
         """CONTRACT field in an AGENT_DEFINITION doc should not produce unknown-field warnings."""
         doc = _make_agent_doc("  CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>")
         v = OctaveValidator(profile="hestai-agent", unknown_policy="warn")
-        valid, messages = v.validate_octave_document(doc)
+        _valid, messages = v.validate_octave_document(doc)
         unknown_warnings = [m for m in messages if "Unknown META field" in m]
         assert not unknown_warnings, f"CONTRACT field should be allowed: {unknown_warnings}"
 
@@ -159,7 +159,7 @@ class TestUnknownPolicy:
         v = OctaveValidator(unknown_policy="strict", profile="hestai-agent")
         # Agent docs don't have YAML frontmatter requirement for this test
         doc = '===TEST===\nMETA:\n  TYPE::AGENT_DEFINITION\n  VERSION::"1.0"\n  TOTALLY_FAKE::value\nCONTENT::x\n===END==='
-        valid, messages = v.validate_octave_document(doc)
+        _valid, messages = v.validate_octave_document(doc)
         # Should not have E007 error since strict only applies to protocol profile
         assert not any("E007" in m for m in messages)
 
@@ -168,7 +168,7 @@ class TestUnknownPolicy:
         """strict policy with hestai-skill profile should not produce E007 errors."""
         doc = _make_skill_doc("  TOTALLY_FAKE::value")
         v = OctaveValidator(unknown_policy="strict", profile="hestai-skill")
-        valid, messages = v.validate_octave_document(doc)
+        _valid, messages = v.validate_octave_document(doc)
         # strict only applies to protocol profile — skill profile should not get E007
         assert not any("E007" in m for m in messages)
 
@@ -184,7 +184,7 @@ class TestDocumentTypes:
         """TYPE::SKILL produces an 'unknown type' warning but not an error."""
         doc = _make_skill_doc()
         v = OctaveValidator(profile="hestai-skill", unknown_policy="ignore")
-        valid, messages = v.validate_octave_document(doc)
+        v.validate_octave_document(doc)
         # The validator doesn't have specific schema rules for SKILL type,
         # so it produces a warning about unknown type — this is expected behavior.
         type_warnings = [m for m in v.warnings if "Unknown META.TYPE" in m]
@@ -198,7 +198,7 @@ class TestDocumentTypes:
         """TYPE::AGENT_DEFINITION produces an 'unknown type' warning but not an error."""
         doc = _make_agent_doc()
         v = OctaveValidator(profile="hestai-agent", unknown_policy="ignore")
-        valid, messages = v.validate_octave_document(doc)
+        v.validate_octave_document(doc)
         type_warnings = [m for m in v.warnings if "Unknown META.TYPE" in m]
         # Warning is expected (no specific schema validation for this type)
         assert len(type_warnings) > 0
