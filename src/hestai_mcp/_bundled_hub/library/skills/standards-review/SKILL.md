@@ -1,0 +1,179 @@
+===SKILL:STANDARDS_REVIEW===
+META:
+  TYPE::SKILL
+  VERSION::"2.0.0"
+  STATUS::ACTIVE
+  PURPOSE::"Methodology for evidence-based system standards documentation review with integrated finding prioritization. Provides structured analysis framework for reviewing architectural decisions, specs, rules, and standards artifacts against North Star alignment, cross-document consistency, structural completeness, and downstream impact."
+
+§1::STANDARDS_REVIEW_DIMENSIONS
+DIMENSIONS::[
+  ALIGNMENT::[
+    DEFINITION::"Does this artifact align with North Star immutables (I1-I6)?",
+    CHECK::"Map each claim, rule, or decision to a specific immutable or justify its independence",
+    EVIDENCE::"North Star clause reference + alignment reasoning",
+    VERDICT::ALIGNED|MISALIGNED|JUSTIFIED_DEVIATION
+  ],
+  CONTRADICTION::[
+    DEFINITION::"Does this artifact contradict any existing standards document?",
+    CHECK::"Cross-reference against decisions/, specs/, rules/, agent definitions, and patterns",
+    EVIDENCE::"Document reference + specific clause conflict + severity",
+    VERDICT::NO_CONTRADICTION|MINOR_TENSION|BLOCKING_CONTRADICTION
+  ],
+  COMPLETENESS::[
+    DEFINITION::"Does this artifact have all required fields and sufficient justification?",
+    CHECK::"Validate OCTAVE structure, required sections, meta fields, and reasoning depth",
+    EVIDENCE::"Missing field list + structural validation results",
+    VERDICT::COMPLETE|INCOMPLETE|STRUCTURALLY_INVALID
+  ],
+  IMPACT::[
+    DEFINITION::"What downstream effects does this standards change have?",
+    CHECK::"Map impact on agents, skills, patterns, workflows, and CI pipelines",
+    EVIDENCE::"Affected artifact list + impact severity per artifact",
+    VERDICT::NO_IMPACT|LOW_IMPACT|HIGH_IMPACT|BREAKING_IMPACT
+  ],
+  PRECEDENCE::[
+    DEFINITION::"Does this artifact respect the structural precedence hierarchy?",
+    CHECK::"Verify System Standard > North Stars > ADRs > Workflows ordering",
+    EVIDENCE::"Hierarchy position + any violations of lower-overrides-higher",
+    VERDICT::COMPLIANT|VIOLATION
+  ],
+  SCOPE::[
+    DEFINITION::"Is this artifact within the documented scope boundaries?",
+    CHECK::"Validate against North Star IS/IS_NOT declarations",
+    EVIDENCE::"Scope boundary reference + in/out determination",
+    VERDICT::IN_SCOPE|OUT_OF_SCOPE|SCOPE_EXPANSION_PROPOSED
+  ]
+]
+
+§2::STANDARDS_FILE_TYPE_CHECKLIST
+FILE_TYPES::[
+  ADR::[
+    REQUIRED_FIELDS::[number,title,status,context,decision,consequences],
+    NUMBERING::"Must follow ADR numbering convention (ADR-NNNN)",
+    STATUS_VALUES::[PROPOSED,ACCEPTED,DEPRECATED,SUPERSEDED],
+    TRACEABILITY::"Must reference triggering issue or discussion"
+  ],
+  NORTH_STAR::[
+    REQUIRED_FIELDS::[immutables,assumptions,constrained_variables,scope_boundaries],
+    IMMUTABLE_FORMAT::"I#::NAME::[PRINCIPLE,WHY,STATUS]",
+    AMENDMENT_RULE::"Only human authority can modify immutables"
+  ],
+  AGENT_DEFINITION::[
+    REQUIRED_SECTIONS::[IDENTITY,OPERATIONAL_BEHAVIOR,CAPABILITIES,INTERACTION_RULES],
+    IDENTITY_FIELDS::[ROLE,COGNITION,ARCHETYPE,MISSION,AUTHORITY_BLOCKING],
+    CHASSIS_VERSION::"Must match current chassis version (v8.2)",
+    SKILL_EXISTENCE::"Referenced skills must exist in library/skills/"
+  ],
+  SKILL_DEFINITION::[
+    REQUIRED_FIELDS::[META,at_least_one_protocol_section],
+    RECOMMENDED_FIELDS::[PURPOSE],
+    ANCHOR_KERNEL::"Should include §5::ANCHOR_KERNEL with TARGET, NEVER, MUST, GATE",
+    NAMING::"Directory name must match skill identifier in agent CAPABILITIES"
+  ],
+  PATTERN_DEFINITION::[
+    REQUIRED_SECTIONS::[CORE_PRINCIPLE,DECISION_FRAMEWORK,USED_BY,ANCHOR_KERNEL],
+    ANTI_PATTERN::"Must declare the anti-pattern this pattern prevents",
+    AGENT_BINDING::"USED_BY must list consuming agents"
+  ],
+  SPEC::[
+    REQUIRED_FIELDS::[purpose,scope,requirements,acceptance_criteria],
+    TRACEABILITY::"Must reference parent North Star requirement or ADR"
+  ],
+  RULE::[
+    REQUIRED_FIELDS::[scope,rule_statement,enforcement,exceptions],
+    AUTHORITY::"Must declare which authority level enforces the rule"
+  ]
+]
+
+§3::REVIEW_PROTOCOL
+SCAN_ORDER::[
+  STEP_1_CLASSIFICATION::"Classify each changed file by standards type (ADR, North Star, Agent, Skill, Pattern, Spec, Rule)",
+  STEP_2_ALIGNMENT::"For each file, validate North Star alignment across all six immutables",
+  STEP_3_CONTRADICTION::"Cross-reference against existing standards corpus for conflicts",
+  STEP_4_COMPLETENESS::"Validate structural completeness per file type checklist",
+  STEP_5_IMPACT::"Map downstream impact on agents, skills, patterns, and CI",
+  STEP_6_PRECEDENCE::"Verify hierarchy compliance",
+  STEP_7_SCOPE::"Validate scope boundary compliance",
+  STEP_8_VERDICT::"Synthesize findings into structured verdict with metadata"
+]
+
+ANTI_THEATER_GATE::[
+  "Do NOT review standards documents for code quality, test coverage, or performance",
+  "Do NOT flag style issues in prose unless they create ambiguity",
+  "Do NOT require changes that are outside the scope of the PR's standards intent",
+  "Do NOT apply code review heuristics (SOLID, DRY, etc.) to standards documents"
+]
+
+§4::FINDING_PRIORITIZATION
+PRIORITY_TIERS::[
+  G0_ALIGNMENT::[
+    SCOPE::North_Star_contradiction⊕immutable_violation⊕precedence_hierarchy_breach⊕System_Standard_conflict,
+    ACTION::ALWAYS_REPORT_FIRST,
+    CONFIDENCE_FLOOR::MODERATE,
+    BLOCKING::ALWAYS
+  ],
+  G1_CONTRADICTION::[
+    SCOPE::cross_document_conflict⊕incompatible_decisions⊕rule_conflict⊕agent_definition_inconsistency,
+    ACTION::REPORT_AFTER_G0,
+    CONFIDENCE_FLOOR::HIGH,
+    BLOCKING::WHEN_CERTAIN_OR_HIGH
+  ],
+  G2_COMPLETENESS::[
+    SCOPE::missing_required_fields⊕OCTAVE_structural_invalidity⊕insufficient_justification⊕missing_traceability,
+    ACTION::REPORT_AFTER_G1,
+    CONFIDENCE_FLOOR::HIGH,
+    BLOCKING::WHEN_STRUCTURALLY_INVALID
+  ],
+  G3_IMPACT::[
+    SCOPE::undocumented_downstream_effects⊕scope_expansion_without_justification⊕agent_skill_pattern_breakage,
+    ACTION::REPORT_IF_WITHIN_BUDGET,
+    CONFIDENCE_FLOOR::HIGH,
+    BLOCKING::WHEN_BREAKING_IMPACT
+  ]
+]
+
+BATCH_TRIAGE::[
+  STEP_1::classify_all_findings_into_G0_through_G3,
+  STEP_2::within_each_tier_sort_by_confidence_descending[CERTAIN→HIGH→MODERATE],
+  STEP_3::apply_diminishing_returns_threshold,
+  STEP_4::emit_ordered_findings_in_SR_output_format
+]
+
+DIMINISHING_RETURNS::[
+  BUDGET::10_findings_maximum_in_PR_comment,
+  RULE_1::all_G0_and_G1_findings_always_included[no_budget_cap],
+  RULE_2::G2_findings_included_up_to_remaining_budget,
+  RULE_3::G3_findings_included_only_if_budget_remains,
+  RULE_4::if_over_budget_append_summary_count["+N more G2/G3 findings omitted"],
+  STOP_SIGNAL::"When remaining findings are all G3 advisory → stop adding"
+]
+
+§5::ANCHOR_KERNEL
+TARGET::evidence_based_standards_documentation_review_with_prioritized_findings
+NEVER::[
+  review_code_quality_in_standards_PRs,
+  approve_North_Star_contradictions,
+  skip_cross_document_contradiction_check,
+  approve_incomplete_standards_artifacts_without_flagging,
+  ignore_downstream_impact_on_agents_and_skills,
+  report_speculative_findings_without_evidence,
+  report_impact_before_alignment,
+  omit_G0_findings,
+  exceed_finding_budget,
+  consolidate_blocking_findings
+]
+MUST::[
+  validate_North_Star_alignment_for_every_standards_artifact,
+  cross_reference_against_existing_standards_corpus,
+  verify_structural_completeness_per_file_type,
+  map_downstream_impact_on_agents_skills_patterns,
+  verify_precedence_hierarchy_compliance,
+  produce_structured_metadata_verdict_in_review_gate_format,
+  classify_into_G0_through_G3,
+  sort_by_confidence_within_tier,
+  apply_diminishing_returns,
+  include_all_G0_G1_regardless_of_budget
+]
+GATE::"Does this standards artifact align with the North Star, avoid contradictions, meet structural completeness, have documented impact, and are findings prioritized by severity?"
+
+===END===

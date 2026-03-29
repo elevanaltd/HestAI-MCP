@@ -1153,6 +1153,23 @@ class TestNewRoleGateClearance:
         assert result["success"] is True
         assert result["validation"]["would_clear_gate"] is True
 
+    @pytest.mark.asyncio
+    async def test_sr_dry_run_succeeds(self) -> None:
+        """SR APPROVED dry-run must succeed with would_clear_gate=True."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        result = await submit_review(
+            repo="elevanaltd/HestAI-MCP",
+            pr_number=123,
+            role="SR",
+            verdict="APPROVED",
+            assessment="Standards compliant",
+            dry_run=True,
+        )
+        assert result["success"] is True
+        assert result["validation"]["would_clear_gate"] is True
+        assert result["formatted_comment"].startswith("SR APPROVED:")
+
 
 @pytest.mark.unit
 class TestNewRoleTierRequirements:
@@ -1183,9 +1200,9 @@ class TestNewRoleTierRequirements:
         assert "TIER_4" in req or "T4" in req.upper()
 
     def test_no_unknown_tier_requirement(self) -> None:
-        """All 7 roles must have known tier requirements (not 'Unknown')."""
+        """All 8 roles must have known tier requirements (not 'Unknown')."""
         from hestai_mcp.modules.tools.submit_review import _get_tier_requirements
 
-        for role in ("TMG", "CRS", "CE", "CIV", "PE", "IL", "HO"):
+        for role in ("TMG", "CRS", "CE", "CIV", "PE", "SR", "IL", "HO"):
             req = _get_tier_requirements(role)
             assert "Unknown" not in req, f"Role {role} has unknown tier requirement"
