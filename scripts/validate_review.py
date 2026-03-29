@@ -117,117 +117,214 @@ def _is_generated_json(path: str) -> bool:
     return any(re.search(pattern, path) for pattern in generated_patterns)
 
 
-def determine_review_tier(files: list[dict[str, Any]]) -> tuple[str, str]:
-    """Determine required review tier based on changed files.
+# --- Facet → Required Reviewers mapping ---
+FACET_ROLE_MAP: dict[str, set[str]] = {
+    "META_CONTROL_PLANE": {"PE", "CIV", "CE", "SR", "TMG"},
+    "EXECUTABLE_SPEC": {"CE", "SR"},
+    "GOVERNANCE": {"SR"},
+    "SECURITY": {"CIV", "CE", "CRS", "TMG"},
+    "ROUTINE_CODE": {"CE", "CRS", "TMG"},
+}
 
-    5-tier system (v2.0):
-      T0: Only exempt files changed (docs, tests, locks, generated JSON)
-      T1: <10 non-exempt lines, single file, no security paths, no new test files
-      T2: 10-500 lines, no T3 triggers
-      T3: >500 lines OR security/architecture triggers
-      T4: Manual only (never auto-detected)
+# Hardcoded paths that always trigger META_CONTROL_PLANE
+_META_CONTROL_PLANE_PATHS = {
+    "scripts/validate_review.py",
+    ".github/workflows/review-gate.yml",
+}
+
+# Security path patterns
+_SECURITY_PATTERNS = [
+    r"(^|/)auth/",
+    r"(^|/)session/",
+    r"(^|/)config/env",
+    r"(^|/)path_utils",
+]
+
+# OCTAVE types that classify as EXECUTABLE_SPEC
+_EXECUTABLE_SPEC_TYPES = {"AGENT_DEFINITION", "SKILL"}
+
+
+def _sniff_octave_type(path: str) -> str:
+    """Read META.TYPE from an OCTAVE file. Max 50 lines, fail-safe.
+
+    Args:
+        path: File path to read.
+
+    Returns:
+        The TYPE value string (e.g., 'AGENT_DEFINITION', 'RULE') or empty string.
     """
+    try:
+        with open(path, encoding="utf-8") as f:
+            for _ in range(50):
+                line = f.readline()
+                if not line:
+                    break
+                if "TYPE::" in line:
+                    parts = line.split("::", 1)
+                    if len(parts) == 2:
+                        return parts[1].strip().strip('"').strip("'")
+    except Exception:
+        pass
+    return ""
 
-    # Exempt patterns - files that don't count toward review requirements
+
+def _classify_file_facet(path: str) -> str | None:
+    """Classify a single file path into a content facet.
+
+    Returns:
+        Facet name string, or None if the file is exempt.
+    """
+    # Exempt patterns
     exempt_patterns = [
-        r".*(?<!\.oct)\.md$",  # Markdown exempt, but NOT .oct.md (governance code)
+        r".*(?<!\.oct)\.md$",  # Markdown exempt, but NOT .oct.md
         r"^tests/.*$",
         r".*\.lock$",
     ]
 
-    def _is_exempt(path: str) -> bool:
-        """Check if a file path is exempt from review."""
-        # Check standard patterns
-        if any(re.match(pattern, path) for pattern in exempt_patterns):
-            return True
-        # JSON files: only generated ones are exempt
-        if path.endswith(".json"):
-            return _is_generated_json(path)
-        return False
+    # Check standard exempt patterns
+    if any(re.match(pattern, path) for pattern in exempt_patterns):
+        return None
 
-    # Check if any NEW (added) test files are present (for T1 new_test_files guard).
-    # Per governance: no_new_test_files. Modified test files don't disqualify T1 —
-    # only newly added test files indicate substantive changes requiring TMG review.
+    # JSON: only generated ones are exempt
+    if path.endswith(".json"):
+        if _is_generated_json(path):
+            return None
+        # Non-generated JSON is ROUTINE_CODE
+        return "ROUTINE_CODE"
+
+    # META_CONTROL_PLANE: hardcoded paths
+    if path in _META_CONTROL_PLANE_PATHS:
+        return "META_CONTROL_PLANE"
+    # Also match review-requirements.oct.md
+    if "review-requirements.oct.md" in path:
+        return "META_CONTROL_PLANE"
+
+    # .oct.md files: sniff TYPE to distinguish EXECUTABLE_SPEC vs GOVERNANCE
+    if path.endswith(".oct.md"):
+        octave_type = _sniff_octave_type(path)
+        if octave_type in _EXECUTABLE_SPEC_TYPES:
+            return "EXECUTABLE_SPEC"
+        # All other .oct.md (RULE, STANDARD, NORTH_STAR_SUMMARY, unknown) -> GOVERNANCE
+        return "GOVERNANCE"
+
+    # Security paths
+    if any(re.search(pattern, path) for pattern in _SECURITY_PATTERNS):
+        return "SECURITY"
+
+    # Architecture/infrastructure paths (base classes, shared modules, hooks, tools, MCP)
+    architecture_patterns = [
+        r"(^|/)base\.py$",
+        r"/shared/",
+        r"(^|/)abstract/",
+        r"(^|/)hooks/",
+        r"(^|/)modules/tools/",
+        r"(^|/)mcp/tools/",
+        r"^clink/agents/",
+    ]
+    if any(re.search(pattern, path) for pattern in architecture_patterns):
+        return "SECURITY"  # Architecture changes require same elevated review as security
+
+    # SQL files -> SECURITY (high-impact data changes)
+    if path.endswith(".sql"):
+        return "SECURITY"
+
+    # Code files (.py, .ts, .js, etc.) -> ROUTINE_CODE
+    code_extensions = {".py", ".ts", ".js", ".tsx", ".jsx", ".sh"}
+    if any(path.endswith(ext) for ext in code_extensions):
+        return "ROUTINE_CODE"
+
+    # YAML, TOML, config files -> ROUTINE_CODE
+    if any(path.endswith(ext) for ext in (".yml", ".yaml", ".toml", ".cfg", ".ini")):
+        return "ROUTINE_CODE"
+
+    # Default: treat as ROUTINE_CODE (fail-safe: gets reviewed)
+    return "ROUTINE_CODE"
+
+
+def classify_pr_facets(
+    files: list[dict[str, Any]],
+) -> tuple[set[str], set[str], str, str]:
+    """Classify PR files into content facets and compute required reviewers.
+
+    Each file is assigned a facet based on its path and content type.
+    Required reviewers = union of all facets' role requirements.
+    Tier label is backward-computed from the reviewer set.
+
+    Args:
+        files: List of changed file dicts with 'path' and 'total_changed' keys.
+
+    Returns:
+        Tuple of (facets, required_roles, tier_label, reason):
+        - facets: Set of content facets found (e.g., {'ROUTINE_CODE', 'GOVERNANCE'})
+        - required_roles: Set of reviewer roles needed (e.g., {'CE', 'CRS', 'TMG', 'SR'})
+        - tier_label: Backward-computed display tier (TIER_0_EXEMPT .. TIER_4_STRATEGIC)
+        - reason: Human-readable explanation
+    """
+    facets: set[str] = set()
+    non_exempt_files = []
+
+    for f in files:
+        facet = _classify_file_facet(f["path"])
+        if facet is not None:
+            facets.add(facet)
+            non_exempt_files.append(f)
+
+    # If all files are exempt, no review needed
+    if not facets:
+        return set(), set(), "TIER_0_EXEMPT", "No review required - only exempt files changed"
+
+    # Compute required roles from facets
+    required_roles: set[str] = set()
+    for facet in facets:
+        required_roles |= FACET_ROLE_MAP.get(facet, set())
+
+    # Line count escalation: >500 lines adds CIV for elevated review
+    total_lines = sum(f["total_changed"] for f in non_exempt_files)
+    if total_lines > 500 and "CIV" not in required_roles:
+        required_roles.add("CIV")
+
+    # Check for T1 self-review eligibility
     has_new_test_files = any(
         f.get("status") == "A" and f["path"].startswith("tests/") for f in files
     )
 
-    # Filter out exempt files for tier calculation
-    non_exempt_files = [f for f in files if not _is_exempt(f["path"])]
-
-    # If only exempt files changed, no review needed
-    if not non_exempt_files:
-        return "TIER_0_EXEMPT", "No review required - only exempt files changed"
-
-    # Calculate totals based on non-exempt files only
-    total_lines = sum(f["total_changed"] for f in non_exempt_files)
-    changed_paths = [f["path"] for f in non_exempt_files]
-
-    # --- Security path patterns (T3 triggers) ---
-    security_patterns = [
-        r"(^|/)auth/",  # Authentication code
-        r"(^|/)session/",  # Session management
-        r"(^|/)config/env",  # Environment variable handling
-        r"(^|/)path_utils",  # Path handling utilities
-    ]
-
-    # --- Architecture/base class patterns (T3 triggers) ---
-    architecture_patterns = [
-        r"(^|/)base\.py$",  # Base class files
-        r"/shared/",  # Shared modules
-        r"(^|/)abstract/",  # Abstract classes
-        r"(^|/)hooks/",  # Hook files (new_hooks trigger)
-    ]
-
-    # --- New tool/endpoint patterns (T3 triggers) ---
-    new_tool_patterns = [
-        r"(^|/)modules/tools/",  # Tool files
-        r"(^|/)mcp/tools/",  # MCP endpoint files
-        r"^clink/agents/",  # Agent config files
-    ]
-
-    def _has_security_path() -> bool:
-        """Check if any changed path touches security-sensitive code."""
-        return any(
-            re.search(pattern, path) for path in changed_paths for pattern in security_patterns
+    if (
+        total_lines < 10
+        and len(non_exempt_files) == 1
+        and not has_new_test_files
+        and "SECURITY" not in facets
+        and "META_CONTROL_PLANE" not in facets
+        and "EXECUTABLE_SPEC" not in facets
+    ):
+        return (
+            facets,
+            set(),  # No external reviewers needed for T1
+            "TIER_1_SELF",
+            f"Self-review sufficient - {total_lines} lines in single file",
         )
 
-    def _has_architecture_path() -> bool:
-        """Check if any changed path touches base classes or shared modules."""
-        return any(
-            re.search(pattern, path) for path in changed_paths for pattern in architecture_patterns
-        )
+    # Compute tier label from role set
+    if "PE" in required_roles:
+        tier_label = "TIER_4_STRATEGIC"
+    elif "CIV" in required_roles:
+        tier_label = "TIER_3_CRITICAL"
+    else:
+        tier_label = "TIER_2_STANDARD"
 
-    def _has_new_tool_path() -> bool:
-        """Check if any changed path is a new tool or MCP endpoint."""
-        return any(
-            re.search(pattern, path) for path in changed_paths for pattern in new_tool_patterns
-        )
+    facet_names = ", ".join(sorted(facets))
+    role_names = ", ".join(sorted(required_roles))
+    reason = f"Facets: [{facet_names}] -> Reviewers: [{role_names}]"
+    return facets, required_roles, tier_label, reason
 
-    # Check for Tier 3 triggers (highest priority - checked before line count tiers)
-    tier3_triggers = [
-        any(path.endswith(".sql") for path in changed_paths),
-        total_lines > 500,
-        _has_security_path(),
-        _has_architecture_path(),
-        _has_new_tool_path(),
-    ]
 
-    if any(tier3_triggers):
-        return "TIER_3_CRITICAL", (
-            f"Critical review required - {total_lines} lines, critical paths"
-        )
+def determine_review_tier(files: list[dict[str, Any]]) -> tuple[str, str]:
+    """Determine required review tier based on changed files.
 
-    # Check for Tier 2 (10-500 lines)
-    if 10 <= total_lines <= 500:
-        return "TIER_2_STANDARD", (f"TMG + CRS + CE review required - {total_lines} lines changed")
-
-    # Check for Tier 1 (<10 lines, single non-exempt file, no security, no new tests)
-    if total_lines < 10 and len(non_exempt_files) == 1 and not has_new_test_files:
-        return "TIER_1_SELF", (f"Self-review sufficient - {total_lines} lines in single file")
-
-    # Default to Tier 2 if unsure (multiple files, etc.)
-    return "TIER_2_STANDARD", "TMG + CRS + CE review required - default tier"
+    Backward-compatible wrapper around classify_pr_facets(). Returns
+    (tier_label, reason) for callers that only need the tier string.
+    """
+    _, _, tier_label, reason = classify_pr_facets(files)
+    return tier_label, reason
 
 
 # Import shared review format utilities (single source of truth).
@@ -257,6 +354,9 @@ try:
     )
     from hestai_mcp.modules.tools.shared.review_formats import (
         has_self_review as _has_self_review,
+    )
+    from hestai_mcp.modules.tools.shared.review_formats import (
+        has_sr_approval as _has_sr_approval,
     )
     from hestai_mcp.modules.tools.shared.review_formats import (
         has_tmg_approval as _has_tmg_approval,
@@ -293,6 +393,7 @@ except (ImportError, ModuleNotFoundError):
     _has_civ_approval = _review_formats.has_civ_approval
     _has_pe_approval = _review_formats.has_pe_approval
     _has_self_review = _review_formats.has_self_review
+    _has_sr_approval = _review_formats.has_sr_approval
     _parse_review_metadata = _review_formats.parse_review_metadata
     _VALID_ROLES = _review_formats.VALID_ROLES
 
@@ -302,13 +403,26 @@ def _has_approval(texts: list[str], prefix: str, keyword: str) -> bool:
     return any(_matches_approval_pattern(t, prefix, keyword) for t in texts)
 
 
-def check_pr_comments(tier: str) -> tuple[bool, str]:
+def check_pr_comments(
+    _tier_or_roles: set[str] | str | None = None,
+    *,
+    required_roles: set[str] | None = None,
+    tier: str = "",
+) -> tuple[bool, str]:
     """Check if required review comments and PR body contain approval patterns.
 
-    Scans both PR comments and the PR description body for approval patterns.
-    Supports flexible matching including parenthetical model annotations
-    (e.g., 'CRS (Gemini): APPROVED') in addition to the original exact format.
+    Supports two calling conventions for backward compatibility:
+    - New: check_pr_comments(required_roles={'CE', 'CRS'}, tier='TIER_2_STANDARD')
+    - Old: check_pr_comments('TIER_2_STANDARD')  (string -> uses tier->roles mapping)
+
+    For TIER_1_SELF with empty required_roles, falls back to self-review logic.
+    For all other tiers, validates that ALL required_roles have posted approvals.
     """
+    # Handle backward compat: positional string arg is the tier (old API)
+    if isinstance(_tier_or_roles, str):
+        tier = _tier_or_roles
+    elif isinstance(_tier_or_roles, set):
+        required_roles = _tier_or_roles
 
     # In pre-commit context, we can't check PR comments
     # This would be called from CI with PR number
@@ -414,14 +528,19 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
                     return True
             return False
 
-        # Check for required approvals based on tier.
-        # 5-tier system (v2.0):
-        #   TIER_1_SELF: {any role} SELF-REVIEWED OR HO REVIEWED OR CRS
-        #   TIER_2_STANDARD: TMG + CRS + CE
-        #   TIER_3_CRITICAL: TMG + CRS + CE + CIV
-        #   TIER_4_STRATEGIC: TMG + CRS + CE + CIV + PE
-        if tier == "TIER_1_SELF":
-            # Try metadata first: any role with SELF-REVIEWED verdict
+        # --- Role-based approval checking ---
+        # Role → approval checker dispatch
+        _role_checkers: dict[str, Any] = {
+            "TMG": lambda: _meta_has("TMG", "APPROVED") or _has_tmg_approval(searchable_texts),
+            "CRS": lambda: _meta_has("CRS", "APPROVED") or _has_crs_approval(searchable_texts),
+            "CE": lambda: _meta_has("CE", "APPROVED") or _has_ce_approval(searchable_texts),
+            "CIV": lambda: _meta_has("CIV", "APPROVED") or _has_civ_approval(searchable_texts),
+            "PE": lambda: _meta_has("PE", "APPROVED") or _has_pe_approval(searchable_texts),
+            "SR": lambda: _meta_has("SR", "APPROVED") or _has_sr_approval(searchable_texts),
+        }
+
+        # TIER_1_SELF: self-review logic (no external reviewers required)
+        if tier == "TIER_1_SELF" and (required_roles is None or len(required_roles) == 0):
             for entry in metadata_entries:
                 if entry.get("verdict") == "SELF-REVIEWED":
                     return True, "✓ Self-review found (metadata)"
@@ -429,113 +548,40 @@ def check_pr_comments(tier: str) -> tuple[bool, str]:
                 return True, "✓ HO supervisory review found (metadata)"
             if _meta_has("CRS", "APPROVED"):
                 return True, "✓ CRS approval satisfies self-review (metadata)"
-            # Regex fallback: role-agnostic SELF-REVIEWED
             if _has_self_review(searchable_texts):
                 return True, "✓ Self-review found"
             if _has_approval(searchable_texts, "HO", "REVIEWED"):
                 return True, "✓ HO supervisory review found"
             if _has_crs_approval(searchable_texts):
                 return True, "✓ CRS approval satisfies self-review requirement"
-            return (
-                False,
-                "❌ Missing: SELF-REVIEWED or HO REVIEWED comment",
-            )
+            return False, "❌ Missing: SELF-REVIEWED or HO REVIEWED comment"
 
-        elif tier == "TIER_2_STANDARD":
-            # T2 requires TMG + CRS + CE
-            meta_tmg = _meta_has("TMG", "APPROVED")
-            meta_crs = _meta_has("CRS", "APPROVED")
-            meta_ce = _meta_has("CE", "APPROVED")
+        # Determine effective roles to check
+        effective_roles = required_roles if required_roles is not None else set()
 
-            has_tmg = _has_tmg_approval(searchable_texts)
-            has_crs = _has_crs_approval(searchable_texts)
-            has_ce = _has_ce_approval(searchable_texts)
+        # Backward compat: if called with tier only (old API), derive roles from tier
+        if not effective_roles and tier:
+            _tier_role_map: dict[str, set[str]] = {
+                "TIER_2_STANDARD": {"TMG", "CRS", "CE"},
+                "TIER_3_CRITICAL": {"TMG", "CRS", "CE", "CIV"},
+                "TIER_4_STRATEGIC": {"TMG", "CRS", "CE", "CIV", "PE"},
+            }
+            effective_roles = _tier_role_map.get(tier, set())
+            if not effective_roles:
+                return False, f"❌ Unrecognized tier: {tier}"
 
-            got_tmg = meta_tmg or has_tmg
-            got_crs = meta_crs or has_crs
-            got_ce = meta_ce or has_ce
+        # Check each required role
+        missing = []
+        for role in sorted(effective_roles):
+            checker = _role_checkers.get(role)
+            if checker and not checker():
+                missing.append(f"{role} APPROVED or {role} GO")
 
-            if got_tmg and got_crs and got_ce:
-                return True, "✓ TMG, CRS, and CE approvals found"
+        if not missing:
+            role_names = ", ".join(sorted(effective_roles))
+            return True, f"✓ All required approvals found ({role_names})"
 
-            missing = []
-            if not got_tmg:
-                missing.append("TMG APPROVED or TMG GO")
-            if not got_crs:
-                missing.append("CRS APPROVED or CRS GO")
-            if not got_ce:
-                missing.append("CE APPROVED or CE GO")
-            return False, f"❌ Missing: {', '.join(missing)}"
-
-        elif tier == "TIER_3_CRITICAL":
-            # T3 requires TMG + CRS + CE + CIV
-            meta_tmg = _meta_has("TMG", "APPROVED")
-            meta_crs = _meta_has("CRS", "APPROVED")
-            meta_ce = _meta_has("CE", "APPROVED")
-            meta_civ = _meta_has("CIV", "APPROVED")
-
-            has_tmg = _has_tmg_approval(searchable_texts)
-            has_crs = _has_crs_approval(searchable_texts)
-            has_ce = _has_ce_approval(searchable_texts)
-            has_civ = _has_civ_approval(searchable_texts)
-
-            got_tmg = meta_tmg or has_tmg
-            got_crs = meta_crs or has_crs
-            got_ce = meta_ce or has_ce
-            got_civ = meta_civ or has_civ
-
-            if got_tmg and got_crs and got_ce and got_civ:
-                return True, "✓ TMG, CRS, CE, and CIV approvals found"
-
-            missing = []
-            if not got_tmg:
-                missing.append("TMG APPROVED or TMG GO")
-            if not got_crs:
-                missing.append("CRS APPROVED or CRS GO")
-            if not got_ce:
-                missing.append("CE APPROVED or CE GO")
-            if not got_civ:
-                missing.append("CIV APPROVED or CIV GO")
-            return False, f"❌ Missing: {', '.join(missing)}"
-
-        elif tier == "TIER_4_STRATEGIC":
-            # T4 requires TMG + CRS + CE + CIV + PE
-            meta_tmg = _meta_has("TMG", "APPROVED")
-            meta_crs = _meta_has("CRS", "APPROVED")
-            meta_ce = _meta_has("CE", "APPROVED")
-            meta_civ = _meta_has("CIV", "APPROVED")
-            meta_pe = _meta_has("PE", "APPROVED")
-
-            has_tmg = _has_tmg_approval(searchable_texts)
-            has_crs = _has_crs_approval(searchable_texts)
-            has_ce = _has_ce_approval(searchable_texts)
-            has_civ = _has_civ_approval(searchable_texts)
-            has_pe = _has_pe_approval(searchable_texts)
-
-            got_tmg = meta_tmg or has_tmg
-            got_crs = meta_crs or has_crs
-            got_ce = meta_ce or has_ce
-            got_civ = meta_civ or has_civ
-            got_pe = meta_pe or has_pe
-
-            if got_tmg and got_crs and got_ce and got_civ and got_pe:
-                return True, "✓ TMG, CRS, CE, CIV, and PE approvals found"
-
-            missing = []
-            if not got_tmg:
-                missing.append("TMG APPROVED or TMG GO")
-            if not got_crs:
-                missing.append("CRS APPROVED or CRS GO")
-            if not got_ce:
-                missing.append("CE APPROVED or CE GO")
-            if not got_civ:
-                missing.append("CIV APPROVED or CIV GO")
-            if not got_pe:
-                missing.append("PE APPROVED or PE GO")
-            return False, f"❌ Missing: {', '.join(missing)}"
-
-        # SECURITY: Fail closed for unrecognized tiers (no silent approval)
-        return False, f"❌ Unrecognized tier: {tier}"
+        return False, f"❌ Missing: {', '.join(missing)}"
 
     except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
         # SECURITY FIX: Fail closed in CI, permissive locally
@@ -623,8 +669,8 @@ def main() -> int:
     if len(files) > 5:
         print(f"   ... and {len(files) - 5} more")
 
-    # Determine review tier
-    tier, reason = determine_review_tier(files)
+    # Classify PR content into facets and compute required reviewers
+    facets, required_roles, tier, reason = classify_pr_facets(files)
     print(f"\n📋 Review Tier: {tier}")
     print(f"   Reason: {reason}")
 
@@ -634,7 +680,7 @@ def main() -> int:
         return 0
 
     # Check for required approvals
-    approved, message = check_pr_comments(tier)
+    approved, message = check_pr_comments(required_roles=required_roles, tier=tier)
     print(f"   {message}")
 
     if not approved:
@@ -644,24 +690,10 @@ def main() -> int:
             print("   -- or --")
             print("   Add comment: 'HO REVIEWED: [rationale after delegated work]'")
             print("   Example: 'IL SELF-REVIEWED: Fixed typo in error message'")
-        elif tier == "TIER_2_STANDARD":
+        else:
             print("   Need comments:")
-            print("   - 'TMG APPROVED: [test assessment]' (or TMG GO:)")
-            print("   - 'CRS APPROVED: [assessment]' (or CRS GO:)")
-            print("   - 'CE APPROVED: [critical assessment]' (or CE GO:)")
-        elif tier == "TIER_3_CRITICAL":
-            print("   Need comments:")
-            print("   - 'TMG APPROVED: [test assessment]' (or TMG GO:)")
-            print("   - 'CRS APPROVED: [assessment]' (or CRS GO:)")
-            print("   - 'CE APPROVED: [critical assessment]' (or CE GO:)")
-            print("   - 'CIV APPROVED: [implementation assessment]' (or CIV GO:)")
-        elif tier == "TIER_4_STRATEGIC":
-            print("   Need comments:")
-            print("   - 'TMG APPROVED: [test assessment]' (or TMG GO:)")
-            print("   - 'CRS APPROVED: [assessment]' (or CRS GO:)")
-            print("   - 'CE APPROVED: [critical assessment]' (or CE GO:)")
-            print("   - 'CIV APPROVED: [implementation assessment]' (or CIV GO:)")
-            print("   - 'PE APPROVED: [strategic assessment]' (or PE GO:)")
+            for role in sorted(required_roles):
+                print(f"   - '{role} APPROVED: [assessment]' (or {role} GO:)")
 
         # Only block in CI context
         if "CI" in os.environ:

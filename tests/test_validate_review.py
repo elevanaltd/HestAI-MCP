@@ -85,7 +85,9 @@ class TestFailClosedBehavior:
 
         # Mock check_pr_comments to return False (missing review)
         monkeypatch.setattr(
-            validate_review, "check_pr_comments", lambda tier: (False, "Missing review")
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (False, "Missing review"),
         )
 
         # Mock check_emergency_bypass to return False
