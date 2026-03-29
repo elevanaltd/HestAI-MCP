@@ -3,15 +3,16 @@ name: octave-compression
 description: Specialized workflow for transforming verbose natural language into semantic OCTAVE structures. REQUIRES octave-literacy to be loaded first
 allowed-tools: ["Read", "Write", "Edit"]
 triggers: ["compress to octave", "semantic compression", "documentation refactoring", "octave compression", "compress documentation", "knowledge artifact", "semantic density", "OCTAVE format conversion"]
-version: "2.5.1"
+version: "2.6.0"
 ---
 
 ===OCTAVE_COMPRESSION===
 META:
   TYPE::SKILL
-  VERSION::"2.5.1"
+  VERSION::"2.6.0"
   STATUS::ACTIVE
   PURPOSE::"Workflow for transforming prose into semantic density"
+  OCTAVE::"Olympian Common Text And Vocabulary Engine — Semantic DSL for LLMs"
   REQUIRES::octave-literacy
   TIER::LOSSLESS
   SPEC_REFERENCE::octave-data-spec.oct.md
