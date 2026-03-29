@@ -20,7 +20,7 @@ TIER_3_CRITICAL = "TIER_3_CRITICAL"
 TIER_4_STRATEGIC = "TIER_4_STRATEGIC"
 
 # --- Valid roles and verdicts ---
-VALID_ROLES: frozenset[str] = frozenset({"CRS", "CE", "IL", "HO", "TMG", "CIV", "PE"})
+VALID_ROLES: frozenset[str] = frozenset({"CRS", "CE", "SR", "IL", "HO", "TMG", "CIV", "PE"})
 VALID_VERDICTS: frozenset[str] = frozenset({"APPROVED", "BLOCKED", "CONDITIONAL"})
 
 # --- IL uses SELF-REVIEWED keyword instead of APPROVED ---
@@ -263,6 +263,35 @@ def has_pe_approval(texts: list[str]) -> bool:
         True if PE approval found.
     """
     return _has_approval(texts, "PE", "APPROVED") or _has_approval(texts, "PE", "GO")
+
+
+def has_sr_approval(texts: list[str]) -> bool:
+    """Check if any text contains an SR approval (APPROVED or GO).
+
+    SR (Standards Reviewer) validates system standards documentation for
+    alignment, contradiction detection, completeness, and structural integrity.
+
+    Args:
+        texts: List of comment/body texts to search.
+
+    Returns:
+        True if SR approval found.
+    """
+    return _has_approval(texts, "SR", "APPROVED") or _has_approval(texts, "SR", "GO")
+
+
+def has_gr_approval(texts: list[str]) -> bool:
+    """Check if any text contains a GR or SR approval (APPROVED or GO).
+
+    Deprecated: Use has_sr_approval(). GR was renamed to SR (Standards Reviewer).
+    Kept for backward compatibility -- matches both GR and SR prefixes so
+    legacy "GR APPROVED" comments still clear the gate.
+    """
+    return (
+        has_sr_approval(texts)
+        or _has_approval(texts, "GR", "APPROVED")
+        or _has_approval(texts, "GR", "GO")
+    )
 
 
 def format_review_comment(

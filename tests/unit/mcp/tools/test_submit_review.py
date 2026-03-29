@@ -1183,9 +1183,9 @@ class TestNewRoleTierRequirements:
         assert "TIER_4" in req or "T4" in req.upper()
 
     def test_no_unknown_tier_requirement(self) -> None:
-        """All 7 roles must have known tier requirements (not 'Unknown')."""
+        """All 8 roles must have known tier requirements (not 'Unknown')."""
         from hestai_mcp.modules.tools.submit_review import _get_tier_requirements
 
-        for role in ("TMG", "CRS", "CE", "CIV", "PE", "IL", "HO"):
+        for role in ("TMG", "CRS", "CE", "CIV", "PE", "SR", "IL", "HO"):
             req = _get_tier_requirements(role)
             assert "Unknown" not in req, f"Role {role} has unknown tier requirement"
