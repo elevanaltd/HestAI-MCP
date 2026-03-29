@@ -119,7 +119,7 @@ def _is_generated_json(path: str) -> bool:
 
 # --- Facet → Required Reviewers mapping ---
 FACET_ROLE_MAP: dict[str, set[str]] = {
-    "META_CONTROL_PLANE": {"PE", "CIV", "CE", "SR", "TMG"},
+    "META_CONTROL_PLANE": {"CIV", "CE", "CRS", "SR", "TMG"},  # PE excluded: T4 is manual-only
     "EXECUTABLE_SPEC": {"CE", "SR"},
     "GOVERNANCE": {"SR"},
     "SECURITY": {"CIV", "CE", "CRS", "TMG"},
@@ -347,6 +347,9 @@ try:
         has_crs_model_approval as _has_crs_model_approval,
     )
     from hestai_mcp.modules.tools.shared.review_formats import (
+        has_gr_approval as _has_gr_approval,
+    )
+    from hestai_mcp.modules.tools.shared.review_formats import (
         has_ho_review as _has_ho_review,
     )
     from hestai_mcp.modules.tools.shared.review_formats import (
@@ -394,6 +397,7 @@ except (ImportError, ModuleNotFoundError):
     _has_pe_approval = _review_formats.has_pe_approval
     _has_self_review = _review_formats.has_self_review
     _has_sr_approval = _review_formats.has_sr_approval
+    _has_gr_approval = _review_formats.has_gr_approval
     _parse_review_metadata = _review_formats.parse_review_metadata
     _VALID_ROLES = _review_formats.VALID_ROLES
 
@@ -536,7 +540,12 @@ def check_pr_comments(
             "CE": lambda: _meta_has("CE", "APPROVED") or _has_ce_approval(searchable_texts),
             "CIV": lambda: _meta_has("CIV", "APPROVED") or _has_civ_approval(searchable_texts),
             "PE": lambda: _meta_has("PE", "APPROVED") or _has_pe_approval(searchable_texts),
-            "SR": lambda: _meta_has("SR", "APPROVED") or _has_sr_approval(searchable_texts),
+            "SR": lambda: (
+                _meta_has("SR", "APPROVED")
+                or _has_sr_approval(searchable_texts)
+                or _meta_has("GR", "APPROVED")
+                or _has_gr_approval(searchable_texts)
+            ),
         }
 
         # TIER_1_SELF: self-review logic (no external reviewers required)
@@ -570,11 +579,11 @@ def check_pr_comments(
             if not effective_roles:
                 return False, f"❌ Unrecognized tier: {tier}"
 
-        # Check each required role
+        # Check each required role (SECURITY: fail-closed for unknown roles)
         missing = []
         for role in sorted(effective_roles):
             checker = _role_checkers.get(role)
-            if checker and not checker():
+            if checker is None or not checker():
                 missing.append(f"{role} APPROVED or {role} GO")
 
         if not missing:

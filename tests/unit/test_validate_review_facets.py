@@ -100,7 +100,11 @@ class TestFacetClassification:
         ]
         facets, roles, tier, _ = validate_review.classify_pr_facets(files)
         assert "META_CONTROL_PLANE" in facets, f"validate_review.py should be META, got {facets}"
-        assert "PE" in roles, f"Meta control plane should require PE, got {roles}"
+        assert "CRS" in roles, f"Meta control plane should require CRS, got {roles}"
+        assert "CIV" in roles, f"Meta control plane should require CIV, got {roles}"
+        assert (
+            "PE" not in roles
+        ), f"Meta control plane should NOT require PE (T4 manual), got {roles}"
 
     def test_mixed_code_and_governance(self) -> None:
         """Mixed .py + .oct.md -> union of ROUTINE_CODE + GOVERNANCE roles."""
@@ -162,8 +166,8 @@ class TestTierLabelComputation:
         _, roles, tier, _ = validate_review.classify_pr_facets(files)
         assert tier == "TIER_3_CRITICAL", f"Security path should be T3, got {tier}"
 
-    def test_meta_control_plane_is_tier_4(self) -> None:
-        """META_CONTROL_PLANE (has PE) -> TIER_4_STRATEGIC."""
+    def test_meta_control_plane_is_tier_3(self) -> None:
+        """META_CONTROL_PLANE (has CIV, no PE) -> TIER_3_CRITICAL."""
         files = [
             {
                 "path": "scripts/validate_review.py",
@@ -173,7 +177,9 @@ class TestTierLabelComputation:
             },
         ]
         _, roles, tier, _ = validate_review.classify_pr_facets(files)
-        assert tier == "TIER_4_STRATEGIC", f"Meta control plane should be T4, got {tier}"
+        assert (
+            tier == "TIER_3_CRITICAL"
+        ), f"Meta control plane should be T3 (PE excluded), got {tier}"
 
     def test_governance_only_is_tier_2(self) -> None:
         """Pure governance .oct.md (SR only, no CIV/PE) -> TIER_2_STANDARD."""
@@ -406,3 +412,73 @@ class TestDetermineReviewTierBackwardCompat:
         files = [{"path": "README.md", "added": 5, "deleted": 2, "total_changed": 7}]
         tier, _ = validate_review.determine_review_tier(files)
         assert tier == "TIER_0_EXEMPT"
+
+
+# ---------------------------------------------------------------------------
+# 6. Security: fail-closed for unknown roles
+# ---------------------------------------------------------------------------
+@pytest.mark.unit
+@pytest.mark.security
+class TestFailClosedUnknownRoles:
+    """Unknown roles in required_roles must cause the gate to FAIL, not silently pass."""
+
+    def test_unknown_role_causes_failure(self, ci_environment, monkeypatch) -> None:
+        """A required role not in _role_checkers must fail the gate."""
+        import subprocess
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [
+                            {"body": "CE APPROVED: architecture sound"},
+                        ],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments(
+            required_roles={"CE", "UNKNOWN_ROLE"}, tier="TIER_2_STANDARD"
+        )
+        assert (
+            approved is False
+        ), f"Unknown role should cause gate to FAIL (fail-closed), got: {message}"
+        assert "UNKNOWN_ROLE" in message
+
+
+# ---------------------------------------------------------------------------
+# 7. SR checker backward compat with GR
+# ---------------------------------------------------------------------------
+@pytest.mark.unit
+class TestSRCheckerGRBackwardCompat:
+    """SR checker in check_pr_comments must accept legacy GR APPROVED comments."""
+
+    def test_sr_satisfied_by_legacy_gr_comment(self, ci_environment, monkeypatch) -> None:
+        """required_roles={SR} passes with legacy 'GR APPROVED' comment."""
+        import subprocess
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [
+                            {"body": "GR APPROVED: legacy governance review"},
+                        ],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        approved, message = validate_review.check_pr_comments(
+            required_roles={"SR"}, tier="TIER_2_STANDARD"
+        )
+        assert approved is True, f"SR should accept legacy GR APPROVED comments, got: {message}"
