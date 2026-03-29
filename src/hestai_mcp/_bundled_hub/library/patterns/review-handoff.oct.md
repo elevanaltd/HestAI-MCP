@@ -33,7 +33,7 @@ CE_EXPECTS::[
   REQUIRED::[
     metadata_comment_present::"<!-- review: {...} --> must exist in PR comment",
     verdict_field::"APPROVED or BLOCKED must be extractable",
-    tier_field::"must be T3 for CE engagement",
+    tier_field::"must be T2+ for CE engagement",
     findings_count::"integer count of total findings",
     blocking_count::"integer count of blocking findings"
   ],
@@ -43,7 +43,7 @@ CE_EXPECTS::[
   ],
   VALIDATION::[
     "IF[metadata_comment_missing]→CE_BLOCKS_with_INSUFFICIENT_DATA",
-    "IF[tier_not_T3]→CE_skips_review",
+    "IF[tier_below_T2]→CE_skips_review",
     "IF[verdict_is_BLOCKED]→CE_validates_blocking_issues_first",
     "IF[verdict_is_APPROVED]→CE_performs_independent_deep_review"
   ]
@@ -51,26 +51,26 @@ CE_EXPECTS::[
 HANDOFF_SEQUENCE::[
   STEP_1::"CRS completes review and posts PR comment with metadata",
   STEP_2::"review-gate.yml CI extracts metadata via scripts/validate_review.py",
-  STEP_3::"CE is invoked for T3 PRs regardless of CRS verdict",
+  STEP_3::"CE is invoked for T2+ PRs regardless of CRS verdict",
   STEP_4::"CE reads CRS comment, extracts metadata, validates required fields",
   STEP_5::"CE performs independent review with CRS findings as context",
   STEP_6::"CE posts own verdict: 'CE APPROVED: [assessment]' or 'BLOCKED: [risks]'",
-  STEP_7::"Both CRS and CE verdicts required for T3 merge approval"
+  STEP_7::"Both CRS and CE verdicts required for T2+ merge approval"
 ]
 METADATA_TEMPLATE::[
-  CRS_FORMAT::"<!-- review: {\"role\":\"CRS\",\"provider\":\"$MODEL\",\"verdict\":\"APPROVED\",\"sha\":\"$SHA\",\"tier\":\"T3\",\"findings\":12,\"blocking\":2} -->",
+  CRS_FORMAT::"<!-- review: {\"role\":\"CRS\",\"provider\":\"$MODEL\",\"verdict\":\"APPROVED\",\"sha\":\"$SHA\",\"tier\":\"T2\",\"findings\":12,\"blocking\":2,\"priority_distribution\":\"P0:1 P1:3 P2:5 P3:2 P4:1 P5:0\",\"triaged\":true,\"findings_omitted\":3} -->",
   CE_FORMAT::"<!-- review: {\"role\":\"CE\",\"provider\":\"$MODEL\",\"verdict\":\"APPROVED\",\"sha\":\"$SHA\",\"risks\":N,\"blocking\":N} -->"
 ]
 §3::USED_BY
 AGENTS::[code-review-specialist,critical-engineer]
-CONTEXT::review_gate_chain⊕T3_PR_validation⊕CRS_CE_handoff
+CONTEXT::review_gate_chain⊕T2_plus_PR_validation⊕CRS_CE_handoff
 SCRIPTS::"scripts/validate_review.py"
 §5::ANCHOR_KERNEL
 TARGET::structured_CRS_to_CE_handoff_contract
 NEVER::[
   omit_metadata_comment_from_CRS_output,
   engage_CE_without_CRS_metadata,
-  merge_T3_without_both_verdicts,
+  merge_T2_plus_without_both_verdicts,
   parse_CRS_output_by_convention_without_metadata,
   skip_metadata_validation_in_CE
 ]

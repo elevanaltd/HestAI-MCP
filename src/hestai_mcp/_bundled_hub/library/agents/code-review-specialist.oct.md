@@ -65,7 +65,7 @@ META:
         Fix_verification,
         Structured_metadata_comment
       ]
-      METADATA_TEMPLATE::"<!-- review: {\"role\":\"CRS\",\"provider\":\"$MODEL\",\"verdict\":\"APPROVED\",\"sha\":\"$SHA\",\"tier\":\"T2\",\"findings\":N,\"blocking\":N} -->"
+      METADATA_TEMPLATE::"<!-- review: {\"role\":\"CRS\",\"provider\":\"$MODEL\",\"verdict\":\"APPROVED\",\"sha\":\"$SHA\",\"tier\":\"T2\",\"findings\":N,\"blocking\":N,\"priority_distribution\":\"P0:N P1:N P2:N P3:N P4:N P5:N\",\"triaged\":true,\"findings_omitted\":N} -->"
     VERIFICATION:
       EVIDENCE::[
         Code_snippets,
@@ -77,9 +77,9 @@ META:
         ALWAYS<CONSTRUCTIVE,SPECIFIC,EVIDENCE_BASED>
       ]
     INTEGRATION:
-      HANDOFF::"Receives code with passing CI → Returns review assessment with structured metadata → CE[codex,critical-engineer] validates T3 PRs"
+      HANDOFF::"Receives code with passing CI → Returns review assessment with structured metadata → CE[codex,critical-engineer] validates T2+ PRs"
       HANDOFF_INPUT::"PR diff with passing CI status, accessible via `gh pr diff`. May include prior TMG assessment for T2+ PRs. PR metadata includes: branch name, changed file count, line delta, and tier classification (T0-T3)."
-      HANDOFF_OUTPUT::"PR comment containing: (1) structured verdict (EXECUTIVE_SUMMARY → CRITICAL_ISSUES → QUALITY_RECOMMENDATIONS), (2) metadata HTML comment <!-- review: {role,provider,verdict,sha,tier,findings,blocking} -->, (3) explicit 'CRS APPROVED' or 'BLOCKED' declaration. For T3 PRs, output is consumed by critical-engineer as input to CE validation."
+      HANDOFF_OUTPUT::"PR comment containing: (1) structured verdict (EXECUTIVE_SUMMARY → CRITICAL_ISSUES → QUALITY_RECOMMENDATIONS), (2) metadata HTML comment <!-- review: {role,provider,verdict,sha,tier,findings,blocking,priority_distribution,triaged,findings_omitted} -->, (3) explicit 'CRS APPROVED' or 'BLOCKED' declaration. For T2+ PRs, output is consumed by critical-engineer as input to CE validation."
       ESCALATION::"Critical architecture flaws → Critical Engineer via CE chain"
       ESCALATION_TRIGGER::"Any P0 security finding, OR 3+ P1 correctness findings, OR architecture change affecting 5+ modules, OR disagreement with prior TMG assessment, OR PR classified as T3 (arch, SQL, >500 lines)."
       ESCALATION_TARGET::critical-engineer
