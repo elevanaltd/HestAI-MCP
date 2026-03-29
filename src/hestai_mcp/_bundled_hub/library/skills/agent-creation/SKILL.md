@@ -38,7 +38,7 @@ INTEGRATION_REQUIREMENTS::[
   HANDOFF_OUTPUT::"Explicit artifact, state, or success criterion this agent produces (format and consumer specified)",
   ESCALATION::"Directional summary of escalation flow",
   ESCALATION_TRIGGER::"Concrete, measurable condition that triggers escalation (threshold, count, or boolean — not subjective adjectives)",
-  ESCALATION_TARGET::"Role name that receives the escalation"
+  ESCALATION_TARGET::"Role name or list of role names that receive the escalation (e.g., critical-engineer or [implementation-lead,HUMAN])"
 ]
 
 CHASSIS_VS_PROFILE::[
