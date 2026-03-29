@@ -281,12 +281,17 @@ def has_sr_approval(texts: list[str]) -> bool:
 
 
 def has_gr_approval(texts: list[str]) -> bool:
-    """Check if any text contains a GR approval (APPROVED or GO).
+    """Check if any text contains a GR or SR approval (APPROVED or GO).
 
     Deprecated: Use has_sr_approval(). GR was renamed to SR (Standards Reviewer).
-    Kept for backward compatibility.
+    Kept for backward compatibility -- matches both GR and SR prefixes so
+    legacy "GR APPROVED" comments still clear the gate.
     """
-    return has_sr_approval(texts)
+    return (
+        has_sr_approval(texts)
+        or _has_approval(texts, "GR", "APPROVED")
+        or _has_approval(texts, "GR", "GO")
+    )
 
 
 def format_review_comment(

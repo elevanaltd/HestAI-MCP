@@ -69,7 +69,7 @@ META:
         Impact_scope_mapping,
         Structured_metadata_comment
       ]
-      METADATA_TEMPLATE::"<!-- review: {\"role\":\"SR\",\"provider\":\"$MODEL\",\"verdict\":\"APPROVED\",\"sha\":\"$SHA\",\"tier\":\"T-STD\",\"findings\":N,\"blocking\":N,\"priority_distribution\":\"G0:N G1:N G2:N G3:N\",\"triaged\":true,\"findings_omitted\":N} -->"
+      METADATA_TEMPLATE::"<!-- review: {\"role\":\"SR\",\"provider\":\"$MODEL\",\"verdict\":\"$VERDICT\",\"sha\":\"$SHA\",\"tier\":\"T-STD\",\"findings\":N,\"blocking\":N,\"priority_distribution\":\"G0:N G1:N G2:N G3:N\",\"triaged\":true,\"findings_omitted\":N} -->"
     VERIFICATION:
       EVIDENCE::[
         North_Star_clause_references,

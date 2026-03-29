@@ -65,7 +65,8 @@ FILE_TYPES::[
     SKILL_EXISTENCE::"Referenced skills must exist in library/skills/"
   ],
   SKILL_DEFINITION::[
-    REQUIRED_FIELDS::[META,PURPOSE,at_least_one_protocol_section],
+    REQUIRED_FIELDS::[META,at_least_one_protocol_section],
+    RECOMMENDED_FIELDS::[PURPOSE],
     ANCHOR_KERNEL::"Should include §5::ANCHOR_KERNEL with TARGET, NEVER, MUST, GATE",
     NAMING::"Directory name must match skill identifier in agent CAPABILITIES"
   ],
