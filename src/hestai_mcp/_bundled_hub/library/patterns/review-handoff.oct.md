@@ -14,7 +14,7 @@ CRS_PRODUCES::[
   PR_COMMENT::[
     STRUCTURE::"EXECUTIVE_SUMMARY → CRITICAL_ISSUES → QUALITY_RECOMMENDATIONS → CODE_EXAMPLES",
     METADATA_COMMENT::"<!-- review: {role,provider,verdict,sha,tier,findings,blocking,priority_distribution,triaged,findings_omitted} -->",
-    VERDICT_DECLARATION::"'CRS APPROVED: [assessment]' or 'BLOCKED: [issues]'",
+    VERDICT_DECLARATION::"'CRS APPROVED: [assessment]' or 'CRS BLOCKED: [issues]'",
     LINE_REFERENCES::"Every finding cites file path, line number, and confidence level",
     CONFIDENCE_LABELS::"CONFIDENCE::(CERTAIN|HIGH|MODERATE) on each finding"
   ],
@@ -54,8 +54,8 @@ HANDOFF_SEQUENCE::[
   STEP_3::"CE is invoked for T2+ PRs regardless of CRS verdict",
   STEP_4::"CE reads CRS comment, extracts metadata, validates required fields",
   STEP_5::"CE performs independent review with CRS findings as context",
-  STEP_6::"CE posts own verdict: 'CE APPROVED: [assessment]' or 'BLOCKED: [risks]'",
-  STEP_7::"Both CRS and CE verdicts required for T2+ merge approval"
+  STEP_6::"CE posts own verdict: 'CE APPROVED: [assessment]' or 'CE BLOCKED: [risks]'",
+  STEP_7::"CRS and CE verdicts required for T2+; T3+ additionally requires CIV; T4 requires PE"
 ]
 METADATA_TEMPLATE::[
   CRS_FORMAT::"<!-- review: {\"role\":\"CRS\",\"provider\":\"$MODEL\",\"verdict\":\"APPROVED\",\"sha\":\"$SHA\",\"tier\":\"T2\",\"findings\":12,\"blocking\":2,\"priority_distribution\":\"P0:1 P1:3 P2:5 P3:2 P4:1 P5:0\",\"triaged\":true,\"findings_omitted\":3} -->",
