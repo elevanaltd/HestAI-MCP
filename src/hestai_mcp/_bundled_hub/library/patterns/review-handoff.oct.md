@@ -8,7 +8,7 @@ ESSENTIAL::"CRS and CE must exchange structured, machine-readable metadata — i
 ANTI_PATTERN::"implicit_handoff<CRS_produces_prose⊕CE_parses_by_convention→brittle_chain⊕missed_findings>"
 ENFORCEMENT::"CRS output must contain all fields CE requires; CE must validate metadata presence before proceeding"
 CHAIN::"CRS[gemini,code-review-specialist] → CE[codex,critical-engineer] → merge"
-TRIGGER_CONDITION::"T2+ PRs (10-500+ lines) — CE reviews both T2 and T3 per gate chain"
+TRIGGER_CONDITION::"T2+ PRs — CE reviews T2, T3, and T4 per gate chain"
 §2::DECISION_FRAMEWORK
 CRS_PRODUCES::[
   PR_COMMENT::[
@@ -19,7 +19,7 @@ CRS_PRODUCES::[
     CONFIDENCE_LABELS::"CONFIDENCE::(CERTAIN|HIGH|MODERATE) on each finding"
   ],
   STRUCTURED_FIELDS::[
-    tier::"T0|T1|T2|T3 classification of PR scope",
+    tier::"T0|T1|T2|T3|T4 classification of PR scope",
     verdict::"APPROVED|BLOCKED",
     provider::"AI provider used for review (lowercase)",
     role::"Short-form role identifier (CRS, CE, TMG, etc.)",

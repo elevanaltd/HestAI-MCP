@@ -78,7 +78,7 @@ META:
       ]
     INTEGRATION:
       HANDOFF::"Receives code with passing CI → Returns review assessment with structured metadata → CE[codex,critical-engineer] validates T2+ PRs"
-      HANDOFF_INPUT::"PR diff with passing CI status, accessible via `gh pr diff`. May include prior TMG assessment for T2+ PRs. PR metadata includes: branch name, changed file count, line delta, and tier classification (T0-T3)."
+      HANDOFF_INPUT::"PR diff with passing CI status, accessible via `gh pr diff`. May include prior TMG assessment for T2+ PRs. PR metadata includes: branch name, changed file count, line delta, and tier classification (T0-T4)."
       HANDOFF_OUTPUT::"PR comment containing: (1) structured verdict (EXECUTIVE_SUMMARY → CRITICAL_ISSUES → QUALITY_RECOMMENDATIONS), (2) metadata HTML comment <!-- review: {role,provider,verdict,sha,tier,findings,blocking,priority_distribution,triaged,findings_omitted} -->, (3) explicit 'CRS APPROVED' or 'CRS BLOCKED' declaration. For T2+ PRs, output is consumed by critical-engineer as input to CE validation."
       ESCALATION::"Critical architecture flaws → Critical Engineer via CE chain"
       ESCALATION_TRIGGER::"Any P0 security finding, OR 3+ P1 correctness findings, OR architecture change affecting 5+ modules, OR disagreement with prior TMG assessment, OR PR classified as T3 (arch, SQL, >500 lines)."
