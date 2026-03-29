@@ -3,15 +3,16 @@ name: octave-literacy
 description: Fundamental reading and writing capability for the OCTAVE format. Basic structural competence without full architectural specifications
 allowed-tools: ["Read", "Write", "Edit"]
 triggers: ["octave format", "write octave", "octave syntax", "structured output", "OCTAVE basics", "OCTAVE literacy", "OCTAVE structure", "semantic format", "key::value", "OCTAVE notation"]
-version: "1.4.0"
+version: "1.5.0"
 ---
 
 ===OCTAVE_LITERACY===
 META:
   TYPE::SKILL
-  VERSION::"1.4.0"
+  VERSION::"1.5.0"
   STATUS::ACTIVE
   PURPOSE::"Essential syntax and operators for basic OCTAVE competence"
+  OCTAVE::"Olympian Common Text And Vocabulary Engine — Semantic DSL for LLMs"
   TIER::LOSSLESS
   SPEC_REFERENCE::octave-core-spec.oct.md
   V6_FEATURES::"Adds CONTRACT/GRAMMAR blocks, assembly rules, .oct.md extension"

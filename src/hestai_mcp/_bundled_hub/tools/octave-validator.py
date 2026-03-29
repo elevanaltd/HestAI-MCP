@@ -4,8 +4,8 @@ OCTAVE Validator - v5.1.0 Implementation
 
 VENDORED FROM: /Volumes/OCTAVE/octave-mcp/tools/octave-validator.py
 CANONICAL SOURCE: OCTAVE project at /Volumes/OCTAVE/octave-mcp/
-SYNC DATE: 2026-01-03
-VERSION: 5.1.0 (synced from canonical)
+SYNC DATE: 2026-03-29
+VERSION: 5.1.1 (allowed_meta updated for v6 META fields)
 
 This validator checks OCTAVE v5.1.0 formatted documents for envelope (markers + META) and formatting compliance.
 
@@ -241,6 +241,7 @@ class OctaveValidator:
             "DATE",
             "NAME",
             "PURPOSE",
+            "OCTAVE",
             "OCTAVE_VERSION",
             "FIDELITY_TARGET",
             "COMPRESSION_TARGET",
@@ -258,6 +259,26 @@ class OctaveValidator:
             "LICENSE",
             "SCHEMA",
             "ROLE",
+            "CONTRACT",
+            "CANONICAL",
+            "COMPRESSION_TIER",
+            "CREATED",
+            "DOMAIN",
+            "ENFORCEMENT",
+            "FORMAT",
+            "ID",
+            "IMMUTABLES",
+            "INHERITS",
+            "OWNERS",
+            "PHASES",
+            "RELATED",
+            "REPLACES",
+            "RESOLVES",
+            "REVISED",
+            "SOURCE",
+            "SUPPLEMENTS",
+            "TAGS",
+            "UPDATED",
         }
         unknown_keys = [k for k in meta if k not in allowed_meta]
         if unknown_keys:
