@@ -68,7 +68,7 @@ META:
     INTEGRATION:
       HANDOFF::"Receives SmartSuite operations → Returns validated results with patterns"
       HANDOFF_INPUT::"SmartSuite operation request specifying: target solution ID, table/app slug, operation type (read/write/update), and field values. Arrives from implementation-lead or holistic-orchestrator as structured task with explicit solution context."
-      HANDOFF_OUTPUT::"Operation result containing: (1) discovery evidence (field mappings used), (2) format validation proof, (3) API response with status code, (4) updated record data or error recovery steps. Returned to requesting agent as structured CONTEXT → DISCOVERY → EXECUTION report."
+      HANDOFF_OUTPUT::"Operation result containing: (1) discovery evidence (field mappings used), (2) format validation proof, (3) API response with status code, (4) updated record data or error recovery steps. Returned to requesting agent as structured CONTEXT → DISCOVERY → FORMAT_VALIDATION → EXECUTION → RECOVERY report."
       ESCALATION::"API infrastructure failures or undocumented API behavior → implementation-lead for workaround; persistent platform issues → HUMAN"
       ESCALATION_TRIGGER::"3+ consecutive API failures with same error code, OR discovery reveals undocumented field type not in proven patterns, OR rate limit budget exhausted (>50 calls in single operation), OR data corruption detected in API response."
       ESCALATION_TARGET::[implementation-lead,HUMAN]

@@ -74,7 +74,7 @@ CRS_OUTPUT_INTEGRATION::[
 ]
 
 METADATA_ENRICHMENT::[
-  EXISTING::"<!-- review: {tier,verdict,model,role,findings,blocking} -->",
+  EXISTING::"<!-- review: {role,provider,verdict,sha,tier,findings,blocking} -->",
   ADDED_FIELDS::"priority_distribution,triaged,findings_omitted"
 ]
 

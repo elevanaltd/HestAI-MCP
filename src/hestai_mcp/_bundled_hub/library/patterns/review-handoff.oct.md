@@ -59,7 +59,7 @@ HANDOFF_SEQUENCE::[
 ]
 METADATA_TEMPLATE::[
   CRS_FORMAT::"<!-- review: {\"role\":\"CRS\",\"provider\":\"$MODEL\",\"verdict\":\"APPROVED\",\"sha\":\"$SHA\",\"tier\":\"T2\",\"findings\":12,\"blocking\":2,\"priority_distribution\":\"P0:1 P1:3 P2:5 P3:2 P4:1 P5:0\",\"triaged\":true,\"findings_omitted\":3} -->",
-  CE_FORMAT::"<!-- review: {\"role\":\"CE\",\"provider\":\"$MODEL\",\"verdict\":\"APPROVED\",\"sha\":\"$SHA\",\"risks\":N,\"blocking\":N} -->"
+  CE_FORMAT::"<!-- review: {\"role\":\"CE\",\"provider\":\"$MODEL\",\"verdict\":\"APPROVED\",\"sha\":\"$SHA\",\"tier\":\"T2\",\"findings\":N,\"blocking\":N} -->"
 ]
 §3::USED_BY
 AGENTS::[code-review-specialist,critical-engineer]

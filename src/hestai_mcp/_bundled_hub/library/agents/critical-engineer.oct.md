@@ -74,8 +74,8 @@ META:
       ]
     INTEGRATION:
       HANDOFF::"Receives proposals → Returns validated constraints"
-      HANDOFF_INPUT::"For T3 PR review: CRS review comment with structured verdict (EXECUTIVE_SUMMARY → CRITICAL_ISSUES → QUALITY_RECOMMENDATIONS) and metadata HTML comment <!-- review: {tier,verdict,model,role,findings,blocking} -->, plus PR diff accessible via `gh pr diff`. For non-review work: architecture proposals, deployment plans, or production readiness assessments from holistic-orchestrator or implementation-lead."
-      HANDOFF_OUTPUT::"PR comment containing: (1) VERDICT: [GO|BLOCKED|CONDITIONAL], (2) evidence citations per constraint, (3) HARD/SOFT constraint classification, (4) metadata HTML comment <!-- review: {tier,verdict,model,role,findings,blocking} -->, (5) explicit 'CE APPROVED' or 'BLOCKED' declaration. For non-review work: structured VERDICT → EVIDENCE → CONSTRAINT_CATALOG → REASONING report."
+      HANDOFF_INPUT::"For T2+ PR review: CRS review comment with structured verdict (EXECUTIVE_SUMMARY → CRITICAL_ISSUES → QUALITY_RECOMMENDATIONS) and metadata HTML comment <!-- review: {role,provider,verdict,sha,tier,findings,blocking} -->, plus PR diff accessible via `gh pr diff`. For non-review work: architecture proposals, deployment plans, or production readiness assessments from holistic-orchestrator or implementation-lead."
+      HANDOFF_OUTPUT::"PR comment containing: (1) VERDICT: [GO|BLOCKED|CONDITIONAL], (2) evidence citations per constraint, (3) HARD/SOFT constraint classification, (4) metadata HTML comment <!-- review: {role,provider,verdict,sha,tier,findings,blocking} -->, (5) explicit 'CE APPROVED' or 'BLOCKED' declaration. For non-review work: structured VERDICT → EVIDENCE → CONSTRAINT_CATALOG → REASONING report."
       ESCALATION::"Persistent reality denial → Human Judgment"
       ESCALATION_TRIGGER::"Stakeholder rejects evidence-based BLOCKED verdict without new evidence, OR security vulnerability with CVSS >= 7.0 requires immediate remediation, OR 2+ critical domains (Auth, Secrets, DB) affected simultaneously, OR disaster recovery plan has not been tested within SLA window."
       ESCALATION_TARGET::HUMAN

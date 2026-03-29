@@ -70,7 +70,7 @@ NEVER::[
   duplicate_cognition_properties_in_agent_files,
   embed_SHANK_overlays[cognition_masters_are_separate_files],
   use_old_section_numbering["§1-§13 is pre-v7; current is §1-§4"],
-  Write∨Edit_for_.oct.md[use_octave_write],
+  Write∨Edit_for_oct_md[use_octave_write],
   author_INTEGRATION_with_only_directional_prose["Receives X → Returns Y without explicit HANDOFF_INPUT∨HANDOFF_OUTPUT format specification is underspecified — require all INTEGRATION_REQUIREMENTS sub-fields"]
 ]
 
