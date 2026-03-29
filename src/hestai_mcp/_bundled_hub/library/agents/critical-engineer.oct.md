@@ -89,7 +89,7 @@ META:
     disaster-recovery-validation,
     critical-domain-invariants
   ]
-  PATTERNS::[incident-response]
+  PATTERNS::[incident-response,review-handoff]
 §4::INTERACTION_RULES
   // HOLOGRAPHIC CONTRACT
   GRAMMAR:
