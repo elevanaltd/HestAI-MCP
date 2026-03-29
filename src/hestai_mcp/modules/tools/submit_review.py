@@ -31,6 +31,7 @@ from hestai_mcp.modules.tools.shared.review_formats import (
     has_ho_review,
     has_pe_approval,
     has_self_review,
+    has_sr_approval,
     has_tmg_approval,
 )
 
@@ -90,6 +91,8 @@ def _check_would_clear_gate(comment: str, role: str, verdict: str) -> bool:
         return has_civ_approval([comment])
     elif role == "PE":
         return has_pe_approval([comment])
+    elif role == "SR":
+        return has_sr_approval([comment])
     elif role == "IL":
         # Any role can self-review for T1; IL maps APPROVED -> SELF-REVIEWED
         return has_self_review([comment])
@@ -107,6 +110,7 @@ def _get_tier_requirements(role: str) -> str:
         "CE": "TIER_2+: CE APPROVED/GO required",
         "CIV": "TIER_3+: CIV APPROVED/GO required (implementation validation)",
         "PE": "TIER_4: PE APPROVED/GO required (strategic review)",
+        "SR": "T-STD: SR APPROVED/GO required (standards documentation review)",
         "IL": "TIER_1_SELF: IL SELF-REVIEWED comment required",
         "HO": "TIER_1_SELF: HO REVIEWED comment required (supervisory review)",
     }
