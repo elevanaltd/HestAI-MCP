@@ -3,15 +3,16 @@ name: octave-mastery
 description: Advanced semantic vocabulary and architectural patterns for the OCTAVE format. REQUIRES octave-literacy to be loaded first
 allowed-tools: ["Read", "Write", "Edit"]
 triggers: ["octave architecture", "agent design", "semantic pantheon", "advanced octave", "OCTAVE mastery", "holographic patterns", "archetypes", "high-density specifications", "system architecture", "OCTAVE patterns"]
-version: "2.3.0"
+version: "2.4.0"
 ---
 
 ===OCTAVE_MASTERY===
 META:
   TYPE::SKILL
-  VERSION::"2.3.0"
+  VERSION::"2.4.0"
   STATUS::ACTIVE
   PURPOSE::"Expert-level OCTAVE application: Archetypes, Advanced Syntax, Strategy"
+  OCTAVE::"Olympian Common Text And Vocabulary Engine — Semantic DSL for LLMs"
   REQUIRES::octave-literacy
   TIER::LOSSLESS
   SPEC_REFERENCE::octave-core-spec.oct.md
