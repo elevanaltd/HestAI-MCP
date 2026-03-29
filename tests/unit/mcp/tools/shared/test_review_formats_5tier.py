@@ -143,7 +143,7 @@ class TestTMGApprovalMatching:
         assert not has_tmg_approval([])
 
     def test_tmg_approved_with_em_dash(self) -> None:
-        """'TMG (Goose) --- APPROVED' with em dash must match."""
+        """'TMG (Goose) \u2014 APPROVED' with em dash must match."""
         from hestai_mcp.modules.tools.shared.review_formats import has_tmg_approval
 
         assert has_tmg_approval(["TMG (Goose) \u2014 APPROVED: edge cases covered"])
@@ -199,7 +199,7 @@ class TestCIVApprovalMatching:
         assert not has_civ_approval([])
 
     def test_civ_approved_with_em_dash(self) -> None:
-        """'CIV (Goose) --- APPROVED' with em dash must match."""
+        """'CIV (Goose) \u2014 APPROVED' with em dash must match."""
         from hestai_mcp.modules.tools.shared.review_formats import has_civ_approval
 
         assert has_civ_approval(["CIV (Goose) \u2014 APPROVED: validated"])
@@ -255,7 +255,7 @@ class TestPEApprovalMatching:
         assert not has_pe_approval([])
 
     def test_pe_approved_with_em_dash(self) -> None:
-        """'PE (Goose) --- APPROVED' with em dash must match."""
+        """'PE (Goose) \u2014 APPROVED' with em dash must match."""
         from hestai_mcp.modules.tools.shared.review_formats import has_pe_approval
 
         assert has_pe_approval(["PE (Goose) \u2014 APPROVED: strategic review passed"])
@@ -679,10 +679,22 @@ class TestSRApprovalMatching:
         assert not has_sr_approval([])
 
     def test_sr_approved_with_em_dash(self) -> None:
-        """'SR (Gemini) --- APPROVED' with em dash must match."""
+        """'SR (Gemini) \u2014 APPROVED' with em dash must match."""
         from hestai_mcp.modules.tools.shared.review_formats import has_sr_approval
 
         assert has_sr_approval(["SR (Gemini) \u2014 APPROVED: standards review passed"])
+
+    def test_has_gr_approval_matches_legacy_gr(self) -> None:
+        """has_gr_approval() must still match legacy 'GR APPROVED' comments."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_gr_approval
+
+        assert has_gr_approval(["GR APPROVED: legacy governance review"])
+
+    def test_has_gr_approval_also_matches_sr(self) -> None:
+        """has_gr_approval() must also match new 'SR APPROVED' comments."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_gr_approval
+
+        assert has_gr_approval(["SR APPROVED: standards review"])
 
 
 # ---------------------------------------------------------------------------
