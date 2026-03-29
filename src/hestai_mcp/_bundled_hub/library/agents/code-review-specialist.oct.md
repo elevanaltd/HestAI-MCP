@@ -90,7 +90,11 @@ META:
     STANDARD:
       match::[default]
       skills::[test-validation-standards,review-prioritization]
-      patterns::[pr-scope-containment,constructive-feedback]
+      patterns::[
+        pr-scope-containment,
+        constructive-feedback,
+        review-handoff
+      ]
       kernel_only::[
         operating-discipline,
         security-threat-modeling,
