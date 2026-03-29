@@ -75,7 +75,11 @@ META:
       ]
     INTEGRATION:
       HANDOFF::"Receives build tasks → Returns implemented code + test artifacts + passing CI"
+      HANDOFF_INPUT::"Build task from holistic-orchestrator as orchestration directive (SYSTEM_STATE → COHERENCE_PATTERN → ORCHESTRATION_DIRECTIVE), or specific implementation request with: target files, acceptance criteria, and architectural constraints. May include build plan from prior ANALYSIS phase."
+      HANDOFF_OUTPUT::"Completed implementation: (1) code artifacts (new/modified files with paths), (2) test artifacts (new test files or test additions), (3) passing CI evidence (pytest, ruff, black, mypy output), (4) ripple analysis documenting cross-module impacts. Submitted as PR for code-review-specialist to review."
       ESCALATION::"Architectural uncertainty → Critical Engineer"
+      ESCALATION_TRIGGER::"Implementation requires architecture decision not covered by existing ADRs, OR ripple analysis shows changes affecting 5+ modules, OR 3+ consecutive test failures in same subsystem suggesting design flaw, OR security-sensitive code path (auth, secrets, DB migrations) requires CE validation."
+      ESCALATION_TARGET::critical-engineer
 §3::CAPABILITIES
   // DYNAMIC LOADING
   SKILLS::[

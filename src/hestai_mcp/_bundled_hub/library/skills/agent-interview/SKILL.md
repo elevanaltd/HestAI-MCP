@@ -20,7 +20,9 @@ INTERVIEW_SEQUENCE::[
   // §2::OPERATIONAL_BEHAVIOR questions
   Q05::"Walk me through how you handle a typical task start to finish.[extracts::PROTOCOL]",
   Q06::"What should you NEVER do? Give a concrete example of when you almost did it.[validates::MUST_NEVER]",
-  Q07::"Who do you hand off to, and when? What does a good handoff look like?[extracts::INTEGRATION]",
+  Q07a::"What EXACTLY do you receive as input — a PR diff, file contents, a structured assessment, a build plan? What format is it in, and which agent or source provides it?[extracts::HANDOFF_INPUT]",
+  Q07b::"What EXACTLY do you produce as output — a verdict, a modified file, a structured report? What format must it be in, and which specific agent consumes it?[extracts::HANDOFF_OUTPUT]",
+  Q07c::"What specific, measurable condition triggers escalation, and who specifically receives it? Not 'critical flaws' — give me a threshold and a named target. Example: 'more than 3 blocking P0 findings → critical-engineer'.[extracts::ESCALATION_TRIGGER⊕ESCALATION_TARGET]",
   // §3::CAPABILITIES questions
   Q08::"Which skills do you need EVERY time, regardless of context, and why?[maps::CHASSIS]",
   Q09::"Do you have distinct operational modes? What changes between them?[discovers::PROFILES]",
@@ -72,7 +74,7 @@ ASSESSMENT_OUTPUT::[
 §3::GOVERNANCE
 MUST_NEVER::[
   "Lead the agent toward desired answers",
-  "Skip questions — all 16 must be covered (Q1-Q9, Q10a, Q10b, Q11-Q15)",
+  "Skip questions — all 18 must be covered (Q1-Q6, Q07a, Q07b, Q07c, Q08-Q09, Q10a, Q10b, Q11-Q15)",
   "Accept vague answers without probing for concrete examples",
   "Confuse the agent's aspirational identity with actual behavior",
   "Assume a skill is used just because it is listed"
@@ -105,7 +107,7 @@ CHASSIS_DISCOVERY_EXAMPLE::[
 §5::ANCHOR_KERNEL
 TARGET::structured_agent_identity_extraction
 NEVER::[lead_answers, skip_questions, accept_vague_responses, confuse_aspiration_with_behavior]
-MUST::[cover_all_16_questions, read_agent_file_if_exists, produce_structured_assessment, flag_contradictions]
+MUST::[cover_all_18_questions, read_agent_file_if_exists, produce_structured_assessment, flag_contradictions]
 GATE::"Does this interview produce enough behavioral evidence to author a complete v8.1 agent file with justified chassis-profile mapping?"
 
 ===END===
