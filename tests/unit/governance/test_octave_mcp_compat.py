@@ -6,6 +6,8 @@ work with HestAI's usage patterns.
 
 import pytest
 
+octave_mcp = pytest.importorskip("octave_mcp", reason="octave-mcp not installed")
+
 
 @pytest.mark.smoke
 class TestOctaveMcpCompat:

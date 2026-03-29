@@ -158,6 +158,15 @@ class TestUnknownPolicy:
         # Should not have E007 error since strict only applies to protocol profile
         assert not any("E007" in m for m in messages)
 
+    @pytest.mark.unit
+    def test_strict_policy_hestai_skill_profile_no_error(self):
+        """strict policy with hestai-skill profile should not produce E007 errors."""
+        doc = _make_skill_doc("  TOTALLY_FAKE::value")
+        v = OctaveValidator(unknown_policy="strict", profile="hestai-skill")
+        valid, messages = v.validate_octave_document(doc)
+        # strict only applies to protocol profile — skill profile should not get E007
+        assert not any("E007" in m for m in messages)
+
 
 # --- Tests: Document types ---
 
@@ -173,8 +182,11 @@ class TestDocumentTypes:
         valid, messages = v.validate_octave_document(doc)
         # The validator doesn't have specific schema rules for SKILL type,
         # so it produces a warning about unknown type — this is expected behavior.
-        # This is a warning, not an error — document should still be structurally valid
-        assert len(v.errors) == 0 or all("META.TYPE" not in e for e in v.errors)
+        type_warnings = [m for m in v.warnings if "Unknown META.TYPE" in m]
+        assert len(type_warnings) > 0, "Expected 'Unknown META.TYPE' warning for SKILL"
+        # But it should not be in errors — document should still be structurally valid
+        type_errors = [e for e in v.errors if "Unknown META.TYPE" in e]
+        assert len(type_errors) == 0
 
     @pytest.mark.unit
     def test_agent_definition_type_produces_warning_not_error(self):
