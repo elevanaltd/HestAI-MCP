@@ -197,19 +197,27 @@ jobs:
                 message += `**Reason**: ${reasonMatch[1]}\n\n`;
               }
 
-              // Extract required reviews from output
+              // Extract required reviewers dynamically from validation output.
+              // The validator prints lines like "   - 'CE APPROVED: [assessment]' (or CE GO:)"
+              // for each required role. Parse these to build the guidance block.
               if (tier === 'TIER_1_SELF') {
                 message += '**Required**: Self-review or HO supervisory review:\n';
                 message += '```\nIL SELF-REVIEWED: [your rationale] (any role name accepted)\n-- or --\nHO REVIEWED: [rationale after delegated work]\n```\n';
-              } else if (tier === 'TIER_2_STANDARD') {
-                message += '**Required**: TMG + CRS + CE approval:\n';
-                message += '```\nTMG APPROVED: [test assessment] (or TMG GO:)\nCRS APPROVED: [assessment] (or CRS GO:)\nCE APPROVED: [critical assessment] (or CE GO:)\n```\n';
-              } else if (tier === 'TIER_3_CRITICAL') {
-                message += '**Required**: TMG + CRS + CE + CIV approval:\n';
-                message += '```\nTMG APPROVED: [test assessment] (or TMG GO:)\nCRS APPROVED: [assessment] (or CRS GO:)\nCE APPROVED: [critical assessment] (or CE GO:)\nCIV APPROVED: [implementation assessment] (or CIV GO:)\n```\n';
-              } else if (tier === 'TIER_4_STRATEGIC') {
-                message += '**Required**: TMG + CRS + CE + CIV + PE approval:\n';
-                message += '```\nTMG APPROVED: [test assessment] (or TMG GO:)\nCRS APPROVED: [assessment] (or CRS GO:)\nCE APPROVED: [critical assessment] (or CE GO:)\nCIV APPROVED: [implementation assessment] (or CIV GO:)\nPE APPROVED: [strategic assessment] (or PE GO:)\n```\n';
+              } else {
+                // Parse required roles from the "Reviewers: [CE, CRS, SR, TMG]" reason line
+                const rolesMatch = validationOutput.match(/Reviewers: \[([^\]]+)\]/);
+                const roles = rolesMatch ? rolesMatch[1].split(', ').sort() : [];
+
+                if (roles.length > 0) {
+                  message += `**Required**: ${roles.join(' + ')} approval:\n`;
+                  message += '```\n';
+                  for (const role of roles) {
+                    message += `${role} APPROVED: [assessment] (or ${role} GO:)\n`;
+                  }
+                  message += '```\n';
+                } else {
+                  message += '**Required**: See validation output for details\n';
+                }
               }
 
               message += '\n<details><summary>📋 Full Validation Output</summary>\n\n';
