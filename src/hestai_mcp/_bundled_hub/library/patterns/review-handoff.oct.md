@@ -6,7 +6,7 @@ META:
 §1::CORE_PRINCIPLE
 ESSENTIAL::"CRS and CE must exchange structured, machine-readable metadata — implicit contracts cause integration failures"
 ANTI_PATTERN::"implicit_handoff<CRS_produces_prose⊕CE_parses_by_convention→brittle_chain⊕missed_findings>"
-ENFORCEMENT::"CRS output must contain all fields CE requires; CE must validate metadata presence before proceeding"
+ENFORCEMENT::"CRS output must contain REQUIRED metadata fields; ENRICHED fields are populated when available (full contract enforcement tracked in #345)"
 CHAIN::"CRS[gemini,code-review-specialist] → CE[codex,critical-engineer] → merge"
 TRIGGER_CONDITION::"T2+ PRs — CE reviews T2, T3, and T4 per gate chain"
 §2::DECISION_FRAMEWORK
@@ -33,12 +33,14 @@ CE_EXPECTS::[
   REQUIRED::[
     metadata_comment_present::"<!-- review: {...} --> must exist in PR comment",
     verdict_field::"APPROVED or BLOCKED must be extractable",
-    tier_field::"must be T2+ for CE engagement",
-    findings_count::"integer count of total findings",
-    blocking_count::"integer count of blocking findings"
+    role_field::"short-form role identifier (CRS, CE, etc.)"
   ],
-  OPTIONAL::[
-    priority_distribution::"P0-P5 counts for severity awareness",
+  ENRICHED::[
+    tier_field::"T0-T4 classification (populated in manual CRS review, planned for submit_review in #345)",
+    findings_count::"integer count of total findings (planned for submit_review in #345)",
+    blocking_count::"integer count of blocking findings (planned for submit_review in #345)",
+    priority_distribution::"P0-P5 counts for severity awareness (requires review-prioritization skill)",
+    triaged::"boolean indicating triage was applied",
     findings_omitted::"count of triaged-out findings"
   ],
   VALIDATION::[
