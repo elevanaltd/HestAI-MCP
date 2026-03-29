@@ -174,6 +174,13 @@ def _classify_file_facet(path: str) -> str | None:
     Returns:
         Facet name string, or None if the file is exempt.
     """
+    # Bundled hub skill/pattern files (.md but NOT exempt — governance artifacts)
+    # These define agent behavior and must be classified before exempt check
+    if "/library/skills/" in path and path.endswith("/SKILL.md"):
+        return "EXECUTABLE_SPEC"
+    if "/library/patterns/" in path and path.endswith(".md"):
+        return "EXECUTABLE_SPEC"
+
     # Exempt patterns
     exempt_patterns = [
         r".*(?<!\.oct)\.md$",  # Markdown exempt, but NOT .oct.md

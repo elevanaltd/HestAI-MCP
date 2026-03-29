@@ -106,6 +106,55 @@ class TestFacetClassification:
             "PE" not in roles
         ), f"Meta control plane should NOT require PE (T4 manual), got {roles}"
 
+    def test_skill_md_is_executable_spec(self) -> None:
+        """Bundled hub SKILL.md files must be EXECUTABLE_SPEC, not exempt."""
+        files = [
+            {
+                "path": "src/hestai_mcp/_bundled_hub/library/skills/standards-review/SKILL.md",
+                "added": 20,
+                "deleted": 10,
+                "total_changed": 30,
+            },
+        ]
+        facets, roles, tier, _ = validate_review.classify_pr_facets(files)
+        assert "EXECUTABLE_SPEC" in facets, f"SKILL.md should be EXECUTABLE_SPEC, got {facets}"
+        assert "CE" in roles and "SR" in roles, f"SKILL.md needs CE+SR, got {roles}"
+        assert tier != "TIER_0_EXEMPT", f"SKILL.md must NOT be exempt, got {tier}"
+
+    def test_pattern_md_is_executable_spec(self) -> None:
+        """Bundled hub pattern .md files must be EXECUTABLE_SPEC, not exempt."""
+        files = [
+            {
+                "path": "src/hestai_mcp/_bundled_hub/library/patterns/tdd-discipline.oct.md",
+                "added": 10,
+                "deleted": 5,
+                "total_changed": 15,
+            },
+        ]
+        facets, roles, tier, _ = validate_review.classify_pr_facets(files)
+        assert tier != "TIER_0_EXEMPT", f"Pattern file must NOT be exempt, got {tier}"
+
+    def test_regular_md_still_exempt(self) -> None:
+        """Regular docs .md files must still be exempt."""
+        files = [
+            {"path": "docs/README.md", "added": 10, "deleted": 5, "total_changed": 15},
+        ]
+        facets, roles, tier, _ = validate_review.classify_pr_facets(files)
+        assert tier == "TIER_0_EXEMPT", f"Regular .md should be exempt, got {tier}"
+
+    def test_skill_pr_requires_ce_sr_review(self) -> None:
+        """A PR with only SKILL.md files must require CE+SR (EXECUTABLE_SPEC)."""
+        files = [
+            {
+                "path": "src/hestai_mcp/_bundled_hub/library/skills/build-execution/SKILL.md",
+                "added": 30,
+                "deleted": 10,
+                "total_changed": 40,
+            },
+        ]
+        facets, roles, tier, _ = validate_review.classify_pr_facets(files)
+        assert roles == {"CE", "SR"}, f"Skill PR should need CE+SR, got {roles}"
+
     def test_mixed_code_and_governance(self) -> None:
         """Mixed .py + .oct.md -> union of ROUTINE_CODE + GOVERNANCE roles."""
         files = [
