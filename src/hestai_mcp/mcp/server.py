@@ -28,6 +28,7 @@ from hestai_mcp.modules.tools.bind import bind
 from hestai_mcp.modules.tools.clock_in import clock_in_async, validate_working_dir
 from hestai_mcp.modules.tools.clock_out import clock_out
 from hestai_mcp.modules.tools.shared.governance_integrity import store_governance_hash
+from hestai_mcp.modules.tools.shared.review_formats import VALID_ROLES as REVIEW_VALID_ROLES
 from hestai_mcp.modules.tools.submit_review import submit_review
 
 # Load .env file for HESTAI_PROJECT_ROOT and other configuration
@@ -505,7 +506,7 @@ async def list_tools() -> list[Tool]:
                     },
                     "role": {
                         "type": "string",
-                        "enum": ["TMG", "CRS", "CE", "CIV", "PE", "IL", "HO"],
+                        "enum": sorted(REVIEW_VALID_ROLES),
                         "description": "Reviewer role",
                     },
                     "verdict": {
