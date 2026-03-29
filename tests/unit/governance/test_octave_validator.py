@@ -6,21 +6,26 @@ Covers:
 - SKILL and AGENT_DEFINITION document types
 """
 
-import sys
-from importlib import import_module
+from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 
 import pytest
 
 # The vendored validator lives in the bundled hub tools directory.
-# Add it to sys.path so we can import it directly.
-_VALIDATOR_DIR = (
-    Path(__file__).resolve().parents[3] / "src" / "hestai_mcp" / "_bundled_hub" / "tools"
+# Load via spec_from_file_location to avoid polluting sys.path.
+_VALIDATOR_PATH = (
+    Path(__file__).resolve().parents[3]
+    / "src"
+    / "hestai_mcp"
+    / "_bundled_hub"
+    / "tools"
+    / "octave-validator.py"
 )
-sys.path.insert(0, str(_VALIDATOR_DIR))
-
-octave_validator = import_module("octave-validator")  # noqa: E402
-OctaveValidator = octave_validator.OctaveValidator
+_spec = spec_from_file_location("octave_validator", _VALIDATOR_PATH)
+assert _spec is not None and _spec.loader is not None, f"Cannot load {_VALIDATOR_PATH}"
+_module = module_from_spec(_spec)
+_spec.loader.exec_module(_module)
+OctaveValidator = _module.OctaveValidator
 
 
 # --- Fixtures ---

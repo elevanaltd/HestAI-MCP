@@ -31,13 +31,14 @@ class TestOctaveMcpCompat:
         import octave_mcp
 
         version = octave_mcp.__version__
-        parts = [int(x) for x in version.split(".")]
+        # Strip pre-release suffixes (e.g., "1.9.5.dev1", "1.9.5rc1")
+        import re
+
+        numeric_parts = re.findall(r"\d+", version.split("+")[0].split("-")[0])
+        parts = [int(x) for x in numeric_parts[:3]]
+        parts.extend([0] * (3 - len(parts)))  # Pad missing minor/patch
         # Must be >= 1.9.5
-        assert parts[0] >= 1
-        if parts[0] == 1:
-            assert parts[1] >= 9
-            if parts[1] == 9:
-                assert parts[2] >= 5
+        assert tuple(parts) >= (1, 9, 5)
 
     @pytest.mark.unit
     def test_parse_simple_document(self):
