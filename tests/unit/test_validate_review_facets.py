@@ -122,7 +122,7 @@ class TestFacetClassification:
         assert tier != "TIER_0_EXEMPT", f"SKILL.md must NOT be exempt, got {tier}"
 
     def test_pattern_md_is_executable_spec(self) -> None:
-        """Bundled hub pattern .md files must be EXECUTABLE_SPEC, not exempt."""
+        """Bundled hub pattern .oct.md files must be EXECUTABLE_SPEC, not exempt."""
         files = [
             {
                 "path": "src/hestai_mcp/_bundled_hub/library/patterns/tdd-discipline.oct.md",
@@ -133,6 +133,10 @@ class TestFacetClassification:
         ]
         facets, roles, tier, _ = validate_review.classify_pr_facets(files)
         assert tier != "TIER_0_EXEMPT", f"Pattern file must NOT be exempt, got {tier}"
+        assert (
+            "EXECUTABLE_SPEC" in facets or "GOVERNANCE" in facets
+        ), f"Pattern file should be EXECUTABLE_SPEC or GOVERNANCE, got {facets}"
+        assert "SR" in roles, f"Pattern file should require SR, got {roles}"
 
     def test_regular_md_still_exempt(self) -> None:
         """Regular docs .md files must still be exempt."""

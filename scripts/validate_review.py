@@ -206,8 +206,13 @@ def _classify_file_facet(path: str) -> str | None:
     if "review-requirements.oct.md" in path:
         return "META_CONTROL_PLANE"
 
-    # .oct.md files: sniff TYPE to distinguish EXECUTABLE_SPEC vs GOVERNANCE
+    # .oct.md files: classify by path or sniff TYPE
     if path.endswith(".oct.md"):
+        # Agent/skill .oct.md files are always EXECUTABLE_SPEC by path
+        # (even if deleted and can't be sniffed for TYPE)
+        if "/library/agents/" in path or "/library/skills/" in path:
+            return "EXECUTABLE_SPEC"
+        # For other .oct.md files, sniff TYPE to distinguish
         octave_type = _sniff_octave_type(path)
         if octave_type in _EXECUTABLE_SPEC_TYPES:
             return "EXECUTABLE_SPEC"
@@ -550,7 +555,8 @@ def check_pr_comments(
             "SR": lambda: (
                 _meta_has("SR", "APPROVED")
                 or _has_sr_approval(searchable_texts)
-                or _meta_has("GR", "APPROVED")
+                # Legacy GR visible-text check only (no _meta_has("GR") —
+                # GR not in VALID_ROLES so metadata bypasses cross-validation)
                 or _has_gr_approval(searchable_texts)
             ),
         }
@@ -575,7 +581,9 @@ def check_pr_comments(
         # Determine effective roles to check
         effective_roles = required_roles if required_roles is not None else set()
 
-        # Backward compat: if called with tier only (old API), derive roles from tier
+        # DEPRECATED: Tier-only API cannot distinguish code vs governance PRs.
+        # Use classify_pr_facets() + required_roles for accurate routing.
+        # This fallback maps tiers to code-review roles only (no SR).
         if not effective_roles and tier:
             _tier_role_map: dict[str, set[str]] = {
                 "TIER_2_STANDARD": {"TMG", "CRS", "CE"},

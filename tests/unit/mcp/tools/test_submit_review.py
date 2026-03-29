@@ -1153,6 +1153,23 @@ class TestNewRoleGateClearance:
         assert result["success"] is True
         assert result["validation"]["would_clear_gate"] is True
 
+    @pytest.mark.asyncio
+    async def test_sr_dry_run_succeeds(self) -> None:
+        """SR APPROVED dry-run must succeed with would_clear_gate=True."""
+        from hestai_mcp.modules.tools.submit_review import submit_review
+
+        result = await submit_review(
+            repo="elevanaltd/HestAI-MCP",
+            pr_number=123,
+            role="SR",
+            verdict="APPROVED",
+            assessment="Standards compliant",
+            dry_run=True,
+        )
+        assert result["success"] is True
+        assert result["validation"]["would_clear_gate"] is True
+        assert result["formatted_comment"].startswith("SR APPROVED:")
+
 
 @pytest.mark.unit
 class TestNewRoleTierRequirements:
