@@ -19,7 +19,7 @@ CREATION_SEQUENCE::[
   2::read_interview_assessment[from_agent-interview_skill],
   3::select_cognition[LOGOS∨ETHOS∨PATHOS]→read_cognition_master_file,
   4::author_v9_agent_file[§1::IDENTITY→§2::OPERATIONAL_BEHAVIOR→§3::TASK_PROFILES→§4::GRAMMAR],
-  5::verify_task_profile_names_map_to_archetype-matrix_entries,
+  5::when_archetype-matrix_exists→verify_task_profile_names_map_to_entries,
   6::enforce_blank_slate[no_archetypes⊕no_skills⊕no_patterns_in_agent_file],
   7::request_subject_agent_signoff,
   8::write_via_octave_write
@@ -49,7 +49,7 @@ BLANK_SLATE_RULES::[
 TASK_PROFILE_RULES::[
   PROFILES_is_array_of_names[string_identifiers_not_objects],
   DEFAULT_must_exist_in_PROFILES_array,
-  each_name_should_map_to_archetype-matrix_entry,
+  each_name_should_map_to_archetype-matrix_entry<when_matrix_exists>,
   names_use_snake_case[code_writing∨test_building∨error_diagnosis]
 ]
 
@@ -78,7 +78,7 @@ NEVER::[
   use_§3::CAPABILITIES[V9_uses_§3::TASK_PROFILES],
   use_§4::INTERACTION_RULES[V9_uses_§4::GRAMMAR],
   include_CONDUCT_wrapper_in_§2[V9_§2_is_flat],
-  reference_phantom_task_profiles[profiles_not_in_archetype-matrix],
+  reference_phantom_task_profiles[when_matrix_exists→profiles_not_in_archetype-matrix],
   Write∨Edit_for_oct_md[use_octave_write],
   exceed_50_line_target_without_justification
 ]
