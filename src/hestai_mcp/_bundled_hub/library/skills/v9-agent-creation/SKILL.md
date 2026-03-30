@@ -7,7 +7,7 @@ META:
   SPEC_REFERENCE::dream-team-architecture.md
 
 §1::CORE
-AUTHORITY::BLOCKING[v9_agent_file_commits⊕blank_slate_violations⊕phantom_profile_references]
+AUTHORITY::BLOCKING[v9_agent_file_commits⊕blank_slate_violations⊕phantom_profile_references<when_matrix_exists>]
 SCOPE::"Create and modify V9 agent .oct.md files per dream-team-architecture §2.2 blank-slate schema"
 // V9 agent files are ~50 line identity-only documents
 // Skills, patterns, and archetypes resolve dynamically via archetype-matrix config
