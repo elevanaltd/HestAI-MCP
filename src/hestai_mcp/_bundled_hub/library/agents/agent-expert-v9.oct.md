@@ -94,13 +94,11 @@ META:
       ESCALATION::"V8.1 boundary questions → agent-expert. OCTAVE structural questions → octave-specialist. Skill content → skills-expert. Archetype-matrix design → HUMAN. System standard boundaries → HUMAN"
 §3::CAPABILITIES
   // DYNAMIC LOADING (v8 Chassis-Profile)
-  // NOTE: agent-creation skill NOT included — its kernel targets v8.1 format
-  // which conflicts with V9 authoring mission. v9-agent-creation skill needed (skills-expert gap).
   CHASSIS::[octave-literacy]
   PROFILES:
     AUTHORING:
       match::[default]
-      skills::[agent-interview]
+      skills::[agent-interview,v9-agent-creation]
       patterns::[]
       kernel_only::[operating-discipline]
     REVIEW:
