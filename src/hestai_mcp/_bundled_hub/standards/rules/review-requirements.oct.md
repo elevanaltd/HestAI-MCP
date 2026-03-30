@@ -1,9 +1,9 @@
 ===REVIEW_REQUIREMENTS===
 META:
   TYPE::RULE
-  VERSION::"2.0"
+  VERSION::"2.1"
   STATUS::ENFORCED
-  PURPOSE::"5-tier mandatory review requirements with TMG/CRS/CE/CIV/PE roles and automated enforcement"
+  PURPOSE::"5-tier mandatory review requirements with facet-based content-aware routing and automated enforcement"
   ENFORCEMENT::PRE_COMMIT⊕CI⊕PR_MERGE
 §1::REVIEW_TIERS
 TIER_0_EXEMPT::[
@@ -73,6 +73,8 @@ PR_COMMENT_MAGIC::[
   CIV_GO::"CIV GO:",
   PE_APPROVED::"PE APPROVED:",
   PE_GO::"PE GO:",
+  SR_APPROVED::"SR APPROVED:",
+  SR_GO::"SR GO:",
   BLOCKING_PREFIX::"BLOCKED:",
   CONDITIONAL_PREFIX::"APPROVED WITH CONDITIONS:"
 ]
@@ -114,6 +116,13 @@ PE::[
   fallback,
   ":",
   ["cli:codex","role:principal-engineer"]
+]
+SR::[
+  "cli:goose",
+  "role:standards-reviewer",
+  fallback,
+  ":",
+  ["cli:codex","role:standards-reviewer"]
 ]
 §4::TIER_DETERMINATION
 THRESHOLDS::[
