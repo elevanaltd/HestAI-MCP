@@ -26,7 +26,7 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "keyring>=24.0.0",
     "pyyaml>=6.0",
-    "octave-mcp>=1.9.5",  # Official OCTAVE parser with GBNF export and holographic contracts
+    "octave-mcp>=1.9.6",  # Official OCTAVE parser with GBNF export and holographic contracts
 ]
 
 [project.optional-dependencies]
