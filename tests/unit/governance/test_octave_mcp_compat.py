@@ -1,4 +1,4 @@
-"""Smoke tests for octave-mcp 1.9.5 compatibility.
+"""Smoke tests for octave-mcp 1.9.6 compatibility.
 
 Verifies the octave-mcp package is importable and its core APIs
 work with HestAI's usage patterns.
@@ -11,7 +11,7 @@ pytest.importorskip("octave_mcp", reason="octave-mcp not installed")
 
 @pytest.mark.smoke
 class TestOctaveMcpCompat:
-    """Verify octave-mcp 1.9.5 compatibility with HestAI imports."""
+    """Verify octave-mcp 1.9.6 compatibility with HestAI imports."""
 
     @pytest.mark.unit
     def test_core_imports(self):
@@ -37,8 +37,8 @@ class TestOctaveMcpCompat:
         numeric_parts = re.findall(r"\d+", version.split("+")[0].split("-")[0])
         parts = [int(x) for x in numeric_parts[:3]]
         parts.extend([0] * (3 - len(parts)))  # Pad missing minor/patch
-        # Must be >= 1.9.5
-        assert tuple(parts) >= (1, 9, 5)
+        # Must be >= 1.9.6
+        assert tuple(parts) >= (1, 9, 6)
 
     @pytest.mark.unit
     def test_parse_simple_document(self):

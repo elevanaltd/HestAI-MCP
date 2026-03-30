@@ -5,7 +5,7 @@ META:
   STATUS::TARGET
   PURPOSE::"Cross-system build sequence, blocking relationships, and phase alignment"
   CREATED::"2026-02-22"
-  REVISED::"2026-03-28"
+  REVISED::"2026-03-30"
   FORMAT::octave
   RESOLVES::"#265 (Cross-repo ecosystem dependency graph)"
   SUPPLEMENTS::HESTAI-ECOSYSTEM-OVERVIEW.oct.md
@@ -15,7 +15,7 @@ ARCHITECTURE_DECISION::"Federation model (v2.1) replaced by Thick Client model (
 CURRENT_REALITY::"Until workbench migration is complete, the current federation (hestai-mcp + odyssean-anchor-mcp as separate MCP servers) remains operational. This graph describes the approved build sequence toward the target state."
 §1::CURRENT_STATE
 OCTAVE_MCP::[
-  VERSION::"1.9.2",
+  VERSION::"1.9.6",
   PHASE::B5_DOCUMENTATION,
   HEALTH::PRODUCTION_READY,
   PYPI::published,
@@ -85,7 +85,7 @@ ARROWS::[
   "workbench --[absorbing]--> odyssean-anchor-mcp (anchor ceremony rebuild in TypeScript)"
 ]
 §3::LAYER_MODEL_WITH_STATE
-LAYER_0::"FOUNDATION — octave-mcp: SOLID, v1.9.2, production. ACTION: Update deps when releases happen. No structural changes needed."
+LAYER_0::"FOUNDATION — octave-mcp: SOLID, v1.9.6, production. ACTION: Update deps when releases happen. No structural changes needed."
 LAYER_1::"DELIBERATION — debate-hall-mcp: SOLID, v0.5.0, production, 17 tools. ACTION: Continue independently. Issue 163 (Governance Hall), Issue 159 (RACI mode)."
 LAYER_2::"UNIFIED_PLATFORM — hestai-workbench: PROTOTYPE, Phase_2_complete, absorbing hestai-mcp and OA. ACTION: Build Engine + Glass + Library Manager. Critical path for entire ecosystem."
 §4::SEQUENCED_BUILD_ORDER

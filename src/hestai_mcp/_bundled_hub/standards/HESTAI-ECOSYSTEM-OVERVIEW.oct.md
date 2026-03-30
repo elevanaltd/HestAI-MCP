@@ -6,7 +6,7 @@ META:
   PURPOSE::"How every system in the HestAI ecosystem connects and what each owns"
   CANONICAL::"src/hestai_mcp/_bundled_hub/standards/HESTAI-ECOSYSTEM-OVERVIEW.oct.md"
   CREATED::"2026-02-18"
-  REVISED::"2026-03-28"
+  REVISED::"2026-03-30"
   FORMAT::octave
 §0::ARCHITECTURE_NOTE
 DESCRIPTION::"This document describes the APPROVED TARGET three-system Thick Client architecture. The workbench will absorb hestai-mcp and odyssean-anchor-mcp into a unified platform (Engine + Glass + Library). debate-hall-mcp and octave-mcp remain standalone. See docs/dream-team-architecture.md for the specification."
@@ -27,7 +27,7 @@ ECOSYSTEM::"Three target systems that together will provide agent identity, gove
 §2::THE_THREE_SYSTEMS
 SYSTEM_1::"HESTAI_WORKBENCH[REPO::elevanaltd/hestai-workbench, ROLE::The Unified Platform, OWNS::[agent_definitions, skills_library, anchor_ceremony, context_steward, session_lifecycle, governance_rules, agent_registry, worktree_orchestration, cli_spawning, terminal_ui, agent_dispatch, payload_compilation, pipeline_runner], ABSORBS::[hestai-mcp(library+governance+session_lifecycle), odyssean-anchor-mcp(anchor_ceremony+identity_binding)], ARCHITECTURE::Engine (Node/TS backend with payload compiler + dispatcher + pipeline runner + anchor validator) + Glass (React frontend with agent registry + session dashboard + workflow editor + dispatch chain visibility) + Library Manager (reads/writes .hestai-sys/ and .hestai/ directly), KEY_PROPERTY::Unified center. Knows WHO agents are, HOW they behave, WHICH provider runs them, WHERE sessions run. Single process, single debug target., DEPENDS_ON::[debate-hall-mcp, octave-mcp], DATA::[~/.hestai-workbench/library/ (agent definitions, skills, standards — canonical after migration Step 2), SQLite database (sessions, agent registry, UI state), git worktrees per session, .hestai-sys/ (written to worktrees at spawn — same pattern, workbench is writer), .hestai/ (project context, committed, read by workbench), .hestai/state/ (working state, written by workbench)]]"
 SYSTEM_2::"DEBATE_HALL_MCP[REPO::elevanaltd/debate-hall-mcp, ROLE::The Deliberation Chamber, VERSION::0.5.0, OWNS::[wind_wall_door_debates, governance_operations, decision_records, hash_chain_integrity], TOOLS::17, KEY_PROPERTY::Standalone deliberation (P6). Works without HestAI for non-governance users. Persistent transcripts with hash-chain integrity., DEPENDS_ON::[octave-mcp], DATA::[debates/ directory with JSON state, OCTAVE-compressed transcripts, decision records with SHA-256 hash chain]]"
-SYSTEM_3::"OCTAVE_MCP[REPO::elevanaltd/octave-mcp, ROLE::The Language, VERSION::1.9.2, OWNS::[octave_format_spec, validation, generation, compression], TOOLS::[octave_validate, octave_write, octave_eject], KEY_PROPERTY::Pure protocol. Zero dependencies on governance. Maximum community adoption potential. 54-68 percent token reduction., DEPENDS_ON::[nothing], DATA::[v6 grammar specification, GHC (Generative Holographic Contracts)]]"
+SYSTEM_3::"OCTAVE_MCP[REPO::elevanaltd/octave-mcp, ROLE::The Language, VERSION::1.9.6, OWNS::[octave_format_spec, validation, generation, compression], TOOLS::[octave_validate, octave_write, octave_eject], KEY_PROPERTY::Pure protocol. Zero dependencies on governance. Maximum community adoption potential. 54-68 percent token reduction., DEPENDS_ON::[nothing], DATA::[v6 grammar specification, GHC (Generative Holographic Contracts)]]"
 §3::SYSTEMS_BEING_ABSORBED
 CANONICAL_SOURCE_DURING_MIGRATION::"During migration, hestai-mcp repository remains the source-of-truth for library content (agents, skills, standards, cognitions). After workbench Library Manager (dependency graph Step 2) is complete and verified, canonical source moves to workbench library. Both repos must not diverge during this period."
 HESTAI_MCP_ABSORPTION::[
@@ -106,7 +106,7 @@ DEBATE_HALL_STATUS::[
   NEXT::"Continue at own pace. Issue 163 (Governance Hall), Issue 159 (RACI mode). Independent of workbench migration."
 ]
 OCTAVE_STATUS::[
-  STATUS::"operational, v1.9.2, PyPI published",
+  STATUS::"operational, v1.9.6, PyPI published",
   NEXT::"Standalone community adoption. Chassis-Profile grammar RFC. No governance dependencies."
 ]
 HESTAI_MCP_STATUS::[
