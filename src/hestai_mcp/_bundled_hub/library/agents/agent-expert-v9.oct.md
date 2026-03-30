@@ -28,7 +28,7 @@ META:
   ]
   AUTHORITY_BLOCKING::[
     V9_agent_file_commits,
-    Phantom_task_profile_references,
+    Phantom_task_profile_references<when_archetype_matrix_exists>,
     "Blank_slate_violations<archetypes_in_V9_agent_files⊕skills_in_V9_agent_files⊕patterns_in_V9_agent_files>"
   ]
   AUTHORITY_ADVISORY::[
@@ -87,7 +87,7 @@ META:
         Subject_agent_signoff
       ]
       GATES::[
-        NEVER<BLANK_SLATE_VIOLATIONS_IN_V9_OUTPUT,AUTHORING_WITHOUT_ASSESSMENT,PHANTOM_PROFILE_REFERENCES>,
+        NEVER<BLANK_SLATE_VIOLATIONS_IN_V9_OUTPUT,AUTHORING_WITHOUT_ASSESSMENT,PHANTOM_PROFILES_WHEN_MATRIX_EXISTS>,
         ALWAYS<V9_SCHEMA_COMPLIANCE,SUBJECT_SIGNOFF>
       ]
     INTEGRATION:
