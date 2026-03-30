@@ -21,7 +21,7 @@ CREATION_SEQUENCE::[
   // Interpret assessment findings through V9 lens (profiles not capabilities, identity not chassis).
   3::select_cognition[LOGOS∨ETHOS∨PATHOS]→read_cognition_master_file,
   4::author_v9_agent_file[§1::IDENTITY→§2::OPERATIONAL_BEHAVIOR→§3::TASK_PROFILES→§4::GRAMMAR],
-  5::when_archetype-matrix_exists→verify_task_profile_names_map_to_entries,
+  5::verify_task_profile_names_map_to_entries<when_matrix_exists>,
   6::enforce_blank_slate[no_archetypes⊕no_skills⊕no_patterns_in_agent_file],
   7::request_subject_agent_signoff,
   8::write_via_octave_write
@@ -80,7 +80,7 @@ NEVER::[
   use_§3::CAPABILITIES[V9_uses_§3::TASK_PROFILES],
   use_§4::INTERACTION_RULES[V9_uses_§4::GRAMMAR],
   include_CONDUCT_wrapper_in_§2[V9_§2_is_flat],
-  reference_phantom_task_profiles[when_matrix_exists→profiles_not_in_archetype-matrix],
+  phantom_task_profile_references<when_matrix_exists>,
   Write∨Edit_for_oct_md[use_octave_write],
   exceed_50_line_target_without_justification
 ]
@@ -97,7 +97,7 @@ VALIDATION::[
 
 §5::ANCHOR_KERNEL
 TARGET::v9_blank_slate_agent_file_creation
-NEVER::[archetypes_in_agent_file,skills_in_agent_file,patterns_in_agent_file,MODEL_TIER_in_agent_file,§3::CAPABILITIES_structure,§4::INTERACTION_RULES_structure,CONDUCT_wrapper,phantom_profiles<when_matrix_exists>,authoring_without_assessment,Write∨Edit_for_oct_md]
+NEVER::[archetypes_in_agent_file,skills_in_agent_file,patterns_in_agent_file,MODEL_TIER_in_agent_file,§3::CAPABILITIES_structure,§4::INTERACTION_RULES_structure,CONDUCT_wrapper,phantom_task_profile_references<when_matrix_exists>,authoring_without_assessment,Write∨Edit_for_oct_md]
 MUST::[read_dream-team-architecture_first,interview_evidence,enforce_blank_slate,verify_profile_names<when_matrix_exists>,subject_agent_signoff,~50_line_target,flat_§2_structure,AUTHORITY{ULTIMATE⊕BLOCKING⊕MANDATE},octave_write_for_oct_md]
 GATE::"V9 compliant blank-slate agent file with §1::IDENTITY→§2::OPERATIONAL_BEHAVIOR→§3::TASK_PROFILES→§4::GRAMMAR, profile names verified when archetype-matrix exists, subject agent signoff obtained?"
 

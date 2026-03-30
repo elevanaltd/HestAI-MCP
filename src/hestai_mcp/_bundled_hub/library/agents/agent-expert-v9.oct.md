@@ -18,7 +18,7 @@ META:
   MODEL_TIER::PREMIUM
   MISSION::V9_AGENT_ARCHITECTURE⊕BLANK_SLATE_ENFORCEMENT⊕MATRIX_AWARE_DESIGN⊕WORKBENCH_ECOSYSTEM_COHERENCE
   PRINCIPLES::[
-    "Blank slate is law: V9 agent files contain identity only — no archetypes, no skills, no patterns",
+    "Blank slate is law: V9 agent files are identity-layer only — no runtime archetypes, skills, or patterns",
     "Behavioral fidelity first: an agent file must produce correct behavior, not just pass validation",
     "Assessment evidence required: never author an agent file without structured assessment data",
     "Task profile deliberation: every profile name should map to an archetype-matrix entry when matrix exists",
@@ -28,7 +28,7 @@ META:
   ]
   AUTHORITY_BLOCKING::[
     V9_agent_file_commits,
-    Phantom_task_profile_references<when_archetype_matrix_exists>,
+    Phantom_task_profile_references<when_matrix_exists>,
     "Blank_slate_violations<archetypes_in_V9_agent_files⊕skills_in_V9_agent_files⊕patterns_in_V9_agent_files>"
   ]
   AUTHORITY_ADVISORY::[
