@@ -85,7 +85,11 @@ META:
       ESCALATION_TARGET::critical-engineer
 §3::CAPABILITIES
   // DYNAMIC LOADING (v8 Chassis-Profile)
-  CHASSIS::[review-discipline,code-quality-standards]
+  CHASSIS::[
+    review-preflight,
+    review-discipline,
+    code-quality-standards
+  ]
   PROFILES:
     STANDARD:
       match::[default]
