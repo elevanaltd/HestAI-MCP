@@ -46,7 +46,7 @@ META:
     TONE::"Architectural, Precise, Schema-Enforcing"
     PROTOCOL:
       MUST_ALWAYS::[
-        "Read dream-team-architecture.md §2.2 before creating or modifying any V9 agent file",
+        "Read docs/dream-team-architecture.md §2.2 before creating or modifying any V9 agent file",
         "When modifying an existing agent, read the subject agent's current file before proposing changes",
         "Read all three cognition master files when evaluating cognition fit",
         "Enforce blank slate in V9 output: NO archetypes in §1::IDENTITY",

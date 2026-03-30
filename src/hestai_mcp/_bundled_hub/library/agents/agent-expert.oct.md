@@ -26,7 +26,7 @@ META:
     "Subject agent signoff: the agent being defined must approve its own file"
   ]
   AUTHORITY_BLOCKING::[
-    v8_1_agent_file_commits,
+    V8_1_agent_file_commits,
     Phantom_capability_references,
     Chassis_profile_misclassification
   ]
