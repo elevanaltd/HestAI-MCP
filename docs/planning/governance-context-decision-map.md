@@ -314,10 +314,72 @@ What's NOT safe to build without resolving D1:
 
 ---
 
-## 8. RECOMMENDED NEXT MOVE
+## 8. D1 DEBATE OUTCOME (2026-04-06)
 
-1. **Run a D1 debate** (Wind/Wall/Door) on "Thick Client vs Governance Engine" with the full context from this document
-2. **Resolve D2 now** — Hybrid (Option C) is safe regardless of D1
-3. **Build Step 3A** with extensible Position 3 — don't hardcode the context source
-4. **Track the missing capabilities** as issues in the Workbench repo (session intelligence, context synthesis, review infrastructure)
-5. **Update the Ecosystem Overview and Lighthouse** to align once D1 is resolved — having three contradictory architectural documents is itself a governance failure
+Two parallel Wind/Wall/Door debates were run on D1 — standard tier and premium tier — with the full decision map as context.
+
+### Result: Unanimous convergence on Governance Engine via Stdio
+
+**Both tiers rejected the Thick Client model.** Both converged on the same architecture:
+
+**Standard tier** named it: "Stateless Stdio Orchestration (The Git/VS Code Model)"
+**Premium tier** named it: "The Adapter Pattern Data Plane (Strict Governance Isolation)"
+
+Architecture: `hestai-context-mcp` (refined Python MCP over stdio) + Workbench (consumer adapter) + Vault (identity). The Workbench spawns the governance engine as a subprocess (like VS Code spawns Git) — zero network overhead, zero daemon management, same DX as a monolith but structurally decoupled.
+
+### Key Arguments That Won
+
+1. **Subtraction yields negative complexity.** Removing identity injection and anchor ceremony from hestai-mcp is LESS code, not more federation.
+2. **Stdio eliminates federation concerns.** Not a networked daemon — a subprocess. No ports, no HTTP, no daemon lifecycle.
+3. **Rebuild survival is structural.** When Workbench migrates Crystal→TS, only a ~30-line stdio MCP client adapter needs rewriting. The 1500+ LOC Python governance logic survives untouched.
+4. **Terminal parity is automatic.** CLI users configure `hestai-context-mcp` as a stdio MCP server — identical governance regardless of entry point.
+
+### Document Contradiction Resolution
+
+- **Lighthouse v3.1**: Upheld — governance remains standalone System Steward
+- **Ecosystem Overview v3.0**: Corrected — Workbench absorbs UX routing and dispatch, NOT the governance engine
+- **PROJECT-CONTEXT v1.3**: Validated — Vault handles identity injection, enabling the clean break from that concern
+
+### Wind's Heretical Insight: "D1 Is Three Decisions"
+
+Wind (standard tier, Path 3) proposed that governance isn't one decision but three:
+- **D1a** (compile-time): Context synthesis, focus resolution → Payload Compiler phase or MCP call
+- **D1b** (post-session): Transcript parsing, redaction, learnings → async pipeline
+- **D1c** (write-time): Single-writer enforcement → git hooks, not runtime
+
+This decomposition was not fully validated by Wall but was acknowledged as "conceptually plausible." The overlap between clock_in output and KVAEPH Position 3 requirements should be tested.
+
+### Wall's Conditions (Required Before Implementation)
+
+Both Walls issued CONDITIONAL_GO, requiring:
+1. Formal ADR resolving the three-document architectural contradiction
+2. Stable interface contract for governance MCP tool endpoints
+3. Feature-parity matrix with tests for all current hestai-mcp capabilities
+4. Terminal parity proof (full lifecycle via CLI without Workbench)
+5. Explicit abandonment of ADR-0033's never-built `document_submit` runtime gatekeeper
+6. Credential-redaction equivalence test corpus before any migration
+
+### Agreed Implementation Phases
+
+| Phase | Action | Description |
+|-------|--------|-------------|
+| 1. Subtraction | `hestai-mcp` → `hestai-context-mcp` | Remove `_bundled_hub`, identity injection, anchor ceremonies. Retain System Steward core. Bind to stdio MCP. |
+| 2. Orchestration | Workbench as consumer | Thin subprocess adapter in Payload Compiler. Spawn `python -m hestai_context_mcp` via stdio. Inject `clock_in` output at KVAEPH Position 3. |
+| 3. North Star | Unify injection | System NS from vault (static). Product NS from `hestai-context-mcp` during `clock_in` (dynamic). Kill `load-north-star-summary.sh`. |
+| 4. Enforcement | Git, not services | Abandon ADR-0033 runtime gatekeeper. Deploy `.githooks/pre-commit` for `.hestai/` validation. |
+
+### Debate Records
+
+- Standard: `2026-04-06-d1-thick-client-vs-governance-engine-standard`
+- Premium: `2026-04-06-d1-thick-client-vs-governance-engine-premium`
+
+---
+
+## 9. NEXT MOVES (POST-DEBATE)
+
+1. **Write ADR** resolving the three-document contradiction, adopting the Three-Service Model
+2. **Resolve D2** — Hybrid (Option C) is safe and aligned with debate outcome
+3. **Build Step 3A** with extensible Position 3 that queries `hestai-context-mcp` for dynamic context
+4. **Begin Phase 1** (Subtraction) in hestai-mcp — strip identity injection, expose System Steward via stdio
+5. **Update Ecosystem Overview and Lighthouse** to align with debate outcome
+6. **Track Wall's mitigations** as blocking issues before production commitment
