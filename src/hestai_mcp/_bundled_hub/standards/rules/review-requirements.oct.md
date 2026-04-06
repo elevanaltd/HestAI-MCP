@@ -25,7 +25,7 @@ GOVERNANCE::[
   RATIONALE::"Governance documents need standards alignment review only"
 ]
 SECURITY::[
-  TRIGGER::"Code in auth/, session/, config/env, base.py, shared/, hooks/, tools/, mcp/tools/, clink/agents/, .sql, or >500 lines",
+  TRIGGER::"Code in auth/, session/, config/env, path_utils, base.py, shared/, hooks/, tools/, mcp/tools/, clink/agents/, .sql, or >500 lines",
   REQUIRED_REVIEWERS::"{CIV, CE, CRS, TMG}",
   RATIONALE::"Security-touching and architectural code needs full review chain"
 ]
