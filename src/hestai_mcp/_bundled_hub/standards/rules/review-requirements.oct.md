@@ -25,9 +25,14 @@ GOVERNANCE::[
   RATIONALE::"Governance documents need standards alignment review only"
 ]
 SECURITY::[
-  TRIGGER::"Code in auth/, session/, config/env, path_utils, base.py, shared/, hooks/, tools/, mcp/tools/, clink/agents/, .sql, or >500 lines",
+  TRIGGER::"Code in auth/, session/, config/env, path_utils, base.py, shared/, hooks/, tools/, mcp/tools/, clink/agents/, or .sql",
   REQUIRED_REVIEWERS::"{CIV, CE, CRS, TMG}",
   RATIONALE::"Security-touching and architectural code needs full review chain"
+]
+LINE_COUNT_ESCALATION::[
+  TRIGGER::">500 non-exempt lines changed (any content type)",
+  EFFECT::"Adds CIV to existing required_reviewers (does NOT replace facet roles)",
+  RATIONALE::"Large changes need implementation validation regardless of content type"
 ]
 ROUTINE_CODE::[
   TRIGGER::"Standard code files (.py, .ts, .js, .yml, .toml, non-generated .json)",
@@ -47,7 +52,7 @@ TIER_0_EXEMPT::[
   ]
 ]
 TIER_1_SELF::[
-  CONDITION::"non_exempt_lines<10 AND single_non_exempt_file AND no facets requiring external reviewers",
+  CONDITION::"non_exempt_lines<10 AND single_non_exempt_file AND no_new_test_files AND facets exclude SECURITY, META_CONTROL_PLANE, EXECUTABLE_SPEC (GOVERNANCE and ROUTINE_CODE allow self-review at small scale)",
   PROOF::"{role} SELF-REVIEWED: {rationale} OR HO REVIEWED: {rationale}"
 ]
 TIER_2_STANDARD::"When required reviewers do NOT include CIV or PE"
