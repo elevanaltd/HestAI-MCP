@@ -6,7 +6,7 @@ META:
 §1::CORE_PROTOCOL
 CYCLE::[
   RED::"Write test describing behavior -> MUST FAIL -> Verify fails for right reason",
-  TMG_GATE::"[IF_TIER>=T2] MUST HALT -> Load review-red skill -> TMG MUST APPROVE tests before GREEN proceeds",
+  TMG_GATE::"[IF_TIER>=T2] MUST HALT -> TMG must review and APPROVE tests before GREEN proceeds",
   GREEN::"Write minimal code to pass test -> MUST PASS -> Resist feature creep",
   REFACTOR::"Identify complexity -> Refactor small steps -> Run tests -> Revert if fail"
 ]
