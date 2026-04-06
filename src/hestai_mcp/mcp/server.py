@@ -280,7 +280,50 @@ def inject_system_governance(project_root: Path) -> None:
     logger.info(f"Injected system governance v{get_hub_version()} to {hestai_sys_dir}")
 
 
-def ensure_system_governance(project_root: Path) -> dict[str, Any]:
+def _is_git_worktree(project_root: Path) -> bool:
+    """Detect if project_root is a git worktree.
+
+    Git worktrees have a .git FILE (not directory) containing a gitdir pointer.
+    Normal repos have a .git DIRECTORY.
+    """
+    git_path = project_root / ".git"
+    return git_path.is_file()
+
+
+def _get_main_repo_from_worktree(project_root: Path) -> Path | None:
+    """Derive the main repo path from a worktree's .git file.
+
+    Parses the gitdir line from the .git file to find the main repo root.
+    The .git file contains: ``gitdir: /path/to/main/.git/worktrees/<name>``
+
+    Returns:
+        Path to the main repo root, or None if not a worktree or cannot parse.
+    """
+    git_path = project_root / ".git"
+    if not git_path.is_file():
+        return None
+
+    try:
+        content = git_path.read_text().strip()
+    except OSError:
+        return None
+
+    if not content.startswith("gitdir:"):
+        return None
+
+    gitdir = content.split("gitdir:", 1)[1].strip()
+    gitdir_path = Path(gitdir).resolve()
+
+    # Navigate from .git/worktrees/<name> up to the main repo root.
+    # The structure is: <main-repo>/.git/worktrees/<worktree-name>
+    # So we go up 3 levels from the gitdir path to reach the main repo.
+    if gitdir_path.parent.name == "worktrees" and gitdir_path.parent.parent.name == ".git":
+        return gitdir_path.parent.parent.parent
+
+    return None
+
+
+def ensure_system_governance(project_root: Path, *, _propagate: bool = True) -> dict[str, Any]:
     """Ensure .hestai-sys exists and matches the bundled Hub version.
 
     Idempotent behavior:
@@ -288,6 +331,15 @@ def ensure_system_governance(project_root: Path) -> dict[str, Any]:
     - If .hestai-sys/.version matches the hub VERSION *and* required subdirs are
       present, do nothing.
     - Otherwise, (re)inject from the bundled hub.
+
+    When project_root is a git worktree and _propagate is True, opportunistically
+    propagates governance to the main repo as well. Propagation failures are
+    caught and logged -- they never block the worktree result.
+
+    Args:
+        project_root: Project root directory.
+        _propagate: Internal flag to prevent infinite recursion. Callers should
+            not set this; it defaults to True. Set to False on recursive calls.
 
     Returns a structured status dict for diagnostics.
 
@@ -326,14 +378,30 @@ def ensure_system_governance(project_root: Path) -> dict[str, Any]:
         integrity_file = hestai_sys_dir / ".integrity"
         if not integrity_file.exists():
             store_governance_hash(hestai_sys_dir)
-        return {"status": "up_to_date", "current": current, "desired": desired}
+        result: dict[str, Any] = {
+            "status": "up_to_date",
+            "current": current,
+            "desired": desired,
+        }
+    else:
+        inject_system_governance(project_root)
+        result = {
+            "status": "injected" if current is None else "updated",
+            "previous": current,
+            "desired": desired,
+        }
 
-    inject_system_governance(project_root)
-    return {
-        "status": "injected" if current is None else "updated",
-        "previous": current,
-        "desired": desired,
-    }
+    # Opportunistic worktree-to-parent propagation
+    if _propagate and _is_git_worktree(project_root):
+        main_repo = _get_main_repo_from_worktree(project_root)
+        if main_repo is not None:
+            try:
+                ensure_system_governance(main_repo, _propagate=False)
+                logger.debug(f"Propagated governance to parent repo: {main_repo}")
+            except Exception:
+                logger.debug(f"Opportunistic propagation to parent repo failed: {main_repo}")
+
+    return result
 
 
 def bootstrap_system_governance(project_root: Path | None) -> dict[str, Any]:
