@@ -209,7 +209,13 @@ COMMON_EMPHASIS:
   ]
 §7::LIMIT_ENFORCEMENT
 MAX_ARCHETYPES::3
-MIN_RECOMMENDED::2
+ALLOWED_COUNTS::[1, 3]
+// 1 for tactical focus (execution), 3 for multi-objective synthesis (orchestration/planning). Never 2 (binary deadlock).
+TRIAD_PHYSICS::[
+  "N=1::Single vector — collapses search entropy for focused execution (code_writing, security_review, gating)",
+  "N=3::Triad — expands search entropy for multi-objective reasoning (refactoring, orchestration, strategic_planning)",
+  "N=2::FORBIDDEN — binary deadlock creates unresolvable tension without synthesis axis"
+]
 BLOAT_WARNING::">3 archetypes risks behavioral confusion"
 §8::COGNITION_ALIGNMENT
 COMMON_ALIGNMENT:
