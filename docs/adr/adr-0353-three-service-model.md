@@ -187,7 +187,7 @@ ADR-0033's `document_submit` and `context_update` tools were never built (listed
 
 **New enforcement model: Git hooks, not runtime gatekeepers.**
 
-- `.hestai-sys/` enforcement: **Moves to the Vault/Workbench.** The Workbench writes `.hestai-sys/` from the vault at session spawn (same files, different writer). Integrity is guaranteed by the vault being git-backed and the Workbench controlling the write. `hestai-context-mcp` does NOT manage `.hestai-sys/` — that responsibility transfers entirely.
+- `.hestai-sys/` enforcement: **Moves to the Vault/Workbench.** The Workbench writes `.hestai-sys/` from the vault at session spawn (same files, different writer). Integrity is guaranteed by the vault being git-backed and the Workbench controlling the write. `hestai-context-mcp` will NOT manage `.hestai-sys/` — that responsibility will transfer in Phase 2 when the Workbench Payload Compiler is operational. (Current `hestai-mcp` still manages `.hestai-sys/` until the harvest is complete.)
 - `.hestai/` enforcement: Git pre-commit validation (detect malformed OCTAVE, validate naming conventions) — uses repository physics, not synthetic bureaucracy
 - Single-writer is a recommendation, not a runtime lock. Validation-on-read catches corruption.
 

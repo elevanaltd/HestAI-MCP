@@ -320,7 +320,7 @@ Two parallel Wind/Wall/Door debates were run on D1 — standard tier and premium
 
 ### Result: Directional convergence on Governance Engine via Stdio (Wall CONDITIONAL)
 
-**Both tiers converged on the Governance Engine architecture**, with Wall issuing CONDITIONAL (requiring mitigations before production commitment). Debates ended in stalemate — all three roles agreed on direction, but Wall withheld full approval pending implementation evidence. Human judgment accepted the architectural direction.
+**Both tiers converged on the Governance Engine architecture**, with Wall issuing CONDITIONAL (requiring mitigations before production commitment). Debates ended in stalemate — Wind voted YES, Wall voted NO (CONDITIONAL), and Door produced syntheses favouring the Governance Engine but did not formally vote (debate-hall protocol: Door synthesizes, does not vote). Human judgment accepted the architectural direction based on directional agreement across all synthesis attempts.
 
 **Standard tier** named it: "Stateless Stdio Orchestration (The Git/VS Code Model)"
 **Premium tier** named it: "The Adapter Pattern Data Plane (Strict Governance Isolation)"
@@ -369,6 +369,8 @@ Both Walls issued CONDITIONAL_GO, requiring:
 | 4. Enforcement | Git, not services | Abandon ADR-0033 runtime gatekeeper. Deploy `.githooks/pre-commit` for `.hestai/` validation. |
 
 ### Debate Records
+
+Thread IDs (files at `debates/{thread_id}.events.jsonl`):
 
 - Standard: `2026-04-06-d1-thick-client-vs-governance-engine-standard`
 - Premium: `2026-04-06-d1-thick-client-vs-governance-engine-premium`
