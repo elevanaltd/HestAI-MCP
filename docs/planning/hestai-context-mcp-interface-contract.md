@@ -312,7 +312,53 @@ python -m hestai_context_mcp --working-dir /path/to/project
 }
 ```
 
-**Lifecycle**: Process starts when session begins, dies when session ends. Stateless between invocations — all state is on disk in `.hestai/state/`.
+**Lifecycle**: Process starts when session begins, dies when session end. Stateless between invocations — all state is on disk in `.hestai/state/`.
+
+---
+
+## 4.5. ERROR CONTRACT AND ACCEPTANCE CRITERIA
+
+### Error Response Shape
+
+All tools return errors as MCP JSON-RPC error responses:
+
+```json
+{
+  "code": -32000,
+  "message": "string — human-readable error description",
+  "data": {
+    "tool": "string — tool name that failed",
+    "category": "string — 'validation' | 'filesystem' | 'git' | 'transcript' | 'github_api'",
+    "recoverable": "boolean — whether caller can retry"
+  }
+}
+```
+
+### Validation Rules
+
+| Field | Validation | Error on Failure |
+|-------|-----------|-----------------|
+| `session_id` | UUID v4 format, must exist in `.hestai/state/sessions/active/` for clock_out | `validation: session not found` |
+| `working_dir` | Must be absolute path, must exist, must contain `.git/` or `.hestai/` | `validation: not a project directory` |
+| `role` | Alphanumeric + hyphens only (path traversal prevention) | `validation: invalid role format` |
+| `repo` | Must match `owner/name` format | `validation: invalid repo format` |
+| `pr_number` | Positive integer | `validation: invalid PR number` |
+| `verdict` | Must be one of `APPROVED`, `BLOCKED`, `CONDITIONAL` | `validation: invalid verdict` |
+
+### Behavioural Acceptance Criteria
+
+| Tool | Criterion | Testable By |
+|------|-----------|------------|
+| `clock_in` | Creates `session.json` in `.hestai/state/sessions/active/{session_id}/` | Assert file exists after call |
+| `clock_in` | Returns all context fields as non-null when `.hestai/` structure exists | Assert field presence |
+| `clock_in` | Detects focus conflicts with concurrent sessions | Create two sessions with same focus, assert `active_sessions` populated |
+| `get_context` | Returns identical `context` object as clock_in | Compare outputs, assert structural equality |
+| `get_context` | Creates NO files or directories (pure read) | Assert filesystem unchanged |
+| `clock_out` | Archives session to `.hestai/state/sessions/archive/` | Assert archive file exists |
+| `clock_out` | Removes active session directory | Assert active dir deleted |
+| `clock_out` | Redacts credentials in archived transcript | Assert no API key patterns in output |
+| `submit_review` | dry_run=true posts nothing to GitHub | Assert no HTTP calls made |
+| `submit_review` | Rejects invalid verdict values | Assert error response |
 
 ---
 
@@ -355,22 +401,24 @@ Legacy `hestai-mcp` stays **100% intact** — enabling A/B comparison of old sys
 
 ## 7. FEATURE-PARITY MATRIX (M3 Preview)
 
-| Capability | Current hestai-mcp | hestai-context-mcp | Parity |
-|-----------|-------------------|-------------------|--------|
-| Session creation with focus resolution | clock_in | clock_in | 1:1 |
-| Git branch focus inference | clock_in internals | clock_in internals | 1:1 |
-| Focus conflict detection | pending_sessions | clock_in internals | 1:1 |
-| Context file discovery | clock_in internals | clock_in + get_context | Enhanced |
-| AI context synthesis | clock_in (optional) | clock_in (optional) | 1:1 |
-| Product North Star serving | N/A (hook does this) | clock_in + get_context | NEW |
-| ContextSteward phase constraints | clock_in internals | clock_in + get_context | 1:1 |
-| Transcript parsing | clock_out | clock_out | 1:1 |
-| Credential redaction | RedactionEngine | RedactionEngine | 1:1 |
-| OCTAVE compression | clock_out | clock_out | 1:1 |
-| Learnings indexing | clock_out | clock_out | 1:1 |
-| Review submission | submit_review | submit_review | 1:1 |
-| Dry-run review validation | submit_review | submit_review | 1:1 |
-| Agent identity serving | bind | DELETED | Moved to Vault |
-| `.hestai-sys/` injection | bootstrap | DELETED | Moved to Vault |
-| Governance integrity | SHA-256/chmod | DELETED | Vault handles |
-| Read-only context query | N/A | get_context | NEW |
+**Note**: This matrix describes target-state parity. Items marked "NEW" or "1:1 (redesign)" require new tests in `hestai-context-mcp` built via TDD during Phase 1. Legacy test files are reference material, not copy targets. clock_out is known broken (ClaudeJsonlLens crashes on current Claude JSONL format — `queue-operation`, `progress`, `pr-link` record types unhandled) and must be redesigned, not harvested.
+
+| Capability | Current hestai-mcp | hestai-context-mcp | Parity | Test Status |
+|-----------|-------------------|-------------------|--------|-------------|
+| Session creation with focus resolution | clock_in | clock_in | 1:1 (harvest) | Legacy: `test_clock_in.py`. New tests required for structured return shape. |
+| Git branch focus inference | clock_in internals | clock_in internals | 1:1 (harvest) | Legacy: `test_clock_in.py` covers branch patterns. |
+| Focus conflict detection | pending_sessions | clock_in internals | 1:1 (harvest) | Legacy: `test_clock_in.py`. |
+| Context file discovery | clock_in internals | clock_in + get_context | Enhanced | New tests required for get_context. |
+| AI context synthesis | clock_in (optional) | clock_in (optional) | 1:1 (harvest) | Legacy: `test_clock_in.py` covers synthesis path. |
+| Product North Star serving | N/A (hook does this) | clock_in + get_context | **NEW** | **No tests exist.** Must build with TDD. |
+| ContextSteward phase constraints | clock_in internals | clock_in + get_context | 1:1 (harvest) | Legacy: `test_context_steward.py`. |
+| Transcript parsing | clock_out | clock_out | **REDESIGN** | **Legacy broken.** ClaudeJsonlLens crashes on current format. Redesign with provider adapter pattern. |
+| Credential redaction | RedactionEngine | RedactionEngine | 1:1 (harvest) | Legacy: `test_security.py` has test corpus. Verify currency. |
+| OCTAVE compression | clock_out | clock_out | **REDESIGN** | Depends on transcript parsing redesign. |
+| Learnings indexing | clock_out | clock_out | **REDESIGN** | Depends on transcript parsing redesign. |
+| Review submission | submit_review | submit_review | 1:1 (harvest) | Legacy: `test_submit_review.py`. |
+| Dry-run review validation | submit_review | submit_review | 1:1 (harvest) | Legacy: `test_submit_review.py`. |
+| Agent identity serving | bind | DELETED | Moved to Vault | N/A |
+| `.hestai-sys/` injection | bootstrap | DELETED | Moved to Vault | N/A |
+| Governance integrity | SHA-256/chmod | DELETED | Vault handles | N/A |
+| Read-only context query | N/A | get_context | **NEW** | **No tests exist.** Must build with TDD. |

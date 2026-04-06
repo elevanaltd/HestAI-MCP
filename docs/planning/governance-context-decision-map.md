@@ -318,9 +318,9 @@ What's NOT safe to build without resolving D1:
 
 Two parallel Wind/Wall/Door debates were run on D1 — standard tier and premium tier — with the full decision map as context.
 
-### Result: Unanimous convergence on Governance Engine via Stdio
+### Result: Directional convergence on Governance Engine via Stdio (Wall CONDITIONAL)
 
-**Both tiers rejected the Thick Client model.** Both converged on the same architecture:
+**Both tiers converged on the Governance Engine architecture**, with Wall issuing CONDITIONAL (requiring mitigations before production commitment). Debates ended in stalemate — all three roles agreed on direction, but Wall withheld full approval pending implementation evidence. Human judgment accepted the architectural direction.
 
 **Standard tier** named it: "Stateless Stdio Orchestration (The Git/VS Code Model)"
 **Premium tier** named it: "The Adapter Pattern Data Plane (Strict Governance Isolation)"
@@ -332,7 +332,7 @@ Architecture: `hestai-context-mcp` (refined Python MCP over stdio) + Workbench (
 1. **Subtraction yields negative complexity.** Removing identity injection and anchor ceremony from hestai-mcp is LESS code, not more federation.
 2. **Stdio eliminates federation concerns.** Not a networked daemon — a subprocess. No ports, no HTTP, no daemon lifecycle.
 3. **Rebuild survival is structural.** When Workbench migrates Crystal→TS, only a ~30-line stdio MCP client adapter needs rewriting. The 1500+ LOC Python governance logic survives untouched.
-4. **Terminal parity is automatic.** CLI users configure `hestai-context-mcp` as a stdio MCP server — identical governance regardless of entry point.
+4. **Terminal parity for clock_in is automatic.** CLI users configure `hestai-context-mcp` as a stdio MCP server — identical context injection regardless of entry point. clock_out transcript parsing is currently Claude-only; provider adapters needed for full lifecycle parity.
 
 ### Document Contradiction Resolution
 
@@ -363,7 +363,7 @@ Both Walls issued CONDITIONAL_GO, requiring:
 
 | Phase | Action | Description |
 |-------|--------|-------------|
-| 1. Subtraction | `hestai-mcp` → `hestai-context-mcp` | Remove `_bundled_hub`, identity injection, anchor ceremonies. Retain System Steward core. Bind to stdio MCP. |
+| 1. Harvest | Create `hestai-context-mcp` | New repo. Harvest proven System Steward code from hestai-mcp. Build with clean TDD. Legacy stays intact for A/B comparison. |
 | 2. Orchestration | Workbench as consumer | Thin subprocess adapter in Payload Compiler. Spawn `python -m hestai_context_mcp` via stdio. Inject `clock_in` output at KVAEPH Position 3. |
 | 3. North Star | Unify injection | System NS from vault (static). Product NS from `hestai-context-mcp` during `clock_in` (dynamic). Kill `load-north-star-summary.sh`. |
 | 4. Enforcement | Git, not services | Abandon ADR-0033 runtime gatekeeper. Deploy `.githooks/pre-commit` for `.hestai/` validation. |
