@@ -38,6 +38,7 @@ _BOT_LOGIN_SET: frozenset[str] = frozenset(
     | {
         "github-actions",
         "copilot",  # Legacy login variant for github-copilot[bot]
+        "Copilot",  # GitHub API returns capital-C variant
         "cubic-bot",
         "qodo-merge-pro",
         "qodo-merge-pro-for-open-source",

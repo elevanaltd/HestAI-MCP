@@ -1439,6 +1439,7 @@ class TestPerVariantBotExclusion:
         [
             "github-copilot",  # Stripped [bot] format
             "copilot",  # Legacy login variant (no [bot], no github- prefix)
+            "Copilot",  # GitHub API returns capital-C variant
         ],
     )
     def test_copilot_variants_excluded(self, login, ci_environment, monkeypatch) -> None:
