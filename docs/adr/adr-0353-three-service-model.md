@@ -64,7 +64,7 @@ Two Wind/Wall/Door debates were run (standard + premium tier) with the full deci
 
 The HestAI ecosystem adopts a three-service architecture where each service owns exactly one concern:
 
-```
+```text
 ┌─────────────────────────────────────────────────┐
 │ WORKBENCH (Node/Crystal → future TypeScript)    │
 │                                                  │
@@ -128,7 +128,7 @@ The HestAI ecosystem adopts a three-service architecture where each service owns
 
 | NOT harvested (stays in legacy / moves to Vault) | Harvested (System Steward core) |
 |--------------------------------------------------|-------------------------------|
-| `_bundled_hub/` (121 files) → Vault | `clock_in` (session/context logic) |
+| `_bundled_hub/` (144 files) → Vault | `clock_in` (session/context logic) |
 | `.hestai-sys/` injection → Vault/Workbench | `clock_out` (knowledge extraction) |
 | `.hestai-sys/` integrity enforcement (SHA-256, chmod) → Vault | `ContextSteward` (phase constraints) |
 | Agent definition serving → Vault | `RedactionEngine` (credential safety) |
@@ -138,7 +138,7 @@ The HestAI ecosystem adopts a three-service architecture where each service owns
 
 **Implementation**: Create `elevanaltd/hestai-context-mcp` as a new repo, harvest the proven code, build with clean TDD. Legacy `hestai-mcp` stays intact — enabling A/B testing of old ceremony vs new engine until the new system is proven.
 
-**Rebuild survival is structural.** When the Workbench migrates Crystal → TypeScript, only a ~30-line stdio MCP client adapter needs rewriting. The 1500+ lines of Python governance logic survive untouched. The existing 705 tests and 92% coverage continue to protect the pipeline.
+**Rebuild survival is structural.** When the Workbench migrates Crystal → TypeScript, only a ~30-line stdio MCP client adapter needs rewriting. The 1500+ lines of Python governance logic survive untouched. The existing 930 tests and 92% coverage continue to protect the pipeline.
 
 **Terminal parity is automatic.** Because governance is a standard MCP server, CLI users get identical governance by adding one entry to their MCP config. No Workbench required. This preserves the current workflow where `hestai-mcp` provides governance regardless of entry point.
 
@@ -213,9 +213,9 @@ Per both debate outcomes, the following mitigations must be satisfied:
 | ID | Condition | Status |
 |----|-----------|--------|
 | M1 | Formal ADR resolving document contradiction | **This ADR** |
-| M2 | Stable interface contract for governance MCP endpoints | Pending |
-| M3 | Feature-parity matrix with tests | Pending |
-| M4 | Terminal parity proof (full lifecycle via CLI without Workbench) | Pending |
+| M2 | Stable interface contract for governance MCP endpoints | **DONE** (`docs/planning/hestai-context-mcp-interface-contract.md`) |
+| M3 | Feature-parity matrix with tests | **DONE** (interface contract §7, annotated with test status) |
+| M4 | Terminal parity proof (full lifecycle via CLI without Workbench) | Pending (requires Phase 1 harvest) |
 | M5 | Credential-redaction equivalence test corpus | Existing (RedactionEngine tests) |
 | M6 | Explicit ADR-0033 Phase 3 deprecation | **This ADR §Enforcement** |
 

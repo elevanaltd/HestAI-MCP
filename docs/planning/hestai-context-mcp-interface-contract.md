@@ -399,7 +399,7 @@ Legacy `hestai-mcp` stays **100% intact** — enabling A/B comparison of old sys
 
 ---
 
-## 7. FEATURE-PARITY MATRIX (M3 Preview)
+## 7. FEATURE-PARITY MATRIX (M3)
 
 **Note**: This matrix describes target-state parity. Items marked "NEW" or "1:1 (redesign)" require new tests in `hestai-context-mcp` built via TDD during Phase 1. Legacy test files are reference material, not copy targets. clock_out is known broken (ClaudeJsonlLens crashes on current Claude JSONL format — `queue-operation`, `progress`, `pr-link` record types unhandled) and must be redesigned, not harvested.
 
