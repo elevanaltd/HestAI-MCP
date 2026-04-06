@@ -29,6 +29,7 @@ This is the **single source of truth** for error recovery architecture. Implemen
 - **Dream Team Architecture:** This spec implements B2 BUILD error recovery (§1.3 rework loop) using the Archetype Matrix profile system (§2.4).
 - **Ecosystem Lighthouse:** Future Lighthouse update should reference this spec for Governance Engine capabilities.
 - **PROJECT-CONTEXT:** Per-repo contexts may note this spec exists; this spec is authoritative.
+- **RCCAFP Skill (`library/skills/rccafp/SKILL.md`):** The existing RCCAFP skill defines a 5-phase HO-orchestrated incident management protocol for system-level incidents (directory-based artifacts under `.hestai/state/incidents/`). This spec defines a lightweight single-agent build-failure tool that captures the same RCCAFP principles (root cause, corrective action, future proofing) in a compact JSON record. **These are complementary, not conflicting:** the `submit_rccafp_record` tool handles local build failures within a single IL session; the full RCCAFP skill handles system-level incidents requiring multi-agent coordination. When `escalation_required=true` triggers dispatch to a specialist AND the issue is determined to be systemic, the specialist may invoke the full RCCAFP incident protocol.
 
 ---
 
@@ -74,6 +75,7 @@ The forced structural output creates an **autoregressive state-lock** — subseq
 
 | Field | Type | Required | Purpose |
 |---|---|---|---|
+| `working_dir` | String | Yes | Project root path for resolving `.hestai/state/` target directory. Required for multi-repo path resolution — mirrors `clock_in`, `clock_out`, `bind` patterns. |
 | `context_summary` | String | Yes | What was the implementation intent before the failure? Enables lossless dispatch if escalated. |
 | `root_cause_analysis` | String | Yes | What actually broke? |
 | `fix_attempt_1` | String | Yes | First hypothesis: what was tried, why it failed |
@@ -81,7 +83,27 @@ The forced structural output creates an **autoregressive state-lock** — subseq
 | `escalation_required` | Boolean | Yes | The binary structural gate — determines whether the agent continues or a specialist is dispatched |
 | `future_proofing_rule` | String | Yes | If fixed: prevention rule for the codebase. If escalated: context constraints the specialist needs. |
 
-**Logging:** All submissions are appended to `.hestai/state/error-metrics.jsonl` as timestamped JSON lines. This satisfies **I1 (Persistent Cognitive Continuity)** for cross-session learning and enables **B3 REINTEGRATE** to extract error patterns.
+**Logging:** All submissions are appended to `{working_dir}/.hestai/state/error-metrics.jsonl`. This satisfies **I1 (Persistent Cognitive Continuity)** for cross-session learning and enables **B3 REINTEGRATE** to extract error patterns.
+
+**Record envelope:** Each JSON line is a self-contained record with server-generated metadata:
+
+```json
+{
+  "record_id": "rccafp-{uuid4}",
+  "timestamp": "ISO-8601",
+  "session_id": "from active session",
+  "agent_role": "from active permit",
+  "working_dir": "/path/to/project",
+  "context_summary": "...",
+  "root_cause_analysis": "...",
+  "fix_attempt_1": "...",
+  "fix_attempt_2": null,
+  "escalation_required": false,
+  "future_proofing_rule": "..."
+}
+```
+
+Writes must be atomic (write to temp file, then rename) to prevent partial records from concurrent sessions.
 
 ### 2.3 Canonical 7-Step Error Recovery Workflow
 
@@ -121,8 +143,10 @@ The Payload Compiler must support a `ReanchoringUploadGenerator` that:
 ### 3B. Governance Engine (hestai-context-mcp)
 
 Implement `submit_rccafp_record` as an MCP tool alongside existing `clock_in`, `clock_out`, `bind`:
+- Accept `working_dir` for path resolution (same pattern as existing tools)
 - Validate schema (all required fields present, types correct)
-- Append to `.hestai/state/error-metrics.jsonl` as timestamped JSON line with `record_id`
+- Append to `{working_dir}/.hestai/state/error-metrics.jsonl` with server-generated envelope (§2.2)
+- Atomic writes (temp file + rename) to prevent partial records
 - Return confirmation with `record_id` for dispatch reference
 - The tool itself does NOT dispatch — it records and returns. Dispatch is the Workbench's responsibility.
 
