@@ -1,11 +1,11 @@
 ---
 type: LIGHTHOUSE
 id: ecosystem-lighthouse
-version: 3.1
+version: 3.2
 status: ACTIVE
 purpose: Target state vision for the fully integrated HestAI ecosystem
 created: 2026-02-25
-revised: 2026-03-28
+revised: 2026-04-06
 origin: Project 15 ecosystem build order coordination
 tracking: https://github.com/orgs/elevanaltd/projects/15
 # // REFERENCE: points-to-canonical (.hestai-sys/ runtime-injected copy; this is the _bundled_hub source)
@@ -13,9 +13,9 @@ tracking: https://github.com/orgs/elevanaltd/projects/15
 
 # HESTAI ECOSYSTEM LIGHTHOUSE
 
-**Version:** 3.1
+**Version:** 3.2
 **Status:** ACTIVE
-**Revised:** 2026-03-28
+**Revised:** 2026-04-06
 
 ---
 
@@ -27,12 +27,20 @@ It is **not** a system standard (that's the System North Star), **not** a build 
 
 **This document will change.** When reality contradicts this vision, update the document. When a better architecture emerges, rewrite the section. The value is in having a shared picture of where we're going, not in defending a frozen plan.
 
-> **SUPERSESSION NOTE (2026-03-28):** The Ecosystem Overview v3.0 and Dependency Graph v3.0 now describe a Thick Client architecture where hestai-workbench absorbs hestai-mcp and odyssean-anchor-mcp. This Lighthouse predates that decision and still references the federation model. Sections describing HestAI Core as a separate server, OA rebuilding into hestai-mcp, and the old critical path are superseded by the v3.0 TARGET docs. This Lighthouse will be updated to align in a future PR.
+> **SUPERSESSION NOTE (2026-04-06):** ADR-0353 (Three-Service Model) resolves the architectural contradiction between this Lighthouse, the Ecosystem Overview v3.0, and the Workbench PROJECT-CONTEXT. The resolution:
+>
+> - **This Lighthouse's Layer 1 (HestAI Core as standalone service): UPHELD.** Governance/context management remains a standalone MCP server, now named `hestai-context-mcp`. The Lighthouse's vision of a separate governance service was correct.
+> - **Ecosystem Overview v3.0 Thick Client absorption model: CORRECTED.** The Workbench absorbs UX routing and dispatch, but NOT the governance engine. `.hestai-sys/` is written by Workbench from Vault at spawn, but session lifecycle and context synthesis remain in the standalone engine.
+> - **What changes from this Lighthouse:** Agent identity moves to the Vault (git-backed library), not HestAI Core. Anchor ceremony is replaced by Alley-Oop pattern. `hestai-context-mcp` is created via harvest from hestai-mcp (not subtraction), with legacy staying intact for A/B comparison.
+> - **Transport:** stdio MCP (subprocess, not daemon) — the "Git/VS Code" pattern.
+>
+> See ADR-0353 and `docs/planning/governance-context-decision-map.md` for full details.
 
 **Relationship to other documents:**
+- **ADR-0353:** Resolves the three-document contradiction. Canonical for architectural direction.
 - **System North Star:** Immutable methodology (I1-I6). The Lighthouse operates within those laws.
-- **Ecosystem Overview:** v3.0 (STATUS::TARGET) describes the approved Thick Client architecture. Supersedes this Lighthouse for architectural direction.
-- **Ecosystem Dependency Graph:** The sequenced build order for ecosystem migration. See Overview v3.0 for current target architecture.
+- **Ecosystem Overview v3.0:** CORRECTED by ADR-0353. Workbench absorbs UX/dispatch only, not governance engine.
+- **Ecosystem Dependency Graph:** Build sequence. Being updated to reflect harvest approach.
 - **Product North Stars:** Per-repo vision. Each should move toward this ecosystem vision.
 
 ---
