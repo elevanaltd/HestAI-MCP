@@ -19,12 +19,26 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+# --- Advisory bot accounts ---
+# Bot comments are ADVISORY ONLY: they provide context for reviewers but NEVER
+# satisfy or block review gates.  The canonical list uses GitHub's [bot] suffix
+# convention; _BOT_LOGIN_SET is derived for comment filtering.
+ADVISORY_BOTS: list[str] = [
+    "cubic-dev-ai[bot]",
+    "qodo-code-review[bot]",
+    "coderabbitai[bot]",
+    "github-copilot[bot]",
+]
+
 # --- Known bot account logins whose comments must be excluded from approval matching ---
+# Derived from ADVISORY_BOTS (strip "[bot]" suffix) plus legacy login variants
+# that GitHub may use for the same accounts.
 _BOT_LOGIN_SET: frozenset[str] = frozenset(
-    {
+    {name.removesuffix("[bot]") for name in ADVISORY_BOTS}
+    | {
         "github-actions",
-        "coderabbitai",
-        "copilot",
+        "copilot",  # Legacy login variant for github-copilot[bot]
+        "Copilot",  # GitHub API returns capital-C variant
         "cubic-bot",
         "qodo-merge-pro",
         "qodo-merge-pro-for-open-source",
@@ -480,9 +494,22 @@ def check_pr_comments(
         pr_body = pr_data.get("body")
         if pr_body:
             searchable_texts.append(pr_body)
-        searchable_texts.extend(
-            c.get("body", "") for c in pr_data.get("comments", []) if not _is_bot_comment(c)
-        )
+
+        # Filter comments, logging any bot comments that are skipped
+        skipped_bots: list[str] = []
+        for c in pr_data.get("comments", []):
+            if _is_bot_comment(c):
+                bot_login = c.get("author", {}).get("login", "unknown")
+                skipped_bots.append(bot_login)
+            else:
+                searchable_texts.append(c.get("body", ""))
+
+        if skipped_bots:
+            print(
+                f"   Skipped {len(skipped_bots)} bot comment(s) "
+                f"(ADVISORY only, not counted for gate): "
+                f"{', '.join(sorted(set(skipped_bots)))}"
+            )
 
         # --- Metadata extraction and cross-validation ---
         # Extract structured metadata from all texts for machine-readable checks.
