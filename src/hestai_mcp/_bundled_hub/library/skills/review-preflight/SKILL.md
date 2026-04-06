@@ -1,7 +1,7 @@
 ===SKILL:REVIEW_PREFLIGHT===
 META:
   TYPE::SKILL
-  VERSION::"1.1.0"
+  VERSION::"1.2.0"
   STATUS::ACTIVE
   PURPOSE::"Mechanical prep delegation before review. Collects structured context brief via pal_chat so CRS spends tokens on judgement, not grunt work."
 
@@ -24,9 +24,23 @@ COLLECT::[
   CI_STATUS::"pipeline_result[PR_only]",
   TIER::"T0_through_T4_classification[PR_only]",
   SECURITY_PATHS::"auth∨crypto∨secrets∨permissions∨.env∨tokens",
-  TEST_MAP::"changed_files→existing_test_files[presence_only]"
+  TEST_MAP::"changed_files→existing_test_files[presence_only]",
+  BOT_FINDINGS::"extracted_bot_review_comments[PR_only∧ADVISORY]"
 ]
-OUTPUT::STRUCTURED_BRIEF[consumed_by_CRS_before_review_begins]
+// BOT_FINDINGS extraction protocol
+BOT_AUTHORS::[
+  PRIORITY_1::cubic-dev-ai[bot]<structured_confidence⊕P0-P2_tiers⊕agent_prompts>,
+  PRIORITY_2::qodo-code-review[bot]<bug_classification⊕requirement_gaps>,
+  PRIORITY_3::coderabbitai[bot]<general_review∧unreliable_rate_limited>
+]
+BOT_EXTRACT::[
+  SCAN::"gh_pr_comments→filter_by_BOT_AUTHORS",
+  CUBIC::"extract_P0_P1_findings⊕confidence_metadata⊕agent_prompt_sections",
+  QODO::"extract_bug_findings⊕requirement_gap_findings",
+  CODERABBIT::"extract_if_available[skip_on_rate_limit_error]",
+  CLASSIFY::ADVISORY[bot_findings_NEVER_block_merge]
+]
+OUTPUT::STRUCTURED_BRIEF[consumed_by_CRS⊕CE_before_review_begins]
 
 §3::GOVERNANCE
 DELEGATION::[
@@ -41,9 +55,9 @@ BUDGET::[
 ]
 
 §5::ANCHOR_KERNEL
-TARGET::structured_preflight_brief_before_review
-NEVER::[evaluate_code_quality_in_preflight,specify_model_or_provider,skip_context_detection,produce_findings_or_verdicts]
-MUST::[detect_review_context_type,collect_file_summary_and_languages,map_security_sensitive_paths,map_changed_files_to_tests,delegate_via_pal_tools]
-GATE::"Is a structured preflight brief collected via PAL delegation before CRS begins review judgement?"
+TARGET::structured_preflight_brief_with_bot_findings_before_review
+NEVER::[evaluate_code_quality_in_preflight,specify_model_or_provider,skip_context_detection,produce_findings_or_verdicts,treat_bot_findings_as_blocking]
+MUST::[detect_review_context_type,collect_file_summary_and_languages,map_security_sensitive_paths,map_changed_files_to_tests,extract_bot_review_comments_for_PR_context,classify_bot_findings_as_ADVISORY,delegate_via_pal_tools]
+GATE::"Is a structured preflight brief (including bot findings marked ADVISORY) collected via PAL delegation before CRS begins review judgement?"
 
 ===END===
