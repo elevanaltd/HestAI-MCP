@@ -75,7 +75,7 @@ The forced structural output creates an **autoregressive state-lock** — subseq
 
 | Field | Type | Required | Purpose |
 |---|---|---|---|
-| `working_dir` | String | Yes | Project root path for resolving `.hestai/state/` target directory. Required for multi-repo path resolution — mirrors `clock_in`, `clock_out`, `bind` patterns. |
+| `working_dir` | String | Yes | Project root path for resolving `.hestai/state/` target directory. Required for multi-repo path resolution — mirrors `clock_in`, `clock_out`, `bind` patterns. **Must be canonicalized and validated against trusted roots before deriving write paths** (see Path Validation below). |
 | `context_summary` | String | Yes | What was the implementation intent before the failure? Enables lossless dispatch if escalated. |
 | `root_cause_analysis` | String | Yes | What actually broke? |
 | `fix_attempt_1` | String | Yes | First hypothesis: what was tried, why it failed |
@@ -103,7 +103,9 @@ The forced structural output creates an **autoregressive state-lock** — subseq
 }
 ```
 
-Writes must be atomic (write to temp file, then rename) to prevent partial records from concurrent sessions.
+**Path validation:** The implementation must canonicalize `working_dir` (resolve symlinks, normalize `..` segments) and validate that the resolved path falls within a trusted root before deriving any write path. Reject paths that resolve outside the trusted boundary to prevent arbitrary file writes.
+
+**Append safety:** Use `O_APPEND` mode for writes. On POSIX systems, writes under `PIPE_BUF` (4096 bytes) to files opened with `O_APPEND` are atomic at the kernel level. Each RCCAFP JSON line is a single record well under this limit. If the implementation environment cannot guarantee `O_APPEND` atomicity (e.g., NFS), use file locking (`fcntl.flock`) or single-writer serialization instead.
 
 ### 2.3 Canonical 7-Step Error Recovery Workflow
 
