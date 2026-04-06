@@ -49,7 +49,7 @@ BOT_AUTHORS::[
 // comments, match against the normalized set, not the canonical names.
 BOT_EXTRACT::[
   SCAN_ISSUE_COMMENTS::"gh_pr_view_--json_comments→filter_by_normalized_BOT_LOGINS[strips_bot_suffix]",
-  SCAN_REVIEW_COMMENTS::"gh_api_repos/{repo}/pulls/{pr}/comments→filter_by_BOT_AUTHORS[preserves_bot_suffix]",
+  SCAN_REVIEW_COMMENTS::"gh_api_repos/{repo}/pulls/{pr}/comments→filter_by_NORMALIZED_BOT_LOGINS[match_user.login_against:cubic-dev-ai|cubic-bot|qodo-code-review|qodo-merge-pro|qodo-merge-pro-for-open-source|coderabbitai|github-copilot|Copilot|copilot⊕also_match_[bot]_suffix]",
   CUBIC::"extract_P0_P1_findings⊕confidence_metadata⊕agent_prompt_sections",
   QODO::"extract_bug_findings⊕requirement_gap_findings",
   CODERABBIT::"extract_if_available[skip_on_rate_limit_error]",
