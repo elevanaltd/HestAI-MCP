@@ -1,9 +1,10 @@
 # hestai-context-mcp Interface Contract
 
 **Created**: 2026-04-06
-**Purpose**: Define the exact MCP tool endpoints that `hestai-context-mcp` exposes after the Phase 1 subtraction. This is Wall's Mitigation M2.
+**Purpose**: Define the TARGET-STATE MCP tool endpoints for `hestai-context-mcp` after Phase 1 harvest. This is Wall's Mitigation M2.
 **Satisfies**: ADR-0353 §Implementation Phase 1
 **Transport**: stdio (JSON-RPC over stdin/stdout)
+**Important**: This document describes the POST-Phase-1 target state of `hestai-context-mcp` (a new repo). It does NOT describe the current `hestai-mcp` server, which retains `bind`, `ensure_system_governance()`, and different return shapes. Current state is defined in `src/hestai_mcp/mcp/server.py`.
 
 ---
 
@@ -337,20 +338,18 @@ Session lifecycle:
 
 ---
 
-## 6. MIGRATION PATH
+## 6. HARVEST PATH
 
-Phase 1 subtraction creates `hestai-context-mcp` from `hestai-mcp` by:
+Phase 1 creates `hestai-context-mcp` as a **new repo** by harvesting from `hestai-mcp`:
 
-1. **Delete**: `src/hestai_mcp/_bundled_hub/` (entire directory)
-2. **Delete**: `bootstrap_system_governance()`, `ensure_system_governance()`, `inject_system_governance()`
-3. **Delete**: `bind` tool registration and implementation
-4. **Delete**: All governance integrity enforcement (SHA-256, chmod, tamper detection for `.hestai-sys/`)
-5. **Add**: `get_context` tool (extract read-only path from existing `clock_in` logic)
-6. **Refactor**: `clock_in` to return structured context (currently returns flat `context_paths` array)
-7. **Rename**: Package from `hestai_mcp` to `hestai_context_mcp`
-8. **Update**: Entry point to `python -m hestai_context_mcp`
+1. **Create**: New repo `elevanaltd/hestai-context-mcp` with clean Python project structure
+2. **Harvest**: Copy System Steward code from hestai-mcp — `clock_in` (session/context logic only, not governance injection), `clock_out`, `ContextSteward`, `RedactionEngine`, `submit_review`, `pending_sessions`
+3. **Build**: `get_context` tool as new code (extract read-only path from harvested `clock_in` logic)
+4. **Refactor**: `clock_in` to return structured context object (see §2.1 return shape)
+5. **TDD**: Write new tests for harvested code (red→green→refactor). Do NOT copy legacy tests — write tests that match the new interface contract.
+6. **Package**: `hestai_context_mcp` with entry point `python -m hestai_context_mcp`
 
-The existing 705 tests provide the regression safety net. Tests for deleted functionality are removed. Tests for retained functionality must continue passing.
+Legacy `hestai-mcp` stays **100% intact** — enabling A/B comparison of old system vs new until the new system is proven. Deprecation happens only after daily-use validation.
 
 ---
 

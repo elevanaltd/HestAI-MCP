@@ -50,7 +50,7 @@ The Workbench has session create/run/continue/archive but NONE of the intelligen
 
 ### Evidence: Two Parallel Debates
 
-Two Wind/Wall/Door debates were run (standard + premium tier) with the full decision map as context. Both unanimously rejected the Thick Client model and converged on the same architecture.
+Two Wind/Wall/Door debates were run (standard + premium tier) with the full decision map as context. Both converged on the Governance Engine model, with Wall issuing CONDITIONAL (requiring mitigations M1-M6 before production commitment). The debates ended in "stalemate" status because Wall's CONDITIONAL verdict prevents full consensus — but all three roles (Wind, Wall, Door) agreed on the architectural direction. The conditionality is about implementation readiness, not architectural disagreement.
 
 - Standard tier: "Stateless Stdio Orchestration (The Git/VS Code Model)"
 - Premium tier: "The Adapter Pattern Data Plane (Strict Governance Isolation)"
@@ -124,19 +124,19 @@ The HestAI ecosystem adopts a three-service architecture where each service owns
 
 **Stdio transport eliminates federation concerns.** This is not a networked daemon. The Workbench spawns `python -m hestai_context_mcp` as a subprocess communicating over stdin/stdout — identical to how VS Code spawns Git. Zero network ports, zero daemon lifecycle, zero monitoring overhead. The process dies when the session closes.
 
-**Subtraction, not addition.** `hestai-context-mcp` is not a new service. It is the existing `hestai-mcp` with the exoskeleton removed:
+**Harvest, not rewrite.** `hestai-context-mcp` is a new repo that harvests the proven System Steward code from `hestai-mcp`. The legacy system stays intact for A/B comparison:
 
-| Removed (to Vault/Workbench) | Retained (System Steward core) |
-|------------------------------|-------------------------------|
-| `_bundled_hub/` (121 files) | `clock_in` (955 lines) |
-| `.hestai-sys/` injection | `clock_out` (260 lines) |
-| Governance integrity enforcement | `ContextSteward` (~200 lines) |
-| Agent definition serving | `RedactionEngine` |
-| Anchor ceremony support (`bind`) | `learnings-index.jsonl` pipeline |
+| NOT harvested (stays in legacy / moves to Vault) | Harvested (System Steward core) |
+|--------------------------------------------------|-------------------------------|
+| `_bundled_hub/` (121 files) → Vault | `clock_in` (session/context logic) |
+| `.hestai-sys/` injection → Vault/Workbench | `clock_out` (knowledge extraction) |
+| `.hestai-sys/` integrity enforcement (SHA-256, chmod) → Vault | `ContextSteward` (phase constraints) |
+| Agent definition serving → Vault | `RedactionEngine` (credential safety) |
+| Anchor ceremony support (`bind`) → Alley-Oop | `learnings-index.jsonl` pipeline |
 | | `submit_review` |
 | | `pending_sessions` conflict detection |
 
-The result is LESS total code, not more federation.
+**Implementation**: Create `elevanaltd/hestai-context-mcp` as a new repo, harvest the proven code, build with clean TDD. Legacy `hestai-mcp` stays intact — enabling A/B testing of old ceremony vs new engine until the new system is proven.
 
 **Rebuild survival is structural.** When the Workbench migrates Crystal → TypeScript, only a ~30-line stdio MCP client adapter needs rewriting. The 1500+ lines of Python governance logic survive untouched. The existing 705 tests and 92% coverage continue to protect the pipeline.
 
@@ -165,6 +165,18 @@ This ADR resolves the dual North Star injection problem:
 
 The `load-north-star-summary.sh` hook becomes dead code once the Payload Compiler handles Position 3 via the governance engine.
 
+## Universal Standards in the Vault
+
+Universal governance rules (naming-standard, test-structure-standard, visibility-rules) currently live in `.hestai-sys/standards/rules/` (injected by hestai-mcp's bundled hub). In the new system, these move to the **Vault** at `~/.hestai-workbench/library/standards/`.
+
+The Payload Compiler reads `vault/standards/` and injects everything at KVAEPH Position 0 (AXIOMS) alongside the System Standard and System North Star. Agents receive universal rules in their compiled prompt — no separate injection mechanism needed. This requires populating the vault's `standards/` directory as part of AP4 prep (currently empty with `.gitkeep`).
+
+## Known Gap: clock_out Provider Parity
+
+`clock_out` currently parses only Claude JSONL transcripts via `ClaudeJsonlLens`. Terminal parity for clock_in (context injection) is immediate — any CLI tool can call clock_in and receive identical context. But clock_out's knowledge extraction pipeline is Claude-specific.
+
+**Future work**: Abstract transcript parsing via adapter pattern to support Codex, Gemini, and Goose transcript formats. The Workbench stores its own session logs at `~/.hestai-workbench/logs/` but these are application-level logs (Electron process events), not agent session transcripts. Each CLI tool stores transcripts in its own format and location. The adapter pattern for multi-provider transcript parsing is a Phase 2 concern, not a blocker for Phase 1.
+
 ---
 
 ## Enforcement Model
@@ -175,7 +187,7 @@ ADR-0033's `document_submit` and `context_update` tools were never built (listed
 
 **New enforcement model: Git hooks, not runtime gatekeepers.**
 
-- `.hestai-sys/` enforcement: Continues via `hestai-context-mcp` (SHA-256, chmod 444/555, tamper detection) — proven, working
+- `.hestai-sys/` enforcement: **Moves to the Vault/Workbench.** The Workbench writes `.hestai-sys/` from the vault at session spawn (same files, different writer). Integrity is guaranteed by the vault being git-backed and the Workbench controlling the write. `hestai-context-mcp` does NOT manage `.hestai-sys/` — that responsibility transfers entirely.
 - `.hestai/` enforcement: Git pre-commit validation (detect malformed OCTAVE, validate naming conventions) — uses repository physics, not synthetic bureaucracy
 - Single-writer is a recommendation, not a runtime lock. Validation-on-read catches corruption.
 
@@ -187,10 +199,12 @@ This follows the MIP principle: enforcement through the native physics of the re
 
 | Phase | Action | Description | Blocks |
 |-------|--------|-------------|--------|
-| **1. Subtraction** | `hestai-mcp` → `hestai-context-mcp` | Remove `_bundled_hub`, identity injection, anchor ceremony support. Retain System Steward core. Bind to stdio MCP transport. | Phase 2 |
+| **1. Harvest** | Create `hestai-context-mcp` | New repo (`elevanaltd/hestai-context-mcp`). Harvest System Steward code from hestai-mcp. Build with clean TDD. Legacy hestai-mcp stays intact for A/B comparison. | Phase 2 |
 | **2. Orchestration** | Workbench as consumer | Thin stdio MCP client in Payload Compiler. Spawn `python -m hestai_context_mcp` via stdio. Inject clock_in output at KVAEPH Position 3. | Phase 3 |
 | **3. North Star** | Unify injection | System NS from vault (static). Product NS from `hestai-context-mcp` during clock_in (dynamic). Remove `load-north-star-summary.sh`. | Phase 4 |
 | **4. Enforcement** | Git, not services | Deploy `.githooks/pre-commit` for `.hestai/` OCTAVE validation. Formally deprecate ADR-0033 Phase 3 tools. | — |
+
+**Why harvest, not subtract**: Modifying hestai-mcp in place destroys the comparison baseline. Creating a new repo preserves the legacy system for A/B testing (same agent, same task, old ceremony vs new engine). Legacy hestai-mcp is deprecated only after the new system is proven in daily use — matching the "two parallel systems" approach already established in the Workbench PROJECT-CONTEXT.
 
 ### Wall's Conditions (Required Before Production Commitment)
 
