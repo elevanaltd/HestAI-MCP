@@ -138,7 +138,7 @@ PATH_OVERRIDES::[
 FALLBACK::"Unknown .oct.md TYPE→GOVERNANCE[safe_fallback_to_SR_review]"
 §6::TMG_PHASE
 PURPOSE::"Test quality gate between RED (tests written) and GREEN (implementation)"
-TRIGGER::"TIER_2+ with tests present but no TMG approval"
+TRIGGER::"TMG in required_reviewers AND tests present but no TMG approval"
 SCOPE::"TMG reviews test FILES only — not implementation"
 FOCUS::[
   "Are these the right tests?",
