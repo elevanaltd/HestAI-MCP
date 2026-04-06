@@ -50,7 +50,7 @@ The Workbench has session create/run/continue/archive but NONE of the intelligen
 
 ### Evidence: Two Parallel Debates
 
-Two Wind/Wall/Door debates were run (standard + premium tier) with the full decision map as context. Both converged on the Governance Engine model, with Wall issuing CONDITIONAL (requiring mitigations M1-M6 before production commitment). The debates ended in "stalemate" status because Wall's CONDITIONAL verdict prevents full consensus — but all three roles (Wind, Wall, Door) agreed on the architectural direction. The conditionality is about implementation readiness, not architectural disagreement.
+Two Wind/Wall/Door debates were run (standard + premium tier) with the full decision map as context. Both converged on the Governance Engine model, with debates ending in "stalemate" status. Vote record: Wind voted YES, Wall voted NO (CONDITIONAL — requiring mitigations M1-M6), Door produced syntheses favouring the Governance Engine but did not formally vote (per debate-hall protocol, Door synthesizes rather than votes). Human judgment accepted the architectural direction based on directional alignment across all synthesis attempts, despite Wall's implementation-readiness conditions remaining unmet at time of decision.
 
 - Standard tier: "Stateless Stdio Orchestration (The Git/VS Code Model)"
 - Premium tier: "The Adapter Pattern Data Plane (Strict Governance Isolation)"
@@ -117,8 +117,8 @@ The HestAI ecosystem adopts a three-service architecture where each service owns
 1. User configures `hestai-context-mcp` as stdio MCP server in their CLI config
 2. Agent calls clock_in directly — identical context synthesis
 3. Agent works with full governance
-4. Agent calls clock_out — identical knowledge extraction
-5. No Workbench required. Identical governance.
+4. Agent calls clock_out — knowledge extraction (currently Claude-only transcript parsing; provider adapters needed for Codex/Gemini/Goose — see §Known Gap)
+5. No Workbench required. Context injection is provider-agnostic; transcript extraction requires provider adapters.
 
 ### Key Properties
 
