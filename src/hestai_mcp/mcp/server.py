@@ -29,6 +29,7 @@ from hestai_mcp.modules.tools.clock_in import clock_in_async, validate_working_d
 from hestai_mcp.modules.tools.clock_out import clock_out
 from hestai_mcp.modules.tools.shared.governance_integrity import store_governance_hash
 from hestai_mcp.modules.tools.shared.review_formats import VALID_ROLES as REVIEW_VALID_ROLES
+from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
 from hestai_mcp.modules.tools.submit_review import submit_review
 
 # Load .env file for HESTAI_PROJECT_ROOT and other configuration
@@ -614,6 +615,69 @@ async def list_tools() -> list[Tool]:
                 ],
             },
         ),
+        Tool(
+            name="submit_rccafp_record",
+            description=(
+                "Submit a structured RCCAFP error recovery record. "
+                "Records root cause analysis, corrective action attempts, and "
+                "future proofing rules to .hestai/state/error-metrics.jsonl. "
+                "Returns record_id for dispatch reference. "
+                "Does NOT dispatch — dispatch is the Workbench's responsibility."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "working_dir": {
+                        "type": "string",
+                        "description": (
+                            "Project root path. Must be canonicalized and "
+                            "validated against trusted roots before deriving write paths."
+                        ),
+                    },
+                    "context_summary": {
+                        "type": "string",
+                        "description": (
+                            "Implementation intent before the failure. "
+                            "Enables lossless dispatch if escalated."
+                        ),
+                    },
+                    "root_cause_analysis": {
+                        "type": "string",
+                        "description": "What actually broke.",
+                    },
+                    "fix_attempt_1": {
+                        "type": "string",
+                        "description": ("First hypothesis: what was tried, why it failed."),
+                    },
+                    "fix_attempt_2": {
+                        "type": "string",
+                        "description": ("Second hypothesis: what was tried, why it failed."),
+                    },
+                    "escalation_required": {
+                        "type": "boolean",
+                        "description": (
+                            "Binary structural gate — determines whether the "
+                            "agent continues or a specialist is dispatched."
+                        ),
+                    },
+                    "future_proofing_rule": {
+                        "type": "string",
+                        "description": (
+                            "If fixed: prevention rule for the codebase. "
+                            "If escalated: context constraints the specialist needs."
+                        ),
+                    },
+                },
+                "required": [
+                    "working_dir",
+                    "context_summary",
+                    "root_cause_analysis",
+                    "fix_attempt_1",
+                    "escalation_required",
+                    "future_proofing_rule",
+                ],
+            },
+        ),
     ]
 
 
@@ -771,6 +835,21 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             model_annotation=arguments.get("model_annotation"),
             dry_run=arguments.get("dry_run", False),
             commit_sha=arguments.get("commit_sha"),
+        )
+
+        return [TextContent(type="text", text=json.dumps(result, indent=2))]
+
+    elif name == "submit_rccafp_record":
+        import json
+
+        result = await submit_rccafp_record(
+            working_dir=arguments["working_dir"],
+            context_summary=arguments["context_summary"],
+            root_cause_analysis=arguments["root_cause_analysis"],
+            fix_attempt_1=arguments["fix_attempt_1"],
+            escalation_required=arguments["escalation_required"],
+            future_proofing_rule=arguments["future_proofing_rule"],
+            fix_attempt_2=arguments.get("fix_attempt_2"),
         )
 
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
