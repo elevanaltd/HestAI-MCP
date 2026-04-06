@@ -15,6 +15,7 @@ Coverage Targets:
 """
 
 import json
+import logging
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
@@ -1326,3 +1327,441 @@ class TestInjectSystemGovernanceSymlinkEdge:
 
         # After injection, the real __old__ dir should be removed
         assert not old_dir.exists()
+
+
+# =============================================================================
+# PHASE 5: Worktree-to-parent governance propagation tests
+# =============================================================================
+
+
+def _make_governed_project(root: Path) -> None:
+    """Helper: create a minimal governed project structure at root."""
+    root.mkdir(parents=True, exist_ok=True)
+    (root / ".git").mkdir(exist_ok=True)
+    (root / ".hestai").mkdir(exist_ok=True)
+
+
+def _make_up_to_date_hestai_sys(root: Path, version: str = "1.0.0") -> None:
+    """Helper: create .hestai-sys that looks up-to-date at given version."""
+    hestai_sys = root / ".hestai-sys"
+    hestai_sys.mkdir(exist_ok=True)
+    (hestai_sys / ".version").write_text(version)
+    (hestai_sys / ".integrity").write_text("hash")
+    for d in ["standards", "library", "templates"]:
+        (hestai_sys / d).mkdir(exist_ok=True)
+    for f in ["SYSTEM-STANDARD.md", "README.md"]:
+        (hestai_sys / f).write_text("content")
+
+
+@pytest.mark.unit
+class TestWorktreeDetection:
+    """Test worktree detection: .git as file vs directory."""
+
+    def test_git_file_detected_as_worktree(self, tmp_path: Path) -> None:
+        """A .git FILE (not directory) indicates a worktree."""
+        worktree = tmp_path / "worktree"
+        worktree.mkdir()
+        # Worktrees have a .git file, not a directory
+        git_file = worktree / ".git"
+        git_file.write_text("gitdir: /main-repo/.git/worktrees/my-worktree\n")
+
+        from hestai_mcp.mcp.server import _is_git_worktree
+
+        assert _is_git_worktree(worktree) is True
+
+    def test_git_directory_not_detected_as_worktree(self, tmp_path: Path) -> None:
+        """A .git DIRECTORY indicates a normal repo (not a worktree)."""
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        (repo / ".git").mkdir()
+
+        from hestai_mcp.mcp.server import _is_git_worktree
+
+        assert _is_git_worktree(repo) is False
+
+
+@pytest.mark.unit
+class TestMainRepoPathDerivation:
+    """Test deriving the main repo path from a worktree .git file."""
+
+    def test_derives_main_repo_from_worktree_git_file(self, tmp_path: Path) -> None:
+        """Parses the gitdir line from a worktree .git file to find the main repo."""
+        # Set up main repo structure
+        main_repo = tmp_path / "main-repo"
+        main_repo.mkdir()
+        git_dir = main_repo / ".git"
+        git_dir.mkdir()
+        worktrees_dir = git_dir / "worktrees" / "my-branch"
+        worktrees_dir.mkdir(parents=True)
+
+        # Set up worktree with .git file
+        worktree = tmp_path / "worktrees" / "my-branch"
+        worktree.mkdir(parents=True)
+        (worktree / ".git").write_text(f"gitdir: {worktrees_dir}\n")
+
+        from hestai_mcp.mcp.server import _get_main_repo_from_worktree
+
+        result = _get_main_repo_from_worktree(worktree)
+        assert result == main_repo
+
+    def test_returns_none_for_non_worktree(self, tmp_path: Path) -> None:
+        """Returns None when .git is a directory (not a worktree)."""
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        (repo / ".git").mkdir()
+
+        from hestai_mcp.mcp.server import _get_main_repo_from_worktree
+
+        result = _get_main_repo_from_worktree(repo)
+        assert result is None
+
+    def test_returns_none_for_malformed_git_file(self, tmp_path: Path) -> None:
+        """Returns None when .git file doesn't contain a valid gitdir line."""
+        worktree = tmp_path / "worktree"
+        worktree.mkdir()
+        (worktree / ".git").write_text("garbage content\n")
+
+        from hestai_mcp.mcp.server import _get_main_repo_from_worktree
+
+        result = _get_main_repo_from_worktree(worktree)
+        assert result is None
+
+    def test_resolves_relative_gitdir_against_worktree_directory(self, tmp_path: Path) -> None:
+        """Relative gitdir paths must resolve against the worktree dir, not CWD.
+
+        Git can write relative paths in the .git file, e.g.:
+            gitdir: ../../main-repo/.git/worktrees/my-branch
+
+        These must be resolved relative to the worktree directory (where the
+        .git file lives), not the process CWD.
+        """
+        # Set up main repo
+        main_repo = tmp_path / "repos" / "main-repo"
+        main_repo.mkdir(parents=True)
+        git_dir = main_repo / ".git"
+        git_dir.mkdir()
+        worktrees_dir = git_dir / "worktrees" / "my-branch"
+        worktrees_dir.mkdir(parents=True)
+
+        # Set up worktree in a sibling directory
+        worktree = tmp_path / "repos" / "worktrees" / "my-branch"
+        worktree.mkdir(parents=True)
+
+        # Write a RELATIVE gitdir path in the .git file
+        # From worktree (repos/worktrees/my-branch) to main git dir
+        # (repos/main-repo/.git/worktrees/my-branch):
+        # go up 2 levels (../../) then into main-repo/.git/worktrees/my-branch
+        relative_gitdir = "../../main-repo/.git/worktrees/my-branch"
+        (worktree / ".git").write_text(f"gitdir: {relative_gitdir}\n")
+
+        from hestai_mcp.mcp.server import _get_main_repo_from_worktree
+
+        result = _get_main_repo_from_worktree(worktree)
+        assert result is not None
+        assert result.resolve() == main_repo.resolve()
+
+
+@pytest.mark.unit
+class TestWorktreePropagation:
+    """Test that worktree injection triggers main repo injection."""
+
+    def test_propagates_to_parent_repo_on_worktree(self, tmp_path: Path) -> None:
+        """When project_root is a worktree, also injects governance into the main repo."""
+        from hestai_mcp.mcp import server
+
+        # Set up main repo
+        main_repo = tmp_path / "main-repo"
+        _make_governed_project(main_repo)
+        git_dir = main_repo / ".git"
+        git_dir.mkdir(exist_ok=True)
+        worktrees_dir = git_dir / "worktrees" / "my-branch"
+        worktrees_dir.mkdir(parents=True)
+
+        # Set up worktree
+        worktree = tmp_path / "worktrees" / "my-branch"
+        _make_governed_project(worktree)
+        # Replace .git dir with .git file (worktree indicator)
+        import shutil
+
+        shutil.rmtree(worktree / ".git")
+        (worktree / ".git").write_text(f"gitdir: {worktrees_dir}\n")
+
+        # Create hub for injection
+        fake_hub = tmp_path / "hub"
+        fake_hub.mkdir()
+        (fake_hub / "VERSION").write_text("1.0.0")
+        for d in ["standards", "library", "templates"]:
+            (fake_hub / d).mkdir()
+
+        # Track calls to ensure_system_governance
+        original_fn = server.ensure_system_governance
+        call_args: list[tuple] = []
+
+        def tracking_ensure(project_root: Path, _propagate: bool = True) -> dict:
+            call_args.append((project_root, _propagate))
+            return original_fn(project_root, _propagate=_propagate)
+
+        with (
+            patch.object(server, "get_hub_path", return_value=fake_hub),
+            patch.object(
+                server,
+                "ensure_system_governance",
+                side_effect=tracking_ensure,
+            ),
+        ):
+            server.ensure_system_governance(worktree)
+
+        # Should have been called twice: once for worktree, once for main repo
+        assert len(call_args) == 2
+        assert call_args[0] == (worktree, True)
+        assert call_args[1] == (main_repo, False)
+
+
+@pytest.mark.unit
+class TestPropagationFailureIsolation:
+    """Test that parent propagation failure does NOT block worktree result."""
+
+    def test_worktree_succeeds_when_parent_propagation_fails(
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Worktree injection returns normally even if parent propagation raises."""
+        from hestai_mcp.mcp import server
+
+        # Set up main repo
+        main_repo = tmp_path / "main-repo"
+        _make_governed_project(main_repo)
+        git_dir = main_repo / ".git"
+        git_dir.mkdir(exist_ok=True)
+        worktrees_dir = git_dir / "worktrees" / "my-branch"
+        worktrees_dir.mkdir(parents=True)
+
+        # Set up worktree
+        worktree = tmp_path / "worktrees" / "my-branch"
+        _make_governed_project(worktree)
+        import shutil
+
+        shutil.rmtree(worktree / ".git")
+        (worktree / ".git").write_text(f"gitdir: {worktrees_dir}\n")
+
+        # Create hub for injection
+        fake_hub = tmp_path / "hub"
+        fake_hub.mkdir()
+        (fake_hub / "VERSION").write_text("1.0.0")
+        for d in ["standards", "library", "templates"]:
+            (fake_hub / d).mkdir()
+
+        # Strategy: let the worktree's own injection succeed via the real path,
+        # but make _get_main_repo_from_worktree return a path where the
+        # recursive ensure_system_governance call will blow up (PermissionError).
+        # The propagation must catch this and return the worktree result normally.
+        broken_main = tmp_path / "broken-main"
+        broken_main.mkdir()
+        # broken_main has no .git, so _validate_project_root will raise
+
+        with (
+            patch.object(server, "get_hub_path", return_value=fake_hub),
+            patch.object(
+                server,
+                "_is_git_worktree",
+                return_value=True,
+            ),
+            patch.object(
+                server,
+                "_get_main_repo_from_worktree",
+                return_value=broken_main,
+            ),
+            caplog.at_level(logging.DEBUG),
+        ):
+            result = server.ensure_system_governance(worktree)
+
+        # Worktree injection must succeed despite parent propagation failure
+        assert result["status"] in {"injected", "updated"}
+        # A debug log message should indicate propagation failed
+        assert any("propagat" in record.message.lower() for record in caplog.records)
+
+
+@pytest.mark.unit
+class TestRecursionGuard:
+    """Test that propagation call doesn't trigger another propagation."""
+
+    def test_propagation_call_does_not_re_propagate(self, tmp_path: Path) -> None:
+        """When _propagate=False, no worktree detection or propagation occurs."""
+        from hestai_mcp.mcp import server
+
+        # Set up a worktree-like project
+        worktree = tmp_path / "worktree"
+        _make_governed_project(worktree)
+        import shutil
+
+        shutil.rmtree(worktree / ".git")
+        (worktree / ".git").write_text("gitdir: /some/path/.git/worktrees/x\n")
+
+        fake_hub = tmp_path / "hub"
+        fake_hub.mkdir()
+        (fake_hub / "VERSION").write_text("1.0.0")
+        for d in ["standards", "library", "templates"]:
+            (fake_hub / d).mkdir()
+
+        with (
+            patch.object(server, "get_hub_path", return_value=fake_hub),
+            patch.object(server, "_is_git_worktree", wraps=server._is_git_worktree) as mock_detect,
+            patch.object(
+                server, "_get_main_repo_from_worktree", wraps=server._get_main_repo_from_worktree
+            ) as mock_derive,
+        ):
+            # Call with _propagate=False (simulating a recursive propagation call)
+            server.ensure_system_governance(worktree, _propagate=False)
+
+        # Neither worktree detection function should be called when _propagate=False
+        mock_detect.assert_not_called()
+        mock_derive.assert_not_called()
+
+
+@pytest.mark.unit
+class TestNonWorktreeNoPropagation:
+    """Test that non-worktree paths do NOT trigger propagation."""
+
+    def test_normal_repo_does_not_propagate(self, tmp_path: Path) -> None:
+        """A normal git repo (.git is a directory) should not attempt propagation."""
+        from hestai_mcp.mcp import server
+
+        project_root = tmp_path / "project"
+        _make_governed_project(project_root)
+
+        fake_hub = tmp_path / "hub"
+        fake_hub.mkdir()
+        (fake_hub / "VERSION").write_text("1.0.0")
+        for d in ["standards", "library", "templates"]:
+            (fake_hub / d).mkdir()
+
+        with (
+            patch.object(server, "get_hub_path", return_value=fake_hub),
+            patch.object(
+                server,
+                "_get_main_repo_from_worktree",
+            ) as mock_get_main,
+        ):
+            result = server.ensure_system_governance(project_root)
+
+        # Should not have tried to derive main repo
+        mock_get_main.assert_not_called()
+        assert result["status"] in {"injected", "updated"}
+
+
+@pytest.mark.unit
+class TestPropagationSkipsNonOptInParent:
+    """Test that propagation to a parent repo without opt-in is silently skipped."""
+
+    def test_propagation_skipped_when_parent_lacks_opt_in(
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """When the main repo has no .hestai dir (no opt-in), propagation is skipped."""
+        from hestai_mcp.mcp import server
+
+        # Set up main repo WITHOUT opt-in (no .hestai directory)
+        main_repo = tmp_path / "main-repo"
+        main_repo.mkdir()
+        git_dir = main_repo / ".git"
+        git_dir.mkdir()
+        worktrees_dir = git_dir / "worktrees" / "my-branch"
+        worktrees_dir.mkdir(parents=True)
+        # Deliberately NOT creating (main_repo / ".hestai") -- no opt-in
+
+        # Set up worktree WITH opt-in
+        worktree = tmp_path / "worktrees" / "my-branch"
+        _make_governed_project(worktree)
+        import shutil
+
+        shutil.rmtree(worktree / ".git")
+        (worktree / ".git").write_text(f"gitdir: {worktrees_dir}\n")
+
+        # Create hub for injection
+        fake_hub = tmp_path / "hub"
+        fake_hub.mkdir()
+        (fake_hub / "VERSION").write_text("1.0.0")
+        for d in ["standards", "library", "templates"]:
+            (fake_hub / d).mkdir()
+
+        with (
+            patch.object(server, "get_hub_path", return_value=fake_hub),
+            caplog.at_level(logging.DEBUG),
+        ):
+            result = server.ensure_system_governance(worktree)
+
+        # Worktree injection should succeed
+        assert result["status"] in {"injected", "updated"}
+        # Main repo should NOT have .hestai-sys (no opt-in)
+        assert not (main_repo / ".hestai-sys").exists()
+
+
+@pytest.mark.unit
+class TestNestedWorktreeGuard:
+    """Test that nested worktrees do not cause infinite propagation chains."""
+
+    def test_propagation_to_parent_does_not_chain_further(self, tmp_path: Path) -> None:
+        """If main repo is itself a worktree, propagation does NOT chain further.
+
+        Propagation calls ensure_system_governance(main_repo, _propagate=False),
+        so even if main_repo looks like a worktree, _propagate=False prevents
+        another propagation attempt.
+        """
+        from hestai_mcp.mcp import server
+
+        # Set up the "real" root repo
+        real_root = tmp_path / "real-root"
+        real_root.mkdir()
+        real_git = real_root / ".git"
+        real_git.mkdir()
+        real_wt_dir = real_git / "worktrees" / "main-wt"
+        real_wt_dir.mkdir(parents=True)
+
+        # Main repo is itself a worktree of real_root
+        main_repo = tmp_path / "main-repo"
+        _make_governed_project(main_repo)
+        import shutil
+
+        shutil.rmtree(main_repo / ".git")
+        (main_repo / ".git").write_text(f"gitdir: {real_wt_dir}\n")
+        main_wt_dir = tmp_path / "main-repo-wt"
+        main_wt_dir.mkdir()
+
+        # Our actual worktree points to main_repo
+        main_repo_git_dir = tmp_path / "fake-git-dir"
+        main_repo_git_dir.mkdir()
+        wt_subdir = main_repo_git_dir / "worktrees" / "branch"
+        wt_subdir.mkdir(parents=True)
+
+        worktree = tmp_path / "worktrees" / "branch"
+        _make_governed_project(worktree)
+        shutil.rmtree(worktree / ".git")
+        (worktree / ".git").write_text(f"gitdir: {wt_subdir}\n")
+
+        fake_hub = tmp_path / "hub"
+        fake_hub.mkdir()
+        (fake_hub / "VERSION").write_text("1.0.0")
+        for d in ["standards", "library", "templates"]:
+            (fake_hub / d).mkdir()
+
+        # Track how many times _is_git_worktree is called
+        call_count = {"detect": 0}
+        original_detect = server._is_git_worktree
+
+        def counting_detect(path: Path) -> bool:
+            call_count["detect"] += 1
+            return original_detect(path)
+
+        with (
+            patch.object(server, "get_hub_path", return_value=fake_hub),
+            patch.object(server, "_is_git_worktree", side_effect=counting_detect),
+            patch.object(
+                server,
+                "_get_main_repo_from_worktree",
+                return_value=main_repo,
+            ),
+        ):
+            result = server.ensure_system_governance(worktree)
+
+        # _is_git_worktree should be called exactly ONCE (for the initial worktree),
+        # NOT again for main_repo (because propagation uses _propagate=False)
+        assert call_count["detect"] == 1
+        assert result["status"] in {"injected", "updated"}
