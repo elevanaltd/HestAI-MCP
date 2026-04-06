@@ -1299,3 +1299,278 @@ class TestBotCommentFiltering:
             f"Human comments should still satisfy gate even with bot comments present, "
             f"got: {message}"
         )
+
+
+# ---------------------------------------------------------------------------
+# Advisory bot constants and normalization
+# ---------------------------------------------------------------------------
+@pytest.mark.unit
+class TestAdvisoryBotsConstant:
+    """Pin test for the ADVISORY_BOTS constant.
+
+    ADVISORY_BOTS is the canonical list of bot accounts whose comments are
+    treated as advisory context (never blocking/satisfying review gates).
+    This test prevents silent drift.
+    """
+
+    def test_advisory_bots_contains_expected_entries(self) -> None:
+        """ADVISORY_BOTS must contain all four canonical bot accounts."""
+        assert "cubic-dev-ai[bot]" in validate_review.ADVISORY_BOTS
+        assert "qodo-code-review[bot]" in validate_review.ADVISORY_BOTS
+        assert "coderabbitai[bot]" in validate_review.ADVISORY_BOTS
+        assert "github-copilot[bot]" in validate_review.ADVISORY_BOTS
+
+    def test_advisory_bots_length(self) -> None:
+        """ADVISORY_BOTS should have exactly 4 entries (detect unintended additions)."""
+        assert len(validate_review.ADVISORY_BOTS) == 4, (
+            f"Expected 4 advisory bots, got {len(validate_review.ADVISORY_BOTS)}: "
+            f"{validate_review.ADVISORY_BOTS}"
+        )
+
+
+@pytest.mark.unit
+class TestBotLoginSetNormalization:
+    """_BOT_LOGIN_SET must correctly strip [bot] suffix and include legacy logins.
+
+    GitHub APIs return different login formats for the same bot accounts:
+    - ``gh pr view --json comments`` strips the [bot] suffix
+    - ``gh api repos/.../pulls/.../comments`` preserves it
+    _BOT_LOGIN_SET normalizes by stripping [bot] and adding known variants.
+    """
+
+    def test_stripped_bot_suffix_logins_present(self) -> None:
+        """Stripped versions of ADVISORY_BOTS must be in _BOT_LOGIN_SET."""
+        assert "cubic-dev-ai" in validate_review._BOT_LOGIN_SET
+        assert "qodo-code-review" in validate_review._BOT_LOGIN_SET
+        assert "coderabbitai" in validate_review._BOT_LOGIN_SET
+        assert "github-copilot" in validate_review._BOT_LOGIN_SET
+
+    def test_legacy_login_variants_present(self) -> None:
+        """Legacy login variants must be in _BOT_LOGIN_SET."""
+        assert "github-actions" in validate_review._BOT_LOGIN_SET
+        assert "copilot" in validate_review._BOT_LOGIN_SET  # Copilot legacy login
+        assert "cubic-bot" in validate_review._BOT_LOGIN_SET
+        assert "qodo-merge-pro" in validate_review._BOT_LOGIN_SET
+        assert "qodo-merge-pro-for-open-source" in validate_review._BOT_LOGIN_SET
+
+    def test_bot_login_set_is_frozenset(self) -> None:
+        """_BOT_LOGIN_SET must be immutable (frozenset)."""
+        assert isinstance(validate_review._BOT_LOGIN_SET, frozenset)
+
+
+# ---------------------------------------------------------------------------
+# Per-variant bot comment exclusion
+# ---------------------------------------------------------------------------
+@pytest.mark.unit
+class TestPerVariantBotExclusion:
+    """Each advisory bot variant must be excluded from gate validation.
+
+    Tests cover all known login variants that GitHub APIs may return for
+    each advisory bot account.
+    """
+
+    @pytest.mark.parametrize(
+        "login",
+        [
+            "cubic-dev-ai",  # gh pr view format (no [bot])
+            "cubic-bot",  # Legacy login variant
+        ],
+    )
+    def test_cubic_variants_excluded(self, login, ci_environment, monkeypatch) -> None:
+        """Cubic bot comment variants must NOT satisfy approval gate."""
+        import subprocess
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [
+                            {
+                                "author": {"login": login},
+                                "body": "TMG APPROVED: all tests pass\nCRS APPROVED: ok\nCE APPROVED: ok",
+                            },
+                        ],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        assert approved is False, f"Cubic bot login '{login}' must NOT satisfy gate, got: {message}"
+
+    @pytest.mark.parametrize(
+        "login",
+        [
+            "qodo-code-review",  # gh pr view format (no [bot])
+            "qodo-merge-pro",  # Legacy login variant
+            "qodo-merge-pro-for-open-source",  # Another legacy variant
+        ],
+    )
+    def test_qodo_variants_excluded(self, login, ci_environment, monkeypatch) -> None:
+        """Qodo bot comment variants must NOT satisfy approval gate."""
+        import subprocess
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [
+                            {
+                                "author": {"login": login},
+                                "body": "TMG APPROVED: tests ok\nCRS APPROVED: ok\nCE APPROVED: ok",
+                            },
+                        ],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        assert approved is False, f"Qodo bot login '{login}' must NOT satisfy gate, got: {message}"
+
+    @pytest.mark.parametrize(
+        "login",
+        [
+            "github-copilot",  # Stripped [bot] format
+            "copilot",  # Legacy login variant (no [bot], no github- prefix)
+        ],
+    )
+    def test_copilot_variants_excluded(self, login, ci_environment, monkeypatch) -> None:
+        """Copilot bot comment variants must NOT satisfy approval gate."""
+        import subprocess
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [
+                            {
+                                "author": {"login": login},
+                                "body": "CRS APPROVED: All checks pass\nCE APPROVED: Sound",
+                            },
+                        ],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        assert (
+            approved is False
+        ), f"Copilot bot login '{login}' must NOT satisfy gate, got: {message}"
+
+    def test_coderabbitai_stripped_login_excluded(self, ci_environment, monkeypatch) -> None:
+        """CodeRabbit with stripped login 'coderabbitai' must NOT satisfy gate."""
+        import subprocess
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [
+                            {
+                                "author": {"login": "coderabbitai"},
+                                "body": "TMG APPROVED: ok\nCRS APPROVED: ok\nCE APPROVED: ok",
+                            },
+                        ],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        assert (
+            approved is False
+        ), f"CodeRabbit bot login 'coderabbitai' must NOT satisfy gate, got: {message}"
+
+
+# ---------------------------------------------------------------------------
+# Skipped-bot logging output
+# ---------------------------------------------------------------------------
+@pytest.mark.unit
+class TestSkippedBotLogging:
+    """The validator must log which bot comments were skipped and how many."""
+
+    def test_skipped_bot_logging_output(self, ci_environment, monkeypatch, capsys) -> None:
+        """Skipped bot log message must include count and bot names."""
+        import subprocess
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [
+                            {
+                                "author": {"login": "coderabbitai"},
+                                "body": "Some review text",
+                            },
+                            {
+                                "author": {"login": "cubic-dev-ai"},
+                                "body": "Some cubic review",
+                            },
+                            {
+                                "author": {"login": "real-user"},
+                                "body": "TMG APPROVED: tests ok",
+                            },
+                        ],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+        validate_review.check_pr_comments("TIER_2_STANDARD")
+
+        captured = capsys.readouterr()
+        assert (
+            "Skipped 2 bot comment(s)" in captured.out
+        ), f"Expected 'Skipped 2 bot comment(s)' in output, got: {captured.out}"
+        assert (
+            "coderabbitai" in captured.out
+        ), f"Expected 'coderabbitai' in skipped bot names, got: {captured.out}"
+        assert (
+            "cubic-dev-ai" in captured.out
+        ), f"Expected 'cubic-dev-ai' in skipped bot names, got: {captured.out}"
+
+    def test_no_skipped_bot_log_when_no_bots(self, ci_environment, monkeypatch, capsys) -> None:
+        """No skipped-bot log line when there are no bot comments."""
+        import subprocess
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [
+                            {
+                                "author": {"login": "real-user"},
+                                "body": "TMG APPROVED: tests ok",
+                            },
+                        ],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+        validate_review.check_pr_comments("TIER_2_STANDARD")
+
+        captured = capsys.readouterr()
+        assert (
+            "Skipped" not in captured.out or "0 bot" not in captured.out
+        ), f"Should not log skipped bots when there are none, got: {captured.out}"
