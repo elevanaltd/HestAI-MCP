@@ -312,7 +312,9 @@ def _get_main_repo_from_worktree(project_root: Path) -> Path | None:
         return None
 
     gitdir = content.split("gitdir:", 1)[1].strip()
-    gitdir_path = Path(gitdir).resolve()
+    # Resolve relative to the .git file's parent directory (the worktree root),
+    # not the process CWD.  For absolute paths, the join is a no-op in Python.
+    gitdir_path = (git_path.parent / gitdir).resolve()
 
     # Navigate from .git/worktrees/<name> up to the main repo root.
     # The structure is: <main-repo>/.git/worktrees/<worktree-name>
@@ -398,8 +400,8 @@ def ensure_system_governance(project_root: Path, *, _propagate: bool = True) -> 
             try:
                 ensure_system_governance(main_repo, _propagate=False)
                 logger.debug(f"Propagated governance to parent repo: {main_repo}")
-            except Exception:
-                logger.debug(f"Opportunistic propagation to parent repo failed: {main_repo}")
+            except Exception as e:
+                logger.debug(f"Opportunistic governance propagation failed for {main_repo}: {e}")
 
     return result
 

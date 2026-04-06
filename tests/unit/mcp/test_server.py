@@ -1426,6 +1426,40 @@ class TestMainRepoPathDerivation:
         result = _get_main_repo_from_worktree(worktree)
         assert result is None
 
+    def test_resolves_relative_gitdir_against_worktree_directory(self, tmp_path: Path) -> None:
+        """Relative gitdir paths must resolve against the worktree dir, not CWD.
+
+        Git can write relative paths in the .git file, e.g.:
+            gitdir: ../../main-repo/.git/worktrees/my-branch
+
+        These must be resolved relative to the worktree directory (where the
+        .git file lives), not the process CWD.
+        """
+        # Set up main repo
+        main_repo = tmp_path / "repos" / "main-repo"
+        main_repo.mkdir(parents=True)
+        git_dir = main_repo / ".git"
+        git_dir.mkdir()
+        worktrees_dir = git_dir / "worktrees" / "my-branch"
+        worktrees_dir.mkdir(parents=True)
+
+        # Set up worktree in a sibling directory
+        worktree = tmp_path / "repos" / "worktrees" / "my-branch"
+        worktree.mkdir(parents=True)
+
+        # Write a RELATIVE gitdir path in the .git file
+        # From worktree (repos/worktrees/my-branch) to main git dir
+        # (repos/main-repo/.git/worktrees/my-branch):
+        # go up 2 levels (../../) then into main-repo/.git/worktrees/my-branch
+        relative_gitdir = "../../main-repo/.git/worktrees/my-branch"
+        (worktree / ".git").write_text(f"gitdir: {relative_gitdir}\n")
+
+        from hestai_mcp.mcp.server import _get_main_repo_from_worktree
+
+        result = _get_main_repo_from_worktree(worktree)
+        assert result is not None
+        assert result.resolve() == main_repo.resolve()
+
 
 @pytest.mark.unit
 class TestWorktreePropagation:
