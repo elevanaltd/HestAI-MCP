@@ -38,14 +38,7 @@ REPOMIX::[
 INTEGRATION::"Context7 for external contracts + Repomix for internal structure = System awareness"
 
 §3::TDD_ENFORCEMENT
-DISCIPLINE::"See tdd-discipline pattern"
-WORKFLOW::[
-  "RED: Write failing test first",
-  "TMG_GATE(T2+): After RED, load review-red skill and follow its protocol. TMG must review tests before GREEN proceeds. Do NOT implement until TMG APPROVED.",
-  "GREEN: Minimal code to pass (T2+: only after TMG approval)",
-  "REFACTOR: Improve while green",
-  "COMMIT: test: → feat: → refactor: pattern"
-]
+DISCIPLINE::"Execute tdd-discipline pattern (T2+ TMG gating is enforced within the base pattern)"
 PRAGMATIC_EXCEPTIONS::"When spec provides exact code+tests, trivial operations, exploratory spikes"
 
 §4::VERIFICATION_REQUIREMENTS
