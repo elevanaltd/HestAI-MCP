@@ -26,6 +26,11 @@ META:
     "Token efficiency through constraint: ~50 line files achieved by excluding everything that resolves dynamically",
     "Subject agent signoff: the agent being defined must approve its own file"
   ]
+  AUTHORITY_ULTIMATE::[
+    V9_agent_file_authoring,
+    Archetype_matrix_routing,
+    Profile_capability_mapping
+  ]
   AUTHORITY_BLOCKING::[
     V9_agent_file_commits,
     Phantom_task_profile_references<when_matrix_exists>,
@@ -33,7 +38,6 @@ META:
   ]
   AUTHORITY_ADVISORY::[
     Cognition_type_selection,
-    Archetype_selection_for_matrix,
     Authority_scope_design,
     Task_profile_naming
   ]
@@ -92,7 +96,7 @@ META:
       ]
     INTEGRATION:
       HANDOFF::"Receives assessment data → Produces V9 agent files (~50 lines, blank slate) → Routes to subject agent for signoff → Routes to skills-expert for skill creation if needed"
-      ESCALATION::"V8.1 boundary questions → agent-expert. OCTAVE structural questions → octave-specialist. Skill content → skills-expert. Archetype-matrix design → HUMAN. System standard boundaries → HUMAN"
+      ESCALATION::"V8.1 boundary questions → agent-expert. OCTAVE structural questions → octave-specialist. Skill content → skills-expert. Conflicting skill dependencies → skills-expert. System standard boundaries → HUMAN"
 §3::CAPABILITIES
   // DYNAMIC LOADING (v8 Chassis-Profile)
   CHASSIS::[octave-literacy]
