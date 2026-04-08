@@ -108,7 +108,7 @@ There is currently no mechanism for agents to report back on governance quality.
 
 The full lifecycle spans three phases and three services:
 
-```
+```text
 B1 CAPTURE (Governance Engine — this spec)
   Agent calls submit_friction_record at session end
   JSONL record appended to ~/.hestai/friction/
@@ -143,7 +143,7 @@ Friction capture is a **separate tool called before clock_out**, not embedded wi
 
 **Operational sequence at session end:**
 
-```
+```text
 1. Agent calls submit_friction_record (if friction was observed)
 2. Agent calls clock_out (session archival)
 ```

@@ -2,12 +2,16 @@
 Tests for submit_rccafp_record MCP tool.
 
 Covers: valid submission, missing required fields, path validation,
-JSONL format, server envelope fields, optional fields, and append behavior.
+JSONL format, server envelope fields, optional fields, append behavior,
+project identity validation, symlink escape prevention, filesystem error
+handling, and short write detection.
 """
 
 import json
+import os
 import uuid
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -392,3 +396,195 @@ class TestSessionAndRoleDetection:
 
         assert record["session_id"] == session_id
         assert record["agent_role"] == "implementation-lead"
+
+
+# ---------------------------------------------------------------------------
+# Tests — Project Identity Validation (regression: trusted-root)
+# ---------------------------------------------------------------------------
+class TestProjectIdentityValidation:
+    """Tests that non-project directories are rejected."""
+
+    @pytest.mark.unit
+    async def test_plain_directory_without_git_or_hestai_rejected(self, tmp_path: Path) -> None:
+        """A plain directory without .git or .hestai is rejected."""
+        from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
+
+        # tmp_path has no .git or .hestai markers
+        result = await submit_rccafp_record(
+            working_dir=str(tmp_path),
+            context_summary="test",
+            root_cause_analysis="test",
+            fix_attempt_1="test",
+            escalation_required=False,
+            future_proofing_rule="test",
+        )
+        assert result["success"] is False
+        assert "not a project root" in result["error"]
+
+    @pytest.mark.unit
+    async def test_directory_with_only_hestai_accepted(self, tmp_path: Path) -> None:
+        """A directory with .hestai (but no .git) is accepted."""
+        from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
+
+        (tmp_path / ".hestai").mkdir()
+
+        result = await submit_rccafp_record(
+            working_dir=str(tmp_path),
+            context_summary="test",
+            root_cause_analysis="test",
+            fix_attempt_1="test",
+            escalation_required=False,
+            future_proofing_rule="test",
+        )
+        assert result["success"] is True
+
+
+# ---------------------------------------------------------------------------
+# Tests — Symlink Escape Prevention (regression: symlink vectors)
+# ---------------------------------------------------------------------------
+class TestSymlinkEscapePrevention:
+    """Tests that symlink escape vectors in write targets are rejected."""
+
+    @pytest.mark.unit
+    async def test_symlinked_state_dir_rejected(self, tmp_path: Path) -> None:
+        """Symlinked .hestai/state/ pointing outside project root is rejected."""
+        from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
+
+        project = tmp_path / "project"
+        project.mkdir()
+        (project / ".git").mkdir()
+
+        # Create an external target
+        external = tmp_path / "external_state"
+        external.mkdir()
+
+        # Create .hestai/ as real dir but state/ as symlink to external
+        hestai = project / ".hestai"
+        hestai.mkdir()
+        (hestai / "state").symlink_to(external)
+
+        result = await submit_rccafp_record(
+            working_dir=str(project),
+            context_summary="test",
+            root_cause_analysis="test",
+            fix_attempt_1="test",
+            escalation_required=False,
+            future_proofing_rule="test",
+        )
+        assert result["success"] is False
+        assert "symlink" in result["error"].lower() or "outside project root" in result["error"]
+
+    @pytest.mark.unit
+    async def test_symlinked_metrics_file_rejected(self, tmp_path: Path) -> None:
+        """Symlinked error-metrics.jsonl is rejected."""
+        from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
+
+        project = tmp_path / "project"
+        project.mkdir()
+        (project / ".git").mkdir()
+        state_dir = project / ".hestai" / "state"
+        state_dir.mkdir(parents=True)
+
+        # Create a symlink for the metrics file
+        external_file = tmp_path / "external_metrics.jsonl"
+        external_file.write_text("")
+        (state_dir / "error-metrics.jsonl").symlink_to(external_file)
+
+        result = await submit_rccafp_record(
+            working_dir=str(project),
+            context_summary="test",
+            root_cause_analysis="test",
+            fix_attempt_1="test",
+            escalation_required=False,
+            future_proofing_rule="test",
+        )
+        assert result["success"] is False
+        assert "symlink" in result["error"]
+
+
+# ---------------------------------------------------------------------------
+# Tests — Filesystem Error Handling (regression: OSError)
+# ---------------------------------------------------------------------------
+class TestFilesystemErrorHandling:
+    """Tests that OSError during writes returns structured error, not exception."""
+
+    @pytest.mark.unit
+    async def test_oserror_on_mkdir_returns_structured_error(self, project_root: Path) -> None:
+        """OSError during mkdir returns structured error response."""
+        from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
+
+        with patch("pathlib.Path.mkdir", side_effect=OSError("Read-only file system")):
+            result = await submit_rccafp_record(
+                working_dir=str(project_root),
+                context_summary="test",
+                root_cause_analysis="test",
+                fix_attempt_1="test",
+                escalation_required=False,
+                future_proofing_rule="test",
+            )
+        assert result["success"] is False
+        assert "Failed to write RCCAFP record" in result["error"]
+
+    @pytest.mark.unit
+    async def test_oserror_on_os_open_returns_structured_error(self, project_root: Path) -> None:
+        """OSError during os.open returns structured error response."""
+        from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
+
+        with patch("os.open", side_effect=OSError("Permission denied")):
+            result = await submit_rccafp_record(
+                working_dir=str(project_root),
+                context_summary="test",
+                root_cause_analysis="test",
+                fix_attempt_1="test",
+                escalation_required=False,
+                future_proofing_rule="test",
+            )
+        assert result["success"] is False
+        assert "Failed to write RCCAFP record" in result["error"]
+
+    @pytest.mark.unit
+    async def test_oserror_on_os_write_returns_structured_error(self, project_root: Path) -> None:
+        """OSError during os.write returns structured error response."""
+        from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
+
+        real_open = os.open
+
+        def mock_open_then_fail_write(*args, **kwargs):
+            return real_open(*args, **kwargs)
+
+        with patch("os.write", side_effect=OSError("Disk full")):
+            result = await submit_rccafp_record(
+                working_dir=str(project_root),
+                context_summary="test",
+                root_cause_analysis="test",
+                fix_attempt_1="test",
+                escalation_required=False,
+                future_proofing_rule="test",
+            )
+        assert result["success"] is False
+        assert "Failed to write RCCAFP record" in result["error"]
+
+
+# ---------------------------------------------------------------------------
+# Tests — Short Write Detection (regression: partial writes)
+# ---------------------------------------------------------------------------
+class TestShortWriteDetection:
+    """Tests that short writes are detected and reported."""
+
+    @pytest.mark.unit
+    async def test_short_write_returns_error(self, project_root: Path) -> None:
+        """Short write (fewer bytes than expected) returns structured error."""
+        from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
+
+        # Mock os.write to return fewer bytes than requested
+        with patch("os.write", return_value=5):
+            result = await submit_rccafp_record(
+                working_dir=str(project_root),
+                context_summary="test",
+                root_cause_analysis="test",
+                fix_attempt_1="test",
+                escalation_required=False,
+                future_proofing_rule="test",
+            )
+        assert result["success"] is False
+        assert "short write" in result["error"]

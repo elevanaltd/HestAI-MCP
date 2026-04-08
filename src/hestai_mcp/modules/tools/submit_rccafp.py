@@ -29,8 +29,9 @@ logger = logging.getLogger(__name__)
 def _validate_working_dir(working_dir: str) -> tuple[Path | None, str | None]:
     """Canonicalize and validate working_dir.
 
-    Resolves symlinks, normalizes '..' segments, and validates that the
-    resolved path is an existing directory without traversal attempts.
+    Resolves symlinks, normalizes '..' segments, validates that the
+    resolved path is an existing directory without traversal attempts,
+    and verifies project identity markers (.git or .hestai).
 
     Args:
         working_dir: Raw working directory path string.
@@ -57,7 +58,42 @@ def _validate_working_dir(working_dir: str) -> tuple[Path | None, str | None]:
     if not path.is_dir():
         return None, f"working_dir is not a directory: {path}"
 
+    # Verify project identity: must have .git or .hestai directory marker
+    # (same pattern as clock_in/bind in server.py _validate_project_identity)
+    git_marker = path / ".git"
+    hestai_marker = path / ".hestai"
+    if not git_marker.exists() and not (hestai_marker.exists() and hestai_marker.is_dir()):
+        return None, (f"working_dir is not a project root (missing .git or .hestai): {path}")
+
     return path, None
+
+
+def _validate_write_targets(project_root: Path) -> str | None:
+    """Validate that write targets are not symlink escape vectors.
+
+    Checks that .hestai/state/ (resolved) stays within project_root
+    and that the error-metrics.jsonl target (if it exists) is not a symlink.
+
+    Args:
+        project_root: Resolved project root path.
+
+    Returns:
+        Error message string if validation fails, None if safe.
+    """
+    state_dir = project_root / ".hestai" / "state"
+
+    # If state_dir already exists, check it resolves within project_root
+    if state_dir.exists():
+        resolved_state = state_dir.resolve()
+        if not resolved_state.is_relative_to(project_root):
+            return f".hestai/state/ resolves outside project root via symlink: " f"{resolved_state}"
+
+    # If error-metrics.jsonl exists, reject if it is a symlink
+    metrics_path = state_dir / "error-metrics.jsonl"
+    if metrics_path.exists() and metrics_path.is_symlink():
+        return "error-metrics.jsonl is a symlink, refusing to write"
+
+    return None
 
 
 def _validate_inputs(
@@ -110,14 +146,24 @@ def _detect_active_session(
         return None, None
 
     # Find session directories and pick the most recent one
-    session_dirs = [d for d in active_dir.iterdir() if d.is_dir()]
+    try:
+        session_dirs = [d for d in active_dir.iterdir() if d.is_dir()]
+    except OSError:
+        return None, None
+
     if not session_dirs:
         return None, None
 
-    # Sort by modification time, most recent first
-    session_dirs.sort(key=lambda d: d.stat().st_mtime, reverse=True)
+    # Sort by modification time, most recent first; skip entries where stat() fails
+    timed_dirs: list[tuple[float, Path]] = []
+    for d in session_dirs:
+        try:
+            timed_dirs.append((d.stat().st_mtime, d))
+        except OSError:
+            continue
+    timed_dirs.sort(key=lambda t: t[0], reverse=True)
 
-    for session_dir in session_dirs:
+    for _mtime, session_dir in timed_dirs:
         session_file = session_dir / "session.json"
         if not session_file.exists():
             continue
@@ -163,12 +209,17 @@ async def submit_rccafp_record(
     Returns:
         Dict with success status and record_id for dispatch reference.
     """
-    # Step 1: Validate working_dir
+    # Step 1: Validate working_dir (includes project identity check)
     project_root, path_error = _validate_working_dir(working_dir)
     if path_error:
         return {"success": False, "error": path_error}
 
     assert project_root is not None  # guaranteed by path_error check
+
+    # Step 1b: Validate write targets are not symlink escape vectors
+    target_error = _validate_write_targets(project_root)
+    if target_error:
+        return {"success": False, "error": target_error}
 
     # Step 2: Validate required string fields
     field_error = _validate_inputs(
@@ -199,20 +250,43 @@ async def submit_rccafp_record(
         "future_proofing_rule": future_proofing_rule,
     }
 
-    # Step 5: Ensure .hestai/state/ directory exists
+    # Step 5: Ensure .hestai/state/ directory exists and write record
     state_dir = project_root / ".hestai" / "state"
-    state_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        state_dir.mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        return {"success": False, "error": f"Failed to write RCCAFP record: {e}"}
 
     # Step 6: Append to error-metrics.jsonl with O_APPEND for atomic writes
     metrics_path = state_dir / "error-metrics.jsonl"
     json_line = json.dumps(record, separators=(",", ":")) + "\n"
+    encoded = json_line.encode("utf-8")
 
     # O_APPEND: writes under PIPE_BUF (4096 bytes) are atomic on POSIX
-    fd = os.open(str(metrics_path), os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o644)
     try:
-        os.write(fd, json_line.encode("utf-8"))
+        fd = os.open(str(metrics_path), os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o644)
+    except OSError as e:
+        return {"success": False, "error": f"Failed to write RCCAFP record: {e}"}
+
+    try:
+        written = os.write(fd, encoded)
+    except OSError as e:
+        return {"success": False, "error": f"Failed to write RCCAFP record: {e}"}
     finally:
         os.close(fd)
+
+    # Check for short write (os.write may return fewer bytes than requested)
+    if written < len(encoded):
+        logger.warning(
+            "Short write for RCCAFP record %s: %d/%d bytes",
+            record_id,
+            written,
+            len(encoded),
+        )
+        return {
+            "success": False,
+            "error": f"Failed to write RCCAFP record: short write ({written}/{len(encoded)} bytes)",
+        }
 
     logger.info("RCCAFP record %s written to %s", record_id, metrics_path)
 
