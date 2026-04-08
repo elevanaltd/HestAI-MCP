@@ -210,6 +210,23 @@ class TestMissingRequiredFields:
         assert "future_proofing_rule" in result["error"]
 
     @pytest.mark.unit
+    async def test_non_string_context_summary_returns_structured_error(
+        self, valid_args: dict
+    ) -> None:
+        """Non-string context_summary returns structured error, not AttributeError.
+
+        Regression: calling with context_summary=1 raised AttributeError on
+        .strip() instead of returning a structured error dict.
+        """
+        from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
+
+        valid_args["context_summary"] = 1  # type: ignore[assignment]
+        result = await submit_rccafp_record(**valid_args)
+        assert result["success"] is False
+        assert "must be a string" in result["error"]
+        assert "context_summary" in result["error"]
+
+    @pytest.mark.unit
     async def test_whitespace_only_context_summary(self, valid_args: dict) -> None:
         """Whitespace-only context_summary returns validation error."""
         from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
@@ -273,6 +290,27 @@ class TestPathValidation:
         )
         assert result["success"] is True
         assert (tmp_path / ".hestai" / "state" / "error-metrics.jsonl").exists()
+
+    @pytest.mark.unit
+    async def test_non_string_working_dir_returns_structured_error(self) -> None:
+        """Non-string working_dir returns structured error, not AttributeError.
+
+        Regression: calling with working_dir=123 raised AttributeError on
+        .strip() instead of returning a structured error dict.
+        """
+        from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
+
+        result = await submit_rccafp_record(
+            working_dir=123,  # type: ignore[arg-type]
+            context_summary="test",
+            root_cause_analysis="test",
+            fix_attempt_1="test",
+            escalation_required=False,
+            future_proofing_rule="test",
+        )
+        assert result["success"] is False
+        assert "must be a string" in result["error"]
+        assert "int" in result["error"]
 
     @pytest.mark.unit
     async def test_working_dir_not_a_directory(self, tmp_path: Path) -> None:
@@ -476,7 +514,7 @@ class TestSymlinkEscapePrevention:
 
     @pytest.mark.unit
     async def test_symlinked_metrics_file_rejected(self, tmp_path: Path) -> None:
-        """Symlinked error-metrics.jsonl is rejected."""
+        """Symlinked error-metrics.jsonl (target exists) is rejected."""
         from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
 
         project = tmp_path / "project"
@@ -485,10 +523,46 @@ class TestSymlinkEscapePrevention:
         state_dir = project / ".hestai" / "state"
         state_dir.mkdir(parents=True)
 
-        # Create a symlink for the metrics file
+        # Create a symlink for the metrics file pointing to an existing target
         external_file = tmp_path / "external_metrics.jsonl"
         external_file.write_text("")
         (state_dir / "error-metrics.jsonl").symlink_to(external_file)
+
+        result = await submit_rccafp_record(
+            working_dir=str(project),
+            context_summary="test",
+            root_cause_analysis="test",
+            fix_attempt_1="test",
+            escalation_required=False,
+            future_proofing_rule="test",
+        )
+        assert result["success"] is False
+        assert "symlink" in result["error"]
+
+    @pytest.mark.unit
+    async def test_dangling_symlink_metrics_file_rejected(self, tmp_path: Path) -> None:
+        """Dangling symlink at error-metrics.jsonl is rejected.
+
+        Regression: Path.exists() follows symlinks and returns False for
+        dangling symlinks. The old guard ``if .exists() and .is_symlink()``
+        would miss dangling symlinks entirely, allowing os.open(O_CREAT)
+        to create a file at the symlink destination.
+        """
+        from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
+
+        project = tmp_path / "project"
+        project.mkdir()
+        (project / ".git").mkdir()
+        state_dir = project / ".hestai" / "state"
+        state_dir.mkdir(parents=True)
+
+        # Create a dangling symlink — target does NOT exist
+        nonexistent_target = tmp_path / "nonexistent_metrics.jsonl"
+        (state_dir / "error-metrics.jsonl").symlink_to(nonexistent_target)
+
+        # Confirm it is indeed dangling
+        assert not (state_dir / "error-metrics.jsonl").exists()
+        assert (state_dir / "error-metrics.jsonl").is_symlink()
 
         result = await submit_rccafp_record(
             working_dir=str(project),
@@ -590,64 +664,34 @@ class TestShortWriteDetection:
         assert "short write" in result["error"]
 
     @pytest.mark.unit
-    async def test_short_write_does_not_corrupt_jsonl(self, project_root: Path) -> None:
-        """Short write truncates partial bytes so JSONL is never corrupted.
+    async def test_short_write_returns_error_without_ftruncate(self, project_root: Path) -> None:
+        """Short write returns error without attempting ftruncate.
 
-        CE blocker: previously, a short write left truncated bytes in the
-        file, corrupting the JSONL log. After the fix, the file must be
-        truncated back to its original size on short write.
+        PIPE_BUF guarantee means short writes cannot happen for sub-4096 byte
+        O_APPEND writes. The short-write detection is purely defensive. When
+        triggered (via mock), it logs and returns error but does NOT attempt
+        ftruncate (which is unsafe under concurrent O_APPEND writers).
         """
         from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
 
-        metrics_file = project_root / ".hestai" / "state" / "error-metrics.jsonl"
-
-        # Write a valid first record so we can verify it survives
-        result1 = await submit_rccafp_record(
-            working_dir=str(project_root),
-            context_summary="first record",
-            root_cause_analysis="test",
-            fix_attempt_1="test",
-            escalation_required=False,
-            future_proofing_rule="test",
-        )
-        assert result1["success"] is True
-
-        # Capture file size after first valid write
-        size_after_first = metrics_file.stat().st_size
-
-        # Now simulate a short write on the second record
-        real_write = os.write
-
-        def short_write(fd: int, data: bytes) -> int:
-            """Write only 5 bytes to simulate short write."""
-            return real_write(fd, data[:5])
-
-        with patch(
-            "hestai_mcp.modules.tools.submit_rccafp.os.write",
-            side_effect=short_write,
+        # Mock os.write to return fewer bytes than requested
+        with (
+            patch("os.write", return_value=5),
+            patch("os.ftruncate") as mock_ftruncate,
         ):
-            result2 = await submit_rccafp_record(
+            result = await submit_rccafp_record(
                 working_dir=str(project_root),
-                context_summary="second record",
+                context_summary="test",
                 root_cause_analysis="test",
                 fix_attempt_1="test",
                 escalation_required=False,
                 future_proofing_rule="test",
             )
 
-        assert result2["success"] is False
-        assert "short write" in result2["error"]
-
-        # KEY ASSERTION: file must be truncated back to original size
-        # (no partial bytes left corrupting the JSONL)
-        assert metrics_file.stat().st_size == size_after_first
-
-        # Verify the first record is still valid JSON
-        content = metrics_file.read_text().strip()
-        lines = content.split("\n")
-        assert len(lines) == 1
-        record = json.loads(lines[0])
-        assert record["record_id"] == result1["record_id"]
+        assert result["success"] is False
+        assert "short write" in result["error"]
+        # ftruncate must NOT be called — it was removed
+        mock_ftruncate.assert_not_called()
 
 
 # ---------------------------------------------------------------------------
@@ -725,11 +769,12 @@ class TestParentSymlinkEscapePrevention:
         assert "symlink" in result["error"].lower()
 
     @pytest.mark.unit
-    async def test_post_mkdir_validation_catches_escape(self, tmp_path: Path) -> None:
-        """Even if .hestai is real, post-mkdir re-resolution catches escapes.
+    async def test_post_mkdir_validation_happy_path(self, tmp_path: Path) -> None:
+        """Post-mkdir re-validation passes when .hestai is a real directory.
 
-        This tests the belt-and-suspenders approach: after mkdir, the
-        resolved state_dir is re-checked to be within project_root.
+        This tests the happy path of the belt-and-suspenders check: after
+        mkdir, the resolved state_dir is re-checked to be within project_root.
+        With a real .hestai directory, the check passes and the write succeeds.
         """
         from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
 
@@ -738,8 +783,7 @@ class TestParentSymlinkEscapePrevention:
         (project / ".git").mkdir()
         (project / ".hestai").mkdir()
 
-        # No symlink tricks here — normal .hestai dir
-        # This should succeed normally
+        # No symlink tricks — normal .hestai dir should succeed
         result = await submit_rccafp_record(
             working_dir=str(project),
             context_summary="test",
@@ -749,3 +793,78 @@ class TestParentSymlinkEscapePrevention:
             future_proofing_rule="test",
         )
         assert result["success"] is True
+
+
+# ---------------------------------------------------------------------------
+# Tests — PIPE_BUF Size Guard (regression: ftruncate removal)
+# ---------------------------------------------------------------------------
+class TestPipeBufSizeGuard:
+    """Tests that oversized records are rejected before writing."""
+
+    @pytest.mark.unit
+    async def test_record_exceeding_pipe_buf_rejected(self, project_root: Path) -> None:
+        """A record whose encoded size exceeds PIPE_BUF (4096) is rejected."""
+        from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
+
+        # Create a context_summary large enough to push the record over 4096 bytes
+        huge_summary = "x" * 5000
+
+        result = await submit_rccafp_record(
+            working_dir=str(project_root),
+            context_summary=huge_summary,
+            root_cause_analysis="test",
+            fix_attempt_1="test",
+            escalation_required=False,
+            future_proofing_rule="test",
+        )
+        assert result["success"] is False
+        assert "PIPE_BUF" in result["error"]
+        assert "too large" in result["error"]
+
+    @pytest.mark.unit
+    async def test_normal_record_under_pipe_buf_succeeds(self, project_root: Path) -> None:
+        """A normal-sized record (well under 4096 bytes) writes successfully."""
+        from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
+
+        result = await submit_rccafp_record(
+            working_dir=str(project_root),
+            context_summary="Normal summary",
+            root_cause_analysis="Normal analysis",
+            fix_attempt_1="Normal fix",
+            escalation_required=False,
+            future_proofing_rule="Normal rule",
+        )
+        assert result["success"] is True
+
+
+# ---------------------------------------------------------------------------
+# Tests — Session Detection Edge Cases (regression: UnicodeDecodeError)
+# ---------------------------------------------------------------------------
+class TestSessionDetectionEdgeCases:
+    """Tests for edge cases in active session detection."""
+
+    @pytest.mark.unit
+    async def test_unicode_decode_error_in_session_json_handled(
+        self, valid_args: dict, project_root: Path
+    ) -> None:
+        """Non-UTF-8 session.json is handled gracefully, not raised.
+
+        Regression: read_text() raises UnicodeDecodeError before json.loads
+        if session.json contains non-UTF-8 bytes. The except clause must
+        catch UnicodeDecodeError alongside JSONDecodeError and OSError.
+        """
+        from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
+
+        # Create an active session with non-UTF-8 content
+        session_dir = project_root / ".hestai" / "state" / "sessions" / "active" / "bad-session"
+        session_dir.mkdir(parents=True)
+        # Write raw bytes that are NOT valid UTF-8
+        (session_dir / "session.json").write_bytes(b"\x80\x81\x82\xff")
+
+        # Should not raise — session detection is best-effort
+        result = await submit_rccafp_record(**valid_args)
+        assert result["success"] is True
+        # Session not detected (corrupted), so session_id should be None
+        metrics_file = project_root / ".hestai" / "state" / "error-metrics.jsonl"
+        record = json.loads(metrics_file.read_text().strip())
+        assert record["session_id"] is None

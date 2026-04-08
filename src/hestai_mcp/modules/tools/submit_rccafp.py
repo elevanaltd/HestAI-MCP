@@ -40,6 +40,9 @@ def _validate_working_dir(working_dir: str) -> tuple[Path | None, str | None]:
         Tuple of (resolved_path, error_message). If error_message is not None,
         resolved_path is None and the error should be returned to the caller.
     """
+    if not isinstance(working_dir, str):
+        return None, f"working_dir must be a string, got {type(working_dir).__name__}"
+
     if not working_dir or not working_dir.strip():
         return None, "working_dir must not be empty"
 
@@ -96,9 +99,11 @@ def _validate_write_targets(project_root: Path) -> str | None:
         if not resolved_state.is_relative_to(project_root):
             return f".hestai/state/ resolves outside project root via symlink: " f"{resolved_state}"
 
-    # If error-metrics.jsonl exists, reject if it is a symlink
+    # Reject error-metrics.jsonl if it is a symlink (including dangling).
+    # Note: is_symlink() does NOT follow the link, so it catches dangling
+    # symlinks that .exists() would miss (exists() returns False for dangling).
     metrics_path = state_dir / "error-metrics.jsonl"
-    if metrics_path.exists() and metrics_path.is_symlink():
+    if metrics_path.is_symlink():
         return "error-metrics.jsonl is a symlink, refusing to write"
 
     return None
@@ -129,6 +134,8 @@ def _validate_inputs(
     }
 
     for field_name, value in required_fields.items():
+        if not isinstance(value, str):
+            return f"Required field '{field_name}' must be a string, " f"got {type(value).__name__}"
         if not value or not value.strip():
             return f"Required field '{field_name}' must not be empty"
 
@@ -181,7 +188,7 @@ def _detect_active_session(
             role = data.get("role")
             if session_id:
                 return session_id, role
-        except (json.JSONDecodeError, OSError):
+        except (json.JSONDecodeError, OSError, UnicodeDecodeError):
             continue
 
     return None, None
@@ -281,30 +288,34 @@ async def submit_rccafp_record(
     json_line = json.dumps(record, separators=(",", ":")) + "\n"
     encoded = json_line.encode("utf-8")
 
-    # O_APPEND: writes under PIPE_BUF (4096 bytes) are atomic on POSIX
+    # PIPE_BUF size guard: O_APPEND writes under PIPE_BUF (4096 bytes) are
+    # guaranteed atomic on POSIX — short writes cannot happen. Reject records
+    # that exceed this limit rather than attempting unsafe ftruncate recovery.
+    pipe_buf = 4096
+    if len(encoded) > pipe_buf:
+        return {
+            "success": False,
+            "error": (
+                f"RCCAFP record too large for atomic write: "
+                f"{len(encoded)} bytes exceeds PIPE_BUF ({pipe_buf})"
+            ),
+        }
+
     try:
         fd = os.open(str(metrics_path), os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o644)
     except OSError as e:
         return {"success": False, "error": f"Failed to write RCCAFP record: {e}"}
 
     try:
-        # BLOCKER 2 FIX: Record file size before write so we can truncate
-        # back on short write, preventing JSONL corruption.
-        original_size = os.fstat(fd).st_size
         written = os.write(fd, encoded)
 
-        # Check for short write (os.write may return fewer bytes than requested)
+        # Defensive: short writes should not occur for sub-PIPE_BUF O_APPEND,
+        # but detect and report if they do (without attempting ftruncate which
+        # is unsafe under concurrent O_APPEND writers).
         if written < len(encoded):
-            # Truncate file back to original size to remove partial bytes
-            try:
-                os.ftruncate(fd, original_size)
-            except OSError:
-                logger.error(
-                    "Failed to truncate after short write for RCCAFP record %s",
-                    record_id,
-                )
-            logger.warning(
-                "Short write for RCCAFP record %s: %d/%d bytes (truncated back)",
+            logger.error(
+                "Unexpected short write for RCCAFP record %s: %d/%d bytes "
+                "(sub-PIPE_BUF O_APPEND should be atomic)",
                 record_id,
                 written,
                 len(encoded),
