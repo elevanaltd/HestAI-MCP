@@ -67,8 +67,8 @@ def matches_approval_pattern(text: str, prefix: str, keyword: str) -> bool:
     # from prose like "TMG+CRS+CE+CIV+PE by tier), GO aliases".
     # Valid positions: actual start of line (with optional whitespace) or
     # after a markdown table pipe character.
-    prefix_re = re.compile(rf"(?:^|(?<=\|))\s*{re.escape(prefix)}\b", re.MULTILINE)
-    keyword_re = re.compile(rf"\b{re.escape(keyword)}\b")
+    prefix_re = re.compile(rf"(?:^|(?<=\|))\s*{re.escape(prefix)}\b", re.MULTILINE | re.IGNORECASE)
+    keyword_re = re.compile(rf"\b{re.escape(keyword)}\b", re.IGNORECASE)
 
     for line in cleaned.splitlines():
         prefix_match = prefix_re.search(line)
@@ -156,7 +156,7 @@ _SELF_REVIEW_RE = re.compile(
     r"(?:\s*\([^)]*\))?"  # Optional parenthetical (e.g., (Claude))
     r"[\s:—–\-]*"  # Separators (whitespace, colon, dashes)
     r"SELF-REVIEWED\b",  # Keyword with word boundary
-    re.MULTILINE,
+    re.MULTILINE | re.IGNORECASE,
 )
 
 

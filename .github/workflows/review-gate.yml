@@ -202,7 +202,7 @@ jobs:
               // for each required role. Parse these to build the guidance block.
               if (tier === 'TIER_1_SELF') {
                 message += '**Required**: Self-review or HO supervisory review:\n';
-                message += '```\nIL SELF-REVIEWED: [your rationale] (any role name accepted)\n-- or --\nHO REVIEWED: [rationale after delegated work]\n```\n';
+                message += '```\n{your-role} SELF-REVIEWED: [your rationale]\n-- or --\nHO REVIEWED: [rationale after delegated work]\n```\nAny role or name accepted (e.g., IL, skills-expert, Shaun).\n';
               } else {
                 // Parse required roles from the "Reviewers: [CE, CRS, SR, TMG]" reason line
                 const rolesMatch = validationOutput.match(/Reviewers: \[([^\]]+)\]/);

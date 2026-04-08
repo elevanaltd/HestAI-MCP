@@ -737,10 +737,11 @@ def main() -> int:
     if not approved:
         print("\n⚠️  Review Requirements:")
         if tier == "TIER_1_SELF":
-            print("   Add comment: 'IL SELF-REVIEWED: [your rationale]' (any role name accepted)")
+            print("   Add comment: '{your-role} SELF-REVIEWED: [your rationale]'")
+            print("   Any role or name accepted (e.g., IL, skills-expert, Shaun)")
             print("   -- or --")
             print("   Add comment: 'HO REVIEWED: [rationale after delegated work]'")
-            print("   Example: 'IL SELF-REVIEWED: Fixed typo in error message'")
+            print("   Example: 'skills-expert SELF-REVIEWED: Updated GATES section'")
         else:
             print("   Need comments:")
             for role in sorted(required_roles):
