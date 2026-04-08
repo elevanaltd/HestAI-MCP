@@ -71,8 +71,9 @@ def _validate_working_dir(working_dir: str) -> tuple[Path | None, str | None]:
 def _validate_write_targets(project_root: Path) -> str | None:
     """Validate that write targets are not symlink escape vectors.
 
-    Checks that .hestai/state/ (resolved) stays within project_root
-    and that the error-metrics.jsonl target (if it exists) is not a symlink.
+    Checks that .hestai itself is not a symlink, that .hestai/state/
+    (resolved) stays within project_root, and that the error-metrics.jsonl
+    target (if it exists) is not a symlink.
 
     Args:
         project_root: Resolved project root path.
@@ -80,7 +81,14 @@ def _validate_write_targets(project_root: Path) -> str | None:
     Returns:
         Error message string if validation fails, None if safe.
     """
-    state_dir = project_root / ".hestai" / "state"
+    hestai_dir = project_root / ".hestai"
+
+    # BLOCKER 1 FIX: Check if .hestai itself is a symlink — reject to
+    # prevent mkdir(parents=True) from creating state/ outside project_root
+    if hestai_dir.is_symlink():
+        return ".hestai is a symlink, refusing to write (potential escape vector)"
+
+    state_dir = hestai_dir / "state"
 
     # If state_dir already exists, check it resolves within project_root
     if state_dir.exists():
@@ -257,6 +265,17 @@ async def submit_rccafp_record(
     except OSError as e:
         return {"success": False, "error": f"Failed to write RCCAFP record: {e}"}
 
+    # Step 5b: Post-mkdir re-validation — belt-and-suspenders check that
+    # the created state_dir actually resolves within project_root.
+    resolved_state = state_dir.resolve()
+    if not resolved_state.is_relative_to(project_root):
+        return {
+            "success": False,
+            "error": (
+                f".hestai/state/ resolves outside project root after mkdir: " f"{resolved_state}"
+            ),
+        }
+
     # Step 6: Append to error-metrics.jsonl with O_APPEND for atomic writes
     metrics_path = state_dir / "error-metrics.jsonl"
     json_line = json.dumps(record, separators=(",", ":")) + "\n"
@@ -269,24 +288,38 @@ async def submit_rccafp_record(
         return {"success": False, "error": f"Failed to write RCCAFP record: {e}"}
 
     try:
+        # BLOCKER 2 FIX: Record file size before write so we can truncate
+        # back on short write, preventing JSONL corruption.
+        original_size = os.fstat(fd).st_size
         written = os.write(fd, encoded)
+
+        # Check for short write (os.write may return fewer bytes than requested)
+        if written < len(encoded):
+            # Truncate file back to original size to remove partial bytes
+            try:
+                os.ftruncate(fd, original_size)
+            except OSError:
+                logger.error(
+                    "Failed to truncate after short write for RCCAFP record %s",
+                    record_id,
+                )
+            logger.warning(
+                "Short write for RCCAFP record %s: %d/%d bytes (truncated back)",
+                record_id,
+                written,
+                len(encoded),
+            )
+            return {
+                "success": False,
+                "error": (
+                    f"Failed to write RCCAFP record: "
+                    f"short write ({written}/{len(encoded)} bytes)"
+                ),
+            }
     except OSError as e:
         return {"success": False, "error": f"Failed to write RCCAFP record: {e}"}
     finally:
         os.close(fd)
-
-    # Check for short write (os.write may return fewer bytes than requested)
-    if written < len(encoded):
-        logger.warning(
-            "Short write for RCCAFP record %s: %d/%d bytes",
-            record_id,
-            written,
-            len(encoded),
-        )
-        return {
-            "success": False,
-            "error": f"Failed to write RCCAFP record: short write ({written}/{len(encoded)} bytes)",
-        }
 
     logger.info("RCCAFP record %s written to %s", record_id, metrics_path)
 

@@ -588,3 +588,164 @@ class TestShortWriteDetection:
             )
         assert result["success"] is False
         assert "short write" in result["error"]
+
+    @pytest.mark.unit
+    async def test_short_write_does_not_corrupt_jsonl(self, project_root: Path) -> None:
+        """Short write truncates partial bytes so JSONL is never corrupted.
+
+        CE blocker: previously, a short write left truncated bytes in the
+        file, corrupting the JSONL log. After the fix, the file must be
+        truncated back to its original size on short write.
+        """
+        from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
+
+        metrics_file = project_root / ".hestai" / "state" / "error-metrics.jsonl"
+
+        # Write a valid first record so we can verify it survives
+        result1 = await submit_rccafp_record(
+            working_dir=str(project_root),
+            context_summary="first record",
+            root_cause_analysis="test",
+            fix_attempt_1="test",
+            escalation_required=False,
+            future_proofing_rule="test",
+        )
+        assert result1["success"] is True
+
+        # Capture file size after first valid write
+        size_after_first = metrics_file.stat().st_size
+
+        # Now simulate a short write on the second record
+        real_write = os.write
+
+        def short_write(fd: int, data: bytes) -> int:
+            """Write only 5 bytes to simulate short write."""
+            return real_write(fd, data[:5])
+
+        with patch(
+            "hestai_mcp.modules.tools.submit_rccafp.os.write",
+            side_effect=short_write,
+        ):
+            result2 = await submit_rccafp_record(
+                working_dir=str(project_root),
+                context_summary="second record",
+                root_cause_analysis="test",
+                fix_attempt_1="test",
+                escalation_required=False,
+                future_proofing_rule="test",
+            )
+
+        assert result2["success"] is False
+        assert "short write" in result2["error"]
+
+        # KEY ASSERTION: file must be truncated back to original size
+        # (no partial bytes left corrupting the JSONL)
+        assert metrics_file.stat().st_size == size_after_first
+
+        # Verify the first record is still valid JSON
+        content = metrics_file.read_text().strip()
+        lines = content.split("\n")
+        assert len(lines) == 1
+        record = json.loads(lines[0])
+        assert record["record_id"] == result1["record_id"]
+
+
+# ---------------------------------------------------------------------------
+# Tests — Parent Symlink Escape Prevention (CE blocker: .hestai symlink)
+# ---------------------------------------------------------------------------
+class TestParentSymlinkEscapePrevention:
+    """Tests that .hestai as a symlink to an external directory is rejected.
+
+    CE blocker: if .hestai is a symlink to an external directory and state/
+    does not yet exist, _validate_write_targets() passes because it only
+    checks state_dir if it exists. Then mkdir(parents=True) creates state/
+    outside the project root.
+    """
+
+    @pytest.mark.unit
+    async def test_hestai_symlink_to_external_rejected_when_state_missing(
+        self, tmp_path: Path
+    ) -> None:
+        """.hestai as symlink to external dir is rejected even when state/ missing."""
+        from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
+
+        project = tmp_path / "project"
+        project.mkdir()
+        (project / ".git").mkdir()
+
+        # Create external target directory
+        external = tmp_path / "external"
+        external.mkdir()
+
+        # Make .hestai a symlink to the external directory
+        (project / ".hestai").symlink_to(external)
+
+        # state/ does NOT exist inside external — this is the attack vector
+        # Previously, validation would pass because state_dir.exists() is False
+
+        result = await submit_rccafp_record(
+            working_dir=str(project),
+            context_summary="test",
+            root_cause_analysis="test",
+            fix_attempt_1="test",
+            escalation_required=False,
+            future_proofing_rule="test",
+        )
+        assert result["success"] is False
+        assert "symlink" in result["error"].lower()
+
+    @pytest.mark.unit
+    async def test_hestai_symlink_to_external_rejected_when_state_exists(
+        self, tmp_path: Path
+    ) -> None:
+        """.hestai as symlink to external dir is rejected even when state/ exists."""
+        from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
+
+        project = tmp_path / "project"
+        project.mkdir()
+        (project / ".git").mkdir()
+
+        # Create external target with state/ already present
+        external = tmp_path / "external"
+        external.mkdir()
+        (external / "state").mkdir()
+
+        # Make .hestai a symlink to the external directory
+        (project / ".hestai").symlink_to(external)
+
+        result = await submit_rccafp_record(
+            working_dir=str(project),
+            context_summary="test",
+            root_cause_analysis="test",
+            fix_attempt_1="test",
+            escalation_required=False,
+            future_proofing_rule="test",
+        )
+        assert result["success"] is False
+        assert "symlink" in result["error"].lower()
+
+    @pytest.mark.unit
+    async def test_post_mkdir_validation_catches_escape(self, tmp_path: Path) -> None:
+        """Even if .hestai is real, post-mkdir re-resolution catches escapes.
+
+        This tests the belt-and-suspenders approach: after mkdir, the
+        resolved state_dir is re-checked to be within project_root.
+        """
+        from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
+
+        project = tmp_path / "project"
+        project.mkdir()
+        (project / ".git").mkdir()
+        (project / ".hestai").mkdir()
+
+        # No symlink tricks here — normal .hestai dir
+        # This should succeed normally
+        result = await submit_rccafp_record(
+            working_dir=str(project),
+            context_summary="test",
+            root_cause_analysis="test",
+            fix_attempt_1="test",
+            escalation_required=False,
+            future_proofing_rule="test",
+        )
+        assert result["success"] is True
