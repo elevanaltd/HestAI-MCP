@@ -111,7 +111,7 @@ def _get_tier_requirements(role: str) -> str:
         "CIV": "TIER_3+: CIV APPROVED/GO required (implementation validation)",
         "PE": "TIER_4: PE APPROVED/GO required (strategic review)",
         "SR": "T-STD: SR APPROVED/GO required (standards documentation review)",
-        "IL": "TIER_1_SELF: {role} SELF-REVIEWED comment required (any role name accepted)",
+        "IL": "TIER_1_SELF: {your-role} SELF-REVIEWED comment required (any role name accepted)",
         "HO": "TIER_1_SELF: HO REVIEWED comment required (supervisory review)",
     }
     return requirements.get(role, "Unknown tier requirement")
