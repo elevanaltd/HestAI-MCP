@@ -122,6 +122,24 @@
         ]
       }
     },
+    "ho-control-room": {
+      "type": "domain",
+      "description": "Strategic oversight mode for HO. Episodic State Machine with ho-liaison advisory (via pal_clink), run_debate escalation, and oa-router delegation. REPLACES holistic-orchestration when loaded.",
+      "autoInject": false,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": [
+          "control room",
+          "strategic oversight",
+          "high-level orchestration",
+          "episodic loop",
+          "advisory session",
+          "ho-strategic-ledger",
+          "control room mode",
+          "strategic planning session"
+        ]
+      }
+    },
     "ho-orchestrate": {
       "type": "domain",
       "description": "HO work orchestration protocol with enforced quality gates and debate-hall escalation. Loads ho-mode, ensures IL uses build-execution+TDD, quality gates via CRS(Gemini)+CE(Codex), debate-hall for complex decisions (Claude\u2192Wind, Codex\u2192Wall, Gemini\u2192Door per M019/M021). NEVER implements directly. Use when orchestrating implementation work.",
