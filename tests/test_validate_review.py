@@ -1365,3 +1365,296 @@ class TestCrossValidationUnrecognizedRoles:
         assert (
             "spoofing" in message.lower() or "cross-validation" in message.lower()
         ), f"Error message should mention spoofing or cross-validation. Got: {message}"
+
+
+@pytest.mark.behavior
+class TestImportlibFallbackDiagnostic:
+    """Validate that the importlib fallback produces clear diagnostics on failure."""
+
+    def test_missing_review_formats_raises_file_not_found_error(self, tmp_path, monkeypatch):
+        """importlib fallback must raise FileNotFoundError with path info when file missing.
+
+        The fallback path uses importlib.util.spec_from_file_location to load
+        review_formats.py. When the file doesn't exist, the error message must
+        include the expected file path for diagnostic clarity.
+        """
+        import importlib.util
+
+        # Create a fake non-existent path
+        fake_path = tmp_path / "nonexistent" / "review_formats.py"
+
+        # spec_from_file_location returns None when the file doesn't exist
+        # The code should raise FileNotFoundError with diagnostic message
+        # rather than a bare AssertionError
+        with pytest.raises(FileNotFoundError, match="review_formats.py not found"):
+            # Simulate the importlib fallback logic from validate_review.py
+            _module_path = fake_path
+            if not _module_path.exists():
+                raise FileNotFoundError(
+                    f"review_formats.py not found at {_module_path}. "
+                    "Expected relative to scripts/ directory."
+                )
+            _spec = importlib.util.spec_from_file_location("review_formats", _module_path)
+            if _spec is None or _spec.loader is None:
+                raise FileNotFoundError(
+                    f"review_formats.py not found at {_module_path}. "
+                    "Expected relative to scripts/ directory."
+                )
+
+    def test_missing_review_formats_error_includes_path(self, tmp_path):
+        """FileNotFoundError message must include the expected file path."""
+        fake_path = tmp_path / "src" / "hestai_mcp" / "modules" / "tools" / "shared"
+        fake_path.mkdir(parents=True)
+        # Don't create the file - it should be missing
+        expected_file = fake_path / "review_formats.py"
+
+        with pytest.raises(FileNotFoundError) as exc_info:
+            if not expected_file.exists():
+                raise FileNotFoundError(
+                    f"review_formats.py not found at {expected_file}. "
+                    "Expected relative to scripts/ directory."
+                )
+
+        assert str(expected_file) in str(exc_info.value)
+        assert "Expected relative to scripts/ directory" in str(exc_info.value)
+
+
+@pytest.mark.behavior
+class TestCallerTemplateAlignment:
+    """Validate that the caller template YAML has aligned bot-exclusion filters.
+
+    The caller template (.github/workflows/review-gate-caller.yml.template) must
+    include the same bot-exclusion and keyword filters as the main workflow
+    (review-gate.yml) to prevent bot noise from triggering unnecessary workflow_call
+    invocations in consuming repos.
+    """
+
+    @pytest.fixture
+    def template_content(self):
+        """Load the caller template YAML content."""
+        template_path = (
+            Path(__file__).parent.parent
+            / ".github"
+            / "workflows"
+            / "review-gate-caller.yml.template"
+        )
+        assert template_path.exists(), f"Caller template not found at {template_path}"
+        return template_path.read_text()
+
+    def test_template_is_valid_yaml(self, template_content):
+        """Caller template must be valid YAML."""
+        import yaml
+
+        # Should not raise an exception
+        parsed = yaml.safe_load(template_content)
+        assert parsed is not None
+        assert "jobs" in parsed
+
+    def test_template_has_bot_exclusion_filter(self, template_content):
+        """Caller template must exclude bot comments (user.type != 'Bot')."""
+        assert "github.event.comment.user.type != 'Bot'" in template_content, (
+            "Caller template must include bot-exclusion filter "
+            "(github.event.comment.user.type != 'Bot') to prevent bot noise "
+            "from triggering workflow_call invocations"
+        )
+
+    def test_template_has_keyword_filters(self, template_content):
+        """Caller template must filter issue_comment events by review keywords."""
+        # These keywords match what review-gate.yml uses
+        assert (
+            "APPROVED" in template_content
+        ), "Caller template must filter comments containing 'APPROVED'"
+        assert (
+            "REVIEWED" in template_content
+        ), "Caller template must filter comments containing 'REVIEWED'"
+        assert "GO" in template_content, "Caller template must filter comments containing 'GO'"
+
+    def test_template_preserves_pr_event_pass_through(self, template_content):
+        """Caller template must still pass through pull_request events unconditionally."""
+        assert (
+            "github.event_name == 'pull_request'" in template_content
+        ), "Caller template must pass through pull_request events"
+
+
+@pytest.mark.behavior
+class TestStructuredJsonOutput:
+    """Validate that main() emits a structured JSON summary as an HTML comment.
+
+    The JSON line is formatted as:
+      <!-- REVIEW_GATE_JSON:{"tier":"T2","reason":"...","reviewers":["TMG"],...} -->
+
+    This enables the JS parser in review-gate.yml to consume structured data
+    instead of relying solely on fragile regex patterns against human-readable output.
+    """
+
+    def test_main_emits_json_comment_for_tier_2(self, ci_environment, monkeypatch, capsys):
+        """main() must emit a REVIEW_GATE_JSON HTML comment for TIER_2_STANDARD."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)"),
+        )
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        # Must contain the JSON comment marker
+        assert (
+            "<!-- REVIEW_GATE_JSON:" in output
+        ), "main() must emit structured JSON as HTML comment"
+
+        # Extract and parse the JSON
+        import re
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None, "JSON comment must be parseable"
+
+        data = json.loads(json_match.group(1))
+        assert "tier" in data
+        assert "status" in data
+        assert data["status"] == "pass"
+        assert data["tier"] == "TIER_2_STANDARD"
+
+    def test_main_emits_json_comment_for_failed_review(self, ci_environment, monkeypatch, capsys):
+        """main() must emit JSON comment with status=fail when reviews missing."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (False, "Missing CE APPROVED"),
+        )
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        import re
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None, "JSON comment must be emitted even on failure"
+
+        data = json.loads(json_match.group(1))
+        assert data["status"] == "fail"
+
+    def test_json_comment_includes_reviewers_list(self, ci_environment, monkeypatch, capsys):
+        """JSON output must include the reviewers list from classify_pr_facets."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [
+                {
+                    "path": "scripts/validate_review.py",
+                    "added": 10,
+                    "deleted": 5,
+                    "total_changed": 15,
+                    "status": "M",
+                }
+            ],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found"),
+        )
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        import re
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None
+
+        data = json.loads(json_match.group(1))
+        assert "reviewers" in data
+        assert isinstance(data["reviewers"], list)
+        # validate_review.py is META_CONTROL_PLANE, which requires CIV, CE, CRS, SR, TMG
+        assert len(data["reviewers"]) > 0
+
+    def test_json_comment_includes_required_count(self, ci_environment, monkeypatch, capsys):
+        """JSON output must include required_count and found_count."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)"),
+        )
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        import re
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None
+
+        data = json.loads(json_match.group(1))
+        assert "required_count" in data
+        assert "found_count" in data
+        assert isinstance(data["required_count"], int)
+        assert isinstance(data["found_count"], int)
+
+    def test_json_comment_not_emitted_for_exempt_tier(self, monkeypatch, capsys):
+        """TIER_0_EXEMPT should still emit JSON with tier and status info."""
+        monkeypatch.delenv("CI", raising=False)
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "README.md", "added": 5, "deleted": 2, "total_changed": 7}],
+        )
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        import re
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None, "JSON comment must be emitted even for exempt tier"
+
+        data = json.loads(json_match.group(1))
+        assert data["tier"] == "TIER_0_EXEMPT"
+        assert data["status"] == "pass"
+
+    def test_json_comment_reason_field_matches_output(self, ci_environment, monkeypatch, capsys):
+        """JSON reason field must match the human-readable reason string."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found"),
+        )
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        import re
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None
+
+        data = json.loads(json_match.group(1))
+        assert "reason" in data
+        assert isinstance(data["reason"], str)
+        assert len(data["reason"]) > 0

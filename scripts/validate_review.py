@@ -409,8 +409,17 @@ except (ImportError, ModuleNotFoundError):
         / "shared"
         / "review_formats.py"
     )
+    if not _module_path.exists():
+        raise FileNotFoundError(
+            f"review_formats.py not found at {_module_path}. "
+            "Expected relative to scripts/ directory."
+        ) from None
     _spec = importlib.util.spec_from_file_location("review_formats", _module_path)
-    assert _spec is not None and _spec.loader is not None
+    if _spec is None or _spec.loader is None:
+        raise FileNotFoundError(
+            f"review_formats.py not found at {_module_path}. "
+            "Expected relative to scripts/ directory."
+        ) from None
     _review_formats = importlib.util.module_from_spec(_spec)
     _spec.loader.exec_module(_review_formats)
     _matches_approval_pattern = _review_formats.matches_approval_pattern
@@ -697,6 +706,34 @@ def check_emergency_bypass() -> bool:
         return False
 
 
+def _emit_json_summary(
+    tier: str,
+    reason: str,
+    reviewers: list[str],
+    status: str,
+    required_count: int,
+    found_count: int,
+) -> None:
+    """Emit a structured JSON summary as an HTML comment for machine parsing.
+
+    The JSON is wrapped in an HTML comment so it doesn't appear in human-readable
+    output but IS captured in the output variable by the CI workflow. The JS parser
+    in review-gate.yml can extract this for structured data instead of relying on
+    fragile regex patterns.
+
+    Format: <!-- REVIEW_GATE_JSON:{"tier":"...","reason":"...",...} -->
+    """
+    summary = {
+        "tier": tier,
+        "reason": reason,
+        "reviewers": reviewers,
+        "status": status,
+        "required_count": required_count,
+        "found_count": found_count,
+    }
+    print(f"<!-- REVIEW_GATE_JSON:{json.dumps(summary)} -->")
+
+
 def main() -> int:
     """Main validation logic."""
 
@@ -728,11 +765,21 @@ def main() -> int:
     # Check if tier is exempt
     if tier == "TIER_0_EXEMPT":
         print("✓ Review not required")
+        _emit_json_summary(
+            tier=tier,
+            reason=reason,
+            reviewers=[],
+            status="pass",
+            required_count=0,
+            found_count=0,
+        )
         return 0
 
     # Check for required approvals
     approved, message = check_pr_comments(required_roles=required_roles, tier=tier)
     print(f"   {message}")
+
+    reviewers_list = sorted(required_roles)
 
     if not approved:
         print("\n⚠️  Review Requirements:")
@@ -747,6 +794,15 @@ def main() -> int:
             for role in sorted(required_roles):
                 print(f"   - '{role} APPROVED: [assessment]' (or {role} GO:)")
 
+        _emit_json_summary(
+            tier=tier,
+            reason=reason,
+            reviewers=reviewers_list,
+            status="fail",
+            required_count=len(required_roles),
+            found_count=0,
+        )
+
         # Only block in CI context
         if "CI" in os.environ:
             print("\n❌ Blocking merge - reviews required")
@@ -755,6 +811,14 @@ def main() -> int:
             print("\n   ℹ️  Local check only - not blocking")
             return 0
 
+    _emit_json_summary(
+        tier=tier,
+        reason=reason,
+        reviewers=reviewers_list,
+        status="pass",
+        required_count=len(required_roles),
+        found_count=len(required_roles),
+    )
     print("\n✓ Review requirements satisfied")
     return 0
 
