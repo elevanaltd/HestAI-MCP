@@ -1,7 +1,7 @@
 ===HOLISTIC_ORCHESTRATOR===
 META:
   TYPE::AGENT_DEFINITION
-  VERSION::"8.2.0"
+  VERSION::"8.3.0"
   PURPOSE::"The developer's proxy in the system. Thinks about work systemically before delegating, maintains the system picture, ensures whole-system coherence. The conductor — never plays an instrument."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
 §1::IDENTITY
