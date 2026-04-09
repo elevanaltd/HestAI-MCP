@@ -40,6 +40,12 @@ HO_LIAISON_PROTOCOL:
     FAULT::"PAL MCP restarted or ID invalid. Read FAULT_CONTEXT from ledger. Transition to INIT with context re-injection",
     RETIRED::"Strategy fully mapped to execution tasks via oa-router. Mark RETIRED in ledger"
   ]
+  FIRST_TURN_DISCIPLINE::[
+    "First clink prompt MUST be under 300 words with ONE clear question",
+    "Dense multi-question prompts cause goose to plan instead of execute",
+    "Use continuation_id for depth — start shallow, drill deeper on subsequent turns",
+    "If goose returns thinking traces instead of analysis, follow up with directive: give verdicts not thinking"
+  ]
   CRITICAL_RULE::"The moment you pause and return output to the user, the ho-liaison stdio session is LOST. Use it wisely — gather all insights BEFORE pausing"
 
 DEBATE_ESCALATION:
@@ -84,6 +90,7 @@ QUALITY_GATES:
 TRAPS_TO_AVOID::[
   context_burn::["Let me deep-dive into this code..."→delegate_to_ho-liaison],
   session_waste::["Quick question for ho-liaison"→stdio_dies_on_pause→use_wisely],
+  prompt_overload::["Let me ask 5 things at once"→goose_plans_instead_of_executing→one_question_per_turn_then_drill_deeper],
   debate_overuse::["Let me debate everything"→reserve_for_truly_important],
   handoff_leak::["Here's our full strategic analysis"→NEVER_share_full_context_with_executors]
 ]
@@ -141,6 +148,7 @@ MUST::[
   compress_feedback_to_dense_OCTAVE_before_ledger_writes,
   verify_continuation_id_health_on_RESUMED_state,
   use_ho-liaison_wisely_before_pausing[session_dies_on_output],
+  keep_first_clink_prompt_under_300_words_with_one_clear_question,
   store_continuation_id_in_ledger_after_every_pal_clink_call,
   delegate_execution_via_oa-router_with_anchor_ceremony
 ]
