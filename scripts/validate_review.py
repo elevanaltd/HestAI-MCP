@@ -447,7 +447,7 @@ def check_pr_comments(
     *,
     required_roles: set[str] | None = None,
     tier: str = "",
-) -> tuple[bool, str]:
+) -> tuple[bool, str, list[str]]:
     """Check if required review comments and PR body contain approval patterns.
 
     Supports two calling conventions for backward compatibility:
@@ -456,6 +456,13 @@ def check_pr_comments(
 
     For TIER_1_SELF with empty required_roles, falls back to self-review logic.
     For all other tiers, validates that ALL required_roles have posted approvals.
+
+    Returns:
+        Tuple of (approved, message, missing_roles):
+        - approved: True if all required approvals are present
+        - message: Human-readable status message
+        - missing_roles: List of role names that have NOT yet approved.
+          Empty list when approved=True or in non-CI/error contexts.
     """
     # Handle backward compat: positional string arg is the tier (old API)
     if isinstance(_tier_or_roles, str):
@@ -466,11 +473,11 @@ def check_pr_comments(
     # In pre-commit context, we can't check PR comments
     # This would be called from CI with PR number
     if "CI" not in os.environ:
-        return True, "Skipping comment check in local context"
+        return True, "Skipping comment check in local context", []
 
     pr_number = os.environ.get("PR_NUMBER")
     if not pr_number:
-        return False, "❌ PR_NUMBER not set in environment"
+        return False, "❌ PR_NUMBER not set in environment", []
 
     print(f"   Checking PR #{pr_number} for review comments...")
 
@@ -563,6 +570,7 @@ def check_pr_comments(
                                 f"❌ Cross-validation failure: metadata says "
                                 f"{meta_role} {meta_verdict} but visible text "
                                 f"does not match. Possible spoofing detected.",
+                                [],
                             )
 
         def _meta_has(
@@ -601,18 +609,18 @@ def check_pr_comments(
         if tier == "TIER_1_SELF" and (required_roles is None or len(required_roles) == 0):
             for entry in metadata_entries:
                 if entry.get("verdict") == "SELF-REVIEWED":
-                    return True, "✓ Self-review found (metadata)"
+                    return True, "✓ Self-review found (metadata)", []
             if _meta_has("HO", "REVIEWED"):
-                return True, "✓ HO supervisory review found (metadata)"
+                return True, "✓ HO supervisory review found (metadata)", []
             if _meta_has("CRS", "APPROVED"):
-                return True, "✓ CRS approval satisfies self-review (metadata)"
+                return True, "✓ CRS approval satisfies self-review (metadata)", []
             if _has_self_review(searchable_texts):
-                return True, "✓ Self-review found"
+                return True, "✓ Self-review found", []
             if _has_approval(searchable_texts, "HO", "REVIEWED"):
-                return True, "✓ HO supervisory review found"
+                return True, "✓ HO supervisory review found", []
             if _has_crs_approval(searchable_texts):
-                return True, "✓ CRS approval satisfies self-review requirement"
-            return False, "❌ Missing: SELF-REVIEWED or HO REVIEWED comment"
+                return True, "✓ CRS approval satisfies self-review requirement", []
+            return False, "❌ Missing: SELF-REVIEWED or HO REVIEWED comment", []
 
         # Determine effective roles to check
         effective_roles = required_roles if required_roles is not None else set()
@@ -628,26 +636,28 @@ def check_pr_comments(
             }
             effective_roles = _tier_role_map.get(tier, set())
             if not effective_roles:
-                return False, f"❌ Unrecognized tier: {tier}"
+                return False, f"❌ Unrecognized tier: {tier}", []
 
         # Check each required role (SECURITY: fail-closed for unknown roles)
-        missing = []
+        missing_roles: list[str] = []
+        missing_display: list[str] = []
         for role in sorted(effective_roles):
             checker = _role_checkers.get(role)
             if checker is None or not checker():
-                missing.append(f"{role} APPROVED or {role} GO")
+                missing_roles.append(role)
+                missing_display.append(f"{role} APPROVED or {role} GO")
 
-        if not missing:
+        if not missing_roles:
             role_names = ", ".join(sorted(effective_roles))
-            return True, f"✓ All required approvals found ({role_names})"
+            return True, f"✓ All required approvals found ({role_names})", []
 
-        return False, f"❌ Missing: {', '.join(missing)}"
+        return False, f"❌ Missing: {', '.join(missing_display)}", missing_roles
 
     except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
         # SECURITY FIX: Fail closed in CI, permissive locally
         if "CI" in os.environ:
-            return False, f"❌ Error checking PR comments: {e}"
-        return True, "Unable to check PR comments (local mode)"
+            return False, f"❌ Error checking PR comments: {e}", []
+        return True, "Unable to check PR comments (local mode)", []
 
 
 def log_emergency_bypass() -> None:
@@ -776,17 +786,14 @@ def main() -> int:
         return 0
 
     # Check for required approvals
-    approved, message = check_pr_comments(required_roles=required_roles, tier=tier)
+    approved, message, missing_roles = check_pr_comments(required_roles=required_roles, tier=tier)
     print(f"   {message}")
 
     reviewers_list = sorted(required_roles)
 
     if not approved:
-        # Compute actual found_count from the failure message.
-        # check_pr_comments() returns missing roles as "{ROLE} APPROVED or {ROLE} GO".
-        # Count how many required roles are listed as missing, then subtract.
-        missing_count = sum(1 for role in required_roles if f"{role} APPROVED" in message)
-        found_count = len(required_roles) - missing_count
+        # Compute found_count from structured missing_roles data.
+        found_count = len(required_roles) - len(missing_roles)
 
         print("\n⚠️  Review Requirements:")
         if tier == "TIER_1_SELF":

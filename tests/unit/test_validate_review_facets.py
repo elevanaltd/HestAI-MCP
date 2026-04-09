@@ -283,7 +283,7 @@ class TestRoleBasedApproval:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments(
+        approved, message, _ = validate_review.check_pr_comments(
             required_roles={"SR"}, tier="TIER_2_STANDARD"
         )
         assert approved is True, f"SR-only should pass with SR APPROVED, got: {message}"
@@ -310,7 +310,7 @@ class TestRoleBasedApproval:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments(
+        approved, message, _ = validate_review.check_pr_comments(
             required_roles={"CE", "CRS", "TMG"}, tier="TIER_2_STANDARD"
         )
         assert approved is True, f"CE+CRS+TMG should pass, got: {message}"
@@ -336,7 +336,7 @@ class TestRoleBasedApproval:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments(
+        approved, message, _ = validate_review.check_pr_comments(
             required_roles={"CE", "CRS", "TMG"}, tier="TIER_2_STANDARD"
         )
         assert approved is False, f"Missing TMG should fail, got: {message}"
@@ -365,7 +365,7 @@ class TestRoleBasedApproval:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments(
+        approved, message, _ = validate_review.check_pr_comments(
             required_roles={"CE", "CRS", "TMG", "SR"}, tier="TIER_2_STANDARD"
         )
         assert approved is True, f"CE+CRS+TMG+SR should pass, got: {message}"
@@ -390,7 +390,7 @@ class TestRoleBasedApproval:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments(
+        approved, message, _ = validate_review.check_pr_comments(
             required_roles=set(), tier="TIER_1_SELF"
         )
         assert approved is True, f"T1 self-review should still work, got: {message}"
@@ -495,7 +495,7 @@ class TestFailClosedUnknownRoles:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments(
+        approved, message, _ = validate_review.check_pr_comments(
             required_roles={"CE", "UNKNOWN_ROLE"}, tier="TIER_2_STANDARD"
         )
         assert (
@@ -531,7 +531,7 @@ class TestSRCheckerGRBackwardCompat:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments(
+        approved, message, _ = validate_review.check_pr_comments(
             required_roles={"SR"}, tier="TIER_2_STANDARD"
         )
         assert approved is True, f"SR should accept legacy GR APPROVED comments, got: {message}"
