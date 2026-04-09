@@ -782,6 +782,12 @@ def main() -> int:
     reviewers_list = sorted(required_roles)
 
     if not approved:
+        # Compute actual found_count from the failure message.
+        # check_pr_comments() returns missing roles as "{ROLE} APPROVED or {ROLE} GO".
+        # Count how many required roles are listed as missing, then subtract.
+        missing_count = sum(1 for role in required_roles if f"{role} APPROVED" in message)
+        found_count = len(required_roles) - missing_count
+
         print("\n⚠️  Review Requirements:")
         if tier == "TIER_1_SELF":
             print("   Add comment: '{your-role} SELF-REVIEWED: [your rationale]'")
@@ -800,7 +806,7 @@ def main() -> int:
             reviewers=reviewers_list,
             status="fail",
             required_count=len(required_roles),
-            found_count=0,
+            found_count=found_count,
         )
 
         # Only block in CI context

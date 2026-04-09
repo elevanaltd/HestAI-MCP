@@ -1369,54 +1369,91 @@ class TestCrossValidationUnrecognizedRoles:
 
 @pytest.mark.behavior
 class TestImportlibFallbackDiagnostic:
-    """Validate that the importlib fallback produces clear diagnostics on failure."""
+    """Validate that the importlib fallback produces clear diagnostics on failure.
 
-    def test_missing_review_formats_raises_file_not_found_error(self, tmp_path, monkeypatch):
+    These tests exercise the ACTUAL production code in validate_review.py by
+    running it as a subprocess with manipulated paths, ensuring that if the
+    FileNotFoundError handling is removed from production code, these tests fail.
+    """
+
+    def test_missing_review_formats_raises_file_not_found_error(self, tmp_path):
         """importlib fallback must raise FileNotFoundError with path info when file missing.
 
         The fallback path uses importlib.util.spec_from_file_location to load
         review_formats.py. When the file doesn't exist, the error message must
         include the expected file path for diagnostic clarity.
+
+        This test exercises the ACTUAL production code by running validate_review.py
+        in a subprocess where the normal import fails (via -S to skip site-packages)
+        and the fallback path computes a _module_path that doesn't exist.
         """
-        import importlib.util
+        # Create a fake scripts/ directory with a copy of validate_review.py
+        # but NO src/hestai_mcp/modules/tools/shared/review_formats.py
+        fake_scripts = tmp_path / "scripts"
+        fake_scripts.mkdir()
 
-        # Create a fake non-existent path
-        fake_path = tmp_path / "nonexistent" / "review_formats.py"
+        # Copy the real validate_review.py
+        real_script = Path(__file__).parent.parent / "scripts" / "validate_review.py"
+        (fake_scripts / "validate_review.py").write_text(real_script.read_text())
 
-        # spec_from_file_location returns None when the file doesn't exist
-        # The code should raise FileNotFoundError with diagnostic message
-        # rather than a bare AssertionError
-        with pytest.raises(FileNotFoundError, match="review_formats.py not found"):
-            # Simulate the importlib fallback logic from validate_review.py
-            _module_path = fake_path
-            if not _module_path.exists():
-                raise FileNotFoundError(
-                    f"review_formats.py not found at {_module_path}. "
-                    "Expected relative to scripts/ directory."
-                )
-            _spec = importlib.util.spec_from_file_location("review_formats", _module_path)
-            if _spec is None or _spec.loader is None:
-                raise FileNotFoundError(
-                    f"review_formats.py not found at {_module_path}. "
-                    "Expected relative to scripts/ directory."
-                )
+        # Run with -S (no site-packages) so hestai_mcp is NOT importable,
+        # forcing the except ImportError fallback path in validate_review.py.
+        # The fallback will compute _module_path relative to the script location,
+        # but since there's no src/ tree in tmp_path, the path won't exist.
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-S",
+                "-c",
+                "import sys; " f"sys.path.insert(0, '{fake_scripts}'); " "import validate_review",
+            ],
+            capture_output=True,
+            text=True,
+            cwd=str(tmp_path),
+        )
+
+        # The import should fail with FileNotFoundError since
+        # review_formats.py doesn't exist at the computed fallback path
+        assert result.returncode != 0, (
+            f"Expected non-zero exit (FileNotFoundError), got 0.\n"
+            f"stdout: {result.stdout}\nstderr: {result.stderr}"
+        )
+        assert (
+            "FileNotFoundError" in result.stderr
+        ), f"Expected FileNotFoundError in stderr.\nstderr: {result.stderr}"
+        assert "review_formats.py not found" in result.stderr, (
+            f"Error message must include 'review_formats.py not found'.\n"
+            f"stderr: {result.stderr}"
+        )
 
     def test_missing_review_formats_error_includes_path(self, tmp_path):
-        """FileNotFoundError message must include the expected file path."""
-        fake_path = tmp_path / "src" / "hestai_mcp" / "modules" / "tools" / "shared"
-        fake_path.mkdir(parents=True)
-        # Don't create the file - it should be missing
-        expected_file = fake_path / "review_formats.py"
+        """FileNotFoundError message must include the expected file path.
 
-        with pytest.raises(FileNotFoundError) as exc_info:
-            if not expected_file.exists():
-                raise FileNotFoundError(
-                    f"review_formats.py not found at {expected_file}. "
-                    "Expected relative to scripts/ directory."
-                )
+        Exercises the production code's importlib fallback to verify the
+        diagnostic message contains the computed path for troubleshooting.
+        """
+        fake_scripts = tmp_path / "scripts"
+        fake_scripts.mkdir()
 
-        assert str(expected_file) in str(exc_info.value)
-        assert "Expected relative to scripts/ directory" in str(exc_info.value)
+        real_script = Path(__file__).parent.parent / "scripts" / "validate_review.py"
+        (fake_scripts / "validate_review.py").write_text(real_script.read_text())
+
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-S",
+                "-c",
+                "import sys; " f"sys.path.insert(0, '{fake_scripts}'); " "import validate_review",
+            ],
+            capture_output=True,
+            text=True,
+            cwd=str(tmp_path),
+        )
+
+        # Verify the error message includes path information for diagnostics
+        assert (
+            "Expected relative to scripts/ directory" in result.stderr
+        ), f"Error must include diagnostic path hint.\nstderr: {result.stderr}"
 
 
 @pytest.mark.behavior
@@ -1631,6 +1668,111 @@ class TestStructuredJsonOutput:
         data = json.loads(json_match.group(1))
         assert data["tier"] == "TIER_0_EXEMPT"
         assert data["status"] == "pass"
+
+    def test_found_count_reflects_partial_approvals_on_failure(
+        self, ci_environment, monkeypatch, capsys
+    ):
+        """found_count must reflect actual approvals found, not hardcoded 0 on failure.
+
+        When 2 of 3 required roles have approved but one is missing, the JSON
+        output should report found_count=2, not found_count=0. This is critical
+        for downstream consumers that need accurate progress information.
+        """
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        # ROUTINE_CODE file -> requires CE, CRS, TMG (3 roles)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        # Simulate 2 of 3 approvals present: TMG approved, CRS approved, CE missing
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (
+                False,
+                "\u274c Missing: CE APPROVED or CE GO",
+            ),
+        )
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        import re
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None, "JSON comment must be emitted on failure path"
+
+        data = json.loads(json_match.group(1))
+        assert data["status"] == "fail"
+        assert (
+            data["required_count"] == 3
+        ), f"Expected 3 required roles, got {data['required_count']}"
+        # The key assertion: found_count must NOT be hardcoded 0
+        assert data["found_count"] == 2, (
+            f"Expected found_count=2 (2 of 3 roles approved), got {data['found_count']}. "
+            "found_count must reflect actual approvals found, not hardcoded 0."
+        )
+
+    def test_found_count_is_zero_when_no_approvals_found(self, ci_environment, monkeypatch, capsys):
+        """found_count=0 is correct when genuinely no approvals are found."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        # All 3 roles missing
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (
+                False,
+                "\u274c Missing: CE APPROVED or CE GO, CRS APPROVED or CRS GO, TMG APPROVED or TMG GO",
+            ),
+        )
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        import re
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None
+
+        data = json.loads(json_match.group(1))
+        assert (
+            data["found_count"] == 0
+        ), f"Expected found_count=0 (no approvals found), got {data['found_count']}"
+
+    def test_found_count_equals_required_count_on_pass(self, ci_environment, monkeypatch, capsys):
+        """found_count must equal required_count on the pass path."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)"),
+        )
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        import re
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None
+
+        data = json.loads(json_match.group(1))
+        assert data["status"] == "pass"
+        assert data["found_count"] == data["required_count"], (
+            f"On pass path, found_count ({data['found_count']}) must equal "
+            f"required_count ({data['required_count']})"
+        )
 
     def test_json_comment_reason_field_matches_output(self, ci_environment, monkeypatch, capsys):
         """JSON reason field must match the human-readable reason string."""
