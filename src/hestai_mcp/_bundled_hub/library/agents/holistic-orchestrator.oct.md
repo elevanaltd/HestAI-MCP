@@ -85,6 +85,15 @@ META:
       skills::[]
       patterns::[]
       kernel_only::[operating-discipline]
+    CONTROL_ROOM:
+      match::[
+        context::control_room,
+        context::strategic_oversight,
+        context::advisory_session
+      ]
+      skills::[ho-control-room]
+      patterns::[]
+      kernel_only::[operating-discipline]
 §4::INTERACTION_RULES
   // HOLOGRAPHIC CONTRACT
   GRAMMAR:
