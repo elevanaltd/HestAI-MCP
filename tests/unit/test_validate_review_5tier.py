@@ -350,7 +350,7 @@ class TestTier2ApprovalRequirements:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, f"T2 with TMG+CRS+CE should pass, got: {message}"
         assert "No review required" not in message, "Must actively validate, not fall through"
 
@@ -379,7 +379,7 @@ class TestTier2ApprovalRequirements:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is False, f"T2 without TMG should fail under 5-tier system, got: {message}"
         assert "TMG" in message, f"Error message should mention missing TMG, got: {message}"
 
@@ -414,7 +414,7 @@ class TestTier3ApprovalRequirements:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_3_CRITICAL")
+        approved, message, _ = validate_review.check_pr_comments("TIER_3_CRITICAL")
         assert approved is True, f"T3 with TMG+CRS+CE+CIV should pass, got: {message}"
         assert "No review required" not in message, "Must actively validate, not fall through"
 
@@ -440,7 +440,7 @@ class TestTier3ApprovalRequirements:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_3_CRITICAL")
+        approved, message, _ = validate_review.check_pr_comments("TIER_3_CRITICAL")
         assert approved is False, f"T3 without CIV should fail, got: {message}"
         assert "CIV" in message, f"Error message should mention missing CIV, got: {message}"
 
@@ -466,7 +466,7 @@ class TestTier3ApprovalRequirements:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_3_CRITICAL")
+        approved, message, _ = validate_review.check_pr_comments("TIER_3_CRITICAL")
         assert approved is False, f"T3 without TMG should fail, got: {message}"
         assert "TMG" in message, f"Error message should mention missing TMG, got: {message}"
 
@@ -502,7 +502,7 @@ class TestTier4ApprovalRequirements:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_4_STRATEGIC")
+        approved, message, _ = validate_review.check_pr_comments("TIER_4_STRATEGIC")
         assert approved is True, f"T4 with TMG+CRS+CE+CIV+PE should pass, got: {message}"
         assert "No review required" not in message, "Must actively validate, not fall through"
 
@@ -529,7 +529,7 @@ class TestTier4ApprovalRequirements:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_4_STRATEGIC")
+        approved, message, _ = validate_review.check_pr_comments("TIER_4_STRATEGIC")
         assert approved is False, f"T4 without PE should fail, got: {message}"
         assert "PE" in message, f"Error message should mention missing PE, got: {message}"
 
@@ -556,7 +556,7 @@ class TestTier4ApprovalRequirements:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_4_STRATEGIC")
+        approved, message, _ = validate_review.check_pr_comments("TIER_4_STRATEGIC")
         assert approved is False, f"T4 without CIV should fail, got: {message}"
         assert "CIV" in message, f"Error message should mention missing CIV, got: {message}"
 
@@ -581,7 +581,7 @@ class TestTier4ApprovalRequirements:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_4_STRATEGIC")
+        approved, message, _ = validate_review.check_pr_comments("TIER_4_STRATEGIC")
         assert approved is False, f"T4 with only CRS+CE should fail, got: {message}"
 
 
@@ -702,7 +702,7 @@ class TestGOAliasApprovalInValidator:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, f"T2 with TMG GO should pass, got: {message}"
         assert "No review required" not in message, "Must actively validate, not fall through"
 
@@ -729,7 +729,7 @@ class TestGOAliasApprovalInValidator:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_3_CRITICAL")
+        approved, message, _ = validate_review.check_pr_comments("TIER_3_CRITICAL")
         assert approved is True, f"T3 with CIV GO should pass, got: {message}"
         assert "No review required" not in message, "Must actively validate, not fall through"
 
@@ -757,7 +757,7 @@ class TestGOAliasApprovalInValidator:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_4_STRATEGIC")
+        approved, message, _ = validate_review.check_pr_comments("TIER_4_STRATEGIC")
         assert approved is True, f"T4 with PE GO should pass, got: {message}"
         assert "No review required" not in message, "Must actively validate, not fall through"
 
@@ -942,7 +942,7 @@ class TestMetadataCrossValidationNewRoles:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, f"Metadata-backed T2 should pass, got: {message}"
         assert "No review required" not in message, "Must actively validate, not fall through"
 
@@ -978,7 +978,7 @@ class TestMetadataCrossValidationNewRoles:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is False, f"Spoofed TMG should fail cross-validation, got: {message}"
         assert (
             "Cross-validation" in message or "spoofing" in message.lower()
@@ -1012,7 +1012,7 @@ class TestTier1ApprovalInValidator:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_1_SELF")
+        approved, message, _ = validate_review.check_pr_comments("TIER_1_SELF")
         assert approved is True, f"T1 with IL SELF-REVIEWED should pass, got: {message}"
 
     def test_tier_1_passes_with_ho_reviewed(self, ci_environment, monkeypatch) -> None:
@@ -1035,7 +1035,7 @@ class TestTier1ApprovalInValidator:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_1_SELF")
+        approved, message, _ = validate_review.check_pr_comments("TIER_1_SELF")
         assert approved is True, f"T1 with HO REVIEWED should pass, got: {message}"
 
     def test_tier_1_fails_without_any_review(self, ci_environment, monkeypatch) -> None:
@@ -1058,7 +1058,7 @@ class TestTier1ApprovalInValidator:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_1_SELF")
+        approved, message, _ = validate_review.check_pr_comments("TIER_1_SELF")
         assert approved is False, f"T1 without self-review should fail, got: {message}"
 
     def test_tier_1_with_generic_role_self_reviewed(self, ci_environment, monkeypatch) -> None:
@@ -1085,7 +1085,7 @@ class TestTier1ApprovalInValidator:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_1_SELF")
+        approved, message, _ = validate_review.check_pr_comments("TIER_1_SELF")
         assert approved is True, f"T1 with generic role SELF-REVIEWED should pass, got: {message}"
 
 
@@ -1118,7 +1118,7 @@ class TestNegativeApprovalNewRoles:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is False, f"TMG BLOCKED should not satisfy T2, got: {message}"
 
     def test_duplicate_crs_does_not_substitute_for_tmg(self, ci_environment, monkeypatch) -> None:
@@ -1143,7 +1143,7 @@ class TestNegativeApprovalNewRoles:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is False, f"Duplicate CRS should not substitute for TMG, got: {message}"
 
 
@@ -1180,7 +1180,7 @@ class TestOldTier3DualCRSRegression:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_3_CRITICAL")
+        approved, message, _ = validate_review.check_pr_comments("TIER_3_CRITICAL")
         assert approved is False, f"Old dual-CRS+CE model should NOT satisfy new T3, got: {message}"
 
 
@@ -1226,7 +1226,7 @@ class TestBotCommentFiltering:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert (
             approved is False
         ), f"CodeRabbit bot comment must NOT satisfy approval gate, got: {message}"
@@ -1254,7 +1254,7 @@ class TestBotCommentFiltering:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert (
             approved is False
         ), f"Copilot bot comment must NOT satisfy approval gate, got: {message}"
@@ -1294,7 +1294,7 @@ class TestBotCommentFiltering:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, (
             f"Human comments should still satisfy gate even with bot comments present, "
             f"got: {message}"
@@ -1398,7 +1398,7 @@ class TestPerVariantBotExclusion:
             )
 
         monkeypatch.setattr(subprocess, "run", mock_run)
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is False, f"Cubic bot login '{login}' must NOT satisfy gate, got: {message}"
 
     @pytest.mark.parametrize(
@@ -1431,7 +1431,7 @@ class TestPerVariantBotExclusion:
             )
 
         monkeypatch.setattr(subprocess, "run", mock_run)
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is False, f"Qodo bot login '{login}' must NOT satisfy gate, got: {message}"
 
     @pytest.mark.parametrize(
@@ -1464,7 +1464,7 @@ class TestPerVariantBotExclusion:
             )
 
         monkeypatch.setattr(subprocess, "run", mock_run)
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert (
             approved is False
         ), f"Copilot bot login '{login}' must NOT satisfy gate, got: {message}"
@@ -1491,7 +1491,7 @@ class TestPerVariantBotExclusion:
             )
 
         monkeypatch.setattr(subprocess, "run", mock_run)
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert (
             approved is False
         ), f"CodeRabbit bot login 'coderabbitai' must NOT satisfy gate, got: {message}"

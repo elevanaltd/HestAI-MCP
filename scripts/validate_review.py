@@ -409,8 +409,17 @@ except (ImportError, ModuleNotFoundError):
         / "shared"
         / "review_formats.py"
     )
+    if not _module_path.exists():
+        raise FileNotFoundError(
+            f"review_formats.py not found at {_module_path}. "
+            "Expected relative to scripts/ directory."
+        ) from None
     _spec = importlib.util.spec_from_file_location("review_formats", _module_path)
-    assert _spec is not None and _spec.loader is not None
+    if _spec is None or _spec.loader is None:
+        raise FileNotFoundError(
+            f"review_formats.py not found at {_module_path}. "
+            "Expected relative to scripts/ directory."
+        ) from None
     _review_formats = importlib.util.module_from_spec(_spec)
     _spec.loader.exec_module(_review_formats)
     _matches_approval_pattern = _review_formats.matches_approval_pattern
@@ -438,7 +447,7 @@ def check_pr_comments(
     *,
     required_roles: set[str] | None = None,
     tier: str = "",
-) -> tuple[bool, str]:
+) -> tuple[bool, str, list[str]]:
     """Check if required review comments and PR body contain approval patterns.
 
     Supports two calling conventions for backward compatibility:
@@ -447,6 +456,13 @@ def check_pr_comments(
 
     For TIER_1_SELF with empty required_roles, falls back to self-review logic.
     For all other tiers, validates that ALL required_roles have posted approvals.
+
+    Returns:
+        Tuple of (approved, message, missing_roles):
+        - approved: True if all required approvals are present
+        - message: Human-readable status message
+        - missing_roles: List of role names that have NOT yet approved.
+          Empty list when approved=True or in non-CI/error contexts.
     """
     # Handle backward compat: positional string arg is the tier (old API)
     if isinstance(_tier_or_roles, str):
@@ -457,11 +473,11 @@ def check_pr_comments(
     # In pre-commit context, we can't check PR comments
     # This would be called from CI with PR number
     if "CI" not in os.environ:
-        return True, "Skipping comment check in local context"
+        return True, "Skipping comment check in local context", []
 
     pr_number = os.environ.get("PR_NUMBER")
     if not pr_number:
-        return False, "❌ PR_NUMBER not set in environment"
+        return False, "❌ PR_NUMBER not set in environment", []
 
     print(f"   Checking PR #{pr_number} for review comments...")
 
@@ -554,6 +570,7 @@ def check_pr_comments(
                                 f"❌ Cross-validation failure: metadata says "
                                 f"{meta_role} {meta_verdict} but visible text "
                                 f"does not match. Possible spoofing detected.",
+                                [],
                             )
 
         def _meta_has(
@@ -592,18 +609,18 @@ def check_pr_comments(
         if tier == "TIER_1_SELF" and (required_roles is None or len(required_roles) == 0):
             for entry in metadata_entries:
                 if entry.get("verdict") == "SELF-REVIEWED":
-                    return True, "✓ Self-review found (metadata)"
+                    return True, "✓ Self-review found (metadata)", []
             if _meta_has("HO", "REVIEWED"):
-                return True, "✓ HO supervisory review found (metadata)"
+                return True, "✓ HO supervisory review found (metadata)", []
             if _meta_has("CRS", "APPROVED"):
-                return True, "✓ CRS approval satisfies self-review (metadata)"
+                return True, "✓ CRS approval satisfies self-review (metadata)", []
             if _has_self_review(searchable_texts):
-                return True, "✓ Self-review found"
+                return True, "✓ Self-review found", []
             if _has_approval(searchable_texts, "HO", "REVIEWED"):
-                return True, "✓ HO supervisory review found"
+                return True, "✓ HO supervisory review found", []
             if _has_crs_approval(searchable_texts):
-                return True, "✓ CRS approval satisfies self-review requirement"
-            return False, "❌ Missing: SELF-REVIEWED or HO REVIEWED comment"
+                return True, "✓ CRS approval satisfies self-review requirement", []
+            return False, "❌ Missing: SELF-REVIEWED or HO REVIEWED comment", []
 
         # Determine effective roles to check
         effective_roles = required_roles if required_roles is not None else set()
@@ -619,26 +636,28 @@ def check_pr_comments(
             }
             effective_roles = _tier_role_map.get(tier, set())
             if not effective_roles:
-                return False, f"❌ Unrecognized tier: {tier}"
+                return False, f"❌ Unrecognized tier: {tier}", []
 
         # Check each required role (SECURITY: fail-closed for unknown roles)
-        missing = []
+        missing_roles: list[str] = []
+        missing_display: list[str] = []
         for role in sorted(effective_roles):
             checker = _role_checkers.get(role)
             if checker is None or not checker():
-                missing.append(f"{role} APPROVED or {role} GO")
+                missing_roles.append(role)
+                missing_display.append(f"{role} APPROVED or {role} GO")
 
-        if not missing:
+        if not missing_roles:
             role_names = ", ".join(sorted(effective_roles))
-            return True, f"✓ All required approvals found ({role_names})"
+            return True, f"✓ All required approvals found ({role_names})", []
 
-        return False, f"❌ Missing: {', '.join(missing)}"
+        return False, f"❌ Missing: {', '.join(missing_display)}", missing_roles
 
     except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
         # SECURITY FIX: Fail closed in CI, permissive locally
         if "CI" in os.environ:
-            return False, f"❌ Error checking PR comments: {e}"
-        return True, "Unable to check PR comments (local mode)"
+            return False, f"❌ Error checking PR comments: {e}", []
+        return True, "Unable to check PR comments (local mode)", []
 
 
 def log_emergency_bypass() -> None:
@@ -697,6 +716,34 @@ def check_emergency_bypass() -> bool:
         return False
 
 
+def _emit_json_summary(
+    tier: str,
+    reason: str,
+    reviewers: list[str],
+    status: str,
+    required_count: int,
+    found_count: int,
+) -> None:
+    """Emit a structured JSON summary as an HTML comment for machine parsing.
+
+    The JSON is wrapped in an HTML comment so it doesn't appear in human-readable
+    output but IS captured in the output variable by the CI workflow. The JS parser
+    in review-gate.yml can extract this for structured data instead of relying on
+    fragile regex patterns.
+
+    Format: <!-- REVIEW_GATE_JSON:{"tier":"...","reason":"...",...} -->
+    """
+    summary = {
+        "tier": tier,
+        "reason": reason,
+        "reviewers": reviewers,
+        "status": status,
+        "required_count": required_count,
+        "found_count": found_count,
+    }
+    print(f"<!-- REVIEW_GATE_JSON:{json.dumps(summary)} -->")
+
+
 def main() -> int:
     """Main validation logic."""
 
@@ -728,13 +775,26 @@ def main() -> int:
     # Check if tier is exempt
     if tier == "TIER_0_EXEMPT":
         print("✓ Review not required")
+        _emit_json_summary(
+            tier=tier,
+            reason=reason,
+            reviewers=[],
+            status="pass",
+            required_count=0,
+            found_count=0,
+        )
         return 0
 
     # Check for required approvals
-    approved, message = check_pr_comments(required_roles=required_roles, tier=tier)
+    approved, message, missing_roles = check_pr_comments(required_roles=required_roles, tier=tier)
     print(f"   {message}")
 
+    reviewers_list = sorted(required_roles)
+
     if not approved:
+        # Compute found_count from structured missing_roles data.
+        found_count = len(required_roles) - len(missing_roles)
+
         print("\n⚠️  Review Requirements:")
         if tier == "TIER_1_SELF":
             print("   Add comment: '{your-role} SELF-REVIEWED: [your rationale]'")
@@ -747,6 +807,15 @@ def main() -> int:
             for role in sorted(required_roles):
                 print(f"   - '{role} APPROVED: [assessment]' (or {role} GO:)")
 
+        _emit_json_summary(
+            tier=tier,
+            reason=reason,
+            reviewers=reviewers_list,
+            status="fail",
+            required_count=len(required_roles),
+            found_count=found_count,
+        )
+
         # Only block in CI context
         if "CI" in os.environ:
             print("\n❌ Blocking merge - reviews required")
@@ -755,6 +824,14 @@ def main() -> int:
             print("\n   ℹ️  Local check only - not blocking")
             return 0
 
+    _emit_json_summary(
+        tier=tier,
+        reason=reason,
+        reviewers=reviewers_list,
+        status="pass",
+        required_count=len(required_roles),
+        found_count=len(required_roles),
+    )
     print("\n✓ Review requirements satisfied")
     return 0
 

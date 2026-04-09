@@ -70,7 +70,7 @@ class TestFailClosedBehavior:
         monkeypatch.setattr(subprocess, "run", mock_run)
 
         # In CI context, comment check failures should return False
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is False, "Comment check failure in CI must return False"
         assert "error" in message.lower() or "failed" in message.lower()
 
@@ -87,7 +87,7 @@ class TestFailClosedBehavior:
         monkeypatch.setattr(
             validate_review,
             "check_pr_comments",
-            lambda *args, **kwargs: (False, "Missing review"),
+            lambda *args, **kwargs: (False, "Missing review", []),
         )
 
         # Mock check_emergency_bypass to return False
@@ -119,7 +119,7 @@ class TestLocalModePermissiveness:
 
     def test_check_pr_comments_skips_in_local_mode(self, local_environment):
         """Local mode: PR comment checks are skipped."""
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, "Local mode should skip PR comment checks"
         assert "local" in message.lower() or "skip" in message.lower()
 
@@ -373,7 +373,7 @@ class TestPRCommentValidation:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_1_SELF")
+        approved, message, _ = validate_review.check_pr_comments("TIER_1_SELF")
         assert approved is False
         assert "SELF-REVIEWED" in message or "HO REVIEWED" in message
 
@@ -399,7 +399,7 @@ class TestPRCommentValidation:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True
         assert "TMG" in message and "CRS" in message and "CE" in message
 
@@ -417,7 +417,7 @@ class TestPRCommentValidation:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is False
         assert "CE APPROVED" in message or "CE GO" in message
 
@@ -441,7 +441,7 @@ class TestPRCommentValidation:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_3_CRITICAL")
+        approved, message, _ = validate_review.check_pr_comments("TIER_3_CRITICAL")
         assert approved is False
         assert "TMG" in message or "CE" in message or "CIV" in message
 
@@ -467,7 +467,7 @@ class TestPRBodyScanning:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, "TMG, CRS and CE approval in PR body should be accepted"
 
     def test_self_review_in_pr_body_is_accepted(self, ci_environment, monkeypatch):
@@ -487,7 +487,7 @@ class TestPRBodyScanning:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_1_SELF")
+        approved, message, _ = validate_review.check_pr_comments("TIER_1_SELF")
         assert approved is True, "Self-review in PR body should be accepted"
         assert "Self-review found" in message
 
@@ -511,7 +511,7 @@ class TestPRBodyScanning:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_3_CRITICAL")
+        approved, message, _ = validate_review.check_pr_comments("TIER_3_CRITICAL")
         assert approved is True, "Approvals split between body and comments should pass"
 
     def test_gh_cli_fetches_body_and_comments(self, ci_environment, monkeypatch):
@@ -566,7 +566,7 @@ class TestPRBodyScanning:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, "Null PR body should not block comment-based approval"
 
 
@@ -595,7 +595,7 @@ class TestHOSupervisoryReview:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_1_SELF")
+        approved, message, _ = validate_review.check_pr_comments("TIER_1_SELF")
         assert approved is True, "'HO REVIEWED' should satisfy T1"
         assert "HO supervisory review found" in message
 
@@ -616,7 +616,7 @@ class TestHOSupervisoryReview:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_1_SELF")
+        approved, message, _ = validate_review.check_pr_comments("TIER_1_SELF")
         assert approved is True, "'HO (Claude): REVIEWED' should satisfy T1"
         assert "HO supervisory review found" in message
 
@@ -637,7 +637,7 @@ class TestHOSupervisoryReview:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_1_SELF")
+        approved, message, _ = validate_review.check_pr_comments("TIER_1_SELF")
         assert approved is True, "IL SELF-REVIEWED must still pass T1"
         assert "Self-review found" in message
 
@@ -658,7 +658,7 @@ class TestHOSupervisoryReview:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_1_SELF")
+        approved, message, _ = validate_review.check_pr_comments("TIER_1_SELF")
         assert approved is True, "HO REVIEWED in PR body should satisfy T1"
 
     def test_tier_1_crs_still_satisfies_after_ho_addition(self, ci_environment, monkeypatch):
@@ -678,7 +678,7 @@ class TestHOSupervisoryReview:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_1_SELF")
+        approved, message, _ = validate_review.check_pr_comments("TIER_1_SELF")
         assert approved is True, "CRS approval should still satisfy T1"
         assert "CRS approval satisfies" in message
 
@@ -704,7 +704,7 @@ class TestFlexiblePatternMatching:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, "'CRS (Gemini): APPROVED' + TMG + CE should be recognized"
 
     def test_ce_parenthetical_model_format(self, ci_environment, monkeypatch):
@@ -729,7 +729,7 @@ class TestFlexiblePatternMatching:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_3_CRITICAL")
+        approved, message, _ = validate_review.check_pr_comments("TIER_3_CRITICAL")
         assert approved is True, "'CE (Claude): APPROVED' with TMG+CRS+CIV should be recognized"
 
     def test_crs_with_extra_whitespace(self, ci_environment, monkeypatch):
@@ -749,7 +749,7 @@ class TestFlexiblePatternMatching:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, "CRS APPROVED with extra whitespace should match"
 
     def test_il_parenthetical_model_format(self, ci_environment, monkeypatch):
@@ -769,7 +769,7 @@ class TestFlexiblePatternMatching:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_1_SELF")
+        approved, message, _ = validate_review.check_pr_comments("TIER_1_SELF")
         assert approved is True, "'IL (Claude): SELF-REVIEWED' should be recognized"
 
     def test_original_exact_format_still_works(self, ci_environment, monkeypatch):
@@ -793,7 +793,7 @@ class TestFlexiblePatternMatching:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, "Original exact format must continue to work"
 
 
@@ -894,7 +894,7 @@ class TestGoKeywordApproval:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, "'CRS (Gemini): GO' + TMG + CE should be recognized"
 
     def test_ce_go_after_fix_matches_as_ce_approval(self, ci_environment, monkeypatch):
@@ -919,7 +919,7 @@ class TestGoKeywordApproval:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_3_CRITICAL")
+        approved, message, _ = validate_review.check_pr_comments("TIER_3_CRITICAL")
         assert approved is True, "'CE (Codex): GO after fix' with TMG+CRS+CIV should pass"
 
     def test_crs_go_with_score_matches(self, ci_environment, monkeypatch):
@@ -939,7 +939,7 @@ class TestGoKeywordApproval:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, "'CRS (Gemini): GO (9/10)' + TMG + CE should pass"
 
     def test_tier_3_go_plus_ce_approved_passes(self, ci_environment, monkeypatch):
@@ -964,7 +964,7 @@ class TestGoKeywordApproval:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_3_CRITICAL")
+        approved, message, _ = validate_review.check_pr_comments("TIER_3_CRITICAL")
         assert approved is True, "TMG+CRS GO+CE+CIV should satisfy TIER_3_CRITICAL"
 
     def test_tier_3_approved_plus_ce_go_passes(self, ci_environment, monkeypatch):
@@ -989,7 +989,7 @@ class TestGoKeywordApproval:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_3_CRITICAL")
+        approved, message, _ = validate_review.check_pr_comments("TIER_3_CRITICAL")
         assert approved is True, "TMG+CRS+CE GO+CIV should satisfy TIER_3_CRITICAL"
 
     def test_go_substring_does_not_false_positive(self):
@@ -1014,7 +1014,7 @@ class TestGoKeywordApproval:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_3_CRITICAL")
+        approved, message, _ = validate_review.check_pr_comments("TIER_3_CRITICAL")
         assert approved is False
         assert "TMG" in message, "Error message should mention TMG"
         assert "CRS" in message, "Error message should mention CRS"
@@ -1038,7 +1038,7 @@ class TestGoKeywordApproval:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is False
         assert "GO" in message, "Error message should mention GO as an accepted format"
 
@@ -1276,7 +1276,7 @@ class TestCrossValidationUnrecognizedRoles:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, (
             "Unrecognized role in metadata must not cause cross-validation failure. "
             f"Got: {message}"
@@ -1318,7 +1318,7 @@ class TestCrossValidationUnrecognizedRoles:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is True, (
             "Unrecognized role without visible text match must not trigger spoofing detection. "
             f"Got: {message}"
@@ -1356,7 +1356,7 @@ class TestCrossValidationUnrecognizedRoles:
 
         monkeypatch.setattr(subprocess, "run", mock_run)
 
-        approved, message = validate_review.check_pr_comments("TIER_2_STANDARD")
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is False, (
             "Recognized role with mismatched metadata must fail cross-validation "
             "(spoofing detection). "
@@ -1365,3 +1365,600 @@ class TestCrossValidationUnrecognizedRoles:
         assert (
             "spoofing" in message.lower() or "cross-validation" in message.lower()
         ), f"Error message should mention spoofing or cross-validation. Got: {message}"
+
+
+@pytest.mark.behavior
+class TestImportlibFallbackDiagnostic:
+    """Validate that the importlib fallback produces clear diagnostics on failure.
+
+    These tests exercise the ACTUAL production code in validate_review.py by
+    running it as a subprocess with manipulated paths, ensuring that if the
+    FileNotFoundError handling is removed from production code, these tests fail.
+    """
+
+    def test_missing_review_formats_raises_file_not_found_error(self, tmp_path):
+        """importlib fallback must raise FileNotFoundError with path info when file missing.
+
+        The fallback path uses importlib.util.spec_from_file_location to load
+        review_formats.py. When the file doesn't exist, the error message must
+        include the expected file path for diagnostic clarity.
+
+        This test exercises the ACTUAL production code by running validate_review.py
+        in a subprocess where the normal import fails (via -S to skip site-packages)
+        and the fallback path computes a _module_path that doesn't exist.
+        """
+        # Create a fake scripts/ directory with a copy of validate_review.py
+        # but NO src/hestai_mcp/modules/tools/shared/review_formats.py
+        fake_scripts = tmp_path / "scripts"
+        fake_scripts.mkdir()
+
+        # Copy the real validate_review.py
+        real_script = Path(__file__).parent.parent / "scripts" / "validate_review.py"
+        (fake_scripts / "validate_review.py").write_text(real_script.read_text())
+
+        # Run with -S (no site-packages) so hestai_mcp is NOT importable,
+        # forcing the except ImportError fallback path in validate_review.py.
+        # The fallback will compute _module_path relative to the script location,
+        # but since there's no src/ tree in tmp_path, the path won't exist.
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-S",
+                "-c",
+                "import sys; " f"sys.path.insert(0, '{fake_scripts}'); " "import validate_review",
+            ],
+            capture_output=True,
+            text=True,
+            cwd=str(tmp_path),
+        )
+
+        # The import should fail with FileNotFoundError since
+        # review_formats.py doesn't exist at the computed fallback path
+        assert result.returncode != 0, (
+            f"Expected non-zero exit (FileNotFoundError), got 0.\n"
+            f"stdout: {result.stdout}\nstderr: {result.stderr}"
+        )
+        assert (
+            "FileNotFoundError" in result.stderr
+        ), f"Expected FileNotFoundError in stderr.\nstderr: {result.stderr}"
+        assert "review_formats.py not found" in result.stderr, (
+            f"Error message must include 'review_formats.py not found'.\n"
+            f"stderr: {result.stderr}"
+        )
+
+    def test_missing_review_formats_error_includes_path(self, tmp_path):
+        """FileNotFoundError message must include the expected file path.
+
+        Exercises the production code's importlib fallback to verify the
+        diagnostic message contains the computed path for troubleshooting.
+        """
+        fake_scripts = tmp_path / "scripts"
+        fake_scripts.mkdir()
+
+        real_script = Path(__file__).parent.parent / "scripts" / "validate_review.py"
+        (fake_scripts / "validate_review.py").write_text(real_script.read_text())
+
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-S",
+                "-c",
+                "import sys; " f"sys.path.insert(0, '{fake_scripts}'); " "import validate_review",
+            ],
+            capture_output=True,
+            text=True,
+            cwd=str(tmp_path),
+        )
+
+        # Verify the error message includes path information for diagnostics
+        assert (
+            "Expected relative to scripts/ directory" in result.stderr
+        ), f"Error must include diagnostic path hint.\nstderr: {result.stderr}"
+
+
+@pytest.mark.behavior
+class TestCallerTemplateAlignment:
+    """Validate that the caller template YAML has aligned bot-exclusion filters.
+
+    The caller template (.github/workflows/review-gate-caller.yml.template) must
+    include the same bot-exclusion and keyword filters as the main workflow
+    (review-gate.yml) to prevent bot noise from triggering unnecessary workflow_call
+    invocations in consuming repos.
+    """
+
+    @pytest.fixture
+    def template_content(self):
+        """Load the caller template YAML content."""
+        template_path = (
+            Path(__file__).parent.parent
+            / ".github"
+            / "workflows"
+            / "review-gate-caller.yml.template"
+        )
+        assert template_path.exists(), f"Caller template not found at {template_path}"
+        return template_path.read_text()
+
+    def test_template_is_valid_yaml(self, template_content):
+        """Caller template must be valid YAML."""
+        import yaml
+
+        # Should not raise an exception
+        parsed = yaml.safe_load(template_content)
+        assert parsed is not None
+        assert "jobs" in parsed
+
+    def test_template_has_bot_exclusion_filter(self, template_content):
+        """Caller template must exclude bot comments (user.type != 'Bot')."""
+        assert "github.event.comment.user.type != 'Bot'" in template_content, (
+            "Caller template must include bot-exclusion filter "
+            "(github.event.comment.user.type != 'Bot') to prevent bot noise "
+            "from triggering workflow_call invocations"
+        )
+
+    def test_template_has_keyword_filters(self, template_content):
+        """Caller template must filter issue_comment events by review keywords."""
+        # These keywords match what review-gate.yml uses
+        assert (
+            "APPROVED" in template_content
+        ), "Caller template must filter comments containing 'APPROVED'"
+        assert (
+            "REVIEWED" in template_content
+        ), "Caller template must filter comments containing 'REVIEWED'"
+        assert "GO" in template_content, "Caller template must filter comments containing 'GO'"
+
+    def test_template_preserves_pr_event_pass_through(self, template_content):
+        """Caller template must still pass through pull_request events unconditionally."""
+        assert (
+            "github.event_name == 'pull_request'" in template_content
+        ), "Caller template must pass through pull_request events"
+
+
+@pytest.mark.behavior
+class TestStructuredJsonOutput:
+    """Validate that main() emits a structured JSON summary as an HTML comment.
+
+    The JSON line is formatted as:
+      <!-- REVIEW_GATE_JSON:{"tier":"T2","reason":"...","reviewers":["TMG"],...} -->
+
+    This enables the JS parser in review-gate.yml to consume structured data
+    instead of relying solely on fragile regex patterns against human-readable output.
+    """
+
+    def test_main_emits_json_comment_for_tier_2(self, ci_environment, monkeypatch, capsys):
+        """main() must emit a REVIEW_GATE_JSON HTML comment for TIER_2_STANDARD."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        # Must contain the JSON comment marker
+        assert (
+            "<!-- REVIEW_GATE_JSON:" in output
+        ), "main() must emit structured JSON as HTML comment"
+
+        # Extract and parse the JSON
+        import re
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None, "JSON comment must be parseable"
+
+        data = json.loads(json_match.group(1))
+        assert "tier" in data
+        assert "status" in data
+        assert data["status"] == "pass"
+        assert data["tier"] == "TIER_2_STANDARD"
+
+    def test_main_emits_json_comment_for_failed_review(self, ci_environment, monkeypatch, capsys):
+        """main() must emit JSON comment with status=fail when reviews missing."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (False, "Missing CE APPROVED", ["CE"]),
+        )
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        import re
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None, "JSON comment must be emitted even on failure"
+
+        data = json.loads(json_match.group(1))
+        assert data["status"] == "fail"
+
+    def test_json_comment_includes_reviewers_list(self, ci_environment, monkeypatch, capsys):
+        """JSON output must include the reviewers list from classify_pr_facets."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [
+                {
+                    "path": "scripts/validate_review.py",
+                    "added": 10,
+                    "deleted": 5,
+                    "total_changed": 15,
+                    "status": "M",
+                }
+            ],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found", []),
+        )
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        import re
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None
+
+        data = json.loads(json_match.group(1))
+        assert "reviewers" in data
+        assert isinstance(data["reviewers"], list)
+        # validate_review.py is META_CONTROL_PLANE, which requires CIV, CE, CRS, SR, TMG
+        assert len(data["reviewers"]) > 0
+
+    def test_json_comment_includes_required_count(self, ci_environment, monkeypatch, capsys):
+        """JSON output must include required_count and found_count."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        import re
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None
+
+        data = json.loads(json_match.group(1))
+        assert "required_count" in data
+        assert "found_count" in data
+        assert isinstance(data["required_count"], int)
+        assert isinstance(data["found_count"], int)
+
+    def test_json_comment_not_emitted_for_exempt_tier(self, monkeypatch, capsys):
+        """TIER_0_EXEMPT should still emit JSON with tier and status info."""
+        monkeypatch.delenv("CI", raising=False)
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "README.md", "added": 5, "deleted": 2, "total_changed": 7}],
+        )
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        import re
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None, "JSON comment must be emitted even for exempt tier"
+
+        data = json.loads(json_match.group(1))
+        assert data["tier"] == "TIER_0_EXEMPT"
+        assert data["status"] == "pass"
+
+    def test_found_count_reflects_partial_approvals_on_failure(
+        self, ci_environment, monkeypatch, capsys
+    ):
+        """found_count must reflect actual approvals found, not hardcoded 0 on failure.
+
+        When 2 of 3 required roles have approved but one is missing, the JSON
+        output should report found_count=2, not found_count=0. This is critical
+        for downstream consumers that need accurate progress information.
+        """
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        # ROUTINE_CODE file -> requires CE, CRS, TMG (3 roles)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        # Simulate 2 of 3 approvals present: TMG approved, CRS approved, CE missing
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (
+                False,
+                "\u274c Missing: CE APPROVED or CE GO",
+                ["CE"],
+            ),
+        )
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        import re
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None, "JSON comment must be emitted on failure path"
+
+        data = json.loads(json_match.group(1))
+        assert data["status"] == "fail"
+        assert (
+            data["required_count"] == 3
+        ), f"Expected 3 required roles, got {data['required_count']}"
+        # The key assertion: found_count must NOT be hardcoded 0
+        assert data["found_count"] == 2, (
+            f"Expected found_count=2 (2 of 3 roles approved), got {data['found_count']}. "
+            "found_count must reflect actual approvals found, not hardcoded 0."
+        )
+
+    def test_found_count_is_zero_when_no_approvals_found(self, ci_environment, monkeypatch, capsys):
+        """found_count=0 is correct when genuinely no approvals are found."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        # All 3 roles missing
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (
+                False,
+                "\u274c Missing: CE APPROVED or CE GO, CRS APPROVED or CRS GO, TMG APPROVED or TMG GO",
+                ["CE", "CRS", "TMG"],
+            ),
+        )
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        import re
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None
+
+        data = json.loads(json_match.group(1))
+        assert (
+            data["found_count"] == 0
+        ), f"Expected found_count=0 (no approvals found), got {data['found_count']}"
+
+    def test_found_count_equals_required_count_on_pass(self, ci_environment, monkeypatch, capsys):
+        """found_count must equal required_count on the pass path."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        import re
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None
+
+        data = json.loads(json_match.group(1))
+        assert data["status"] == "pass"
+        assert data["found_count"] == data["required_count"], (
+            f"On pass path, found_count ({data['found_count']}) must equal "
+            f"required_count ({data['required_count']})"
+        )
+
+    def test_json_comment_reason_field_matches_output(self, ci_environment, monkeypatch, capsys):
+        """JSON reason field must match the human-readable reason string."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found", []),
+        )
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        import re
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None
+
+        data = json.loads(json_match.group(1))
+        assert "reason" in data
+        assert isinstance(data["reason"], str)
+        assert len(data["reason"]) > 0
+
+
+@pytest.mark.behavior
+class TestStructuredMissingRoles:
+    """check_pr_comments must return structured missing roles, not just a message string.
+
+    CE BLOCKED finding: found_count was computed by string-scraping the human-readable
+    error message from check_pr_comments(). This is brittle because if the message format
+    changes, found_count silently breaks. The fix: check_pr_comments returns a third
+    element — the list of missing role names — so callers use structured data.
+    """
+
+    def test_check_pr_comments_returns_missing_roles_list(self, ci_environment, monkeypatch):
+        """check_pr_comments must return (bool, str, list[str]) with missing roles."""
+        monkeypatch.setenv("PR_NUMBER", "999")
+
+        def mock_run(*args, **kwargs):
+            mock = MagicMock()
+            mock.stdout = json.dumps(
+                {
+                    "body": "",
+                    "comments": [],
+                }
+            )
+            return mock
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        result = validate_review.check_pr_comments(
+            required_roles={"CE", "CRS", "TMG"}, tier="TIER_2_STANDARD"
+        )
+
+        # Must return a 3-tuple
+        assert (
+            len(result) == 3
+        ), f"check_pr_comments must return (bool, str, list[str]), got {len(result)}-tuple"
+        approved, message, missing_roles = result
+        assert approved is False
+        assert isinstance(missing_roles, list)
+        # All 3 roles should be missing (no approvals in comments)
+        assert set(missing_roles) == {
+            "CE",
+            "CRS",
+            "TMG",
+        }, f"Expected missing_roles={{'CE', 'CRS', 'TMG'}}, got {set(missing_roles)}"
+
+    def test_check_pr_comments_returns_empty_missing_on_success(self, ci_environment, monkeypatch):
+        """When all approvals found, missing_roles must be an empty list."""
+        monkeypatch.setenv("PR_NUMBER", "999")
+
+        def mock_run(*args, **kwargs):
+            mock = MagicMock()
+            mock.stdout = json.dumps(
+                {
+                    "body": "",
+                    "comments": [
+                        {
+                            "author": {"login": "reviewer1"},
+                            "body": "CE APPROVED: looks good",
+                        },
+                        {
+                            "author": {"login": "reviewer2"},
+                            "body": "CRS APPROVED: standards met",
+                        },
+                        {
+                            "author": {"login": "reviewer3"},
+                            "body": "TMG APPROVED: tests verified",
+                        },
+                    ],
+                }
+            )
+            return mock
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        result = validate_review.check_pr_comments(
+            required_roles={"CE", "CRS", "TMG"}, tier="TIER_2_STANDARD"
+        )
+
+        assert (
+            len(result) == 3
+        ), f"check_pr_comments must return (bool, str, list[str]), got {len(result)}-tuple"
+        approved, message, missing_roles = result
+        assert approved is True
+        assert missing_roles == [], f"Expected empty missing_roles on success, got {missing_roles}"
+
+    def test_check_pr_comments_partial_approvals_structured(self, ci_environment, monkeypatch):
+        """With partial approvals, missing_roles lists only the actually missing ones."""
+        monkeypatch.setenv("PR_NUMBER", "999")
+
+        def mock_run(*args, **kwargs):
+            mock = MagicMock()
+            mock.stdout = json.dumps(
+                {
+                    "body": "",
+                    "comments": [
+                        {
+                            "author": {"login": "reviewer1"},
+                            "body": "CRS APPROVED: standards met",
+                        },
+                        {
+                            "author": {"login": "reviewer2"},
+                            "body": "TMG APPROVED: tests verified",
+                        },
+                    ],
+                }
+            )
+            return mock
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        result = validate_review.check_pr_comments(
+            required_roles={"CE", "CRS", "TMG"}, tier="TIER_2_STANDARD"
+        )
+
+        assert len(result) == 3
+        approved, message, missing_roles = result
+        assert approved is False
+        assert missing_roles == ["CE"], f"Expected only CE missing, got {missing_roles}"
+
+    def test_found_count_uses_structured_data_not_string_scraping(
+        self, ci_environment, monkeypatch, capsys
+    ):
+        """main() must compute found_count from structured missing_roles, not string scraping.
+
+        This is the core CE BLOCKED finding: the old code scraped the human-readable
+        error message to count missing roles. The new code must use the structured
+        missing_roles list returned by check_pr_comments.
+        """
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        # Mock returns structured data: CE is missing, CRS and TMG approved
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (
+                False,
+                "\u274c Missing: CE APPROVED or CE GO",
+                ["CE"],
+            ),
+        )
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        import re
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None
+
+        data = json.loads(json_match.group(1))
+        assert data["required_count"] == 3
+        assert data["found_count"] == 2, (
+            f"found_count must be computed from structured missing_roles (3 required - 1 missing = 2), "
+            f"got {data['found_count']}"
+        )

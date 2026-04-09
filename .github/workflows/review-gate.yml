@@ -174,10 +174,36 @@ jobs:
               validationOutput = 'Unable to read validation output';
             }
 
-            // Parse key information from output
-            const tierMatch = validationOutput.match(/📋 Review Tier: (\S+)/);
-            const reasonMatch = validationOutput.match(/Reason: (.+)/);
-            const tier = tierMatch ? tierMatch[1] : 'UNKNOWN';
+            // Parse key information from output.
+            // Strategy: Try structured JSON first (emitted by validate_review.py v2.1+),
+            // fall back to regex parsing for backward compatibility with older versions
+            // that cross-repo callers might still reference.
+            let gateData = null;
+            const jsonMatch = validationOutput.match(/<!-- REVIEW_GATE_JSON:(.*?) -->/);
+            if (jsonMatch) {
+              try {
+                gateData = JSON.parse(jsonMatch[1]);
+                console.log('Parsed structured JSON from validate_review.py');
+              } catch (e) {
+                console.warn('Failed to parse REVIEW_GATE_JSON, falling back to regex:', e.message);
+              }
+            }
+
+            // Extract tier, reason, and roles — prefer JSON, fall back to regex
+            let tier, reason, roles;
+            if (gateData) {
+              tier = gateData.tier || 'UNKNOWN';
+              reason = gateData.reason || '';
+              roles = (gateData.reviewers || []).sort();
+            } else {
+              // Regex fallback for backward compatibility
+              const tierMatch = validationOutput.match(/📋 Review Tier: (\S+)/);
+              const reasonMatch = validationOutput.match(/Reason: (.+)/);
+              const rolesMatch = validationOutput.match(/Reviewers: \[([^\]]+)\]/);
+              tier = tierMatch ? tierMatch[1] : 'UNKNOWN';
+              reason = reasonMatch ? reasonMatch[1] : '';
+              roles = rolesMatch ? rolesMatch[1].split(', ').sort() : [];
+            }
 
             // Build status message
             const status = success ? '✅' : '❌';
@@ -193,8 +219,8 @@ jobs:
               message = '**Review requirements not met**\n\n';
               message += `**Tier**: ${tier}\n`;
 
-              if (reasonMatch) {
-                message += `**Reason**: ${reasonMatch[1]}\n\n`;
+              if (reason) {
+                message += `**Reason**: ${reason}\n\n`;
               }
 
               // Extract required reviewers dynamically from validation output.
@@ -204,10 +230,6 @@ jobs:
                 message += '**Required**: Self-review or HO supervisory review:\n';
                 message += '```\n{your-role} SELF-REVIEWED: [your rationale]\n-- or --\nHO REVIEWED: [rationale after delegated work]\n```\nAny role or name accepted (e.g., IL, skills-expert, Shaun).\n';
               } else {
-                // Parse required roles from the "Reviewers: [CE, CRS, SR, TMG]" reason line
-                const rolesMatch = validationOutput.match(/Reviewers: \[([^\]]+)\]/);
-                const roles = rolesMatch ? rolesMatch[1].split(', ').sort() : [];
-
                 if (roles.length > 0) {
                   message += `**Required**: ${roles.join(' + ')} approval:\n`;
                   message += '```\n';
