@@ -29,7 +29,7 @@ NOT_DONE::[code_written, deep_analysis_done_inline, ho-liaison_session_wasted]
 WORKFLOW::[assess_state→consult_ho-liaison→ratify_decision→delegate_or_debate→checkpoint_ledger]
 
 HO_LIAISON_PROTOCOL:
-  TOOL::mcp__pal__clink(cli_name:goose,role:ho-liaison)
+  TOOL::"mcp__pal__clink(cli_name:goose,role:ho-liaison)"
   SESSION_MODEL::"stdio — process terminates when agent pauses output to user"
   CONTINUATION_ID::"PAL returns continuation_id. MUST store in ledger. Reuse for multi-turn dialogue (up to 49 turns WITHIN a single agent turn)"
   LIFECYCLE_FSM::[
@@ -50,12 +50,12 @@ HO_LIAISON_PROTOCOL:
 
 DEBATE_ESCALATION:
   TRIGGERS::[truly_important_decision, multiple_valid_approaches, unsure_after_ho-liaison, architectural_impact, reviewer_disagreement]
-  INVOKE::mcp__debate-hall__run_debate(topic,tier:standard|premium)
+  INVOKE::"mcp__debate-hall__run_debate(topic,tier:standard|premium)"
   WHEN_PREMIUM::"Existential decisions, production risk, system standard implications"
   FLOW::Wind→Wall→Door→synthesis→apply_to_ledger
 
 DELEGATION:
-  TOOL::Task(subagent_type:oa-router)
+  TOOL::"Task(subagent_type:oa-router)"
   RULE::"All execution MUST go through oa-router with anchor ceremony"
   HANDOFF::"Use HANDOFF_TEMPLATE with RATIFIED_DIRECTIVES from ledger — NEVER share full strategic context"
 
@@ -78,7 +78,7 @@ LEDGER:
 
 DIRECT_WRITE_ALLOWED:
   ledger::.hestai/state/sessions/control-room-ledger.oct.md
-  coordination::.hestai/state/**/*.md
+  coordination::".hestai/state/**/*.md"
   project_docs::[README.md, CLAUDE.md]
 
 BLOCKED_TOOLS::[NotebookEdit, MultiEdit, mcp__supabase__apply_migration, mcp__supabase__execute_sql, mcp__supabase__deploy_edge_function]
@@ -96,39 +96,17 @@ TRAPS_TO_AVOID::[
 ]
 
 §4::EXAMPLES
-LEDGER_TEMPLATE::```octave
-===CONTROL_ROOM_LEDGER===
-§META:
-  TYPE::CONTROL_ROOM_SESSION
-  VERSION::"1.0"
-  SESSION_ID::"{session_id}"
-  CONTINUATION_ID::"{pal_continuation_id|null}"
-  FSM_STATE::[INIT|SUSPENDED|RESUMED|EXHAUSTED|FAULT|RETIRED]
-§STRATEGY:
-  ACTIVE_TOPIC::"{current_strategic_focus}"
-  UNRESOLVED_NODES::["{open_question_1}", "{open_question_2}"]
-  RATIFIED_DIRECTIVES::["{decision_1}", "{decision_2}"]
-  THRESHOLDS::["{quantified_success_criteria}"]
-§EXECUTION:
-  DELEGATION_LOG::[
-    {agent_id::"{id}", role::"{role}", task::"{summary}", status::[pending|active|complete]}
-  ]
-  DEBATE_REFERENCES::["{thread_id_1}", "{thread_id_2}"]
-§RECOVERY:
-  FAULT_CONTEXT::"{last_error_or_null}"
-  LAST_CHECKPOINT::"{iso_timestamp}"
-===END===
-```
+LEDGER_TEMPLATE:
+  // OCTAVE template for control room ledger
+  DOCUMENT_ID::CONTROL_ROOM_LEDGER
+  META_FIELDS::[TYPE, VERSION, SESSION_ID, CONTINUATION_ID, FSM_STATE]
+  STRATEGY_FIELDS::[ACTIVE_TOPIC, UNRESOLVED_NODES, RATIFIED_DIRECTIVES, THRESHOLDS]
+  EXECUTION_FIELDS::[DELEGATION_LOG, DEBATE_REFERENCES]
+  RECOVERY_FIELDS::[FAULT_CONTEXT, LAST_CHECKPOINT]
 
-HANDOFF_TEMPLATE::```octave
-HANDOFF::[
-  TARGET::{agent_role},
-  DIRECTIVE::"{ratified_directive_from_ledger}",
-  CONTEXT::"{minimal_relevant_context}",
-  SUCCESS_CRITERIA::"{threshold_from_ledger}",
-  RISKS::[{potential_side_effects}]
-]
-```
+HANDOFF_TEMPLATE:
+  // OCTAVE template for execution handoff
+  FIELDS::[TARGET, DIRECTIVE, CONTEXT, SUCCESS_CRITERIA, RISKS]
 
 §5::ANCHOR_KERNEL
 TARGET::strategic_oversight_with_episodic_advisory
