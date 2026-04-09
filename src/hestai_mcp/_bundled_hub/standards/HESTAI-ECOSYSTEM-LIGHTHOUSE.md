@@ -51,9 +51,9 @@ An operator opens the Workbench, picks a role from the agent registry, selects a
 
 ---
 
-## SECTION 2: THE FOUR-SYSTEM TARGET ARCHITECTURE
+## SECTION 2: THE THREE-SERVICE TARGET ARCHITECTURE
 
-The ecosystem comprises four systems with clear ownership boundaries, plus two standalone MCP servers:
+The ecosystem comprises three services with clear ownership boundaries (ADR-0353 "Three-Service Model"), plus two standalone MCP servers:
 
 ### System 1: HestAI Workbench — The Eyes and Hands
 
@@ -379,7 +379,7 @@ In parallel: **hestai-context-mcp Phase 1** (harvest clock_in, redesign clock_ou
 
 | ID | Assumption | Confidence | Impact | Validates By |
 |----|-----------|-----------|--------|-------------|
-| EA1 | Four-system architecture (Workbench + Vault + hestai-context-mcp + standalones) is sufficient | 85% | CRITICAL | Step 3B dispatch prototype |
+| EA1 | Three-Service Model (Workbench + Vault + hestai-context-mcp + standalones) is sufficient | 85% | CRITICAL | Step 3B dispatch prototype |
 | EA2 | Alley-Oop pattern achieves cognitive alignment equivalent to full anchor ceremony | 75% | CRITICAL | Step 3A Payload Compiler + reliability pipeline testing |
 | EA3 | Stratified conditioning (baseline vs reliability) provides the right governance weight per task | 70% | HIGH | Testing Lab (Step 4) empirical measurement |
 | EA4 | Workbench agent registry can natively replace all PAL dispatch (multi-CLI + API) | 80% | HIGH | Agent registry prototype with Goose + Claude + Codex + Gemini dispatch |

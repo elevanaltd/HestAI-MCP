@@ -64,7 +64,7 @@ VAULT::[
 HESTAI_CONTEXT_MCP::[
   STATUS::"ADR-0353 accepted. Interface contract done. Feature-parity matrix done.",
   REPO::"elevanaltd/hestai-context-mcp (NEW, not yet created)",
-  KEY_FACT::"Will be harvested from hestai-mcp. Owns clock_in, clock_out, ContextSteward, RedactionEngine, submit_review, submit_friction_record. Stdio MCP transport."
+  KEY_FACT::"Will be harvested from hestai-mcp. Owns clock_in, clock_out, ContextSteward, RedactionEngine, submit_review, submit_rccafp_record, submit_friction_record. Stdio MCP transport."
 ]
 HESTAI_MCP_LEGACY::[
   VERSION::pre-release,

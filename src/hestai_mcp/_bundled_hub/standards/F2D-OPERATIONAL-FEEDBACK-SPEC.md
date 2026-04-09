@@ -8,7 +8,7 @@ created: 2026-04-07
 origin: HO orchestration — Wind/Wall/Door debate + technical-architect + requirements-steward + ho-liaison consultations
 builds-on:
   - "RCCAFP-ERROR-RECOVERY-SPEC.md (tool pattern, JSONL append, server envelope)"
-  - "HESTAI-ECOSYSTEM-LIGHTHOUSE.md v4.0 (four-system architecture, separation of concerns)"
+  - "HESTAI-ECOSYSTEM-LIGHTHOUSE.md v4.0 (Three-Service Model, separation of concerns)"
 delivery: "Bundled hub -> .hestai-sys/standards/ (cross-repo, all agents)"
 ---
 
@@ -37,7 +37,7 @@ This is the **single source of truth** for operational feedback architecture. Im
 
 **Relationship to other documents:**
 - **RCCAFP Error Recovery Spec:** RCCAFP captures build failures mid-session (hot-path). F2D captures governance friction post-session (cold-path). These are **complementary, not competing.** Shared JSONL infrastructure, divergent workflows. When an RCCAFP resolution required a governance workaround, the agent should also submit a friction record noting the governance gap.
-- **Ecosystem Lighthouse v4.0:** F2D respects the four-system separation of concerns (ADR-0353). Capture lives in hestai-context-mcp (context stewardship), triage routes through Debate Hall (deliberation), resolution produces PRs to the governance source (Vault or hestai-context-mcp as appropriate).
+- **Ecosystem Lighthouse v4.0:** F2D respects the Three-Service Model separation of concerns (ADR-0353). Capture lives in hestai-context-mcp (context stewardship), triage routes through Debate Hall (deliberation), resolution produces PRs to the governance source (Vault or hestai-context-mcp as appropriate).
 - **Product North Star:** Directly satisfies I1 (Persistent Cognitive Continuity) by persisting operational learnings across sessions. Respects I3 (Dual-Layer Authority) by keeping friction records as mutable context until ratified through governance process.
 
 ---
