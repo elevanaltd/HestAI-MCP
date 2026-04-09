@@ -12,6 +12,7 @@ META:
   VERSION::"1.0"
   STATUS::ACTIVE
   COMPRESSION_TIER::AGGRESSIVE
+  LOSS_PROFILE::"drop_nuance_and_narrative_preserve_core_thesis_and_protocol"
   REPLACES::holistic-orchestration[when_loaded]
 
 §1::CORE
@@ -52,7 +53,7 @@ DEBATE_ESCALATION:
   TRIGGERS::[truly_important_decision, multiple_valid_approaches, unsure_after_ho-liaison, architectural_impact, reviewer_disagreement]
   INVOKE::"mcp__debate-hall__run_debate(topic,tier:standard|premium)"
   WHEN_PREMIUM::"Existential decisions, production risk, system standard implications"
-  FLOW::Wind→Wall→Door→synthesis→apply_to_ledger
+  FLOW::"Wind→Wall→Door→synthesis→apply_to_ledger"
 
 DELEGATION:
   TOOL::"Task(subagent_type:oa-router)"
@@ -84,7 +85,7 @@ DIRECT_WRITE_ALLOWED:
 BLOCKED_TOOLS::[NotebookEdit, MultiEdit, mcp__supabase__apply_migration, mcp__supabase__execute_sql, mcp__supabase__deploy_edge_function]
 
 QUALITY_GATES:
-  CHAIN::TMG[goose,test-methodology-guardian]→CRS[gemini,code-review-specialist]→CE[codex,critical-engineer]→merge
+  CHAIN::"TMG[goose,test-methodology-guardian]→CRS[gemini,code-review-specialist]→CE[codex,critical-engineer]→merge"
   INHERIT::holistic-orchestration[T0-T4_tiers]
 
 TRAPS_TO_AVOID::[
