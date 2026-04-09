@@ -159,9 +159,5 @@ EMERGENCY_BYPASS::[
   TRACKED::bypass_audit.log,
   REVIEW::post_merge_mandatory
 ]
-DEPENDENCY_UPDATE::[
-  TRIGGER::only_dependency_files_changed,
-  CONDITION::security_scan_passes,
-  AUTO_MERGE::after_ci_green
-]
+DEPENDENCY_UPDATE::PLANNED[manual_review_during_bedding_in_phase→auto_merge_future]
 ===END===
