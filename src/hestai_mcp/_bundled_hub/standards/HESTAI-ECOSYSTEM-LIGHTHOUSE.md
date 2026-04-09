@@ -1,21 +1,22 @@
 ---
 type: LIGHTHOUSE
 id: ecosystem-lighthouse
-version: 3.2
+version: 4.0
 status: ACTIVE
 purpose: Target state vision for the fully integrated HestAI ecosystem
 created: 2026-02-25
-revised: 2026-04-06
+revised: 2026-04-09
 origin: Project 15 ecosystem build order coordination
 tracking: https://github.com/orgs/elevanaltd/projects/15
+architecture: ADR-0353 Three-Service Model
 # // REFERENCE: points-to-canonical (.hestai-sys/ runtime-injected copy; this is the _bundled_hub source)
 ---
 
 # HESTAI ECOSYSTEM LIGHTHOUSE
 
-**Version:** 3.2
+**Version:** 4.0
 **Status:** ACTIVE
-**Revised:** 2026-04-06
+**Revised:** 2026-04-09
 
 ---
 
@@ -27,20 +28,11 @@ It is **not** a system standard (that's the System North Star), **not** a build 
 
 **This document will change.** When reality contradicts this vision, update the document. When a better architecture emerges, rewrite the section. The value is in having a shared picture of where we're going, not in defending a frozen plan.
 
-> **SUPERSESSION NOTE (2026-04-06):** ADR-0353 (Three-Service Model) resolves the architectural contradiction between this Lighthouse, the Ecosystem Overview v3.0, and the Workbench PROJECT-CONTEXT. The resolution:
->
-> - **This Lighthouse's Layer 1 (HestAI Core as standalone service): UPHELD.** Governance/context management remains a standalone MCP server, now named `hestai-context-mcp`. The Lighthouse's vision of a separate governance service was correct.
-> - **Ecosystem Overview v3.0 Thick Client absorption model: CORRECTED.** The Workbench absorbs UX routing and dispatch, but NOT the governance engine. `.hestai-sys/` is written by Workbench from Vault at spawn, but session lifecycle and context synthesis remain in the standalone engine.
-> - **What changes from this Lighthouse:** Agent identity moves to the Vault (git-backed library), not HestAI Core. Anchor ceremony is replaced by Alley-Oop pattern. `hestai-context-mcp` is created via harvest from hestai-mcp (not subtraction), with legacy staying intact for A/B comparison.
-> - **Transport:** stdio MCP (subprocess, not daemon) — the "Git/VS Code" pattern.
->
-> See ADR-0353 and `docs/planning/governance-context-decision-map.md` for full details.
-
 **Relationship to other documents:**
-- **ADR-0353:** Resolves the three-document contradiction. Canonical for architectural direction.
+- **ADR-0353:** Canonical architectural decision. Established the Three-Service Model (Workbench + hestai-context-mcp + Vault). This Lighthouse reflects that decision.
 - **System North Star:** Immutable methodology (I1-I6). The Lighthouse operates within those laws.
-- **Ecosystem Overview v3.0:** CORRECTED by ADR-0353. Workbench absorbs UX/dispatch only, not governance engine.
-- **Ecosystem Dependency Graph:** Build sequence. Being updated to reflect harvest approach.
+- **Ecosystem Overview v4.0:** System map reflecting the current architecture. Companion to this vision.
+- **Ecosystem Dependency Graph v4.0:** Build sequence aligned to workbench PROJECT-CONTEXT v1.7.
 - **Product North Stars:** Per-repo vision. Each should move toward this ecosystem vision.
 
 ---
@@ -55,15 +47,107 @@ The system is not a single application. It is an ecosystem of cooperating system
 
 ### The End State in One Paragraph
 
-An operator opens the Workbench, picks a role from the agent registry, selects a provider and model, and starts working. The agent binds its identity through the anchor ceremony, loads its definition and skills, and operates within its authority boundaries. When it needs a decision, it opens a structured debate. When it needs another perspective, the Workbench dispatches a different agent on a different model. All communication uses OCTAVE format. All sessions are persistent. All decisions are auditable. The operator sees the whole system through one GUI and never needs to configure MCP servers, manage worktrees, or remember which agent does what.
+An operator opens the Workbench, picks a role from the agent registry, selects a provider and model, and starts working. The Payload Compiler reads the agent's identity from the Vault, assembles the KVAEPH payload, calls hestai-context-mcp for project context (Position 3), and dispatches via the appropriate CLI or API. The agent operates within its authority boundaries, enforced by the Alley-Oop pattern (synthetic acknowledgment + prefilled proof + dynamic anchor lock). When it needs a decision, it opens a structured debate. When it needs another perspective, the Workbench dispatches a different agent on a different model. All communication uses OCTAVE format. All sessions are persistent via hestai-context-mcp. All decisions are auditable. The operator sees the whole system through one GUI and never needs to configure MCP servers, manage worktrees, or remember which agent does what.
 
 ---
 
-## SECTION 2: THE THREE-REPO TARGET ARCHITECTURE
+## SECTION 2: THE FOUR-SYSTEM TARGET ARCHITECTURE
 
-The ecosystem converges from the current six repos to three MCP servers plus a control panel:
+The ecosystem comprises four systems with clear ownership boundaries, plus two standalone MCP servers:
 
-### Layer 0: OCTAVE MCP — The Language
+### System 1: HestAI Workbench — The Eyes and Hands
+
+**Repo:** `elevanaltd/hestai-workbench`
+
+**What it is:** The only GUI in the ecosystem. Desktop application for agent dispatch, session management, and system visibility. Contains the Payload Compiler (KVAEPH) that assembles agent prompts from the Vault and context engine.
+
+**What it owns:**
+- Payload Compiler (KVAEPH stacking: BIOS + AXIOMS + IDENTITY + CAPABILITIES + CONTEXT + TASK)
+- Alley-Oop pattern (synthetic acknowledgment + prefilled proof + dynamic anchor lock) for identity injection
+- Agent registry (role -> provider -> model -> dispatch mode, UI-configurable)
+- Stratified conditioning (baseline pipeline for simple tasks, reliability pipeline for T2+ work)
+- Multi-CLI dispatch (spawning agents via Claude, Codex, Gemini, or Goose CLIs)
+- API dispatch (lightweight agent calls via OpenRouter for advisory/consultation roles)
+- Session management (worktrees, terminal multiplexing)
+- Governance Chat UI (rendering debate-hall transcripts as conversation threads)
+- System dashboard (visibility into all active sessions, agents, debates)
+- Precedence-Locked Materialized Resolver (matrix_defaults / matrix_overrides / v_resolved_matrix)
+
+**What it does NOT own:** Agent identity definitions (Vault), session lifecycle and context synthesis (hestai-context-mcp), deliberation logic (debate-hall), document format (octave-mcp).
+
+**Key properties:**
+- HIGH volatility — planned Crystal-to-TypeScript rebuild. Governance logic survives in hestai-context-mcp untouched; only a ~30-line stdio MCP client adapter needs rewriting.
+- The convergence point — where identity (from Vault), deliberation (from debate-hall), context (from hestai-context-mcp), and execution meet.
+- MCP_NOT_REQUIRED for dispatch validation — Alley-Oop is regex on output, not server round-trip.
+
+**Agent Registry schema (conceptual):**
+
+| Field | Description | Examples |
+|-------|-------------|---------|
+| **role** | Agent role from Vault | `holistic-orchestrator`, `implementation-lead`, `critical-engineer` |
+| **provider** | AI provider | `anthropic`, `google`, `openai`, `openrouter` |
+| **model** | Specific model | `claude-opus-4-6`, `gemini-2.5-pro`, `codex-mini`, `moonshotai/kimi-k2.5` |
+| **dispatch** | CLI or API | `cli:claude`, `cli:codex`, `cli:gemini`, `cli:goose`, `api:openrouter` |
+
+**Target state:** Operator opens Workbench, picks a role from registry, and works. The Payload Compiler assembles the full KVAEPH prompt, calls hestai-context-mcp for Position 3 context, and dispatches. Governance Chat panel shows debates as threaded conversations.
+
+---
+
+### System 2: The Vault — The DNA
+
+**Location:** `~/.hestai-workbench/library/` (git-backed, configurable via LIBRARY_ROOT)
+
+**What it is:** The single canonical source for all agent identity artifacts. Read-only at runtime.
+
+**What it owns:**
+- V9 agent definitions (~50 lines each, blank-slate schema)
+- V9 skills with ANCHOR_KERNEL sections (S5) for injection depth control
+- Cognitions (ETHOS, PATHOS, LOGOS)
+- Standards (System Standard, naming rules, visibility rules)
+- Patterns for structured workflows
+
+**What it does NOT own:** Runtime state, session lifecycle, dispatch logic, deliberation.
+
+**Key properties:**
+- ZERO volatility — git-backed, immutable at runtime
+- The Workbench reads the Vault directly and compiles system prompts with no filesystem intermediate
+- Glass Agent Editor provides CRUD with auto-commit on save
+- Starter library ships in Workbench `resources/` for first-run bootstrap
+
+**Target state:** All agent identity artifacts live here. No duplication. A change to an agent's definition is a single edit in one file, auto-committed to the vault repo.
+
+---
+
+### System 3: hestai-context-mcp — The Memory and Environment
+
+**Repo:** `elevanaltd/hestai-context-mcp` (NEW — harvested from hestai-mcp)
+
+**What it is:** A standalone governance engine providing session lifecycle, context synthesis, learnings extraction, and review infrastructure via stdio MCP transport.
+
+**What it owns:**
+- clock_in (session creation, focus resolution, AI-synthesized context summaries, focus conflict detection)
+- clock_out (transcript parsing, credential redaction via RedactionEngine, OCTAVE compression, structured learnings indexing)
+- ContextSteward (dynamic PhaseConstraints synthesis)
+- submit_review (structured code review verdicts with CI gate clearing, 8 reviewer roles, dry-run, commit SHA pinning)
+- submit_friction_record (F2D governance feedback capture)
+- `.hestai/state/` management (sessions, context, reports, research)
+- Product North Star injection at KVAEPH Position 3
+
+**What it does NOT own:** Agent identity (Vault), dispatch/UI (Workbench), deliberation (debate-hall), document format (octave-mcp).
+
+**Key properties:**
+- LOW volatility — proven Python codebase, 92% coverage. Survives Workbench rebuilds untouched.
+- Stdio transport (subprocess, not daemon) — the "Git/VS Code" pattern. Zero network ports, zero monitoring overhead.
+- Harvested from hestai-mcp (not rewritten). Legacy hestai-mcp stays intact for A/B comparison.
+- Terminal parity is automatic — any CLI tool gets identical governance by adding one MCP config entry.
+
+**Target state:** `pip install hestai-context-mcp` gives you session lifecycle + context synthesis + learnings + review. Works with or without the Workbench.
+
+---
+
+### Standalone: OCTAVE MCP — The Language
+
+**Repo:** `elevanaltd/octave-mcp`
 
 **What it is:** A pure semantic compression protocol with zero governance dependencies.
 
@@ -73,45 +157,18 @@ The ecosystem converges from the current six repos to three MCP servers plus a c
 - Generation and compression
 - Grammar compilation (GBNF export)
 
-**What it does NOT own:** Governance, agent identity, deliberation, or execution.
-
 **Key properties:**
 - Maximum community adoption potential — useful without HestAI
 - Foundation layer — all other systems speak OCTAVE
 - No dependencies on anything else in the ecosystem
 
-**Target state:** Published on PyPI. Standalone community tool. Grammar supports agent definition schemas including capability tier models (Chassis-Profile RFC in progress at octave-mcp#283).
+**Target state:** Published on PyPI. Standalone community tool. Grammar supports agent definition schemas.
 
 ---
 
-### Layer 1: HestAI Core MCP — The Operating System
+### Standalone: Debate Hall MCP — The Deliberation Chamber
 
-**What it is:** The single source of truth for agent identity, governance, and context management.
-
-**What it owns:**
-- Agent definitions and skills library (one canonical source)
-- Anchor ceremony (identity binding via progressive interrogation)
-- Context stewardship (session lifecycle, clock in/out)
-- Governance rules and enforcement
-- Permit system (tiered: micro/quick/default/deep)
-- Capability profiles for context-aware skill loading
-
-**What it absorbs:**
-- Odyssean Anchor MCP — the binding protocol, Steward state machine, proof validation, and permit system rebuilt natively inside HestAI Core (ADR-0275 accepted, rebuild phases #279-282 not yet started)
-- Agent prompts from PAL MCP (61 clink role definitions consolidated as canonical source). PAL itself is eliminated — dispatch moves natively to Workbench, agent prompts and role definitions consolidate here as the canonical source
-
-**What it does NOT own:** Deliberation (debate-hall), execution/UI/dispatch (Workbench), OCTAVE format (octave-mcp).
-
-**Key properties:**
-- Provider-agnostic — knows WHO agents are and HOW they should behave, not which model runs them
-- Single canonical source for all agent definitions (no duplication across repos)
-- Every agent interaction starts with anchor ceremony (identity verification before execution)
-
-**Target state:** Single `pip install hestai-mcp` gives you governance + identity + anchor ceremony. No separate OA server. Tiered permits for ceremony weight proportional to task complexity.
-
----
-
-### Layer 2: Debate Hall MCP — The Deliberation Chamber
+**Repo:** `elevanaltd/debate-hall-mcp`
 
 **What it is:** Standalone multi-perspective reasoning engine with hash-chain integrity.
 
@@ -123,57 +180,12 @@ The ecosystem converges from the current six repos to three MCP servers plus a c
 - Consult and convene operations
 - RFC ratification, human interjection
 
-**What it does NOT own:** Agent identity (HestAI Core), UI rendering (Workbench), the OCTAVE format (octave-mcp).
-
 **Key properties:**
 - Standalone — works without HestAI for non-governance users
 - Persistent transcripts — decisions are auditable, append-only, hash-chained
 - Advisory, not authoritative — humans decide, debate-hall presents structured perspectives
 
 **Target state:** Full Governance Hall with persistent committee spaces. RACI mode for formal governance decisions. Decision search across all past debates. Headless — all UI through the Workbench.
-
----
-
-### Layer 3: HestAI Workbench — The Control Panel
-
-**What it is:** The only GUI in the ecosystem. Desktop application for managing AI sessions, agent dispatch, and system visibility.
-
-**What it owns:**
-- Agent registry (role -> provider -> model -> dispatch mode, UI-configurable)
-- Multi-CLI dispatch (spawning agents via Claude, Codex, Gemini, or Goose CLIs)
-- API dispatch (lightweight agent calls via OpenRouter for advisory/consultation roles)
-- Session management (worktrees, terminal multiplexing, session persistence)
-- Governance Chat UI (rendering debate-hall transcripts as conversation threads)
-- System dashboard (visibility into all active sessions, agents, debates)
-
-**What it eliminates:**
-- PAL MCP Server — ceases to exist. CLI dispatch is natively owned by the Workbench agent registry. Agent prompts consolidated to HestAI Core. No intermediate bridge layer.
-- Crystal Fresh — the original fork from which the Workbench evolved
-
-**What it does NOT own:** Agent identity (HestAI Core), deliberation logic (debate-hall), document format (octave-mcp).
-
-**Key properties:**
-- Only system with a GUI — debate-hall and HestAI Core are headless MCP servers
-- Knows WHICH provider, model, and dispatch mode each agent uses (separation from WHO the agent is)
-- The convergence point — where identity, deliberation, format, and execution meet
-- Two-tier dispatch: CLI for interactive sessions (Claude, Codex, Gemini, Goose), API for lightweight calls (OpenRouter)
-
-**Agent Registry schema (conceptual):**
-
-Each agent registry entry maps identity to execution:
-
-| Field | Description | Examples |
-|-------|-------------|---------|
-| **role** | Agent role from HestAI Core | `holistic-orchestrator`, `implementation-lead`, `critical-engineer` |
-| **provider** | AI provider | `anthropic`, `google`, `openai`, `openrouter` |
-| **model** | Specific model | `claude-opus-4-6`, `gemini-2.5-pro`, `codex-mini`, `moonshotai/kimi-k2.5` |
-| **dispatch** | CLI or API | `cli:claude`, `cli:codex`, `cli:gemini`, `cli:goose`, `api:openrouter` |
-
-The registry replaces all of PAL's configuration (e.g., `goose.json` provider configs) with a unified, UI-configurable mapping. Switching an agent's model is a registry edit, not a code change.
-
-**Cross-provider bridge:** CLIs are designed for human-to-AI interaction — an agent running in Claude CLI cannot natively signal the Workbench to spawn a Codex panel. The bridge is an MCP tool (e.g., `dispatch_colleague(role, task)`) that the Workbench provides. See the "Dual-path delegation" principle in Section 4 for the full mechanism (Pattern B).
-
-**Target state:** Operator opens Workbench, picks a role from registry, and works. The Workbench spawns the correct CLI or makes the correct API call based on the registry entry. Governance Chat panel shows debates as threaded conversations. Session persistence across worktrees.
 
 ---
 
@@ -185,23 +197,23 @@ This is what the operator's daily experience looks like when the ecosystem is co
 
 2. **Pick a task.** Select work — a feature, a bug, an architectural decision.
 
-3. **Pick a role.** Agent registry shows available roles (Holistic Orchestrator, Implementation Lead, Technical Architect, etc.) with their provider/model/dispatch assignments. Select one.
+3. **Pick a role.** Agent registry shows available roles (Holistic Orchestrator, Implementation Lead, Technical Architect, etc.) with their provider/model/dispatch assignments and tier. Select one.
 
-4. **Workbench spawns the agent.** Creates a git worktree, connects MCP servers, launches the appropriate CLI (Claude, Codex, Gemini, or Goose) based on the registry entry.
+4. **Workbench compiles and dispatches.** The Payload Compiler reads the Vault for Positions 0-2 (BIOS/AXIOMS, IDENTITY, CAPABILITIES), calls hestai-context-mcp via stdio for Position 3 (CONTEXT — clock_in returns context synthesis, Product North Star, project state), assembles the full KVAEPH payload, creates a git worktree, and launches the appropriate CLI or API based on the registry entry.
 
-5. **Agent binds identity.** Anchor ceremony runs automatically — the agent proves it comprehends its role, the System Standard, and the current project context. Appropriate capability profile loads based on task scope.
+5. **Agent identity is injected via Alley-Oop.** For the reliability pipeline (T2+ tasks): the Workbench constructs a synthetic acknowledgment turn, prefills a static proof from Vault data, and delivers the task with a Dynamic Anchor Lock demand. The agent must emit cognitive grammar headers (TENSION/INSIGHT/SYNTHESIS) before proceeding. For the baseline pipeline (simple tasks): KVAEPH core plus single-step enforced grammar.
 
-6. **Agent works.** Calls HestAI Core for skills and context. Uses OCTAVE format for all documents. Operates within its authority boundaries.
+6. **Agent works.** Reads `.hestai/` for project context. Uses OCTAVE format for all documents. Operates within its authority boundaries.
 
 7. **Agent hits an ambiguous decision.** Calls debate-hall for a structured Wind/Wall/Door debate. The debate produces a synthesis with a decision record. The Governance Chat panel shows the debate as a conversation thread.
 
-8. **Agent needs lightweight advisory.** Calls an API-dispatched agent (e.g., ho-liaison on OpenRouter) for quick consultation. The response comes back within the same session — no CLI spawn needed.
+8. **Agent needs lightweight advisory.** Calls an API-dispatched agent (e.g., ho-liaison on OpenRouter) for quick consultation with assistant-prefilled mini-ceremony. The response comes back within the same session — no CLI spawn needed.
 
-9. **Agent delegates implementation work.** The agent calls a subagent mapped in the registry — possibly on a different CLI and provider entirely. For example, HO on Claude Opus delegates to an implementation-lead on Goose CLI (configured to use an OpenRouter model like Kimi K2.5). The subagent spawns with full MCP access, binds its own identity via anchor ceremony, does the work, and returns results.
+9. **Agent delegates implementation work.** The agent calls `dispatch_colleague(role, task)`. The Workbench intercepts, looks up the role in the registry, compiles a fresh KVAEPH payload from the Vault, and spawns the target CLI panel or makes an API call. The subagent gets full identity injection via Alley-Oop. To the calling agent, it looks like a normal tool call.
 
-10. **Work needs review.** The agent dispatches review agents from the registry. CRS might be mapped to Codex CLI, CE to Gemini CLI. Each reviewer binds, reviews the PR, and submits their assessment via `submit_review`. Different models provide genuine multi-perspective review.
+10. **Work needs review.** The agent dispatches review agents from the registry. CRS might be mapped to Codex CLI, CE to Gemini CLI. Each reviewer receives identity-injected prompts, reviews the PR, and submits their assessment via `submit_review` (routed through hestai-context-mcp). Different models provide genuine multi-perspective review.
 
-11. **Session ends.** HestAI Core archives the transcript in OCTAVE format. The decision record is hash-chained and searchable. The worktree preserves the work.
+11. **Session ends.** The agent optionally calls `submit_friction_record` for governance feedback. Then hestai-context-mcp's clock_out archives the transcript, extracts learnings, redacts credentials, and updates the learnings index. The worktree preserves the work.
 
 12. **Operator reviews.** The dashboard shows what was done, what decisions were made, and what's next. All artifacts are persistent and discoverable.
 
@@ -213,29 +225,40 @@ These are the current best thinking about how the ecosystem should be structured
 
 ### Separation of concerns
 
-Each system owns exactly one concern. Identity is not deliberation. Deliberation is not execution. Format is not governance. HestAI Core owns WHO. Workbench owns WHERE and HOW. Debate Hall owns GOVERNANCE DECISIONS. OCTAVE owns WHAT FORMAT.
+Each system owns exactly one concern. Identity is not context. Context is not execution. Format is not governance. The Vault owns WHO agents are (definitions, skills, cognitions). hestai-context-mcp owns MEMORY and ENVIRONMENT (sessions, context, learnings). The Workbench owns EYES and HANDS (UI, dispatch, Payload Compiler). Debate Hall owns GOVERNANCE DECISIONS. OCTAVE owns WHAT FORMAT.
 
 ### One canonical source
 
-Agent definitions exist in exactly one place: HestAI Core. Not duplicated in the Workbench, not embedded in debate-hall. When an agent's definition changes, it changes in one file. The Workbench's agent registry maps roles to providers — it references identity, never duplicates it.
+Agent definitions exist in exactly one place: the Vault (`~/.hestai-workbench/library/`). Not duplicated in the Workbench codebase, not embedded in hestai-context-mcp, not in debate-hall. When an agent's definition changes, it changes in one file. The Workbench's agent registry maps roles to providers — it references identity from the Vault, never duplicates it.
 
 ### Provider agnosticism
 
-The governance layer (HestAI Core) knows nothing about which AI model runs an agent. The execution layer (Workbench) knows nothing about what an agent's authority boundaries are. Switching providers for a role is a registry change, not a governance change.
+The identity layer (Vault) knows nothing about which AI model runs an agent. The context layer (hestai-context-mcp) knows nothing about providers. The execution layer (Workbench) knows nothing about what an agent's authority boundaries are. Switching providers for a role is a registry change, not a governance change.
 
-This is not theoretical. Goose CLI agents have been verified with full MCP access to all four ecosystem servers (HestAI, OCTAVE, Debate Hall, Odyssean Anchor), including anchor ceremony binding, debate participation, and OCTAVE read/write. Provider agnosticism is proven across Claude, Codex, Gemini, and Goose.
+This is not theoretical. Goose CLI agents have been verified with full MCP access across the ecosystem, including debate participation and OCTAVE read/write. Provider agnosticism is proven across Claude, Codex, Gemini, and Goose.
 
 ### Standalone deliberation
 
 Debate Hall works without HestAI. A team that doesn't use HestAI governance can still use Wind/Wall/Door debates. This is the adoption path that makes the ecosystem viable beyond the original developer.
 
-### Ceremony proportional to risk
+### Ceremony proportional to risk (Stratified Conditioning)
 
-Not every task needs a full anchor ceremony. Trivial read-only tasks get a micro permit. Standard work gets the full ceremony. Critical decisions get extra scrutiny. Governance weight scales with risk.
+Not every task needs heavy governance injection. The Workbench uses two conditioning pipelines:
 
-In the Workbench, ceremony streamlines via **hybrid injection**: the Workbench pre-injects raw governance context (System Standard, agent definition, North Star, project context) into the system prompt, then the agent writes a short synthesis proving comprehension — one tool call instead of six. The Odyssean Anchor / HestAI Core binding and proof validation still execute and are server-validated; the optimization only reduces round-trips and prompt I/O, not the verification itself. This preserves the cognitive alignment that makes the ceremony valuable (the agent generates its own proof, engaging its reasoning) while collapsing the I/O overhead. Inject the data, force the agent to write the synthesis.
+**Baseline pipeline** (simple, low-complexity dispatch — advisory, single-file tasks): U-Curve prompt topology plus single-step enforced grammar. System prompt contains KVAEPH core, user message contains task with MUST_USE grammar requirement. Partial benefit with initial formatting focus, no durability guarantee.
 
-For **API-dispatched agents** (advisory roles via OpenRouter), ceremony further streamlines via **assistant prefilling**: the Workbench constructs the full system prompt (agent definition + skill kernels + governance context), then injects a prefilled assistant turn that demonstrates cognitive alignment before the actual task is delivered. This avoids attention decay — simply dumping governance context into a system prompt and hoping for compliance is insufficient. The prefilled synthesis primes the model into the correct operating mode zero-shot. The Workbench's `ApiDispatcher` constructs this server-side; the calling agent never sees the priming exchange. Provider-aware message construction is required, as not all OpenRouter backends handle prefilling identically.
+**Reliability pipeline** (T2+ tasks — multi-file refactors, TDD cycles, governance decisions): Alley-Oop pattern. The Workbench constructs synthetic conversation threading:
+1. system: Dense OCTAVE KVAEPH core (identity + skills + context compiled from Vault and hestai-context-mcp)
+2. user[synthetic]: Acknowledge operating constraints, authority limits, cognitive lens
+3. assistant[synthetic]: Workbench-constructed static proof from Vault data (mission, authority, skills loaded)
+4. user[real]: Task context + Dynamic Anchor Lock demand
+5. agent[real]: MUST emit cognitive grammar headers (TENSION/INSIGHT/SYNTHESIS with skill mapping) before proceeding
+
+The Workbench validates cognitive grammar compliance (regex) before releasing the task. This preserves the cognitive alignment that makes identity binding valuable — the agent computes strategy, engaging its reasoning — while eliminating the multi-round-trip overhead of the legacy anchor ceremony. Inject the data, force the agent to write the synthesis.
+
+For **API-dispatched agents** (advisory roles via OpenRouter), identity injection uses **assistant prefilling**: the Workbench constructs the full system prompt, then injects a prefilled assistant turn that demonstrates cognitive alignment before the actual task is delivered. Provider-aware message construction is required, as not all OpenRouter backends handle prefilling identically.
+
+**Legacy path**: The Odyssean Anchor MCP ceremony (5-stage KEAPH) remains operational for Claude-with-MCP sessions where agents have direct MCP access. The Alley-Oop pattern is for headless/non-MCP dispatch via the Workbench.
 
 ### Dual-path delegation
 
@@ -256,15 +279,15 @@ Key mechanics:
 
 ### Rebuild-portable dispatch
 
-The Workbench is a Crystal fork that will eventually be rebuilt. Dispatch logic must survive that rebuild. The `dispatch_colleague` MCP tool is hosted inside the Workbench (not a separate server — three repos, not four), but the dispatch logic is implemented as a clean `DispatchService` module with a well-defined interface:
+The Workbench is a Crystal fork that will eventually be rebuilt in TypeScript. The critical insight from ADR-0353: governance logic lives in hestai-context-mcp (proven Python, 92% coverage) and survives the Workbench rebuild untouched. Only a ~30-line stdio MCP client adapter needs rewriting. The dispatch logic is implemented as a clean `DispatchService` module:
 
-- `AgentRegistryLookup` — resolves role to provider/model/dispatch mode
+- `AgentRegistryLookup` — resolves role to provider/model/dispatch mode via v_resolved_matrix
+- `PayloadCompiler` — assembles KVAEPH from Vault reads + hestai-context-mcp clock_in
 - `CliDispatcher` — spawns CLI panels via existing `AbstractCliManager` abstraction
 - `ApiDispatcher` — makes OpenRouter API calls with assistant-prefilled mini-ceremony
 - `ContinuationStore` — maps `dispatch_id` to provider-specific conversation identifiers
-- `IdentityInjector` — constructs system prompts from agent definitions and skill kernels
 
-When the Workbench is rebuilt, the MCP tool contract (`dispatch_colleague` signature) and the `DispatchService` interface port directly. Only the Electron/UI layer changes.
+When the Workbench is rebuilt, the MCP tool contract (`dispatch_colleague` signature) and the `DispatchService` interface port directly. Only the Electron/UI layer changes. The 1500+ lines of governance Python in hestai-context-mcp remain untouched.
 
 ---
 
@@ -274,15 +297,15 @@ The ecosystem is "done" when:
 
 ### Functional
 
-1. **Single-command agent dispatch.** Operator picks role + provider/model -> agent is running with full identity binding in under 30 seconds.
+1. **Single-command agent dispatch.** Operator picks role + provider/model -> Payload Compiler assembles KVAEPH + Alley-Oop -> agent is running with full identity injection in under 30 seconds.
 
 2. **Cross-repo agent invocation.** An HO agent in repo A can convene agents in repos B and C for a structured debate, each on different providers/models.
 
-3. **No duplicate agent definitions.** Exactly one canonical definition per agent role, in HestAI Core.
+3. **No duplicate agent definitions.** Exactly one canonical definition per agent role, in the Vault.
 
 4. **Governance Chat as conversation.** Debates visible as threaded conversations in the Workbench, not raw JSON.
 
-5. **Session continuity.** An agent can be stopped and resumed with full context. A different agent can pick up where the first left off.
+5. **Session continuity.** hestai-context-mcp provides persistent context across sessions via clock_in context synthesis and clock_out learnings extraction. A different agent can pick up where the first left off.
 
 6. **Decision audit trail.** Any past decision findable via `search_decisions`, with full transcript, hash-chain proof, and synthesis.
 
@@ -290,7 +313,7 @@ The ecosystem is "done" when:
 
 7. **All repos green.** Tests passing, coverage above thresholds, linters clean, type checking strict.
 
-8. **Three MCP servers, not six.** OA absorbed into HestAI Core. PAL eliminated — dispatch natively owned by Workbench agent registry, identity consolidated to HestAI Core.
+8. **Clean architecture.** Workbench (dispatch) + Vault (identity) + hestai-context-mcp (context) + debate-hall (deliberation) + octave-mcp (format). PAL eliminated. Legacy hestai-mcp deprecated after new system proven.
 
 9. **The Workbench is daily-driveable.** Used for real work, not as a demo. 2 months of daily use before any rebuild.
 
@@ -320,28 +343,35 @@ The ecosystem is "done" when:
 
 ## SECTION 7: CURRENT DISTANCE FROM TARGET
 
-As of 2026-03-20:
+As of 2026-04-09:
 
-| Layer | Current State | Distance | Key Blockers |
-|-------|--------------|----------|-------------|
-| **OCTAVE MCP** | v1.8.0, production, PyPI published | Close | Chassis-Profile grammar (octave-mcp#283) at RFC stage |
-| **HestAI Core** | B1 foundation, 4 tools, OA merger decided (ADR-0275) but not started | Far | OA rebuild phases (#279-282), capability tiers (#284), tiered permits (#285) |
-| **Debate Hall** | v0.4.0, 17 tools, consult/convene shipped | Medium | Governance Hall (#163), RACI mode (#159) |
-| **Workbench** | Phase 2 complete, Phase 3 (agent registry) open | Far | Agent registry (#32) must support multi-CLI dispatch (Claude/Codex/Gemini/Goose) + API dispatch (OpenRouter), governance chat UI (#16/#34) |
-| **OA (to be absorbed)** | Operational, ADR-0275 accepted | Being replaced | Rebuild phases not started |
-| **PAL (to be eliminated)** | Operational, used daily via `pal clink` | Being eliminated | Workbench agent registry replaces all PAL dispatch. Goose via `pal clink` validates that multi-provider dispatch works — the registry must natively own this capability |
+| System | Current State | Distance | Next Step |
+|--------|--------------|----------|-----------|
+| **OCTAVE MCP** | v1.9.6, production, PyPI published | Close | Standalone community adoption |
+| **Debate Hall** | v0.5.0, 17 tools, consult/convene/RACI shipped | Medium | Governance Hall (#163) |
+| **Workbench** | v0.6.0, 3A-prep substantially complete. Matrix resolver, V9 agents (4), 16 V9 skills, System Standard in vault. | Medium | Payload Compiler (Step 3A, issue #99) — all prerequisites now met |
+| **Vault** | Starter library with 4 V9 agents, 16 V9 skills, 3 cognitions, System Standard | Medium | Populate as Payload Compiler demands content |
+| **hestai-context-mcp** | ADR-0353 accepted. Interface contract done. Feature-parity matrix done. | Far | Phase 1: Create repo, harvest clock_in, redesign clock_out with TDD |
+| **hestai-mcp (legacy)** | Operational, 930 tests, 92% coverage, 4 tools | Maintenance | Stays for A/B comparison. NOT being absorbed |
+| **OA (legacy)** | Operational for Claude-with-MCP sessions | Maintenance | Replaced by Alley-Oop for headless dispatch |
+| **PAL (legacy)** | Being eliminated | Elimination | Workbench natively replaces all dispatch |
 
 ### The Critical Path
 
-Per Project 15 (Order field) and the Ecosystem Dependency Graph (STEP numbering):
+Per workbench PROJECT-CONTEXT v1.7 build sequence:
 
-**Order 10** (merger decision — DONE, ADR-0275) -> **Order 20** (OA rebuild + agent registry with multi-CLI/API dispatch) -> **Order 30** (governance chat UI) -> **Order 40** (cross-repo agent orchestration) -> **Order 50** (blind assessor + PAL decommission)
+**Step 3A** (Payload Compiler — NEXT, all prerequisites met) -> **Step 3B** (dispatch_colleague uses Payload Compiler) -> **Step 4** (Testing Lab measures baseline collapse threshold)
 
-The convergence point is **Order 40: Cross-repo agent orchestration prototype** — where identity, deliberation, format, and execution work together for the first time.
+The convergence point is **Step 3B: dispatch_colleague** — where identity (from Vault), context (from hestai-context-mcp), and execution (Workbench dispatch) work together for the first time.
+
+In parallel: **hestai-context-mcp Phase 1** (harvest clock_in, redesign clock_out) provides the context engine that the Payload Compiler calls at KVAEPH Position 3.
 
 ### Validated Early
 
-Goose CLI integration via `pal clink` has proven that non-Claude agents can participate as first-class ecosystem citizens — full MCP access to all 4 servers (46 tools), anchor ceremony binding, debate-hall participation, OCTAVE read/write, and agent/skill delegation. This validates provider agnosticism ahead of the Workbench agent registry build.
+- Provider agnosticism proven: Goose, Claude, Codex, Gemini all tested with full MCP ecosystem access.
+- Matrix resolver (v_resolved_matrix) implemented with kernel_only column and headless experiment IPC.
+- 16 V9 skills with ANCHOR_KERNEL sections created and assigned in archetype matrix.
+- System Standard in vault (AP4 resolved).
 
 ---
 
@@ -349,20 +379,45 @@ Goose CLI integration via `pal clink` has proven that non-Claude agents can part
 
 | ID | Assumption | Confidence | Impact | Validates By |
 |----|-----------|-----------|--------|-------------|
-| EA1 | Three-repo architecture is sufficient | 85% | CRITICAL | Order 40 prototype |
-| EA2 | Chassis-Profile schema handles all capability selection needs | 70% | HIGH | First agent with multiple profiles |
-| EA3 | Tiered permits reduce ceremony overhead without sacrificing security | 75% | HIGH | Quick-tier usage in production |
+| EA1 | Four-system architecture (Workbench + Vault + hestai-context-mcp + standalones) is sufficient | 85% | CRITICAL | Step 3B dispatch prototype |
+| EA2 | Alley-Oop pattern achieves cognitive alignment equivalent to full anchor ceremony | 75% | CRITICAL | Step 3A Payload Compiler + reliability pipeline testing |
+| EA3 | Stratified conditioning (baseline vs reliability) provides the right governance weight per task | 70% | HIGH | Testing Lab (Step 4) empirical measurement |
 | EA4 | Workbench agent registry can natively replace all PAL dispatch (multi-CLI + API) | 80% | HIGH | Agent registry prototype with Goose + Claude + Codex + Gemini dispatch |
-| EA5 | Cross-repo agent invocation is technically feasible with MCP | 75% | CRITICAL | Order 40 prototype. Confidence raised from 65%: Goose full MCP access validates multi-provider feasibility |
+| EA5 | Cross-repo agent invocation is technically feasible with MCP | 75% | CRITICAL | Step 3B prototype |
 | EA6 | Debate Hall Governance Hall replaces ad hoc decision-making | 70% | MEDIUM | 2 months daily use |
-| EA7 | Single developer can maintain 3 MCP servers + Workbench | 80% | CRITICAL | Post Order 40 assessment. Confidence raised from 75%: PAL elimination (not absorption) reduces maintenance to 3 servers not 4 |
+| EA7 | Single developer can maintain the ecosystem | 80% | CRITICAL | Post Step 3B assessment |
 | EA8 | Assistant prefilling achieves sufficient cognitive alignment for API-dispatched agents | 70% | HIGH | First API dispatch with prefilled mini-ceremony on 3+ OpenRouter backends |
 | EA9 | Recursive `dispatch_colleague` calls (depth 2-3) remain coherent without context degradation | 65% | HIGH | IL dispatching TMG dispatching back — full chain test with continuation |
+| EA10 | Harvest approach (new repo from proven code) is faster than in-place modification | 80% | HIGH | hestai-context-mcp Phase 1 delivery time vs estimated subtraction time |
+
+---
+
+## SECTION 9: LEGACY SYSTEMS
+
+### hestai-mcp (this repo)
+
+**Status:** Legacy. Stays operational for A/B comparison.
+
+hestai-mcp is NOT being absorbed into the Workbench. ADR-0353 resolved this: the governance engine logic (clock_in, clock_out, ContextSteward, RedactionEngine, submit_review) is harvested into a NEW repo (`hestai-context-mcp`), not subtracted from here. The legacy system remains intact so the same agent + same task can be tested under both the old ceremony and the new engine.
+
+The `_bundled_hub/` content (agent definitions, skills, standards, cognitions) moves to the Vault. The `.hestai-sys/` injection mechanism moves to the Vault/Workbench. The `bind` tool is replaced by Alley-Oop for headless dispatch; the Odyssean Anchor ceremony remains for Claude-with-MCP sessions.
+
+Deprecation happens only after the new system is proven in daily use.
+
+### odyssean-anchor-mcp
+
+**Status:** Legacy for Claude-with-MCP sessions. Replaced by Alley-Oop for headless dispatch.
+
+The 5-stage KEAPH ceremony and Steward state machine remain operational for sessions where agents have direct MCP access. For Workbench-dispatched agents (headless), the Alley-Oop pattern in the Payload Compiler provides equivalent cognitive alignment with zero round-trip overhead.
+
+### PAL
+
+**Status:** Being eliminated. Workbench natively replaces all dispatch.
 
 ---
 
 ## DIVERGENCE CHECK
 
-If work moves the ecosystem away from this vision — adding a fourth MCP server, duplicating agent definitions, building standalone GUIs for headless services — it's worth asking: does the vision need updating, or does the work need redirecting?
+If work moves the ecosystem away from this vision — merging context into the Workbench, duplicating agent definitions outside the Vault, building standalone GUIs for headless services, or creating new dispatch intermediaries — it's worth asking: does the vision need updating, or does the work need redirecting?
 
 This is a question, not an order. Sometimes the vision is wrong.
