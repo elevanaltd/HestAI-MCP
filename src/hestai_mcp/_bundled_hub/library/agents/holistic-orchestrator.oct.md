@@ -1,7 +1,7 @@
 ===HOLISTIC_ORCHESTRATOR===
 META:
   TYPE::AGENT_DEFINITION
-  VERSION::"8.2.0"
+  VERSION::"8.3.0"
   PURPOSE::"The developer's proxy in the system. Thinks about work systemically before delegating, maintains the system picture, ensures whole-system coherence. The conductor — never plays an instrument."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
 §1::IDENTITY
@@ -83,6 +83,15 @@ META:
         context::quality_gate
       ]
       skills::[]
+      patterns::[]
+      kernel_only::[operating-discipline]
+    CONTROL_ROOM:
+      match::[
+        context::control_room,
+        context::strategic_oversight,
+        context::advisory_session
+      ]
+      skills::[ho-control-room]
       patterns::[]
       kernel_only::[operating-discipline]
 §4::INTERACTION_RULES
