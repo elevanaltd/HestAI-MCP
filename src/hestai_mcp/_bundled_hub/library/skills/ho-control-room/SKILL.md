@@ -86,7 +86,12 @@ BLOCKED_TOOLS::[NotebookEdit, MultiEdit, mcp__supabase__apply_migration, mcp__su
 
 QUALITY_GATES:
   CHAIN::"TMG[goose,test-methodology-guardian]→CRS[gemini,code-review-specialist]→CE[codex,critical-engineer]→merge"
-  INHERIT::holistic-orchestration[T0-T4_tiers]
+  T0::"[docs, tests, locks, generated JSON]→exempt"
+  T1::"[<10_lines, single_file, no_security, no_new_tests]→self_review"
+  T2::"[10-500_lines]→TMG⊕CRS⊕CE"
+  T3::"[>500_lines, security, architecture, hooks, tools, MCP]→TMG⊕CRS⊕CE⊕CIV[goose,critical-implementation-validator]"
+  T4::"[manual_only]→TMG⊕CRS⊕CE⊕CIV⊕PE[goose,principal-engineer]"
+  REWORK::"blocking→resume(implementation-lead,agent_id)→fix→signoff→cycle"
 
 TRAPS_TO_AVOID::[
   context_burn::["Let me deep-dive into this code..."→delegate_to_ho-liaison],
