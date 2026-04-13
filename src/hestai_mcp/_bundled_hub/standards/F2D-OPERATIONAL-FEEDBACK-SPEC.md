@@ -8,7 +8,7 @@ created: 2026-04-07
 origin: HO orchestration — Wind/Wall/Door debate + technical-architect + requirements-steward + ho-liaison consultations
 builds-on:
   - "RCCAFP-ERROR-RECOVERY-SPEC.md (tool pattern, JSONL append, server envelope)"
-  - "HESTAI-ECOSYSTEM-LIGHTHOUSE.md v3.2 (three-repo architecture, separation of concerns)"
+  - "HESTAI-ECOSYSTEM-LIGHTHOUSE.md v4.0 (Three-Service Model, separation of concerns)"
 delivery: "Bundled hub -> .hestai-sys/standards/ (cross-repo, all agents)"
 ---
 
@@ -37,7 +37,7 @@ This is the **single source of truth** for operational feedback architecture. Im
 
 **Relationship to other documents:**
 - **RCCAFP Error Recovery Spec:** RCCAFP captures build failures mid-session (hot-path). F2D captures governance friction post-session (cold-path). These are **complementary, not competing.** Shared JSONL infrastructure, divergent workflows. When an RCCAFP resolution required a governance workaround, the agent should also submit a friction record noting the governance gap.
-- **Ecosystem Lighthouse v3.2:** F2D respects the three-repo separation of concerns. Capture lives in Core (context stewardship), triage routes through Debate Hall (deliberation), resolution produces PRs to Core (governance amendment).
+- **Ecosystem Lighthouse v4.0:** F2D respects the Three-Service Model separation of concerns (ADR-0353). Capture lives in hestai-context-mcp (context stewardship), triage routes through Debate Hall (deliberation), resolution produces PRs to the governance source (Vault or hestai-context-mcp as appropriate).
 - **Product North Star:** Directly satisfies I1 (Persistent Cognitive Continuity) by persisting operational learnings across sessions. Respects I3 (Dual-Layer Authority) by keeping friction records as mutable context until ratified through governance process.
 
 ---
@@ -120,9 +120,9 @@ B2 TRIAGE (Debate Hall — future spec)
   Actionable items promoted to Debate Hall as structured topics
   Non-actionable items annotated and archived
 
-B3 RESOLVE (Core governance — future spec)
+B3 RESOLVE (governance source — future spec)
   Debate produces synthesis with governance improvement recommendation
-  Ratified improvement becomes PR to Core's bundled hub
+  Ratified improvement becomes PR to governance source (Vault for identity artifacts, hestai-context-mcp for context artifacts)
   Governance amendment follows standard review chain
   Friction record linked to resolution for audit trail
 ```
@@ -195,7 +195,7 @@ A triage mechanism will:
 
 Resolution connects debate outputs to governance amendments:
 - Debate synthesis produces governance improvement recommendation
-- Recommendation becomes PR to Core's `_bundled_hub/` (skills, agents, instructions, standards)
+- Recommendation becomes PR to governance source (Vault for identity artifacts like skills/agents/standards, hestai-context-mcp for context artifacts)
 - Standard review chain applies (TMG, CRS, CE per tier)
 - Friction record linked to resolution for audit trail
 
@@ -207,7 +207,7 @@ Resolution connects debate outputs to governance amendments:
 
 RCCAFP uses per-project storage because build errors are project-specific — a type error in repo A is irrelevant to repo B. Governance friction is different: "the anchor ceremony required 6 round-trips and the agent guessed at step 4" is the same problem regardless of which repo the agent is working in. Per-project storage fragments the signal and prevents cross-repo pattern detection.
 
-The Ecosystem Lighthouse (Section 2) places governance in HestAI Core and context stewardship (clock_in/clock_out) in Core. Friction is governance context. Core's universal storage namespace (`~/.hestai/`) is the correct home.
+The Ecosystem Lighthouse (Section 2) places context stewardship (clock_in/clock_out) in hestai-context-mcp per ADR-0353. Friction is governance context. The universal storage namespace (`~/.hestai/`) is the correct home.
 
 ### Why JSONL, not OCTAVE?
 
