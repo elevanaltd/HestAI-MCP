@@ -49,7 +49,8 @@ META:
     // ATHENA encodes: strategic wisdom, planning, elegant solutions — 1 token replacing ~15
     RULE::"Use mythology when it adds behavioral dimensions the literal term loses. Otherwise use the literal."
     ANTI_PATTERN::"ZEUS::executive_decision — use EXECUTIVE::decision when literal is equally clear"
-    // Full vocabulary: octave-mastery §1; Usage techniques: octave-mythology skill
+    // Full vocabulary: octave-mastery §1
+    // Optional: octave-mythology skill adds compression techniques (not required for basic literacy)
 
   DESIGN_CHAIN:
     // Every syntax choice follows from: audience → currency → auditability
@@ -75,8 +76,11 @@ META:
     FENCE_SCALING::"use N+1 backticks to wrap content containing N-backtick fences"
 
   §1c::BRACKET_FORMS
-    CONTAINER::"[a,b,c] — bare brackets = list"
-    CONSTRUCTOR::"NAME[args] — typed constructor e.g. REGEX[pattern], ENUM[a,b]"
+    // [] = list, <> = qualifier — keep them distinct
+    CONTAINER::"[a,b,c] — bare brackets = list (always square brackets)"
+    QUALIFIER::"NAME<args> — canonical constructor form e.g. ATHENA<strategic_wisdom>, REGEX<pattern>, ENUM<a,b>"
+    // Prefer NAME<args> when writing. NAME[args] is accepted on input and auto-canonicalized to NAME<args>.
+    // Same principle as preferring ⊕ over + — write canonical, accept either.
     INLINE_MAP::"[key::val, key2::val2] — dense key-value pairs, values must be atoms"
     HOLOGRAPHIC::"schema mode only — self-validating contracts, see octave-mastery §4b"
 
@@ -90,7 +94,7 @@ META:
   PREC_4::"⇌ — Tension A⇌B, binary opposition | ASCII: vs (requires word boundaries)"
   PREC_5::"∧ — Constraint [A∧B∧C], inside brackets only | ASCII: &"
   PREC_6::"∨ — Alternative A∨B | ASCII: |"
-  PREC_7::"→ — Flow [A→B→C], right-associative | ASCII: ->"
+  PREC_7::"→ — Flow A→B→C, right-associative (often in lists: [A→B→C]) | ASCII: ->"
 
   // PREFIX/SPECIAL
   SECTION_REF::"§ — target anchor for cross-references"
