@@ -44,11 +44,12 @@ jobs:
               || contains(github.event.comment.body, ' GO:')
               || contains(github.event.comment.body, '**GO**')))
 
-    # Required for PR commenting
+    # Required for PR commenting and commit status updates
     permissions:
       contents: read
       pull-requests: write
       issues: write
+      statuses: write
 
     steps:
       # --- Determine execution context ---
@@ -283,6 +284,52 @@ jobs:
               console.error('Failed to update PR comment:', error);
               core.setFailed(`Failed to update PR status: ${error.message}`);
             }
+
+      # --- Set commit status on PR head SHA ---
+      # GitHub Actions creates check runs on the default branch for issue_comment
+      # triggers, NOT on the PR's head SHA. This means the PR's check status badge
+      # doesn't update when approvals are posted via comments. To fix this, we
+      # explicitly set a commit status on the PR's head SHA using the Statuses API.
+      # This runs for both pull_request and issue_comment events so the "Review Gate"
+      # status is always consistent. Skipped for workflow_call (remote repos handle
+      # their own status).
+      - name: Set commit status on PR head
+        if: always() && steps.context.outputs.mode == 'local'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          REVIEW_EXIT_CODE: ${{ steps.review_check.outputs.exit_code }}
+        run: |
+          # Get the PR's head SHA
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            PR_HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          else
+            # For issue_comment events, fetch from API
+            PR_HEAD_SHA=$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json headRefOid --jq '.headRefOid')
+          fi
+
+          if [ -z "$PR_HEAD_SHA" ]; then
+            echo "::warning::Could not determine PR head SHA, skipping commit status"
+            exit 0
+          fi
+
+          # Determine pass/fail from exit code
+          if [ "$REVIEW_EXIT_CODE" = "0" ]; then
+            STATE="success"
+            DESC="All required approvals found"
+          else
+            STATE="failure"
+            DESC="Review requirements not met"
+          fi
+
+          echo "Setting commit status: state=$STATE on SHA=$PR_HEAD_SHA"
+
+          # Set commit status on PR head SHA
+          gh api "repos/${{ github.repository }}/statuses/$PR_HEAD_SHA" \
+            -f state="$STATE" \
+            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            -f description="$DESC" \
+            -f context="Review Gate"
 
       # AI code review bots (all advisory, non-blocking):
       # - CodeRabbit: auto-reviews on PR open/push (configured in .coderabbit.yaml)
