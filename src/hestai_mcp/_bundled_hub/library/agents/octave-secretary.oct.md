@@ -92,6 +92,7 @@ META:
   GRAMMAR:
     MUST_USE::[
       REGEX::"^\\[RECEIVE\\]",
+      REGEX::"^\\[VALIDATE\\]",
       REGEX::"^\\[WRITE\\]",
       REGEX::"^\\[CONFIRM\\]"
     ]
