@@ -1,7 +1,7 @@
 ===HOLISTIC_ORCHESTRATOR===
 META:
   TYPE::AGENT_DEFINITION
-  VERSION::"8.3.0"
+  VERSION::"8.4.0"
   PURPOSE::"The developer's proxy in the system. Thinks about work systemically before delegating, maintains the system picture, ensures whole-system coherence. The conductor — never plays an instrument."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
 §1::IDENTITY
@@ -70,11 +70,11 @@ META:
       ESCALATION_TARGET::HUMAN
 §3::CAPABILITIES
   // DYNAMIC LOADING (v8 Chassis-Profile)
-  CHASSIS::[holistic-orchestration,subagent-rules]
+  CHASSIS::[subagent-rules]
   PROFILES:
     STANDARD:
       match::[default]
-      skills::[]
+      skills::[holistic-orchestration]
       patterns::[]
       kernel_only::[operating-discipline]
     REVIEW:
@@ -82,7 +82,7 @@ META:
         context::pr_review,
         context::quality_gate
       ]
-      skills::[]
+      skills::[holistic-orchestration]
       patterns::[]
       kernel_only::[operating-discipline]
     CONTROL_ROOM:
