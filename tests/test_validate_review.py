@@ -10,6 +10,7 @@ fail-closed behavior - failures indicate security vulnerabilities.
 """
 
 import json
+import re
 import subprocess
 
 # Import the module under test
@@ -1962,3 +1963,357 @@ class TestStructuredMissingRoles:
             f"found_count must be computed from structured missing_roles (3 required - 1 missing = 2), "
             f"got {data['found_count']}"
         )
+
+
+@pytest.mark.behavior
+class TestShaTrackingInJsonSummary:
+    """Validate that JSON summary includes SHA for approval-commit validation.
+
+    The SHA field enables downstream consumers (review-gate.yml JS parser) to:
+    1. Track which commit the review gate evaluated
+    2. Validate that approvals were made against the correct commit
+    3. Detect stale approvals when new commits are pushed after approval
+    """
+
+    def test_json_summary_includes_sha_field(self, ci_environment, monkeypatch, capsys):
+        """JSON output must include a 'sha' field with the current HEAD commit SHA."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="abc123def456\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None, "JSON comment must be emitted"
+
+        data = json.loads(json_match.group(1))
+        assert "sha" in data, "JSON output must include 'sha' field for commit tracking"
+        assert (
+            data["sha"] == "abc123def456"
+        ), f"SHA must match HEAD commit, expected 'abc123def456', got '{data['sha']}'"
+
+    def test_json_summary_sha_is_string(self, ci_environment, monkeypatch, capsys):
+        """SHA field must be a non-empty string."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="deadbeef1234\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None
+
+        data = json.loads(json_match.group(1))
+        assert isinstance(data["sha"], str), "SHA must be a string"
+        assert len(data["sha"]) > 0, "SHA must not be empty"
+
+    def test_json_summary_sha_on_failure_path(self, ci_environment, monkeypatch, capsys):
+        """SHA must be included in JSON output even when review fails."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (False, "Missing CE APPROVED", ["CE"]),
+        )
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="sha_on_fail_path\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None, "JSON comment must be emitted even on failure"
+
+        data = json.loads(json_match.group(1))
+        assert "sha" in data, "SHA must be present even when review fails"
+        assert data["sha"] == "sha_on_fail_path"
+
+    def test_json_summary_sha_on_exempt_path(self, monkeypatch, capsys):
+        """SHA must be included in JSON output even for TIER_0_EXEMPT."""
+        monkeypatch.delenv("CI", raising=False)
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "README.md", "added": 5, "deleted": 2, "total_changed": 7}],
+        )
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="sha_exempt_path\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None
+
+        data = json.loads(json_match.group(1))
+        assert "sha" in data, "SHA must be present even for TIER_0_EXEMPT"
+
+    def test_json_summary_sha_fallback_on_git_failure(self, ci_environment, monkeypatch, capsys):
+        """If git rev-parse fails, SHA should be 'unknown' rather than crashing."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                raise subprocess.CalledProcessError(1, "git rev-parse HEAD")
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None
+
+        data = json.loads(json_match.group(1))
+        assert (
+            data["sha"] == "unknown"
+        ), f"SHA must fall back to 'unknown' on git failure, got '{data['sha']}'"
+
+
+@pytest.mark.behavior
+class TestCommentEventFastPath:
+    """Validate that CACHED_GATE_DATA enables comment-event fast path.
+
+    On issue_comment events, the diff hasn't changed — only approvals may have.
+    When CACHED_GATE_DATA is set with matching SHA, validate_review.py should
+    skip file classification and use cached tier/reviewers, then only re-check
+    comment approvals.
+    """
+
+    def test_cached_gate_data_skips_file_classification(self, ci_environment, monkeypatch, capsys):
+        """When CACHED_GATE_DATA is set, get_changed_files must NOT be called."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        cached = json.dumps(
+            {
+                "tier": "TIER_2_STANDARD",
+                "reason": "Cached reason",
+                "roles": ["CE", "CRS", "TMG"],
+                "sha": "abc123",
+            }
+        )
+        monkeypatch.setenv("CACHED_GATE_DATA", cached)
+
+        def explode():
+            raise AssertionError("get_changed_files must not be called with cached gate data")
+
+        monkeypatch.setattr(validate_review, "get_changed_files", explode)
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="abc123\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        exit_code = validate_review.main()
+        assert exit_code == 0
+
+        output = capsys.readouterr().out
+        assert "fast path" in output.lower(), "Output must indicate fast path was used"
+
+    def test_cached_gate_data_uses_cached_tier(self, ci_environment, monkeypatch, capsys):
+        """When cached, tier from CACHED_GATE_DATA must be used in JSON output."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        cached = json.dumps(
+            {
+                "tier": "TIER_3_CRITICAL",
+                "reason": "Cached: META_CONTROL_PLANE",
+                "roles": ["CE", "CRS", "CIV", "SR", "TMG"],
+                "sha": "def456",
+            }
+        )
+        monkeypatch.setenv("CACHED_GATE_DATA", cached)
+
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found", []),
+        )
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="def456\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None
+        data = json.loads(json_match.group(1))
+        assert (
+            data["tier"] == "TIER_3_CRITICAL"
+        ), f"Tier must come from cached data, got {data['tier']}"
+
+    def test_cached_gate_data_passes_roles_to_comment_check(
+        self, ci_environment, monkeypatch, capsys
+    ):
+        """Cached roles must be passed to check_pr_comments as required_roles."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        cached = json.dumps(
+            {
+                "tier": "TIER_2_STANDARD",
+                "reason": "Cached",
+                "roles": ["CE", "CRS", "TMG"],
+                "sha": "abc",
+            }
+        )
+        monkeypatch.setenv("CACHED_GATE_DATA", cached)
+
+        captured_kwargs: dict = {}
+
+        def mock_check(*args, **kwargs):
+            captured_kwargs.update(kwargs)
+            return (True, "All approvals found", [])
+
+        monkeypatch.setattr(validate_review, "check_pr_comments", mock_check)
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="abc\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        validate_review.main()
+
+        assert "required_roles" in captured_kwargs, "check_pr_comments must receive required_roles"
+        assert captured_kwargs["required_roles"] == {"CE", "CRS", "TMG"}, (
+            f"required_roles must match cached roles, " f"got {captured_kwargs['required_roles']}"
+        )
+
+    def test_invalid_cached_gate_data_falls_back_to_normal(
+        self, ci_environment, monkeypatch, capsys
+    ):
+        """Invalid CACHED_GATE_DATA JSON must fall back to normal file classification."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setenv("CACHED_GATE_DATA", "not-valid-json{{{")
+
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="sha123\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        exit_code = validate_review.main()
+        assert exit_code == 0
+
+        output = capsys.readouterr().out
+        assert "fast path" not in output.lower(), "Invalid cached data must not trigger fast path"
+
+    def test_empty_cached_gate_data_uses_normal_path(self, ci_environment, monkeypatch, capsys):
+        """Empty CACHED_GATE_DATA string must use normal file classification."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setenv("CACHED_GATE_DATA", "")
+
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="sha456\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        exit_code = validate_review.main()
+        assert exit_code == 0
+
+        output = capsys.readouterr().out
+        assert "fast path" not in output.lower(), "Empty cached data must not trigger fast path"

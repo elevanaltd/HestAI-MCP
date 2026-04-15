@@ -26,7 +26,6 @@ from typing import Any
 ADVISORY_BOTS: list[str] = [
     "cubic-dev-ai[bot]",
     "qodo-code-review[bot]",
-    "coderabbitai[bot]",
     "github-copilot[bot]",
 ]
 
@@ -493,7 +492,7 @@ def check_pr_comments(
 
         # Collect all searchable text: PR body + comment bodies
         # Exclude ALL bot comments to prevent false positive approval matches.
-        # Bot review prose (CodeRabbit, Copilot, Cubic, github-actions) often
+        # Bot review prose (Copilot, Cubic, github-actions) often
         # contains "APPROVED", "GO", etc. which would falsely clear the gate.
         def _is_bot_comment(comment: dict[str, Any]) -> bool:
             """Check if a comment is from a bot author."""
@@ -716,6 +715,24 @@ def check_emergency_bypass() -> bool:
         return False
 
 
+def _get_head_sha() -> str:
+    """Get the current HEAD commit SHA for tracking in JSON output.
+
+    Returns:
+        The HEAD commit SHA string, or 'unknown' if git rev-parse fails.
+    """
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return result.stdout.strip()
+    except subprocess.CalledProcessError:
+        return "unknown"
+
+
 def _emit_json_summary(
     tier: str,
     reason: str,
@@ -723,6 +740,7 @@ def _emit_json_summary(
     status: str,
     required_count: int,
     found_count: int,
+    sha: str = "unknown",
 ) -> None:
     """Emit a structured JSON summary as an HTML comment for machine parsing.
 
@@ -731,7 +749,11 @@ def _emit_json_summary(
     in review-gate.yml can extract this for structured data instead of relying on
     fragile regex patterns.
 
-    Format: <!-- REVIEW_GATE_JSON:{"tier":"...","reason":"...",...} -->
+    Format: <!-- REVIEW_GATE_JSON:{"tier":"...","reason":"...","sha":"...",...} -->
+
+    The ``sha`` field tracks which commit the review gate evaluated. Downstream
+    consumers can compare this against the PR head SHA to detect stale approvals
+    when new commits are pushed after approval.
     """
     summary = {
         "tier": tier,
@@ -740,6 +762,7 @@ def _emit_json_summary(
         "status": status,
         "required_count": required_count,
         "found_count": found_count,
+        "sha": sha,
     }
     print(f"<!-- REVIEW_GATE_JSON:{json.dumps(summary)} -->")
 
@@ -747,28 +770,50 @@ def _emit_json_summary(
 def main() -> int:
     """Main validation logic."""
 
+    # Get HEAD SHA early for inclusion in all JSON output paths
+    head_sha = _get_head_sha()
+
     # Check for emergency bypass
     if check_emergency_bypass():
         print("⚠️  EMERGENCY BYPASS - Review required post-merge")
         log_emergency_bypass()
         return 0
 
-    # Get changed files
-    files = get_changed_files()
-    if not files:
-        print("✓ No files changed")
-        return 0
+    # --- Comment-event fast path ---
+    # When CACHED_GATE_DATA is set (by the workflow on issue_comment events with
+    # matching SHA), skip file classification and use cached tier/reviewers.
+    # The diff hasn't changed — only approvals may have changed.
+    cached_gate_json = os.environ.get("CACHED_GATE_DATA", "")
+    cached_gate: dict[str, Any] | None = None
+    if cached_gate_json:
+        try:
+            cached_gate = json.loads(cached_gate_json)
+            print("⚡ Comment-event fast path: using cached gate data (SHA matches)")
+        except (json.JSONDecodeError, TypeError):
+            cached_gate = None
 
-    # Show changed files summary
-    total_lines = sum(int(f["total_changed"]) for f in files)
-    print(f"📊 Changed Files: {len(files)} files, {total_lines} lines")
-    for f in files[:5]:  # Show first 5
-        print(f"   - {f['path']} (+{f['added']}/-{f['deleted']})")
-    if len(files) > 5:
-        print(f"   ... and {len(files) - 5} more")
+    if cached_gate is not None:
+        tier = str(cached_gate.get("tier", "UNKNOWN"))
+        reason = str(cached_gate.get("reason", ""))
+        required_roles = set(cached_gate.get("roles", []))
+    else:
+        # Get changed files
+        files = get_changed_files()
+        if not files:
+            print("✓ No files changed")
+            return 0
 
-    # Classify PR content into facets and compute required reviewers
-    facets, required_roles, tier, reason = classify_pr_facets(files)
+        # Show changed files summary
+        total_lines = sum(int(f["total_changed"]) for f in files)
+        print(f"📊 Changed Files: {len(files)} files, {total_lines} lines")
+        for f in files[:5]:  # Show first 5
+            print(f"   - {f['path']} (+{f['added']}/-{f['deleted']})")
+        if len(files) > 5:
+            print(f"   ... and {len(files) - 5} more")
+
+        # Classify PR content into facets and compute required reviewers
+        _facets, required_roles, tier, reason = classify_pr_facets(files)
+
     print(f"\n📋 Review Tier: {tier}")
     print(f"   Reason: {reason}")
 
@@ -782,6 +827,7 @@ def main() -> int:
             status="pass",
             required_count=0,
             found_count=0,
+            sha=head_sha,
         )
         return 0
 
@@ -814,6 +860,7 @@ def main() -> int:
             status="fail",
             required_count=len(required_roles),
             found_count=found_count,
+            sha=head_sha,
         )
 
         # Only block in CI context
@@ -831,6 +878,7 @@ def main() -> int:
         status="pass",
         required_count=len(required_roles),
         found_count=len(required_roles),
+        sha=head_sha,
     )
     print("\n✓ Review requirements satisfied")
     return 0
