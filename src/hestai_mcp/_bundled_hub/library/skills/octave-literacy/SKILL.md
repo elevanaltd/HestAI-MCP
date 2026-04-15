@@ -35,12 +35,12 @@ META:
   COMMENT::"// — line start or after value"
   §1b::BRACKET_FORMS
     CONTAINER::"[a,b,c] — bare brackets = list"
-    ANNOTATION::"NAME<qualifier> — semantic facet qualifier, canonical write form"
-    CONSTRUCTOR::"NAME[args] — schema/validation construct (REGEX[pattern], ENUM[a,b])"
-    // ANNOTATION vs CONSTRUCTOR: NAME<qualifier> qualifies identity. NAME[args] validates schema.
-    // ATHENA<strategic_wisdom> = annotation. ENUM[a,b,c] = constructor. Keep distinct.
-    // Parser accepts NAME[args] for annotations on input and auto-canonicalizes to NAME<qualifier>.
-    // Always write NAME<qualifier>. Never rely on auto-canonicalization.
+    ANNOTATION::"NAME<qualifier> — semantic facet on identity (ATHENA<strategic_wisdom>, LLM<exclusively>)"
+    CONSTRUCTOR::"NAME[args] — structured arguments on identifier (REGEX[pattern], ENUM[a,b], JIT_GRAMMAR_COMPILATION[META→GBNF])"
+    // These are SEPARATE forms. <> qualifies what something IS. [] parameterizes what something DOES.
+    // ATHENA<strategic_wisdom> = annotation (identity facet). ENUM[a,b,c] = constructor (validation args).
+    // Lenient parser canonicalizes []→<> ONLY for annotation-context uses. Genuine constructors keep [].
+    // When in doubt: identity/archetype qualifier → <>. Parameterized operation/schema → [].
     INLINE_MAP::"[key::val, key2::val2] — dense key-value pairs, values must be atoms, no nesting"
   §1c::LITERAL_ZONES
     // Fenced code blocks pass through with ZERO processing
@@ -82,7 +82,7 @@ META:
   R8::"Values containing § must be quoted: \"see §3b\" not bare §3b"
   R9::"File extension .oct.md is canonical"
   R10::"Bare numeric keys trigger W_NUMERIC_KEY_DROPPED — use R1, STEP_1, not 1"
-  R11::"Bare prose lines (no key::) trigger W_BARE_LINE_DROPPED — every line needs a key"
+  R11::"Unkeyed prose sentences trigger W_BARE_LINE_DROPPED — comments (//) and list body lines are exempt"
   §3b::V6_ENVELOPE_STRUCTURE
     FILE_STRUCTURE::"===NAME=== then META then optional --- separator then BODY then ===END==="
     SEPARATOR::"--- signals metadata boundary to discovery/indexing tools. Place after META block."
@@ -95,8 +95,10 @@ META:
       CONTRACT,
       GRAMMAR
     ]
+    // STATUS in META = document lifecycle (ACTIVE, DRAFT). STATUS in BODY = subject state. Both valid.
     COMPRESSION_TIER::ENUM[LOSSLESS,CONSERVATIVE,AGGRESSIVE,ULTRA]
     LOSS_PROFILE::"[preserve:causal_chains,drop:verbose_phrasing] — loss is explicit, never hidden"
+    // NOTE: LOSS_PROFILE is spec-valid but not yet in octave-validator allowed_meta — validator gap, not spec error
     CONTRACT::HOLOGRAPHIC<validation_law_in_document>
     GRAMMAR::GBNF_COMPILER<generate_constrained_output>
   §3c::ASSEMBLY_RULES
