@@ -159,5 +159,5 @@ EMERGENCY_BYPASS::[
   TRACKED::bypass_audit.log,
   REVIEW::post_merge_mandatory
 ]
-DEPENDENCY_UPDATE::PLANNED[manual_review_during_bedding_in_phase→auto_merge_future]
+DEPENDENCY_UPDATE::"PLANNED[manual_merge_during_bedding_in_phase→auto_merge_future]"
 ===END===

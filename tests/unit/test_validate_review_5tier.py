@@ -1191,45 +1191,10 @@ class TestOldTier3DualCRSRegression:
 class TestBotCommentFiltering:
     """Bot comments must NOT be included in approval pattern matching.
 
-    CodeRabbit, Copilot, Cubic, and github-actions bot comments often contain
+    Copilot, Cubic, and github-actions bot comments often contain
     approval-like text ('APPROVED', 'GO', etc.) in their review prose. These
     must be excluded so only human/agent review comments count.
     """
-
-    def test_coderabbit_approval_text_not_counted(self, ci_environment, monkeypatch) -> None:
-        """CodeRabbit bot comment with 'APPROVED' in body must NOT satisfy gate."""
-        import subprocess
-
-        def mock_run(cmd, *args, **kwargs):
-            return MagicMock(
-                stdout=json.dumps(
-                    {
-                        "body": "",
-                        "comments": [
-                            {
-                                "author": {"login": "coderabbitai"},
-                                "body": (
-                                    "<!-- This is an auto-generated comment: review by "
-                                    "coderabbit.ai -->\n"
-                                    "## Summary\n"
-                                    "TMG APPROVED: all tests pass\n"
-                                    "CRS APPROVED: logic correct\n"
-                                    "CE APPROVED: architecture sound"
-                                ),
-                            },
-                        ],
-                    }
-                ),
-                returncode=0,
-                check=lambda: None,
-            )
-
-        monkeypatch.setattr(subprocess, "run", mock_run)
-
-        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
-        assert (
-            approved is False
-        ), f"CodeRabbit bot comment must NOT satisfy approval gate, got: {message}"
 
     def test_copilot_approval_text_not_counted(self, ci_environment, monkeypatch) -> None:
         """Copilot bot comment with approval text must NOT satisfy gate."""
@@ -1270,7 +1235,7 @@ class TestBotCommentFiltering:
                         "body": "",
                         "comments": [
                             {
-                                "author": {"login": "coderabbitai"},
+                                "author": {"login": "cubic-dev-ai"},
                                 "body": "TMG APPROVED: bot text (should be ignored)",
                             },
                             {
@@ -1314,16 +1279,19 @@ class TestAdvisoryBotsConstant:
     """
 
     def test_advisory_bots_contains_expected_entries(self) -> None:
-        """ADVISORY_BOTS must contain all four canonical bot accounts."""
+        """ADVISORY_BOTS must contain all canonical bot accounts."""
         assert "cubic-dev-ai[bot]" in validate_review.ADVISORY_BOTS
         assert "qodo-code-review[bot]" in validate_review.ADVISORY_BOTS
-        assert "coderabbitai[bot]" in validate_review.ADVISORY_BOTS
         assert "github-copilot[bot]" in validate_review.ADVISORY_BOTS
 
+    def test_advisory_bots_does_not_contain_removed_bots(self) -> None:
+        """ADVISORY_BOTS must NOT contain removed bot accounts (CodeRabbit)."""
+        assert "coderabbitai[bot]" not in validate_review.ADVISORY_BOTS
+
     def test_advisory_bots_length(self) -> None:
-        """ADVISORY_BOTS should have exactly 4 entries (detect unintended additions)."""
-        assert len(validate_review.ADVISORY_BOTS) == 4, (
-            f"Expected 4 advisory bots, got {len(validate_review.ADVISORY_BOTS)}: "
+        """ADVISORY_BOTS should have exactly 3 entries (detect unintended additions)."""
+        assert len(validate_review.ADVISORY_BOTS) == 3, (
+            f"Expected 3 advisory bots, got {len(validate_review.ADVISORY_BOTS)}: "
             f"{validate_review.ADVISORY_BOTS}"
         )
 
@@ -1342,8 +1310,11 @@ class TestBotLoginSetNormalization:
         """Stripped versions of ADVISORY_BOTS must be in _BOT_LOGIN_SET."""
         assert "cubic-dev-ai" in validate_review._BOT_LOGIN_SET
         assert "qodo-code-review" in validate_review._BOT_LOGIN_SET
-        assert "coderabbitai" in validate_review._BOT_LOGIN_SET
         assert "github-copilot" in validate_review._BOT_LOGIN_SET
+
+    def test_removed_bot_logins_absent(self) -> None:
+        """Removed bots (CodeRabbit) must NOT be in _BOT_LOGIN_SET."""
+        assert "coderabbitai" not in validate_review._BOT_LOGIN_SET
 
     def test_legacy_login_variants_present(self) -> None:
         """Legacy login variants must be in _BOT_LOGIN_SET."""
@@ -1469,33 +1440,6 @@ class TestPerVariantBotExclusion:
             approved is False
         ), f"Copilot bot login '{login}' must NOT satisfy gate, got: {message}"
 
-    def test_coderabbitai_stripped_login_excluded(self, ci_environment, monkeypatch) -> None:
-        """CodeRabbit with stripped login 'coderabbitai' must NOT satisfy gate."""
-        import subprocess
-
-        def mock_run(cmd, *args, **kwargs):
-            return MagicMock(
-                stdout=json.dumps(
-                    {
-                        "body": "",
-                        "comments": [
-                            {
-                                "author": {"login": "coderabbitai"},
-                                "body": "TMG APPROVED: ok\nCRS APPROVED: ok\nCE APPROVED: ok",
-                            },
-                        ],
-                    }
-                ),
-                returncode=0,
-                check=lambda: None,
-            )
-
-        monkeypatch.setattr(subprocess, "run", mock_run)
-        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
-        assert (
-            approved is False
-        ), f"CodeRabbit bot login 'coderabbitai' must NOT satisfy gate, got: {message}"
-
 
 # ---------------------------------------------------------------------------
 # Skipped-bot logging output
@@ -1515,7 +1459,7 @@ class TestSkippedBotLogging:
                         "body": "",
                         "comments": [
                             {
-                                "author": {"login": "coderabbitai"},
+                                "author": {"login": "qodo-code-review"},
                                 "body": "Some review text",
                             },
                             {
@@ -1541,8 +1485,8 @@ class TestSkippedBotLogging:
             "Skipped 2 bot comment(s)" in captured.out
         ), f"Expected 'Skipped 2 bot comment(s)' in output, got: {captured.out}"
         assert (
-            "coderabbitai" in captured.out
-        ), f"Expected 'coderabbitai' in skipped bot names, got: {captured.out}"
+            "qodo-code-review" in captured.out
+        ), f"Expected 'qodo-code-review' in skipped bot names, got: {captured.out}"
         assert (
             "cubic-dev-ai" in captured.out
         ), f"Expected 'cubic-dev-ai' in skipped bot names, got: {captured.out}"
