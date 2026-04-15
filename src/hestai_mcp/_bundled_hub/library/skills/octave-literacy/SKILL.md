@@ -67,7 +67,7 @@ META:
   CONSTRAINT::"∧ — Inside brackets only [A∧B∧C] | ASCII: &"
   ALT::"∨ — Alternative A∨B | ASCII: |"
   FLOW::"→ — Right-associative A→B→C, often in lists [A→B→C] | ASCII: ->"
-  SECTION_REF::"§ — target anchor e.g. §3b::ASSEMBLY_RULES"
+  SECTION_REF::"§ — target anchor e.g. §3c::ASSEMBLY_RULES"
   LINE_COMMENT::"// — line start or after value"
   ASCII_RULE::"All operators accept both unicode and ASCII. Always emit unicode."
   VS_RULE::"vs requires word boundaries: 'A vs B' valid, 'AvsB' invalid"
@@ -95,7 +95,7 @@ META:
       CONTRACT,
       GRAMMAR
     ]
-    COMPRESSION_TIER::ENUM<LOSSLESS,CONSERVATIVE,AGGRESSIVE,ULTRA>
+    COMPRESSION_TIER::ENUM[LOSSLESS,CONSERVATIVE,AGGRESSIVE,ULTRA]
     LOSS_PROFILE::"[preserve:causal_chains,drop:verbose_phrasing] — loss is explicit, never hidden"
     CONTRACT::HOLOGRAPHIC<validation_law_in_document>
     GRAMMAR::GBNF_COMPILER<generate_constrained_output>
@@ -138,6 +138,6 @@ METRICS:
 ===END===
     ```
   // KAIROS<Q2_window> = annotation form. Semantic facet on identifier, not a list.
-  // META carries COMPRESSION_TIER and LOSS_PROFILE — loss auditable per I4.
+  // META carries COMPRESSION_TIER and LOSS_PROFILE — loss is auditable.
   // PHASES uses BLOCK because children are nested. STATUS uses ASSIGNMENT because scalar.
 ===END===
