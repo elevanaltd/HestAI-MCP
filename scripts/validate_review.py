@@ -822,7 +822,10 @@ def main() -> int:
             # SHA comparison guard: verify cached data matches current HEAD
             # before trusting it. Stale data (workflow bug, manual run) must
             # not silently apply incorrect tier/roles.
-            if cached_gate.get("sha") == head_sha:
+            # Guard against 'unknown' matching 'unknown' when git fails —
+            # both sides returning a placeholder must not enable the fast path.
+            cached_sha_val = cached_gate.get("sha")
+            if cached_sha_val == head_sha and head_sha != "unknown" and cached_sha_val != "unknown":
                 # Base-ref guard: if the base branch moved while the PR head
                 # stayed the same, the diff (and thus file classification) has
                 # changed. Validate base branch tip SHA to detect this.

@@ -127,7 +127,9 @@ jobs:
               });
 
               const marker = '<!-- review-gate-status -->';
-              const botComment = comments.find(c =>
+              // Use reverse search to find the newest marker comment in case
+              // multiple exist (e.g. from workflow re-runs before update logic).
+              const botComment = comments.reverse().find(c =>
                 c.user.type === 'Bot' && c.body.includes(marker)
               );
 
@@ -145,7 +147,7 @@ jobs:
                   const baseSha = pr.base.sha;
 
                   if (cached.sha && cached.sha !== 'unknown' && cached.sha === headSha) {
-                    // Head SHA matches — now check merge-base SHA to detect base branch movement.
+                    // Head SHA matches — now check base branch tip SHA to detect base movement.
                     // If base_sha is missing from cached data (old format), treat as cache miss.
                     if (!cached.base_sha) {
                       console.log('Cache miss: cached data missing base_sha (old format)');
