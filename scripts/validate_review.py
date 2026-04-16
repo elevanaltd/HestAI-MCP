@@ -729,7 +729,7 @@ def _get_head_sha() -> str:
             check=True,
         )
         return result.stdout.strip()
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, OSError):
         return "unknown"
 
 
@@ -760,7 +760,7 @@ def _get_base_ref_sha() -> str:
             check=True,
         )
         return result.stdout.strip()
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, OSError):
         return "unknown"
 
 
@@ -837,9 +837,9 @@ def main() -> int:
                     cached_gate = None
                 else:
                     base_ref_sha = _get_base_ref_sha()
-                    if base_ref_sha == "unknown" or cached_base_sha != base_ref_sha:
+                    if base_ref_sha == "unknown" or str(cached_base_sha) != base_ref_sha:
                         print(
-                            f"⚠️  Base ref SHA {cached_base_sha[:7]} != "
+                            f"⚠️  Base ref SHA {str(cached_base_sha)[:7]} != "
                             f"current {base_ref_sha[:7]}, "
                             f"falling back to normal classification"
                         )
@@ -851,7 +851,7 @@ def main() -> int:
                             f"base ref {base_ref_sha[:7]} matches"
                         )
             else:
-                cached_sha = cached_gate.get("sha", "none")
+                cached_sha = str(cached_gate.get("sha", "none"))
                 print(
                     f"⚠️  Cached SHA {cached_sha[:7]} != HEAD {head_sha[:7]}, "
                     f"falling back to normal classification"
