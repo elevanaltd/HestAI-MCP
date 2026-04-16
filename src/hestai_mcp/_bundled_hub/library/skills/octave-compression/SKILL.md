@@ -68,7 +68,8 @@ META:
   // I4::TRANSFORM_AUDITABILITY — every transformation must log what was preserved vs dropped.
   // These META fields are MANDATORY for any compressed output.
   REQUIRED_META_FIELDS::[COMPRESSION_TIER,LOSS_PROFILE]
-  LOSS_PROFILE_FORMAT::[preserve:X,drop:Y] — explicit, never hidden
+  LOSS_PROFILE_FORMAT::[preserve:X,drop:Y]
+  // LOSS_PROFILE must be explicit — never hidden
   EXAMPLES:
     CONSERVATIVE::[preserve:causal_chains,drop:verbose_phrasing]
     AGGRESSIVE::[preserve:core_thesis∧conclusions,drop:explanatory_depth∨edge_cases]
