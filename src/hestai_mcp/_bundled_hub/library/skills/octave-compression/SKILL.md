@@ -80,7 +80,7 @@ META:
   TYPE::DECISION
   VERSION::"1.0.0"
   COMPRESSION_TIER::CONSERVATIVE
-  LOSS_PROFILE::"[preserve:causal_chains,drop:verbose_phrasing]"
+  LOSS_PROFILE::[preserve:causal_chains,drop:verbose_phrasing]
     ```
   I4_RULE::"If bits were dropped, the output must carry a receipt. No silent loss."
 §3::TRANSFORMATION_WORKFLOW
