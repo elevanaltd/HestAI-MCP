@@ -2153,9 +2153,11 @@ class TestCommentEventFastPath:
                 "reason": "Cached reason",
                 "roles": ["CE", "CRS", "TMG"],
                 "sha": "abc123",
+                "base_sha": "base_abc",
             }
         )
         monkeypatch.setenv("CACHED_GATE_DATA", cached)
+        monkeypatch.setenv("PR_BASE_REF", "main")
 
         def explode():
             raise AssertionError("get_changed_files must not be called with cached gate data")
@@ -2171,6 +2173,8 @@ class TestCommentEventFastPath:
         def mock_run(cmd, *args, **kwargs):
             if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
                 return MagicMock(stdout="abc123\n", returncode=0)
+            if isinstance(cmd, list) and "merge-base" in cmd:
+                return MagicMock(stdout="base_abc\n", returncode=0)
             return original_run(cmd, *args, **kwargs)
 
         monkeypatch.setattr(subprocess, "run", mock_run)
@@ -2190,9 +2194,11 @@ class TestCommentEventFastPath:
                 "reason": "Cached: META_CONTROL_PLANE",
                 "roles": ["CE", "CRS", "CIV", "SR", "TMG"],
                 "sha": "def456",
+                "base_sha": "base_def",
             }
         )
         monkeypatch.setenv("CACHED_GATE_DATA", cached)
+        monkeypatch.setenv("PR_BASE_REF", "main")
 
         monkeypatch.setattr(
             validate_review,
@@ -2204,6 +2210,8 @@ class TestCommentEventFastPath:
         def mock_run(cmd, *args, **kwargs):
             if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
                 return MagicMock(stdout="def456\n", returncode=0)
+            if isinstance(cmd, list) and "merge-base" in cmd:
+                return MagicMock(stdout="base_def\n", returncode=0)
             return original_run(cmd, *args, **kwargs)
 
         monkeypatch.setattr(subprocess, "run", mock_run)
@@ -2229,9 +2237,11 @@ class TestCommentEventFastPath:
                 "reason": "Cached",
                 "roles": ["CE", "CRS", "TMG"],
                 "sha": "abc",
+                "base_sha": "base_abc",
             }
         )
         monkeypatch.setenv("CACHED_GATE_DATA", cached)
+        monkeypatch.setenv("PR_BASE_REF", "main")
 
         captured_kwargs: dict = {}
 
@@ -2245,6 +2255,8 @@ class TestCommentEventFastPath:
         def mock_run(cmd, *args, **kwargs):
             if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
                 return MagicMock(stdout="abc\n", returncode=0)
+            if isinstance(cmd, list) and "merge-base" in cmd:
+                return MagicMock(stdout="base_abc\n", returncode=0)
             return original_run(cmd, *args, **kwargs)
 
         monkeypatch.setattr(subprocess, "run", mock_run)
@@ -2419,3 +2431,213 @@ class TestCommentEventFastPath:
         assert (
             "falling back" in output.lower() or "!=" in output
         ), "Output must warn about SHA mismatch and indicate fallback to normal classification"
+
+    def test_stale_merge_base_sha_falls_back_to_normal_classification(
+        self, ci_environment, monkeypatch, capsys
+    ):
+        """Stale merge-base SHA must fall back to normal classification.
+
+        When the base branch moves while PR head stays the same, the cached
+        tier/roles could be stale because the diff changes with the base.
+        The fast path must validate both head SHA AND merge-base SHA.
+        """
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+
+        # Cached data has matching head SHA but STALE merge-base SHA
+        cached = json.dumps(
+            {
+                "tier": "TIER_2_STANDARD",
+                "reason": "Cached reason",
+                "roles": ["CE", "CRS", "TMG"],
+                "sha": "head_sha_match",
+                "base_sha": "old_merge_base_aaa",
+            }
+        )
+        monkeypatch.setenv("CACHED_GATE_DATA", cached)
+        monkeypatch.setenv("PR_BASE_REF", "main")
+
+        # get_changed_files MUST be called when merge-base mismatches
+        get_changed_files_called = False
+
+        def mock_get_changed_files():
+            nonlocal get_changed_files_called
+            get_changed_files_called = True
+            return [{"path": "src/core.py", "added": 10, "deleted": 5, "total_changed": 15}]
+
+        monkeypatch.setattr(validate_review, "get_changed_files", mock_get_changed_files)
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="head_sha_match\n", returncode=0)
+            if isinstance(cmd, list) and "merge-base" in cmd:
+                return MagicMock(stdout="new_merge_base_bbb\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        exit_code = validate_review.main()
+        assert exit_code == 0
+
+        output = capsys.readouterr().out
+        # Must NOT use the fast path when merge-base mismatches
+        assert (
+            "fast path" not in output.lower() or "falling back" in output.lower()
+        ), "Stale merge-base SHA must not use fast path without fallback indication"
+        # Must call get_changed_files for normal classification
+        assert (
+            get_changed_files_called
+        ), "get_changed_files must be called when cached merge-base SHA differs from current"
+
+    def test_both_sha_and_base_sha_match_uses_fast_path(self, ci_environment, monkeypatch, capsys):
+        """When both head SHA and merge-base SHA match, fast path must be used."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+
+        cached = json.dumps(
+            {
+                "tier": "TIER_2_STANDARD",
+                "reason": "Cached reason",
+                "roles": ["CE", "CRS", "TMG"],
+                "sha": "head_sha_match",
+                "base_sha": "merge_base_match",
+            }
+        )
+        monkeypatch.setenv("CACHED_GATE_DATA", cached)
+        monkeypatch.setenv("PR_BASE_REF", "main")
+
+        def explode():
+            raise AssertionError("get_changed_files must not be called with valid cached data")
+
+        monkeypatch.setattr(validate_review, "get_changed_files", explode)
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="head_sha_match\n", returncode=0)
+            if isinstance(cmd, list) and "merge-base" in cmd:
+                return MagicMock(stdout="merge_base_match\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        exit_code = validate_review.main()
+        assert exit_code == 0
+
+        output = capsys.readouterr().out
+        assert "fast path" in output.lower(), "Output must indicate fast path was used"
+
+    def test_missing_base_sha_in_cached_data_falls_back(self, ci_environment, monkeypatch, capsys):
+        """Cached data without base_sha (old format) must fall back to normal classification.
+
+        Backward compatibility: old status comments that don't include base_sha
+        should be treated as a cache miss to ensure correctness.
+        """
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+
+        # Old format: no base_sha field
+        cached = json.dumps(
+            {
+                "tier": "TIER_2_STANDARD",
+                "reason": "Cached reason",
+                "roles": ["CE", "CRS", "TMG"],
+                "sha": "head_sha_match",
+            }
+        )
+        monkeypatch.setenv("CACHED_GATE_DATA", cached)
+        monkeypatch.setenv("PR_BASE_REF", "main")
+
+        get_changed_files_called = False
+
+        def mock_get_changed_files():
+            nonlocal get_changed_files_called
+            get_changed_files_called = True
+            return [{"path": "src/core.py", "added": 10, "deleted": 5, "total_changed": 15}]
+
+        monkeypatch.setattr(validate_review, "get_changed_files", mock_get_changed_files)
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="head_sha_match\n", returncode=0)
+            if isinstance(cmd, list) and "merge-base" in cmd:
+                return MagicMock(stdout="some_merge_base\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        exit_code = validate_review.main()
+        assert exit_code == 0
+
+        # Must fall back to normal classification when base_sha is missing
+        assert (
+            get_changed_files_called
+        ), "get_changed_files must be called when base_sha is missing from cached data"
+
+    def test_merge_base_git_failure_falls_back_gracefully(
+        self, ci_environment, monkeypatch, capsys
+    ):
+        """If git merge-base command fails, must fall back to normal classification."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+
+        cached = json.dumps(
+            {
+                "tier": "TIER_2_STANDARD",
+                "reason": "Cached reason",
+                "roles": ["CE", "CRS", "TMG"],
+                "sha": "head_sha_match",
+                "base_sha": "some_merge_base",
+            }
+        )
+        monkeypatch.setenv("CACHED_GATE_DATA", cached)
+        monkeypatch.setenv("PR_BASE_REF", "main")
+
+        get_changed_files_called = False
+
+        def mock_get_changed_files():
+            nonlocal get_changed_files_called
+            get_changed_files_called = True
+            return [{"path": "src/core.py", "added": 10, "deleted": 5, "total_changed": 15}]
+
+        monkeypatch.setattr(validate_review, "get_changed_files", mock_get_changed_files)
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="head_sha_match\n", returncode=0)
+            if isinstance(cmd, list) and "merge-base" in cmd:
+                raise subprocess.CalledProcessError(1, cmd)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        exit_code = validate_review.main()
+        assert exit_code == 0
+
+        # Must fall back when git merge-base fails
+        assert (
+            get_changed_files_called
+        ), "get_changed_files must be called when git merge-base command fails"

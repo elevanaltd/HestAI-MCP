@@ -733,6 +733,31 @@ def _get_head_sha() -> str:
         return "unknown"
 
 
+def _get_merge_base_sha() -> str:
+    """Get the merge-base SHA between HEAD and the base branch.
+
+    Uses PR_BASE_REF or GITHUB_BASE_REF environment variables to determine
+    the base branch. Falls back to 'unknown' if git merge-base fails.
+
+    Returns:
+        The merge-base commit SHA string, or 'unknown' on failure.
+    """
+    base_ref = os.environ.get("PR_BASE_REF") or os.environ.get("GITHUB_BASE_REF", "main")
+    # Ensure we have the origin/ prefix for remote comparison
+    if not base_ref.startswith("origin/"):
+        base_ref = f"origin/{base_ref}"
+    try:
+        result = subprocess.run(
+            ["git", "merge-base", "HEAD", base_ref],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return result.stdout.strip()
+    except subprocess.CalledProcessError:
+        return "unknown"
+
+
 def _emit_json_summary(
     tier: str,
     reason: str,
@@ -792,7 +817,33 @@ def main() -> int:
             # before trusting it. Stale data (workflow bug, manual run) must
             # not silently apply incorrect tier/roles.
             if cached_gate.get("sha") == head_sha:
-                print(f"⚡ Comment-event fast path: cached SHA {head_sha[:7]} matches HEAD")
+                # Merge-base guard: if the base branch moved while the PR head
+                # stayed the same, the diff (and thus file classification) has
+                # changed. Validate merge-base SHA to detect this.
+                cached_base_sha = cached_gate.get("base_sha")
+                if cached_base_sha is None:
+                    # Backward compatibility: old status comments without base_sha
+                    # must be treated as cache miss to ensure correctness.
+                    print(
+                        "⚠️  Cached data missing base_sha (old format), "
+                        "falling back to normal classification"
+                    )
+                    cached_gate = None
+                else:
+                    merge_base_sha = _get_merge_base_sha()
+                    if merge_base_sha == "unknown" or cached_base_sha != merge_base_sha:
+                        print(
+                            f"⚠️  Merge-base SHA {cached_base_sha[:7]} != "
+                            f"current {merge_base_sha[:7]}, "
+                            f"falling back to normal classification"
+                        )
+                        cached_gate = None
+                    else:
+                        print(
+                            f"⚡ Comment-event fast path: cached SHA "
+                            f"{head_sha[:7]} matches HEAD, "
+                            f"merge-base {merge_base_sha[:7]} matches"
+                        )
             else:
                 cached_sha = cached_gate.get("sha", "none")
                 print(

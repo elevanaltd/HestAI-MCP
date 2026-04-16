@@ -135,18 +135,29 @@ jobs:
                 const dataMatch = botComment.body.match(/<!-- review-gate-data:(.*?) -->/);
                 if (dataMatch) {
                   const cached = JSON.parse(dataMatch[1]);
-                  // Get current PR head SHA to compare against cached SHA
+                  // Get current PR data to compare against cached SHAs
                   const { data: pr } = await github.rest.pulls.get({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
                     pull_number: prNumber
                   });
                   const headSha = pr.head.sha;
+                  const baseSha = pr.base.sha;
 
                   if (cached.sha && cached.sha !== 'unknown' && cached.sha === headSha) {
-                    console.log(`Fast path: cached SHA ${cached.sha.substring(0, 7)} matches PR head`);
-                    core.setOutput('cache_hit', 'true');
-                    core.setOutput('cached_data', JSON.stringify(cached));
+                    // Head SHA matches — now check merge-base SHA to detect base branch movement.
+                    // If base_sha is missing from cached data (old format), treat as cache miss.
+                    if (!cached.base_sha) {
+                      console.log('Cache miss: cached data missing base_sha (old format)');
+                      core.setOutput('cache_hit', 'false');
+                    } else if (cached.base_sha !== baseSha) {
+                      console.log(`Cache miss: base branch moved (cached base=${cached.base_sha.substring(0, 7)}, current=${baseSha.substring(0, 7)})`);
+                      core.setOutput('cache_hit', 'false');
+                    } else {
+                      console.log(`Fast path: cached SHA ${cached.sha.substring(0, 7)} matches PR head, base ${baseSha.substring(0, 7)} matches`);
+                      core.setOutput('cache_hit', 'true');
+                      core.setOutput('cached_data', JSON.stringify(cached));
+                    }
                   } else {
                     console.log(`Cache miss: cached SHA=${cached.sha || 'none'}, head SHA=${headSha}`);
                     core.setOutput('cache_hit', 'false');
@@ -312,8 +323,20 @@ jobs:
             // Embed structured gate data as HTML comment for comment-event fast path.
             // On issue_comment events, the gate can parse this cached data instead of
             // re-running full file classification (the diff hasn't changed).
+            // Include both head SHA and base branch SHA to detect base branch movement.
             const sha = gateData ? (gateData.sha || 'unknown') : 'unknown';
-            const cachedData = JSON.stringify({ tier, reason, roles, sha });
+            let base_sha = 'unknown';
+            try {
+              const { data: prData } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber
+              });
+              base_sha = prData.base.sha || 'unknown';
+            } catch (e) {
+              console.warn('Failed to fetch PR base SHA for caching:', e.message);
+            }
+            const cachedData = JSON.stringify({ tier, reason, roles, sha, base_sha });
             const dataComment = `<!-- review-gate-data:${cachedData} -->`;
 
             // Add or update status comment
