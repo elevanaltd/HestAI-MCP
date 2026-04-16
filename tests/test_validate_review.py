@@ -2173,7 +2173,7 @@ class TestCommentEventFastPath:
         def mock_run(cmd, *args, **kwargs):
             if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
                 return MagicMock(stdout="abc123\n", returncode=0)
-            if isinstance(cmd, list) and "merge-base" in cmd:
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" not in cmd:
                 return MagicMock(stdout="base_abc\n", returncode=0)
             return original_run(cmd, *args, **kwargs)
 
@@ -2210,7 +2210,7 @@ class TestCommentEventFastPath:
         def mock_run(cmd, *args, **kwargs):
             if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
                 return MagicMock(stdout="def456\n", returncode=0)
-            if isinstance(cmd, list) and "merge-base" in cmd:
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" not in cmd:
                 return MagicMock(stdout="base_def\n", returncode=0)
             return original_run(cmd, *args, **kwargs)
 
@@ -2255,7 +2255,7 @@ class TestCommentEventFastPath:
         def mock_run(cmd, *args, **kwargs):
             if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
                 return MagicMock(stdout="abc\n", returncode=0)
-            if isinstance(cmd, list) and "merge-base" in cmd:
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" not in cmd:
                 return MagicMock(stdout="base_abc\n", returncode=0)
             return original_run(cmd, *args, **kwargs)
 
@@ -2432,31 +2432,31 @@ class TestCommentEventFastPath:
             "falling back" in output.lower() or "!=" in output
         ), "Output must warn about SHA mismatch and indicate fallback to normal classification"
 
-    def test_stale_merge_base_sha_falls_back_to_normal_classification(
+    def test_stale_base_ref_sha_falls_back_to_normal_classification(
         self, ci_environment, monkeypatch, capsys
     ):
-        """Stale merge-base SHA must fall back to normal classification.
+        """Stale base ref SHA must fall back to normal classification.
 
         When the base branch moves while PR head stays the same, the cached
         tier/roles could be stale because the diff changes with the base.
-        The fast path must validate both head SHA AND merge-base SHA.
+        The fast path must validate both head SHA AND base branch tip SHA.
         """
         monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
 
-        # Cached data has matching head SHA but STALE merge-base SHA
+        # Cached data has matching head SHA but STALE base ref SHA
         cached = json.dumps(
             {
                 "tier": "TIER_2_STANDARD",
                 "reason": "Cached reason",
                 "roles": ["CE", "CRS", "TMG"],
                 "sha": "head_sha_match",
-                "base_sha": "old_merge_base_aaa",
+                "base_sha": "old_base_ref_aaa",
             }
         )
         monkeypatch.setenv("CACHED_GATE_DATA", cached)
         monkeypatch.setenv("PR_BASE_REF", "main")
 
-        # get_changed_files MUST be called when merge-base mismatches
+        # get_changed_files MUST be called when base ref mismatches
         get_changed_files_called = False
 
         def mock_get_changed_files():
@@ -2476,8 +2476,8 @@ class TestCommentEventFastPath:
         def mock_run(cmd, *args, **kwargs):
             if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
                 return MagicMock(stdout="head_sha_match\n", returncode=0)
-            if isinstance(cmd, list) and "merge-base" in cmd:
-                return MagicMock(stdout="new_merge_base_bbb\n", returncode=0)
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" not in cmd:
+                return MagicMock(stdout="new_base_ref_bbb\n", returncode=0)
             return original_run(cmd, *args, **kwargs)
 
         monkeypatch.setattr(subprocess, "run", mock_run)
@@ -2486,17 +2486,17 @@ class TestCommentEventFastPath:
         assert exit_code == 0
 
         output = capsys.readouterr().out
-        # Must NOT use the fast path when merge-base mismatches
+        # Must NOT use the fast path when base ref mismatches
         assert (
             "fast path" not in output.lower() or "falling back" in output.lower()
-        ), "Stale merge-base SHA must not use fast path without fallback indication"
+        ), "Stale base ref SHA must not use fast path without fallback indication"
         # Must call get_changed_files for normal classification
         assert (
             get_changed_files_called
-        ), "get_changed_files must be called when cached merge-base SHA differs from current"
+        ), "get_changed_files must be called when cached base ref SHA differs from current"
 
     def test_both_sha_and_base_sha_match_uses_fast_path(self, ci_environment, monkeypatch, capsys):
-        """When both head SHA and merge-base SHA match, fast path must be used."""
+        """When both head SHA and base ref SHA match, fast path must be used."""
         monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
 
         cached = json.dumps(
@@ -2505,7 +2505,7 @@ class TestCommentEventFastPath:
                 "reason": "Cached reason",
                 "roles": ["CE", "CRS", "TMG"],
                 "sha": "head_sha_match",
-                "base_sha": "merge_base_match",
+                "base_sha": "base_ref_match",
             }
         )
         monkeypatch.setenv("CACHED_GATE_DATA", cached)
@@ -2526,8 +2526,8 @@ class TestCommentEventFastPath:
         def mock_run(cmd, *args, **kwargs):
             if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
                 return MagicMock(stdout="head_sha_match\n", returncode=0)
-            if isinstance(cmd, list) and "merge-base" in cmd:
-                return MagicMock(stdout="merge_base_match\n", returncode=0)
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" not in cmd:
+                return MagicMock(stdout="base_ref_match\n", returncode=0)
             return original_run(cmd, *args, **kwargs)
 
         monkeypatch.setattr(subprocess, "run", mock_run)
@@ -2577,8 +2577,8 @@ class TestCommentEventFastPath:
         def mock_run(cmd, *args, **kwargs):
             if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
                 return MagicMock(stdout="head_sha_match\n", returncode=0)
-            if isinstance(cmd, list) and "merge-base" in cmd:
-                return MagicMock(stdout="some_merge_base\n", returncode=0)
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" not in cmd:
+                return MagicMock(stdout="some_base_ref\n", returncode=0)
             return original_run(cmd, *args, **kwargs)
 
         monkeypatch.setattr(subprocess, "run", mock_run)
@@ -2591,10 +2591,8 @@ class TestCommentEventFastPath:
             get_changed_files_called
         ), "get_changed_files must be called when base_sha is missing from cached data"
 
-    def test_merge_base_git_failure_falls_back_gracefully(
-        self, ci_environment, monkeypatch, capsys
-    ):
-        """If git merge-base command fails, must fall back to normal classification."""
+    def test_base_ref_git_failure_falls_back_gracefully(self, ci_environment, monkeypatch, capsys):
+        """If git rev-parse for base ref fails, must fall back to normal classification."""
         monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
 
         cached = json.dumps(
@@ -2603,7 +2601,7 @@ class TestCommentEventFastPath:
                 "reason": "Cached reason",
                 "roles": ["CE", "CRS", "TMG"],
                 "sha": "head_sha_match",
-                "base_sha": "some_merge_base",
+                "base_sha": "some_base_ref",
             }
         )
         monkeypatch.setenv("CACHED_GATE_DATA", cached)
@@ -2628,7 +2626,7 @@ class TestCommentEventFastPath:
         def mock_run(cmd, *args, **kwargs):
             if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
                 return MagicMock(stdout="head_sha_match\n", returncode=0)
-            if isinstance(cmd, list) and "merge-base" in cmd:
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" not in cmd:
                 raise subprocess.CalledProcessError(1, cmd)
             return original_run(cmd, *args, **kwargs)
 
@@ -2637,7 +2635,7 @@ class TestCommentEventFastPath:
         exit_code = validate_review.main()
         assert exit_code == 0
 
-        # Must fall back when git merge-base fails
+        # Must fall back when git rev-parse for base ref fails
         assert (
             get_changed_files_called
-        ), "get_changed_files must be called when git merge-base command fails"
+        ), "get_changed_files must be called when git rev-parse for base ref fails"
