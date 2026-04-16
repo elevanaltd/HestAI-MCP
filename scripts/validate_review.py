@@ -26,7 +26,6 @@ from typing import Any
 ADVISORY_BOTS: list[str] = [
     "cubic-dev-ai[bot]",
     "qodo-code-review[bot]",
-    "coderabbitai[bot]",
     "github-copilot[bot]",
 ]
 
@@ -493,7 +492,7 @@ def check_pr_comments(
 
         # Collect all searchable text: PR body + comment bodies
         # Exclude ALL bot comments to prevent false positive approval matches.
-        # Bot review prose (CodeRabbit, Copilot, Cubic, github-actions) often
+        # Bot review prose (Copilot, Cubic, github-actions) often
         # contains "APPROVED", "GO", etc. which would falsely clear the gate.
         def _is_bot_comment(comment: dict[str, Any]) -> bool:
             """Check if a comment is from a bot author."""
@@ -716,6 +715,55 @@ def check_emergency_bypass() -> bool:
         return False
 
 
+def _get_head_sha() -> str:
+    """Get the current HEAD commit SHA for tracking in JSON output.
+
+    Returns:
+        The HEAD commit SHA string, or 'unknown' if git rev-parse fails.
+    """
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return result.stdout.strip()
+    except (subprocess.CalledProcessError, OSError):
+        return "unknown"
+
+
+def _get_base_ref_sha() -> str:
+    """Get the current tip SHA of the base branch.
+
+    Computes ``git rev-parse origin/{base_ref}`` to obtain the same value that
+    the GitHub API returns as ``pr.base.sha``.  The review-gate workflow stores
+    ``pr.base.sha`` (the base branch tip) in its cached data, so the Python
+    validator must resolve the identical commit to keep the fast-path SHA
+    comparison aligned.
+
+    Uses PR_BASE_REF or GITHUB_BASE_REF environment variables to determine
+    the base branch.  Falls back to 'unknown' if git rev-parse fails.
+
+    Returns:
+        The base branch tip SHA string, or 'unknown' on failure.
+    """
+    base_ref = os.environ.get("PR_BASE_REF") or os.environ.get("GITHUB_BASE_REF", "main")
+    # Ensure we have the origin/ prefix for remote comparison
+    if not base_ref.startswith("origin/"):
+        base_ref = f"origin/{base_ref}"
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", base_ref],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return result.stdout.strip()
+    except (subprocess.CalledProcessError, OSError):
+        return "unknown"
+
+
 def _emit_json_summary(
     tier: str,
     reason: str,
@@ -723,6 +771,7 @@ def _emit_json_summary(
     status: str,
     required_count: int,
     found_count: int,
+    sha: str = "unknown",
 ) -> None:
     """Emit a structured JSON summary as an HTML comment for machine parsing.
 
@@ -731,7 +780,11 @@ def _emit_json_summary(
     in review-gate.yml can extract this for structured data instead of relying on
     fragile regex patterns.
 
-    Format: <!-- REVIEW_GATE_JSON:{"tier":"...","reason":"...",...} -->
+    Format: <!-- REVIEW_GATE_JSON:{"tier":"...","reason":"...","sha":"...",...} -->
+
+    The ``sha`` field tracks which commit the review gate evaluated. Downstream
+    consumers can compare this against the PR head SHA to detect stale approvals
+    when new commits are pushed after approval.
     """
     summary = {
         "tier": tier,
@@ -740,6 +793,7 @@ def _emit_json_summary(
         "status": status,
         "required_count": required_count,
         "found_count": found_count,
+        "sha": sha,
     }
     print(f"<!-- REVIEW_GATE_JSON:{json.dumps(summary)} -->")
 
@@ -747,28 +801,90 @@ def _emit_json_summary(
 def main() -> int:
     """Main validation logic."""
 
+    # Get HEAD SHA early for inclusion in all JSON output paths
+    head_sha = _get_head_sha()
+
     # Check for emergency bypass
     if check_emergency_bypass():
         print("⚠️  EMERGENCY BYPASS - Review required post-merge")
         log_emergency_bypass()
         return 0
 
-    # Get changed files
-    files = get_changed_files()
-    if not files:
-        print("✓ No files changed")
-        return 0
+    # --- Comment-event fast path ---
+    # When CACHED_GATE_DATA is set (by the workflow on issue_comment events with
+    # matching SHA), skip file classification and use cached tier/reviewers.
+    # The diff hasn't changed — only approvals may have changed.
+    cached_gate_json = os.environ.get("CACHED_GATE_DATA", "")
+    cached_gate: dict[str, Any] | None = None
+    if cached_gate_json:
+        try:
+            cached_gate = json.loads(cached_gate_json)
+            # SHA comparison guard: verify cached data matches current HEAD
+            # before trusting it. Stale data (workflow bug, manual run) must
+            # not silently apply incorrect tier/roles.
+            # Guard against 'unknown' matching 'unknown' when git fails —
+            # both sides returning a placeholder must not enable the fast path.
+            cached_sha_val = cached_gate.get("sha")
+            if cached_sha_val == head_sha and head_sha != "unknown" and cached_sha_val != "unknown":
+                # Base-ref guard: if the base branch moved while the PR head
+                # stayed the same, the diff (and thus file classification) has
+                # changed. Validate base branch tip SHA to detect this.
+                cached_base_sha = cached_gate.get("base_sha")
+                if cached_base_sha is None:
+                    # Backward compatibility: old status comments without base_sha
+                    # must be treated as cache miss to ensure correctness.
+                    print(
+                        "⚠️  Cached data missing base_sha (old format), "
+                        "falling back to normal classification"
+                    )
+                    cached_gate = None
+                else:
+                    base_ref_sha = _get_base_ref_sha()
+                    if base_ref_sha == "unknown" or str(cached_base_sha) != base_ref_sha:
+                        print(
+                            f"⚠️  Base ref SHA {str(cached_base_sha)[:7]} != "
+                            f"current {base_ref_sha[:7]}, "
+                            f"falling back to normal classification"
+                        )
+                        cached_gate = None
+                    else:
+                        print(
+                            f"⚡ Comment-event fast path: cached SHA "
+                            f"{head_sha[:7]} matches HEAD, "
+                            f"base ref {base_ref_sha[:7]} matches"
+                        )
+            else:
+                cached_sha = str(cached_gate.get("sha", "none"))
+                print(
+                    f"⚠️  Cached SHA {cached_sha[:7]} != HEAD {head_sha[:7]}, "
+                    f"falling back to normal classification"
+                )
+                cached_gate = None
+        except (json.JSONDecodeError, TypeError):
+            cached_gate = None
 
-    # Show changed files summary
-    total_lines = sum(int(f["total_changed"]) for f in files)
-    print(f"📊 Changed Files: {len(files)} files, {total_lines} lines")
-    for f in files[:5]:  # Show first 5
-        print(f"   - {f['path']} (+{f['added']}/-{f['deleted']})")
-    if len(files) > 5:
-        print(f"   ... and {len(files) - 5} more")
+    if cached_gate is not None:
+        tier = str(cached_gate.get("tier", "UNKNOWN"))
+        reason = str(cached_gate.get("reason", ""))
+        required_roles = set(cached_gate.get("roles", []))
+    else:
+        # Get changed files
+        files = get_changed_files()
+        if not files:
+            print("✓ No files changed")
+            return 0
 
-    # Classify PR content into facets and compute required reviewers
-    facets, required_roles, tier, reason = classify_pr_facets(files)
+        # Show changed files summary
+        total_lines = sum(int(f["total_changed"]) for f in files)
+        print(f"📊 Changed Files: {len(files)} files, {total_lines} lines")
+        for f in files[:5]:  # Show first 5
+            print(f"   - {f['path']} (+{f['added']}/-{f['deleted']})")
+        if len(files) > 5:
+            print(f"   ... and {len(files) - 5} more")
+
+        # Classify PR content into facets and compute required reviewers
+        _facets, required_roles, tier, reason = classify_pr_facets(files)
+
     print(f"\n📋 Review Tier: {tier}")
     print(f"   Reason: {reason}")
 
@@ -782,6 +898,7 @@ def main() -> int:
             status="pass",
             required_count=0,
             found_count=0,
+            sha=head_sha,
         )
         return 0
 
@@ -814,6 +931,7 @@ def main() -> int:
             status="fail",
             required_count=len(required_roles),
             found_count=found_count,
+            sha=head_sha,
         )
 
         # Only block in CI context
@@ -831,6 +949,7 @@ def main() -> int:
         status="pass",
         required_count=len(required_roles),
         found_count=len(required_roles),
+        sha=head_sha,
     )
     print("\n✓ Review requirements satisfied")
     return 0

@@ -31,12 +31,11 @@ COLLECT::[
 BOT_AUTHORS::[
   PRIORITY_1::cubic-dev-ai[bot]<structured_confidence⊕P0-P2_tiers⊕agent_prompts>,
   PRIORITY_2::qodo-code-review[bot]<bug_classification⊕requirement_gaps>,
-  PRIORITY_3::coderabbitai[bot]<general_review∧unreliable_rate_limited>,
-  PRIORITY_4::github-copilot[bot]<inline_suggestions∧auto_review>
+  PRIORITY_3::github-copilot[bot]<inline_suggestions∧auto_review>
 ]
 // LOGIN_NORMALIZATION: GitHub APIs return different login formats for the same
 // bot accounts.  `gh pr view --json comments` returns logins WITHOUT the [bot]
-// suffix (e.g., "coderabbitai", "qodo-code-review"), while `gh api
+// suffix (e.g., "qodo-code-review"), while `gh api
 // repos/{owner}/{repo}/pulls/{pr}/comments` preserves the [bot] suffix (e.g.,
 // "cubic-dev-ai[bot]", "qodo-code-review[bot]").  Additionally, some bots use
 // legacy login variants that differ from their canonical name:
@@ -52,10 +51,9 @@ BOT_AUTHORS::[
 // comments, match against the normalized set, not the canonical names.
 BOT_EXTRACT::[
   SCAN_ISSUE_COMMENTS::"gh_pr_view_--json_comments→filter_by_normalized_BOT_LOGINS[strips_bot_suffix⊕includes_github-actions]",
-  SCAN_REVIEW_COMMENTS::"gh_api_repos/{repo}/pulls/{pr}/comments→filter_by_NORMALIZED_BOT_LOGINS[match_user.login_against:cubic-dev-ai|cubic-bot|qodo-code-review|qodo-merge-pro|qodo-merge-pro-for-open-source|coderabbitai|github-copilot|Copilot|copilot|github-actions⊕also_match_[bot]_suffix]",
+  SCAN_REVIEW_COMMENTS::"gh_api_repos/{repo}/pulls/{pr}/comments→filter_by_NORMALIZED_BOT_LOGINS[match_user.login_against:cubic-dev-ai|cubic-bot|qodo-code-review|qodo-merge-pro|qodo-merge-pro-for-open-source|github-copilot|Copilot|copilot|github-actions⊕also_match_[bot]_suffix]",
   CUBIC::"extract_P0_P1_findings⊕confidence_metadata⊕agent_prompt_sections",
   QODO::"extract_bug_findings⊕requirement_gap_findings",
-  CODERABBIT::"extract_if_available[skip_on_rate_limit_error]",
   COPILOT::"extract_inline_suggestions[ADVISORY_context_only]",
   CLASSIFY::ADVISORY[bot_findings_NEVER_block_merge]
 ]

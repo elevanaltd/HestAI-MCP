@@ -104,6 +104,79 @@ jobs:
             echo "number=${PR_NUMBER}" >> $GITHUB_OUTPUT
           fi
 
+      # --- Comment-event fast path ---
+      # On issue_comment events, the diff hasn't changed — only approvals may have.
+      # Parse the existing status comment for cached tier/reviewers/SHA to avoid
+      # re-running file classification. If the cached SHA matches the PR head,
+      # pass the cached data to validate_review.py via CACHED_GATE_DATA.
+      - name: Extract cached gate data (comment events only)
+        id: cached_gate
+        if: github.event_name == 'issue_comment'
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        with:
+          script: |
+            const prNumber = process.env.PR_NUMBER;
+            try {
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                per_page: 100
+              });
+
+              const marker = '<!-- review-gate-status -->';
+              // Use reverse search to find the newest marker comment in case
+              // multiple exist (e.g. from workflow re-runs before update logic).
+              const botComment = comments.reverse().find(c =>
+                c.user.type === 'Bot' && c.body.includes(marker)
+              );
+
+              if (botComment) {
+                const dataMatch = botComment.body.match(/<!-- review-gate-data:(.*?) -->/);
+                if (dataMatch) {
+                  const cached = JSON.parse(dataMatch[1]);
+                  // Get current PR data to compare against cached SHAs
+                  const { data: pr } = await github.rest.pulls.get({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    pull_number: prNumber
+                  });
+                  const headSha = pr.head.sha;
+                  const baseSha = pr.base.sha;
+
+                  if (cached.sha && cached.sha !== 'unknown' && cached.sha === headSha) {
+                    // Head SHA matches — now check base branch tip SHA to detect base movement.
+                    // If base_sha is missing from cached data (old format), treat as cache miss.
+                    if (!cached.base_sha) {
+                      console.log('Cache miss: cached data missing base_sha (old format)');
+                      core.setOutput('cache_hit', 'false');
+                    } else if (cached.base_sha !== baseSha) {
+                      console.log(`Cache miss: base branch moved (cached base=${cached.base_sha.substring(0, 7)}, current=${baseSha.substring(0, 7)})`);
+                      core.setOutput('cache_hit', 'false');
+                    } else {
+                      console.log(`Fast path: cached SHA ${cached.sha.substring(0, 7)} matches PR head, base ${baseSha.substring(0, 7)} matches`);
+                      core.setOutput('cache_hit', 'true');
+                      core.setOutput('cached_data', JSON.stringify(cached));
+                    }
+                  } else {
+                    console.log(`Cache miss: cached SHA=${cached.sha || 'none'}, head SHA=${headSha}`);
+                    core.setOutput('cache_hit', 'false');
+                  }
+                } else {
+                  console.log('No cached gate data found in status comment');
+                  core.setOutput('cache_hit', 'false');
+                }
+              } else {
+                console.log('No review-gate status comment found');
+                core.setOutput('cache_hit', 'false');
+              }
+            } catch (error) {
+              console.warn('Failed to extract cached gate data:', error.message);
+              core.setOutput('cache_hit', 'false');
+            }
+
       - name: Check Review Requirements
         id: review_check
         env:
@@ -112,6 +185,7 @@ jobs:
           PR_NUMBER: ${{ steps.pr.outputs.number }}
           EVENT_NAME: ${{ github.event_name }}
           PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          CACHED_GATE_DATA: ${{ steps.cached_gate.outputs.cached_data || '' }}
         run: |
           # Universal PR checkout - works for both same-repo and fork PRs
 
@@ -248,15 +322,35 @@ jobs:
               message += '</details>\n';
             }
 
+            // Embed structured gate data as HTML comment for comment-event fast path.
+            // On issue_comment events, the gate can parse this cached data instead of
+            // re-running full file classification (the diff hasn't changed).
+            // Include both head SHA and base branch SHA to detect base branch movement.
+            const sha = gateData ? (gateData.sha || 'unknown') : 'unknown';
+            let base_sha = 'unknown';
+            try {
+              const { data: prData } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber
+              });
+              base_sha = prData.base.sha || 'unknown';
+            } catch (e) {
+              console.warn('Failed to fetch PR base SHA for caching:', e.message);
+            }
+            const cachedData = JSON.stringify({ tier, reason, roles, sha, base_sha });
+            const dataComment = `<!-- review-gate-data:${cachedData} -->`;
+
             // Add or update status comment
             const marker = '<!-- review-gate-status -->';
-            const body = `${marker}\n## Review Gate Status: ${status}\n\n${message}`;
+            const body = `${marker}\n${dataComment}\n## Review Gate Status: ${status}\n\n${message}\n\n<sub>Evaluated at commit ${sha.substring(0, 7)}</sub>`;
 
             try {
               const { data: comments } = await github.rest.issues.listComments({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: prNumber
+                issue_number: prNumber,
+                per_page: 100
               });
 
               const botComment = comments.find(c =>
@@ -332,15 +426,12 @@ jobs:
             -f context="Review Gate"
 
       # AI code review bots (all advisory, non-blocking):
-      # - CodeRabbit: auto-reviews on PR open/push (configured in .coderabbit.yaml)
       # - Cubic Dev AI: auto-reviews on PR activity (no configuration available)
       # - Qodo: auto-reviews on PR activity via GitHub App
       #
       # Post-gate workflow triggers were removed because:
-      # 1. CodeRabbit: enabled:false treats skipped commits as "already reviewed",
-      #    making @coderabbitai review ineffective. Re-enabled auto-review instead.
-      # 2. Qodo: /review from github-actions[bot] works intermittently (first
+      # 1. Qodo: /review from github-actions[bot] works intermittently (first
       #    trigger per PR only). Auto-reviews via GitHub App are more reliable.
-      # 3. Bot-to-bot comment triggers are unreliable across all providers.
+      # 2. Bot-to-bot comment triggers are unreliable across all providers.
       #
       # The CRS/CE chain (via submit-review tool) remains the structural gate.

@@ -87,6 +87,7 @@ META:
   // DYNAMIC LOADING (v8 Chassis-Profile)
   CHASSIS::[
     review-preflight,
+    review-context,
     review-discipline,
     code-quality-standards
   ]

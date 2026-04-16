@@ -10,6 +10,7 @@ fail-closed behavior - failures indicate security vulnerabilities.
 """
 
 import json
+import re
 import subprocess
 
 # Import the module under test
@@ -1962,3 +1963,679 @@ class TestStructuredMissingRoles:
             f"found_count must be computed from structured missing_roles (3 required - 1 missing = 2), "
             f"got {data['found_count']}"
         )
+
+
+@pytest.mark.behavior
+class TestShaTrackingInJsonSummary:
+    """Validate that JSON summary includes SHA for approval-commit validation.
+
+    The SHA field enables downstream consumers (review-gate.yml JS parser) to:
+    1. Track which commit the review gate evaluated
+    2. Validate that approvals were made against the correct commit
+    3. Detect stale approvals when new commits are pushed after approval
+    """
+
+    def test_json_summary_includes_sha_field(self, ci_environment, monkeypatch, capsys):
+        """JSON output must include a 'sha' field with the current HEAD commit SHA."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="abc123def456\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None, "JSON comment must be emitted"
+
+        data = json.loads(json_match.group(1))
+        assert "sha" in data, "JSON output must include 'sha' field for commit tracking"
+        assert (
+            data["sha"] == "abc123def456"
+        ), f"SHA must match HEAD commit, expected 'abc123def456', got '{data['sha']}'"
+
+    def test_json_summary_sha_is_string(self, ci_environment, monkeypatch, capsys):
+        """SHA field must be a non-empty string."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="deadbeef1234\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None
+
+        data = json.loads(json_match.group(1))
+        assert isinstance(data["sha"], str), "SHA must be a string"
+        assert len(data["sha"]) > 0, "SHA must not be empty"
+
+    def test_json_summary_sha_on_failure_path(self, ci_environment, monkeypatch, capsys):
+        """SHA must be included in JSON output even when review fails."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (False, "Missing CE APPROVED", ["CE"]),
+        )
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="sha_on_fail_path\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None, "JSON comment must be emitted even on failure"
+
+        data = json.loads(json_match.group(1))
+        assert "sha" in data, "SHA must be present even when review fails"
+        assert data["sha"] == "sha_on_fail_path"
+
+    def test_json_summary_sha_on_exempt_path(self, monkeypatch, capsys):
+        """SHA must be included in JSON output even for TIER_0_EXEMPT."""
+        monkeypatch.delenv("CI", raising=False)
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "README.md", "added": 5, "deleted": 2, "total_changed": 7}],
+        )
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="sha_exempt_path\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None
+
+        data = json.loads(json_match.group(1))
+        assert "sha" in data, "SHA must be present even for TIER_0_EXEMPT"
+
+    def test_json_summary_sha_fallback_on_git_failure(self, ci_environment, monkeypatch, capsys):
+        """If git rev-parse fails, SHA should be 'unknown' rather than crashing."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                raise subprocess.CalledProcessError(1, "git rev-parse HEAD")
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None
+
+        data = json.loads(json_match.group(1))
+        assert (
+            data["sha"] == "unknown"
+        ), f"SHA must fall back to 'unknown' on git failure, got '{data['sha']}'"
+
+
+@pytest.mark.behavior
+class TestCommentEventFastPath:
+    """Validate that CACHED_GATE_DATA enables comment-event fast path.
+
+    On issue_comment events, the diff hasn't changed — only approvals may have.
+    When CACHED_GATE_DATA is set with matching SHA, validate_review.py should
+    skip file classification and use cached tier/reviewers, then only re-check
+    comment approvals.
+    """
+
+    def test_cached_gate_data_skips_file_classification(self, ci_environment, monkeypatch, capsys):
+        """When CACHED_GATE_DATA is set, get_changed_files must NOT be called."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        cached = json.dumps(
+            {
+                "tier": "TIER_2_STANDARD",
+                "reason": "Cached reason",
+                "roles": ["CE", "CRS", "TMG"],
+                "sha": "abc123",
+                "base_sha": "base_abc",
+            }
+        )
+        monkeypatch.setenv("CACHED_GATE_DATA", cached)
+        monkeypatch.setenv("PR_BASE_REF", "main")
+
+        def explode():
+            raise AssertionError("get_changed_files must not be called with cached gate data")
+
+        monkeypatch.setattr(validate_review, "get_changed_files", explode)
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="abc123\n", returncode=0)
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" not in cmd:
+                return MagicMock(stdout="base_abc\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        exit_code = validate_review.main()
+        assert exit_code == 0
+
+        output = capsys.readouterr().out
+        assert "fast path" in output.lower(), "Output must indicate fast path was used"
+
+    def test_cached_gate_data_uses_cached_tier(self, ci_environment, monkeypatch, capsys):
+        """When cached, tier from CACHED_GATE_DATA must be used in JSON output."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        cached = json.dumps(
+            {
+                "tier": "TIER_3_CRITICAL",
+                "reason": "Cached: META_CONTROL_PLANE",
+                "roles": ["CE", "CRS", "CIV", "SR", "TMG"],
+                "sha": "def456",
+                "base_sha": "base_def",
+            }
+        )
+        monkeypatch.setenv("CACHED_GATE_DATA", cached)
+        monkeypatch.setenv("PR_BASE_REF", "main")
+
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found", []),
+        )
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="def456\n", returncode=0)
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" not in cmd:
+                return MagicMock(stdout="base_def\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        json_match = re.search(r"<!-- REVIEW_GATE_JSON:(.*?) -->", output)
+        assert json_match is not None
+        data = json.loads(json_match.group(1))
+        assert (
+            data["tier"] == "TIER_3_CRITICAL"
+        ), f"Tier must come from cached data, got {data['tier']}"
+
+    def test_cached_gate_data_passes_roles_to_comment_check(
+        self, ci_environment, monkeypatch, capsys
+    ):
+        """Cached roles must be passed to check_pr_comments as required_roles."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        cached = json.dumps(
+            {
+                "tier": "TIER_2_STANDARD",
+                "reason": "Cached",
+                "roles": ["CE", "CRS", "TMG"],
+                "sha": "abc",
+                "base_sha": "base_abc",
+            }
+        )
+        monkeypatch.setenv("CACHED_GATE_DATA", cached)
+        monkeypatch.setenv("PR_BASE_REF", "main")
+
+        captured_kwargs: dict = {}
+
+        def mock_check(*args, **kwargs):
+            captured_kwargs.update(kwargs)
+            return (True, "All approvals found", [])
+
+        monkeypatch.setattr(validate_review, "check_pr_comments", mock_check)
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="abc\n", returncode=0)
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" not in cmd:
+                return MagicMock(stdout="base_abc\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        validate_review.main()
+
+        assert "required_roles" in captured_kwargs, "check_pr_comments must receive required_roles"
+        assert captured_kwargs["required_roles"] == {"CE", "CRS", "TMG"}, (
+            f"required_roles must match cached roles, " f"got {captured_kwargs['required_roles']}"
+        )
+
+    def test_invalid_cached_gate_data_falls_back_to_normal(
+        self, ci_environment, monkeypatch, capsys
+    ):
+        """Invalid CACHED_GATE_DATA JSON must fall back to normal file classification."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setenv("CACHED_GATE_DATA", "not-valid-json{{{")
+
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="sha123\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        exit_code = validate_review.main()
+        assert exit_code == 0
+
+        output = capsys.readouterr().out
+        assert "fast path" not in output.lower(), "Invalid cached data must not trigger fast path"
+
+    def test_empty_cached_gate_data_uses_normal_path(self, ci_environment, monkeypatch, capsys):
+        """Empty CACHED_GATE_DATA string must use normal file classification."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setenv("CACHED_GATE_DATA", "")
+
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 50, "deleted": 20, "total_changed": 70}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="sha456\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        exit_code = validate_review.main()
+        assert exit_code == 0
+
+        output = capsys.readouterr().out
+        assert "fast path" not in output.lower(), "Empty cached data must not trigger fast path"
+
+    def test_stale_cached_sha_falls_back_to_normal_classification(
+        self, ci_environment, monkeypatch, capsys
+    ):
+        """Stale cached SHA (different from HEAD) must fall back to normal classification.
+
+        Bug fix: The original code unconditionally trusts CACHED_GATE_DATA without
+        comparing cached_gate['sha'] against the locally computed head_sha. If the
+        env var contains stale data (workflow bug, manual run), incorrect tier/roles
+        would be silently applied.
+        """
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+
+        # Cached data has SHA "stale_sha_abc" but HEAD will be "current_sha_xyz"
+        cached = json.dumps(
+            {
+                "tier": "TIER_3_CRITICAL",
+                "reason": "Stale cached reason",
+                "roles": ["CE", "CRS", "CIV", "SR", "TMG"],
+                "sha": "stale_sha_abc",
+            }
+        )
+        monkeypatch.setenv("CACHED_GATE_DATA", cached)
+
+        # get_changed_files MUST be called when SHA mismatches (fallback path)
+        get_changed_files_called = False
+
+        def mock_get_changed_files():
+            nonlocal get_changed_files_called
+            get_changed_files_called = True
+            return [{"path": "src/core.py", "added": 10, "deleted": 5, "total_changed": 15}]
+
+        monkeypatch.setattr(validate_review, "get_changed_files", mock_get_changed_files)
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="current_sha_xyz\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        exit_code = validate_review.main()
+        assert exit_code == 0
+
+        output = capsys.readouterr().out
+        # Must NOT use the fast path when SHA mismatches
+        assert (
+            "fast path" not in output.lower() or "falling back" in output.lower()
+        ), "Stale SHA must not use fast path without fallback indication"
+        # Must call get_changed_files for normal classification
+        assert (
+            get_changed_files_called
+        ), "get_changed_files must be called when cached SHA differs from HEAD"
+
+    def test_stale_cached_sha_logs_warning(self, ci_environment, monkeypatch, capsys):
+        """Stale cached SHA must produce a visible warning in output."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+
+        cached = json.dumps(
+            {
+                "tier": "TIER_2_STANDARD",
+                "reason": "Stale",
+                "roles": ["CE", "CRS", "TMG"],
+                "sha": "old_sha_111",
+            }
+        )
+        monkeypatch.setenv("CACHED_GATE_DATA", cached)
+
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 10, "deleted": 5, "total_changed": 15}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found", []),
+        )
+
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="new_sha_222\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        # Must contain a warning about SHA mismatch
+        assert (
+            "falling back" in output.lower() or "!=" in output
+        ), "Output must warn about SHA mismatch and indicate fallback to normal classification"
+
+    def test_stale_base_ref_sha_falls_back_to_normal_classification(
+        self, ci_environment, monkeypatch, capsys
+    ):
+        """Stale base ref SHA must fall back to normal classification.
+
+        When the base branch moves while PR head stays the same, the cached
+        tier/roles could be stale because the diff changes with the base.
+        The fast path must validate both head SHA AND base branch tip SHA.
+        """
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+
+        # Cached data has matching head SHA but STALE base ref SHA
+        cached = json.dumps(
+            {
+                "tier": "TIER_2_STANDARD",
+                "reason": "Cached reason",
+                "roles": ["CE", "CRS", "TMG"],
+                "sha": "head_sha_match",
+                "base_sha": "old_base_ref_aaa",
+            }
+        )
+        monkeypatch.setenv("CACHED_GATE_DATA", cached)
+        monkeypatch.setenv("PR_BASE_REF", "main")
+
+        # get_changed_files MUST be called when base ref mismatches
+        get_changed_files_called = False
+
+        def mock_get_changed_files():
+            nonlocal get_changed_files_called
+            get_changed_files_called = True
+            return [{"path": "src/core.py", "added": 10, "deleted": 5, "total_changed": 15}]
+
+        monkeypatch.setattr(validate_review, "get_changed_files", mock_get_changed_files)
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="head_sha_match\n", returncode=0)
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" not in cmd:
+                return MagicMock(stdout="new_base_ref_bbb\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        exit_code = validate_review.main()
+        assert exit_code == 0
+
+        output = capsys.readouterr().out
+        # Must NOT use the fast path when base ref mismatches
+        assert (
+            "fast path" not in output.lower() or "falling back" in output.lower()
+        ), "Stale base ref SHA must not use fast path without fallback indication"
+        # Must call get_changed_files for normal classification
+        assert (
+            get_changed_files_called
+        ), "get_changed_files must be called when cached base ref SHA differs from current"
+
+    def test_both_sha_and_base_sha_match_uses_fast_path(self, ci_environment, monkeypatch, capsys):
+        """When both head SHA and base ref SHA match, fast path must be used."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+
+        cached = json.dumps(
+            {
+                "tier": "TIER_2_STANDARD",
+                "reason": "Cached reason",
+                "roles": ["CE", "CRS", "TMG"],
+                "sha": "head_sha_match",
+                "base_sha": "base_ref_match",
+            }
+        )
+        monkeypatch.setenv("CACHED_GATE_DATA", cached)
+        monkeypatch.setenv("PR_BASE_REF", "main")
+
+        def explode():
+            raise AssertionError("get_changed_files must not be called with valid cached data")
+
+        monkeypatch.setattr(validate_review, "get_changed_files", explode)
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="head_sha_match\n", returncode=0)
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" not in cmd:
+                return MagicMock(stdout="base_ref_match\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        exit_code = validate_review.main()
+        assert exit_code == 0
+
+        output = capsys.readouterr().out
+        assert "fast path" in output.lower(), "Output must indicate fast path was used"
+
+    def test_missing_base_sha_in_cached_data_falls_back(self, ci_environment, monkeypatch, capsys):
+        """Cached data without base_sha (old format) must fall back to normal classification.
+
+        Backward compatibility: old status comments that don't include base_sha
+        should be treated as a cache miss to ensure correctness.
+        """
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+
+        # Old format: no base_sha field
+        cached = json.dumps(
+            {
+                "tier": "TIER_2_STANDARD",
+                "reason": "Cached reason",
+                "roles": ["CE", "CRS", "TMG"],
+                "sha": "head_sha_match",
+            }
+        )
+        monkeypatch.setenv("CACHED_GATE_DATA", cached)
+        monkeypatch.setenv("PR_BASE_REF", "main")
+
+        get_changed_files_called = False
+
+        def mock_get_changed_files():
+            nonlocal get_changed_files_called
+            get_changed_files_called = True
+            return [{"path": "src/core.py", "added": 10, "deleted": 5, "total_changed": 15}]
+
+        monkeypatch.setattr(validate_review, "get_changed_files", mock_get_changed_files)
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="head_sha_match\n", returncode=0)
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" not in cmd:
+                return MagicMock(stdout="some_base_ref\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        exit_code = validate_review.main()
+        assert exit_code == 0
+
+        # Must fall back to normal classification when base_sha is missing
+        assert (
+            get_changed_files_called
+        ), "get_changed_files must be called when base_sha is missing from cached data"
+
+    def test_base_ref_git_failure_falls_back_gracefully(self, ci_environment, monkeypatch, capsys):
+        """If git rev-parse for base ref fails, must fall back to normal classification."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+
+        cached = json.dumps(
+            {
+                "tier": "TIER_2_STANDARD",
+                "reason": "Cached reason",
+                "roles": ["CE", "CRS", "TMG"],
+                "sha": "head_sha_match",
+                "base_sha": "some_base_ref",
+            }
+        )
+        monkeypatch.setenv("CACHED_GATE_DATA", cached)
+        monkeypatch.setenv("PR_BASE_REF", "main")
+
+        get_changed_files_called = False
+
+        def mock_get_changed_files():
+            nonlocal get_changed_files_called
+            get_changed_files_called = True
+            return [{"path": "src/core.py", "added": 10, "deleted": 5, "total_changed": 15}]
+
+        monkeypatch.setattr(validate_review, "get_changed_files", mock_get_changed_files)
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="head_sha_match\n", returncode=0)
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" not in cmd:
+                raise subprocess.CalledProcessError(1, cmd)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        exit_code = validate_review.main()
+        assert exit_code == 0
+
+        # Must fall back when git rev-parse for base ref fails
+        assert (
+            get_changed_files_called
+        ), "get_changed_files must be called when git rev-parse for base ref fails"
