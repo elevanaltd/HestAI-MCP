@@ -2317,3 +2317,105 @@ class TestCommentEventFastPath:
 
         output = capsys.readouterr().out
         assert "fast path" not in output.lower(), "Empty cached data must not trigger fast path"
+
+    def test_stale_cached_sha_falls_back_to_normal_classification(
+        self, ci_environment, monkeypatch, capsys
+    ):
+        """Stale cached SHA (different from HEAD) must fall back to normal classification.
+
+        Bug fix: The original code unconditionally trusts CACHED_GATE_DATA without
+        comparing cached_gate['sha'] against the locally computed head_sha. If the
+        env var contains stale data (workflow bug, manual run), incorrect tier/roles
+        would be silently applied.
+        """
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+
+        # Cached data has SHA "stale_sha_abc" but HEAD will be "current_sha_xyz"
+        cached = json.dumps(
+            {
+                "tier": "TIER_3_CRITICAL",
+                "reason": "Stale cached reason",
+                "roles": ["CE", "CRS", "CIV", "SR", "TMG"],
+                "sha": "stale_sha_abc",
+            }
+        )
+        monkeypatch.setenv("CACHED_GATE_DATA", cached)
+
+        # get_changed_files MUST be called when SHA mismatches (fallback path)
+        get_changed_files_called = False
+
+        def mock_get_changed_files():
+            nonlocal get_changed_files_called
+            get_changed_files_called = True
+            return [{"path": "src/core.py", "added": 10, "deleted": 5, "total_changed": 15}]
+
+        monkeypatch.setattr(validate_review, "get_changed_files", mock_get_changed_files)
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found (CE, CRS, TMG)", []),
+        )
+
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="current_sha_xyz\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        exit_code = validate_review.main()
+        assert exit_code == 0
+
+        output = capsys.readouterr().out
+        # Must NOT use the fast path when SHA mismatches
+        assert (
+            "fast path" not in output.lower() or "falling back" in output.lower()
+        ), "Stale SHA must not use fast path without fallback indication"
+        # Must call get_changed_files for normal classification
+        assert (
+            get_changed_files_called
+        ), "get_changed_files must be called when cached SHA differs from HEAD"
+
+    def test_stale_cached_sha_logs_warning(self, ci_environment, monkeypatch, capsys):
+        """Stale cached SHA must produce a visible warning in output."""
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+
+        cached = json.dumps(
+            {
+                "tier": "TIER_2_STANDARD",
+                "reason": "Stale",
+                "roles": ["CE", "CRS", "TMG"],
+                "sha": "old_sha_111",
+            }
+        )
+        monkeypatch.setenv("CACHED_GATE_DATA", cached)
+
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [{"path": "src/core.py", "added": 10, "deleted": 5, "total_changed": 15}],
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *args, **kwargs: (True, "All approvals found", []),
+        )
+
+        original_run = subprocess.run
+
+        def mock_run(cmd, *args, **kwargs):
+            if isinstance(cmd, list) and "rev-parse" in cmd and "HEAD" in cmd:
+                return MagicMock(stdout="new_sha_222\n", returncode=0)
+            return original_run(cmd, *args, **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        validate_review.main()
+        output = capsys.readouterr().out
+
+        # Must contain a warning about SHA mismatch
+        assert (
+            "falling back" in output.lower() or "!=" in output
+        ), "Output must warn about SHA mismatch and indicate fallback to normal classification"

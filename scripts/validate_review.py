@@ -788,7 +788,18 @@ def main() -> int:
     if cached_gate_json:
         try:
             cached_gate = json.loads(cached_gate_json)
-            print("⚡ Comment-event fast path: using cached gate data (SHA matches)")
+            # SHA comparison guard: verify cached data matches current HEAD
+            # before trusting it. Stale data (workflow bug, manual run) must
+            # not silently apply incorrect tier/roles.
+            if cached_gate.get("sha") == head_sha:
+                print(f"⚡ Comment-event fast path: cached SHA {head_sha[:7]} matches HEAD")
+            else:
+                cached_sha = cached_gate.get("sha", "none")
+                print(
+                    f"⚠️  Cached SHA {cached_sha[:7]} != HEAD {head_sha[:7]}, "
+                    f"falling back to normal classification"
+                )
+                cached_gate = None
         except (json.JSONDecodeError, TypeError):
             cached_gate = None
 
