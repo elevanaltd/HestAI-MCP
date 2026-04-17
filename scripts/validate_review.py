@@ -31,6 +31,9 @@ ADVISORY_BOTS: list[str] = [
 # --- Known bot account logins whose comments must be excluded from approval matching ---
 # Derived from ADVISORY_BOTS (strip "[bot]" suffix) plus legacy login variants
 # that GitHub may use for the same accounts.
+# NOTE: This set has a DIFFERENT lifecycle from ADVISORY_BOTS.  A bot removed
+# from ADVISORY_BOTS (e.g., Qodo) must STAY here so its comments can never
+# satisfy an approval gate — even if we no longer surface it in advisory output.
 _BOT_LOGIN_SET: frozenset[str] = frozenset(
     {name.removesuffix("[bot]") for name in ADVISORY_BOTS}
     | {
@@ -38,6 +41,9 @@ _BOT_LOGIN_SET: frozenset[str] = frozenset(
         "copilot",  # Legacy login variant for github-copilot[bot]
         "Copilot",  # GitHub API returns capital-C variant
         "cubic-bot",
+        "qodo-code-review",  # Removed from ADVISORY_BOTS but kept for gate exclusion
+        "qodo-merge-pro",
+        "qodo-merge-pro-for-open-source",
     }
 )
 

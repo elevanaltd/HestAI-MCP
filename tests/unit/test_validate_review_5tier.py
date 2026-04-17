@@ -1312,11 +1312,20 @@ class TestBotLoginSetNormalization:
         assert "github-copilot" in validate_review._BOT_LOGIN_SET
 
     def test_removed_bot_logins_absent(self) -> None:
-        """Removed bots (CodeRabbit, Qodo) must NOT be in _BOT_LOGIN_SET."""
+        """Fully removed bots (CodeRabbit) must NOT be in _BOT_LOGIN_SET."""
         assert "coderabbitai" not in validate_review._BOT_LOGIN_SET
-        assert "qodo-code-review" not in validate_review._BOT_LOGIN_SET
-        assert "qodo-merge-pro" not in validate_review._BOT_LOGIN_SET
-        assert "qodo-merge-pro-for-open-source" not in validate_review._BOT_LOGIN_SET
+
+    def test_decommissioned_bot_logins_still_excluded(self) -> None:
+        """Bots removed from ADVISORY_BOTS must STAY in _BOT_LOGIN_SET for gate exclusion.
+
+        _BOT_LOGIN_SET is a security filter: it prevents bot comments from
+        satisfying approval gates.  Even after a bot is removed from
+        ADVISORY_BOTS (no longer surfaced in advisory output), its logins must
+        remain excluded to prevent false-approval paths.
+        """
+        assert "qodo-code-review" in validate_review._BOT_LOGIN_SET
+        assert "qodo-merge-pro" in validate_review._BOT_LOGIN_SET
+        assert "qodo-merge-pro-for-open-source" in validate_review._BOT_LOGIN_SET
 
     def test_legacy_login_variants_present(self) -> None:
         """Legacy login variants must be in _BOT_LOGIN_SET."""
@@ -1371,6 +1380,44 @@ class TestPerVariantBotExclusion:
         monkeypatch.setattr(subprocess, "run", mock_run)
         approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
         assert approved is False, f"Cubic bot login '{login}' must NOT satisfy gate, got: {message}"
+
+    @pytest.mark.parametrize(
+        "login",
+        [
+            "qodo-code-review",  # gh pr view format (no [bot])
+            "qodo-merge-pro",  # Legacy login variant
+            "qodo-merge-pro-for-open-source",  # Another legacy variant
+        ],
+    )
+    def test_qodo_variants_excluded(self, login, ci_environment, monkeypatch) -> None:
+        """Qodo bot comment variants must NOT satisfy approval gate.
+
+        Qodo was removed from ADVISORY_BOTS but its logins remain in
+        _BOT_LOGIN_SET as a security filter.  This test verifies that a
+        Qodo comment containing approval text is correctly rejected.
+        """
+        import subprocess
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [
+                            {
+                                "author": {"login": login},
+                                "body": "TMG APPROVED: tests ok\nCRS APPROVED: ok\nCE APPROVED: ok",
+                            },
+                        ],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+        approved, message, _ = validate_review.check_pr_comments("TIER_2_STANDARD")
+        assert approved is False, f"Qodo bot login '{login}' must NOT satisfy gate, got: {message}"
 
     @pytest.mark.parametrize(
         "login",
