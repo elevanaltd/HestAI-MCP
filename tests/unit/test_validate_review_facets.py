@@ -60,7 +60,7 @@ class TestFacetClassification:
         assert "SR" in roles, f"Governance file should require SR, got {roles}"
 
     def test_octave_agent_is_executable_spec(self) -> None:
-        """.oct.md TYPE::AGENT_DEFINITION -> EXECUTABLE_SPEC facet -> {CE, SR}."""
+        """.oct.md TYPE::AGENT_DEFINITION -> EXECUTABLE_SPEC facet -> {CE, CRS, SR}."""
         files = [
             {
                 "path": "src/hestai_mcp/_bundled_hub/library/agents/implementation-lead.oct.md",
@@ -72,6 +72,7 @@ class TestFacetClassification:
         facets, roles, tier, _ = validate_review.classify_pr_facets(files)
         assert "EXECUTABLE_SPEC" in facets, f"Agent .oct.md should be EXECUTABLE_SPEC, got {facets}"
         assert "CE" in roles, f"Agent def should require CE, got {roles}"
+        assert "CRS" in roles, f"Agent def should require CRS, got {roles}"
         assert "SR" in roles, f"Agent def should require SR, got {roles}"
 
     def test_security_path_includes_civ(self) -> None:
@@ -118,7 +119,9 @@ class TestFacetClassification:
         ]
         facets, roles, tier, _ = validate_review.classify_pr_facets(files)
         assert "EXECUTABLE_SPEC" in facets, f"SKILL.md should be EXECUTABLE_SPEC, got {facets}"
-        assert "CE" in roles and "SR" in roles, f"SKILL.md needs CE+SR, got {roles}"
+        assert (
+            "CE" in roles and "CRS" in roles and "SR" in roles
+        ), f"SKILL.md needs CE+CRS+SR, got {roles}"
         assert tier != "TIER_0_EXEMPT", f"SKILL.md must NOT be exempt, got {tier}"
 
     def test_pattern_md_is_executable_spec(self) -> None:
@@ -157,7 +160,7 @@ class TestFacetClassification:
             },
         ]
         facets, roles, tier, _ = validate_review.classify_pr_facets(files)
-        assert roles == {"CE", "SR"}, f"Skill PR should need CE+SR, got {roles}"
+        assert roles == {"CE", "CRS", "SR"}, f"Skill PR should need CE+CRS+SR, got {roles}"
 
     def test_mixed_code_and_governance(self) -> None:
         """Mixed .py + .oct.md -> union of ROUTINE_CODE + GOVERNANCE roles."""

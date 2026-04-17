@@ -16,8 +16,8 @@ META_CONTROL_PLANE::[
 ]
 EXECUTABLE_SPEC::[
   TRIGGER::".oct.md files with TYPE::AGENT_DEFINITION or TYPE::SKILL, or SKILL.md/pattern .md in bundled hub",
-  REQUIRED_REVIEWERS::"{CE, SR}",
-  RATIONALE::"Executable governance specs need both code and standards review"
+  REQUIRED_REVIEWERS::"{CE, CRS, SR}",
+  RATIONALE::"Executable governance specs need code quality, code review, and standards review"
 ]
 GOVERNANCE::[
   TRIGGER::".oct.md files with TYPE::RULE, TYPE::STANDARD, TYPE::NORTH_STAR_SUMMARY, or unknown type",

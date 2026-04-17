@@ -25,7 +25,6 @@ from typing import Any
 # convention; _BOT_LOGIN_SET is derived for comment filtering.
 ADVISORY_BOTS: list[str] = [
     "cubic-dev-ai[bot]",
-    "qodo-code-review[bot]",
     "github-copilot[bot]",
 ]
 
@@ -39,8 +38,6 @@ _BOT_LOGIN_SET: frozenset[str] = frozenset(
         "copilot",  # Legacy login variant for github-copilot[bot]
         "Copilot",  # GitHub API returns capital-C variant
         "cubic-bot",
-        "qodo-merge-pro",
-        "qodo-merge-pro-for-open-source",
     }
 )
 
@@ -133,7 +130,7 @@ def _is_generated_json(path: str) -> bool:
 # --- Facet → Required Reviewers mapping ---
 FACET_ROLE_MAP: dict[str, set[str]] = {
     "META_CONTROL_PLANE": {"CIV", "CE", "CRS", "SR", "TMG"},  # PE excluded: T4 is manual-only
-    "EXECUTABLE_SPEC": {"CE", "SR"},
+    "EXECUTABLE_SPEC": {"CE", "CRS", "SR"},
     "GOVERNANCE": {"SR"},
     "SECURITY": {"CIV", "CE", "CRS", "TMG"},
     "ROUTINE_CODE": {"CE", "CRS", "TMG"},

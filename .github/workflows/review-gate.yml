@@ -427,11 +427,6 @@ jobs:
 
       # AI code review bots (all advisory, non-blocking):
       # - Cubic Dev AI: auto-reviews on PR activity (no configuration available)
-      # - Qodo: auto-reviews on PR activity via GitHub App
-      #
-      # Post-gate workflow triggers were removed because:
-      # 1. Qodo: /review from github-actions[bot] works intermittently (first
-      #    trigger per PR only). Auto-reviews via GitHub App are more reliable.
-      # 2. Bot-to-bot comment triggers are unreliable across all providers.
+      # - GitHub Copilot: auto-reviews on PR activity
       #
       # The CRS/CE chain (via submit-review tool) remains the structural gate.
