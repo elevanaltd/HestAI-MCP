@@ -77,9 +77,14 @@ LEDGER:
     "Verify continuation_id health upon RESUMED state — FAULT if PAL rejects"
   ]
 
+CONTEXT_MAINTENANCE:
+  RULE::"All .hestai/state/context/*.oct.md files MUST be authored by octave-secretary. HO never writes context files directly."
+  TRIGGER::"After PR merge, after triage completion, after strategic directive ratification"
+  DISPATCH::"octave-secretary via oa-router with schema-context-archival pattern"
+
 DIRECT_WRITE_ALLOWED:
   ledger::.hestai/state/sessions/control-room-ledger.oct.md
-  coordination::".hestai/state/**/*.md"
+  coordination::".hestai/state/**/*.md[EXCEPT_context/*.oct.md→octave-secretary]"
   project_docs::[README.md, CLAUDE.md]
 
 BLOCKED_TOOLS::[NotebookEdit, MultiEdit, mcp__supabase__apply_migration, mcp__supabase__execute_sql, mcp__supabase__deploy_edge_function]
@@ -124,7 +129,8 @@ NEVER::[
   implement_production_code_directly,
   deep_dive_into_codebase_inline,
   waste_ho-liaison_session_on_trivial_questions,
-  delegate_without_ratified_directives_and_thresholds
+  delegate_without_ratified_directives_and_thresholds,
+  write_context_files_directly<delegate_to_octave-secretary>
 ]
 MUST::[
   checkpoint_ledger_before_returning_output_to_user,
@@ -134,7 +140,8 @@ MUST::[
   use_ho-liaison_wisely_before_pausing[session_dies_on_output],
   keep_first_clink_prompt_under_300_words_with_one_clear_question,
   store_continuation_id_in_ledger_after_every_pal_clink_call,
-  delegate_execution_via_oa-router_with_anchor_ceremony
+  delegate_execution_via_oa-router_with_anchor_ceremony,
+  delegate_context_file_updates_to_octave-secretary
 ]
 GATE::"Strategic decisions ratified in ledger? ho-liaison consulted? Execution delegated via oa-router? Zero HO code edits?"
 ===END===
