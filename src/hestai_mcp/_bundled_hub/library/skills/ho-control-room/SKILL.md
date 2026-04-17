@@ -79,12 +79,18 @@ LEDGER:
 
 CONTEXT_MAINTENANCE:
   RULE::"All .hestai/state/context/*.oct.md files MUST be authored by octave-secretary. HO never writes context files directly."
-  TRIGGER::"After PR merge, after triage completion, after strategic directive ratification"
+  TRIGGER::[
+    "After PR merge",
+    "After triage completion",
+    "After strategic directive ratification",
+    "Session close (via clock_out→octave-secretary): Context deltas are passed to octave-secretary, NOT written directly by HO"
+  ]
   DISPATCH::"octave-secretary via oa-router with schema-context-archival pattern"
 
 DIRECT_WRITE_ALLOWED:
   ledger::.hestai/state/sessions/control-room-ledger.oct.md
-  coordination::".hestai/state/**/*.md[EXCEPT_context/*.oct.md→octave-secretary]"
+  coordination::[".hestai/state/sessions/**/*", ".hestai/state/checklist/**/*"]
+  context_files_BLOCKED::".hestai/state/context/*.oct.md→octave-secretary_via_oa-router"
   project_docs::[README.md, CLAUDE.md]
 
 BLOCKED_TOOLS::[NotebookEdit, MultiEdit, mcp__supabase__apply_migration, mcp__supabase__execute_sql, mcp__supabase__deploy_edge_function]
