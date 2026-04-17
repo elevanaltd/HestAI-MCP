@@ -25,13 +25,15 @@ from typing import Any
 # convention; _BOT_LOGIN_SET is derived for comment filtering.
 ADVISORY_BOTS: list[str] = [
     "cubic-dev-ai[bot]",
-    "qodo-code-review[bot]",
     "github-copilot[bot]",
 ]
 
 # --- Known bot account logins whose comments must be excluded from approval matching ---
 # Derived from ADVISORY_BOTS (strip "[bot]" suffix) plus legacy login variants
 # that GitHub may use for the same accounts.
+# NOTE: This set has a DIFFERENT lifecycle from ADVISORY_BOTS.  A bot removed
+# from ADVISORY_BOTS (e.g., Qodo) must STAY here so its comments can never
+# satisfy an approval gate — even if we no longer surface it in advisory output.
 _BOT_LOGIN_SET: frozenset[str] = frozenset(
     {name.removesuffix("[bot]") for name in ADVISORY_BOTS}
     | {
@@ -39,6 +41,7 @@ _BOT_LOGIN_SET: frozenset[str] = frozenset(
         "copilot",  # Legacy login variant for github-copilot[bot]
         "Copilot",  # GitHub API returns capital-C variant
         "cubic-bot",
+        "qodo-code-review",  # Removed from ADVISORY_BOTS but kept for gate exclusion
         "qodo-merge-pro",
         "qodo-merge-pro-for-open-source",
     }
@@ -133,7 +136,7 @@ def _is_generated_json(path: str) -> bool:
 # --- Facet → Required Reviewers mapping ---
 FACET_ROLE_MAP: dict[str, set[str]] = {
     "META_CONTROL_PLANE": {"CIV", "CE", "CRS", "SR", "TMG"},  # PE excluded: T4 is manual-only
-    "EXECUTABLE_SPEC": {"CE", "SR"},
+    "EXECUTABLE_SPEC": {"CE", "CRS", "SR"},
     "GOVERNANCE": {"SR"},
     "SECURITY": {"CIV", "CE", "CRS", "TMG"},
     "ROUTINE_CODE": {"CE", "CRS", "TMG"},

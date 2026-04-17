@@ -1281,17 +1281,17 @@ class TestAdvisoryBotsConstant:
     def test_advisory_bots_contains_expected_entries(self) -> None:
         """ADVISORY_BOTS must contain all canonical bot accounts."""
         assert "cubic-dev-ai[bot]" in validate_review.ADVISORY_BOTS
-        assert "qodo-code-review[bot]" in validate_review.ADVISORY_BOTS
         assert "github-copilot[bot]" in validate_review.ADVISORY_BOTS
 
     def test_advisory_bots_does_not_contain_removed_bots(self) -> None:
-        """ADVISORY_BOTS must NOT contain removed bot accounts (CodeRabbit)."""
+        """ADVISORY_BOTS must NOT contain removed bot accounts (CodeRabbit, Qodo)."""
         assert "coderabbitai[bot]" not in validate_review.ADVISORY_BOTS
+        assert "qodo-code-review[bot]" not in validate_review.ADVISORY_BOTS
 
     def test_advisory_bots_length(self) -> None:
-        """ADVISORY_BOTS should have exactly 3 entries (detect unintended additions)."""
-        assert len(validate_review.ADVISORY_BOTS) == 3, (
-            f"Expected 3 advisory bots, got {len(validate_review.ADVISORY_BOTS)}: "
+        """ADVISORY_BOTS should have exactly 2 entries (detect unintended additions)."""
+        assert len(validate_review.ADVISORY_BOTS) == 2, (
+            f"Expected 2 advisory bots, got {len(validate_review.ADVISORY_BOTS)}: "
             f"{validate_review.ADVISORY_BOTS}"
         )
 
@@ -1309,20 +1309,29 @@ class TestBotLoginSetNormalization:
     def test_stripped_bot_suffix_logins_present(self) -> None:
         """Stripped versions of ADVISORY_BOTS must be in _BOT_LOGIN_SET."""
         assert "cubic-dev-ai" in validate_review._BOT_LOGIN_SET
-        assert "qodo-code-review" in validate_review._BOT_LOGIN_SET
         assert "github-copilot" in validate_review._BOT_LOGIN_SET
 
     def test_removed_bot_logins_absent(self) -> None:
-        """Removed bots (CodeRabbit) must NOT be in _BOT_LOGIN_SET."""
+        """Fully removed bots (CodeRabbit) must NOT be in _BOT_LOGIN_SET."""
         assert "coderabbitai" not in validate_review._BOT_LOGIN_SET
+
+    def test_decommissioned_bot_logins_still_excluded(self) -> None:
+        """Bots removed from ADVISORY_BOTS must STAY in _BOT_LOGIN_SET for gate exclusion.
+
+        _BOT_LOGIN_SET is a security filter: it prevents bot comments from
+        satisfying approval gates.  Even after a bot is removed from
+        ADVISORY_BOTS (no longer surfaced in advisory output), its logins must
+        remain excluded to prevent false-approval paths.
+        """
+        assert "qodo-code-review" in validate_review._BOT_LOGIN_SET
+        assert "qodo-merge-pro" in validate_review._BOT_LOGIN_SET
+        assert "qodo-merge-pro-for-open-source" in validate_review._BOT_LOGIN_SET
 
     def test_legacy_login_variants_present(self) -> None:
         """Legacy login variants must be in _BOT_LOGIN_SET."""
         assert "github-actions" in validate_review._BOT_LOGIN_SET
         assert "copilot" in validate_review._BOT_LOGIN_SET  # Copilot legacy login
         assert "cubic-bot" in validate_review._BOT_LOGIN_SET
-        assert "qodo-merge-pro" in validate_review._BOT_LOGIN_SET
-        assert "qodo-merge-pro-for-open-source" in validate_review._BOT_LOGIN_SET
 
     def test_bot_login_set_is_frozenset(self) -> None:
         """_BOT_LOGIN_SET must be immutable (frozenset)."""
@@ -1381,7 +1390,12 @@ class TestPerVariantBotExclusion:
         ],
     )
     def test_qodo_variants_excluded(self, login, ci_environment, monkeypatch) -> None:
-        """Qodo bot comment variants must NOT satisfy approval gate."""
+        """Qodo bot comment variants must NOT satisfy approval gate.
+
+        Qodo was removed from ADVISORY_BOTS but its logins remain in
+        _BOT_LOGIN_SET as a security filter.  This test verifies that a
+        Qodo comment containing approval text is correctly rejected.
+        """
         import subprocess
 
         def mock_run(cmd, *args, **kwargs):
@@ -1459,8 +1473,8 @@ class TestSkippedBotLogging:
                         "body": "",
                         "comments": [
                             {
-                                "author": {"login": "qodo-code-review"},
-                                "body": "Some review text",
+                                "author": {"login": "github-copilot"},
+                                "body": "Some copilot review text",
                             },
                             {
                                 "author": {"login": "cubic-dev-ai"},
@@ -1485,8 +1499,8 @@ class TestSkippedBotLogging:
             "Skipped 2 bot comment(s)" in captured.out
         ), f"Expected 'Skipped 2 bot comment(s)' in output, got: {captured.out}"
         assert (
-            "qodo-code-review" in captured.out
-        ), f"Expected 'qodo-code-review' in skipped bot names, got: {captured.out}"
+            "github-copilot" in captured.out
+        ), f"Expected 'github-copilot' in skipped bot names, got: {captured.out}"
         assert (
             "cubic-dev-ai" in captured.out
         ), f"Expected 'cubic-dev-ai' in skipped bot names, got: {captured.out}"

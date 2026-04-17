@@ -60,7 +60,7 @@ class TestFacetClassification:
         assert "SR" in roles, f"Governance file should require SR, got {roles}"
 
     def test_octave_agent_is_executable_spec(self) -> None:
-        """.oct.md TYPE::AGENT_DEFINITION -> EXECUTABLE_SPEC facet -> {CE, SR}."""
+        """.oct.md TYPE::AGENT_DEFINITION -> EXECUTABLE_SPEC facet -> {CE, CRS, SR}."""
         files = [
             {
                 "path": "src/hestai_mcp/_bundled_hub/library/agents/implementation-lead.oct.md",
@@ -72,6 +72,7 @@ class TestFacetClassification:
         facets, roles, tier, _ = validate_review.classify_pr_facets(files)
         assert "EXECUTABLE_SPEC" in facets, f"Agent .oct.md should be EXECUTABLE_SPEC, got {facets}"
         assert "CE" in roles, f"Agent def should require CE, got {roles}"
+        assert "CRS" in roles, f"Agent def should require CRS, got {roles}"
         assert "SR" in roles, f"Agent def should require SR, got {roles}"
 
     def test_security_path_includes_civ(self) -> None:
@@ -118,7 +119,9 @@ class TestFacetClassification:
         ]
         facets, roles, tier, _ = validate_review.classify_pr_facets(files)
         assert "EXECUTABLE_SPEC" in facets, f"SKILL.md should be EXECUTABLE_SPEC, got {facets}"
-        assert "CE" in roles and "SR" in roles, f"SKILL.md needs CE+SR, got {roles}"
+        assert (
+            "CE" in roles and "CRS" in roles and "SR" in roles
+        ), f"SKILL.md needs CE+CRS+SR, got {roles}"
         assert tier != "TIER_0_EXEMPT", f"SKILL.md must NOT be exempt, got {tier}"
 
     def test_pattern_md_is_executable_spec(self) -> None:
@@ -146,8 +149,8 @@ class TestFacetClassification:
         facets, roles, tier, _ = validate_review.classify_pr_facets(files)
         assert tier == "TIER_0_EXEMPT", f"Regular .md should be exempt, got {tier}"
 
-    def test_skill_pr_requires_ce_sr_review(self) -> None:
-        """A PR with only SKILL.md files must require CE+SR (EXECUTABLE_SPEC)."""
+    def test_skill_pr_requires_ce_crs_sr_review(self) -> None:
+        """A PR with only SKILL.md files must require CE+CRS+SR (EXECUTABLE_SPEC)."""
         files = [
             {
                 "path": "src/hestai_mcp/_bundled_hub/library/skills/build-execution/SKILL.md",
@@ -157,7 +160,7 @@ class TestFacetClassification:
             },
         ]
         facets, roles, tier, _ = validate_review.classify_pr_facets(files)
-        assert roles == {"CE", "SR"}, f"Skill PR should need CE+SR, got {roles}"
+        assert roles == {"CE", "CRS", "SR"}, f"Skill PR should need CE+CRS+SR, got {roles}"
 
     def test_mixed_code_and_governance(self) -> None:
         """Mixed .py + .oct.md -> union of ROUTINE_CODE + GOVERNANCE roles."""
@@ -173,6 +176,95 @@ class TestFacetClassification:
         facets, roles, tier, _ = validate_review.classify_pr_facets(files)
         assert "SR" in roles, f"Mixed PR should require SR for .oct.md, got {roles}"
         assert "CRS" in roles, f"Mixed PR should require CRS for .py, got {roles}"
+
+
+# ---------------------------------------------------------------------------
+# 1b. Functional EXECUTABLE_SPEC gate tests
+# ---------------------------------------------------------------------------
+@pytest.mark.unit
+class TestExecutableSpecGateRequiresCRS:
+    """EXECUTABLE_SPEC PRs must fail the gate without CRS approval.
+
+    Since CRS was added to the EXECUTABLE_SPEC facet reviewer set, a PR
+    touching only agent/skill files must require CRS APPROVED alongside
+    CE and SR.  This functional test calls check_pr_comments() to verify
+    the gate rejects when CRS is missing.
+    """
+
+    @pytest.fixture(autouse=True)
+    def ci_environment(self, monkeypatch):
+        """Set CI + PR_NUMBER so check_pr_comments runs its full logic."""
+        monkeypatch.setenv("CI", "true")
+        monkeypatch.setenv("PR_NUMBER", "999")
+
+    def test_executable_spec_fails_without_crs(self, monkeypatch) -> None:
+        """EXECUTABLE_SPEC gate must reject when CRS approval is missing."""
+        import subprocess
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [
+                            {
+                                "author": {"login": "human-ce"},
+                                "body": "CE APPROVED: code looks good",
+                            },
+                            {
+                                "author": {"login": "human-sr"},
+                                "body": "SR APPROVED: standards met",
+                            },
+                        ],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+        # EXECUTABLE_SPEC requires {CE, CRS, SR} — CE and SR present, CRS missing
+        approved, message, missing = validate_review.check_pr_comments(
+            required_roles={"CE", "CRS", "SR"}, tier="TIER_2_STANDARD"
+        )
+        assert approved is False, f"Should fail without CRS, got: {message}"
+        assert "CRS" in missing, f"CRS should be in missing roles, got: {missing}"
+
+    def test_executable_spec_passes_with_all_roles(self, monkeypatch) -> None:
+        """EXECUTABLE_SPEC gate must pass when CE, CRS, and SR all approve."""
+        import subprocess
+
+        def mock_run(cmd, *args, **kwargs):
+            return MagicMock(
+                stdout=json.dumps(
+                    {
+                        "body": "",
+                        "comments": [
+                            {
+                                "author": {"login": "human-ce"},
+                                "body": "CE APPROVED: code looks good",
+                            },
+                            {
+                                "author": {"login": "human-crs"},
+                                "body": "CRS APPROVED: review complete",
+                            },
+                            {
+                                "author": {"login": "human-sr"},
+                                "body": "SR APPROVED: standards met",
+                            },
+                        ],
+                    }
+                ),
+                returncode=0,
+                check=lambda: None,
+            )
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+        approved, message, missing = validate_review.check_pr_comments(
+            required_roles={"CE", "CRS", "SR"}, tier="TIER_2_STANDARD"
+        )
+        assert approved is True, f"Should pass with all roles, got: {message}"
+        assert missing == [], f"No roles should be missing, got: {missing}"
 
 
 # ---------------------------------------------------------------------------

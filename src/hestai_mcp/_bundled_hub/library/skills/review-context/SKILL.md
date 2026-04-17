@@ -13,7 +13,7 @@ COMPLEMENTS::[review-preflight<context_collection>,review-discipline<confidence>
 §2::PATH_INSTRUCTIONS
 // Path-specific review focus areas.
 // CRS loads these instructions to calibrate review depth and focus per file type.
-// Transferred from CodeRabbit path_instructions (preserved domain knowledge).
+// CRS-native path instructions for calibrating review depth per file type.
 SOURCE_FILES::[
   PATHS::"src/**/*.py",
   FOCUS::[security,correctness,type_safety,error_handling],
