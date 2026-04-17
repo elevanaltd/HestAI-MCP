@@ -1,11 +1,11 @@
 ---
 type: LIGHTHOUSE
 id: ecosystem-lighthouse
-version: 4.0
+version: 4.1
 status: ACTIVE
 purpose: Target state vision for the fully integrated HestAI ecosystem
 created: 2026-02-25
-revised: 2026-04-09
+revised: 2026-04-17
 origin: Project 15 ecosystem build order coordination
 tracking: https://github.com/orgs/elevanaltd/projects/15
 architecture: ADR-0353 Three-Service Model
@@ -14,9 +14,9 @@ architecture: ADR-0353 Three-Service Model
 
 # HESTAI ECOSYSTEM LIGHTHOUSE
 
-**Version:** 4.0
+**Version:** 4.1
 **Status:** ACTIVE
-**Revised:** 2026-04-09
+**Revised:** 2026-04-17
 
 ---
 
@@ -120,28 +120,32 @@ The ecosystem comprises three services with clear ownership boundaries (ADR-0353
 
 ### System 3: hestai-context-mcp — The Memory and Environment
 
-**Repo:** `elevanaltd/hestai-context-mcp` (NEW — harvested from hestai-mcp)
+**Repo:** `elevanaltd/hestai-context-mcp` (IMPLEMENTED — Phase 1 complete 2026-04-17, harvested from hestai-mcp)
 
 **What it is:** A standalone governance engine providing session lifecycle, context synthesis, learnings extraction, and review infrastructure via stdio MCP transport.
 
-**What it owns:**
-- clock_in (session creation, focus resolution, AI-synthesized context summaries, focus conflict detection)
-- clock_out (transcript parsing, credential redaction via RedactionEngine, OCTAVE compression, structured learnings indexing)
-- ContextSteward (dynamic PhaseConstraints synthesis)
+**What it owns (Phase 1 delivered):**
+- clock_in (session creation, focus resolution, focus conflict detection; AI-synthesized context summaries currently deferred — see known gaps below)
+- clock_out (transcript parsing via `TranscriptParser` ABC + `ClaudeTranscriptParser` adapter, credential redaction via RedactionEngine, OCTAVE compression, structured learnings indexing)
+- get_context (read-only context synthesis tool)
 - submit_review (structured code review verdicts with CI gate clearing, 8 reviewer roles, dry-run, commit SHA pinning)
-- submit_friction_record (F2D governance feedback capture)
+- ContextSteward (dynamic PhaseConstraints synthesis)
 - `.hestai/state/` management (sessions, context, reports, research)
-- Product North Star injection at KVAEPH Position 3
+- Product North Star injection at KVAEPH Position 3 (planned — Phase 3)
 
-**What it does NOT own:** Agent identity (Vault), dispatch/UI (Workbench), deliberation (debate-hall), document format (octave-mcp).
+**TranscriptParser adapter pattern:** `clock_out` was redesigned (not harvested as-is) around a provider-agnostic `TranscriptParser` ABC. `ClaudeTranscriptParser` is implemented; Codex/Gemini/Goose adapters are pending Phase 2+.
+
+**What it does NOT own:** Agent identity (Vault), dispatch/UI (Workbench), deliberation (debate-hall), document format (octave-mcp), `bind` tool (legacy-only, replaced by Alley-Oop).
 
 **Key properties:**
-- LOW volatility — proven Python codebase, 92% coverage. Survives Workbench rebuilds untouched.
+- LOW volatility — Python codebase, 361 tests, 89% coverage at Phase 1 close. Survives Workbench rebuilds untouched.
 - Stdio transport (subprocess, not daemon) — the "Git/VS Code" pattern. Zero network ports, zero monitoring overhead.
-- Harvested from hestai-mcp (not rewritten). Legacy hestai-mcp stays intact for A/B comparison.
+- Harvest not rewrite: clock_in harvested from hestai-mcp; clock_out redesigned; legacy hestai-mcp stays intact (1033 tests) for A/B comparison.
 - Terminal parity is automatic — any CLI tool gets identical governance by adding one MCP config entry.
 
-**Target state:** `pip install hestai-context-mcp` gives you session lifecycle + context synthesis + learnings + review. Works with or without the Workbench.
+**Known gap — AI synthesis regression:** `clock_in` AI synthesis currently returns `null`. This is a functional regression versus the legacy hestai-mcp `clock_in` and must be resolved before any A/B parity claim is made. Tracked as a Phase 2 prerequisite.
+
+**Target state:** `pip install hestai-context-mcp` gives you session lifecycle + context synthesis + learnings + review. Works with or without the Workbench. *(OPEN QUESTION: PyPI publication plan — distribution strategy not yet decided; flagged for human input.)*
 
 ---
 
@@ -343,16 +347,16 @@ The ecosystem is "done" when:
 
 ## SECTION 7: CURRENT DISTANCE FROM TARGET
 
-As of 2026-04-09:
+As of 2026-04-17:
 
 | System | Current State | Distance | Next Step |
 |--------|--------------|----------|-----------|
 | **OCTAVE MCP** | v1.9.6, production, PyPI published | Close | Standalone community adoption |
 | **Debate Hall** | v0.5.0, 17 tools, consult/convene/RACI shipped | Medium | Governance Hall (#163) |
-| **Workbench** | v0.6.0, 3A-prep substantially complete. Matrix resolver, V9 agents (4), 16 V9 skills, System Standard in vault. | Medium | Payload Compiler (Step 3A, issue #99) — all prerequisites now met |
-| **Vault** | Starter library with 4 V9 agents, 16 V9 skills, 3 cognitions, System Standard | Medium | Populate as Payload Compiler demands content |
-| **hestai-context-mcp** | ADR-0353 accepted. Interface contract done. Feature-parity matrix done. | Far | Phase 1: Create repo, harvest clock_in, redesign clock_out with TDD |
-| **hestai-mcp (legacy)** | Operational, 930 tests, 92% coverage, 4 tools | Maintenance | Stays for A/B comparison. NOT being absorbed |
+| **Workbench** | v0.6.0, Step 3B Phase 2 in progress. PayloadCompiler done, DispatchService Phase 1 merged. | Medium | Complete Step 3B Phase 2 (blocks hestai-context-mcp Phase 2 integration) |
+| **Vault** | Populated library: 5 V9 agents, 16 V9 skills, 3 cognitions, System Standard | Medium | Populate as Payload Compiler demands content |
+| **hestai-context-mcp** | Phase 1 COMPLETE (2026-04-17). 4 tools shipped (clock_in, clock_out, get_context, submit_review). 361 tests, 89% coverage. TranscriptParser ABC + ClaudeTranscriptParser adapter. | Medium | Phase 2: workbench Payload Compiler integration via stdio at KVAEPH Position 3 (blocked on workbench Step 3B Phase 2) |
+| **hestai-mcp (legacy)** | Operational, v2.1.0, 1033 tests, maintenance mode | Maintenance | Stays for A/B comparison. NOT being absorbed. *(OPEN QUESTION: measurable deprecation criteria not yet defined — flagged for human decision.)* |
 | **OA (legacy)** | Operational for Claude-with-MCP sessions | Maintenance | Replaced by Alley-Oop for headless dispatch |
 | **PAL (legacy)** | Being eliminated | Elimination | Workbench natively replaces all dispatch |
 
@@ -388,7 +392,7 @@ In parallel: **hestai-context-mcp Phase 1** (harvest clock_in, redesign clock_ou
 | EA7 | Single developer can maintain the ecosystem | 80% | CRITICAL | Post Step 3B assessment |
 | EA8 | Assistant prefilling achieves sufficient cognitive alignment for API-dispatched agents | 70% | HIGH | First API dispatch with prefilled mini-ceremony on 3+ OpenRouter backends |
 | EA9 | Recursive `dispatch_colleague` calls (depth 2-3) remain coherent without context degradation | 65% | HIGH | IL dispatching TMG dispatching back — full chain test with continuation |
-| EA10 | Harvest approach (new repo from proven code) is faster than in-place modification | 80% | HIGH | hestai-context-mcp Phase 1 delivery time vs estimated subtraction time |
+| EA10 | Harvest approach (new repo from proven code) is faster than in-place modification | VALIDATED (95%) | HIGH | hestai-context-mcp Phase 1 delivered 4 tools + 361 tests / 89% coverage in 8 days (2026-04-09 → 2026-04-17); TranscriptParser ABC redesign proved safer than in-place patching of the broken ClaudeJsonlLens |
 
 ---
 
@@ -396,13 +400,15 @@ In parallel: **hestai-context-mcp Phase 1** (harvest clock_in, redesign clock_ou
 
 ### hestai-mcp (this repo)
 
-**Status:** Legacy. Stays operational for A/B comparison.
+**Status:** Legacy. v2.1.0, 1033 tests, maintenance mode. Stays operational for A/B comparison.
 
-hestai-mcp is NOT being absorbed into the Workbench. ADR-0353 resolved this: the governance engine logic (clock_in, clock_out, ContextSteward, RedactionEngine, submit_review) is harvested into a NEW repo (`hestai-context-mcp`), not subtracted from here. The legacy system remains intact so the same agent + same task can be tested under both the old ceremony and the new engine.
+hestai-mcp is NOT being absorbed into the Workbench. ADR-0353 resolved this: the governance engine logic (clock_in, clock_out, ContextSteward, RedactionEngine, submit_review) was harvested into a NEW repo (`hestai-context-mcp`, Phase 1 complete 2026-04-17), not subtracted from here. The legacy system remains intact so the same agent + same task can be tested under both the old ceremony and the new engine.
 
 The `_bundled_hub/` content (agent definitions, skills, standards, cognitions) moves to the Vault. The `.hestai-sys/` injection mechanism moves to the Vault/Workbench. The `bind` tool is replaced by Alley-Oop for headless dispatch; the Odyssean Anchor ceremony remains for Claude-with-MCP sessions.
 
-Deprecation happens only after the new system is proven in daily use.
+**Parity blocker:** Before deprecation can be considered, the `clock_in` AI synthesis regression in hestai-context-mcp (currently returning `null`) must be resolved — otherwise A/B comparison against legacy is not like-for-like.
+
+Deprecation happens only after the new system is proven in daily use. *(OPEN QUESTIONS flagged for human decision: (a) measurable deprecation criteria; (b) worktree-pattern adoption in the new repo — the new repo currently excludes worktree directories via `.gitignore` but the broader pattern has not been formally endorsed.)*
 
 ### odyssean-anchor-mcp
 

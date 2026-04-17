@@ -1,11 +1,11 @@
 ===DEPENDENCY_GRAPH===
 META:
   TYPE::ECOSYSTEM_DEPENDENCY_GRAPH
-  VERSION::"4.0"
+  VERSION::"4.1"
   STATUS::TARGET
   PURPOSE::"Cross-system build sequence, blocking relationships, and phase alignment"
   CREATED::"2026-02-22"
-  REVISED::"2026-04-09"
+  REVISED::"2026-04-17"
   FORMAT::octave
   RESOLVES::"#265 (Cross-repo ecosystem dependency graph)"
   SUPPLEMENTS::HESTAI-ECOSYSTEM-OVERVIEW.oct.md
@@ -62,15 +62,26 @@ VAULT::[
   KEY_FACT::"Git-backed, immutable at runtime. Workbench reads directly. Glass Agent Editor provides CRUD with auto-commit."
 ]
 HESTAI_CONTEXT_MCP::[
-  STATUS::"ADR-0353 accepted. Interface contract done. Feature-parity matrix done.",
-  REPO::"elevanaltd/hestai-context-mcp (NEW, not yet created)",
-  KEY_FACT::"Will be harvested from hestai-mcp. Owns clock_in, clock_out, ContextSteward, RedactionEngine, submit_review, submit_rccafp_record, submit_friction_record. Stdio MCP transport."
+  STATUS::"Phase 1 COMPLETE — elevanaltd/hestai-context-mcp repo created and shipped 2026-04-17. 4 MCP tools operational (clock_in, clock_out, get_context, submit_review). TranscriptParser ABC + ClaudeTranscriptParser adapter. ADR-0353 accepted. Interface contract done.",
+  REPO::"elevanaltd/hestai-context-mcp (IMPLEMENTED)",
+  VERSION::"1.0.0",
+  PHASE::B1_FOUNDATION_COMPLETE,
+  HEALTH::FUNCTIONAL,
+  TESTS::"361 passing, 89 percent coverage",
+  TOOLS::[
+    clock_in,
+    clock_out,
+    get_context,
+    submit_review
+  ],
+  KNOWN_GAPS::[clock_in_AI_synthesis_returns_null_functional_regression_vs_legacy,Codex_Gemini_Goose_TranscriptParser_adapters_pending_Phase_2],
+  KEY_FACT::"Harvested from hestai-mcp (clock_in harvested, clock_out redesigned with provider adapter pattern). Owns clock_in, clock_out, get_context, submit_review, ContextSteward, RedactionEngine. Stdio MCP transport. Legacy hestai-mcp stays intact for A/B comparison."
 ]
 HESTAI_MCP_LEGACY::[
-  VERSION::pre-release,
+  VERSION::"2.1.0",
   PHASE::B1_FOUNDATION,
   HEALTH::FUNCTIONAL,
-  TESTS::"930 passing, 92 percent coverage",
+  TESTS::"1033 passing, maintenance mode",
   TOOLS::[
     clock_in,
     clock_out,
@@ -79,7 +90,7 @@ HESTAI_MCP_LEGACY::[
     submit_rccafp_record
   ],
   STATUS::legacy_stays_for_AB_comparison,
-  KEY_FACT::"NOT being absorbed. Governance engine logic harvested into hestai-context-mcp. Legacy stays for A/B comparison."
+  KEY_FACT::"NOT being absorbed. Governance engine logic harvested into hestai-context-mcp (Phase 1 complete 2026-04-17). Legacy stays for A/B comparison. Deprecation criteria not yet defined (OPEN QUESTION flagged for human decision)."
 ]
 ODYSSEAN_ANCHOR_MCP::[
   VERSION::"0.1.1",
@@ -110,7 +121,7 @@ ARROWS::[
 LAYER_0::"FOUNDATION — octave-mcp: SOLID, v1.9.6, production. ACTION: Update deps when releases happen. No structural changes needed."
 LAYER_1::"DELIBERATION — debate-hall-mcp: SOLID, v0.5.0, production, 17 tools. ACTION: Continue independently. Issue 163 (Governance Hall)."
 LAYER_2::"IDENTITY — Vault: POPULATED, git-backed. ACTION: Populate as Payload Compiler demands content."
-LAYER_3::"CONTEXT — hestai-context-mcp: PLANNED, ADR-0353 accepted. ACTION: Phase 1 harvest from hestai-mcp."
+LAYER_3::"CONTEXT — hestai-context-mcp: Phase 1 COMPLETE (2026-04-17). 4 tools operational, 361 tests, 89% coverage. ACTION: Phase 2 — workbench Payload Compiler integration via stdio at KVAEPH Position 3 (blocked on workbench Step 3B Phase 2). Known gap: clock_in AI synthesis regression (returns null) must be resolved before A/B parity claim."
 LAYER_4::"DISPATCH — hestai-workbench: 3A-PREP COMPLETE. ACTION: Build Payload Compiler (Step 3A), then dispatch_colleague (Step 3B)."
 §4::SEQUENCED_BUILD_ORDER
 STEP_3A::[
@@ -141,19 +152,12 @@ STEP_4::[
   PREREQ::STEP_3B,
   WORKBENCH_ISSUE::"#98"
 ]
-HARVEST_PHASE_1::[
-  WHAT::"Create hestai-context-mcp repo and harvest clock_in",
-  RATIONALE::"New repo (elevanaltd/hestai-context-mcp). Harvest clock_in logic from hestai-mcp. Redesign clock_out with TDD (ClaudeJsonlLens is broken, needs provider adapter pattern). Build get_context. Legacy hestai-mcp stays intact for A/B comparison.",
-  EFFORT::"medium — new repo setup, clock_in harvest, clock_out redesign, get_context",
-  PARALLEL_WITH::STEP_3A,
-  BLOCKS::[HARVEST_PHASE_2]
-]
-HARVEST_PHASE_2::[
-  WHAT::"Workbench Payload Compiler calls hestai-context-mcp for Position 3",
-  RATIONALE::"Thin stdio MCP client in Payload Compiler. Spawn python -m hestai_context_mcp via stdio. Inject clock_in output at KVAEPH Position 3.",
-  EFFORT::"small — stdio MCP client (~30 lines), integration",
-  PREREQ::[STEP_3A,HARVEST_PHASE_1]
-]
+HARVEST_PHASE_1::[WHAT::"Create hestai-context-mcp repo and harvest clock_in — DONE 2026-04-17",STATUS::COMPLETE,RATIONALE::"New repo (elevanaltd/hestai-context-mcp) created. clock_in harvested from hestai-mcp. clock_out REDESIGNED with provider adapter pattern (TranscriptParser ABC + ClaudeTranscriptParser) rather than harvested as-is. get_context built. Legacy hestai-mcp stays intact for A/B comparison. Delivered: 4 tools, 361 tests, 89% coverage in 8 days — validates EA10.",EVIDENCE::"~20 commits, 4 PRs merged. git log verified 2026-04-17.",PARALLEL_WITH::STEP_3A,BLOCKS::[HARVEST_PHASE_2]]
+HARVEST_PHASE_2::[WHAT::"Workbench Payload Compiler calls hestai-context-mcp for Position 3 — NEXT",STATUS::PENDING,RATIONALE::"Thin stdio MCP client in Payload Compiler. Spawn python -m hestai_context_mcp via stdio. Inject clock_in output at KVAEPH Position 3. BLOCKED on workbench Step 3B Phase 2 completion.",EFFORT::"small — stdio MCP client (~30 lines), integration",PREREQ::[
+  STEP_3A,
+  HARVEST_PHASE_1,
+  WORKBENCH_STEP_3B_PHASE_2
+]]
 HARVEST_PHASE_3::[
   WHAT::"Unify North Star injection",
   RATIONALE::"System NS from Vault (static, Position 0). Product NS from hestai-context-mcp during clock_in (dynamic, Position 3). Remove load-north-star-summary.sh hook.",
