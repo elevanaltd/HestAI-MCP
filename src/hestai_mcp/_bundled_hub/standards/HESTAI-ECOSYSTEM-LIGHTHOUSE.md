@@ -358,7 +358,7 @@ As of 2026-04-20:
 | **Workbench** | v0.6.0, Step 3B Phase 2 in progress. PayloadCompiler done, DispatchService Phase 1 merged. | Medium | Complete Step 3B Phase 2 (blocks hestai-context-mcp Phase 2 integration) |
 | **Vault** | Populated library: 5 V9 agents, 16 V9 skills, 3 cognitions, System Standard | Medium | Populate as Payload Compiler demands content |
 | **hestai-context-mcp** | Phase 1 COMPLETE (2026-04-17). 4 tools shipped (clock_in, clock_out, get_context, submit_review). 361 tests, 89% coverage. TranscriptParser ABC + ClaudeTranscriptParser adapter. | Medium | Phase 2: workbench Payload Compiler integration via stdio at KVAEPH Position 3 (blocked on workbench Step 3B Phase 2) |
-| **hestai-mcp (legacy)** | Operational, v2.1.0, 1033 tests, maintenance mode | Maintenance | Stays for A/B comparison. NOT being absorbed. **Deprecation criterion (DECIDED):** A/B cutover via Workbench — same agent role + same real task, run once with legacy backend and once with hestai-context-mcp backend; measure judged agent output quality + total session token cost; whichever wins consistently across N tasks triggers a swift cutover. |
+| **hestai-mcp (legacy)** | Operational, v1.2.0, 1033 tests, maintenance mode | Maintenance | Stays for A/B comparison. NOT being absorbed. **Deprecation criterion (DECIDED):** A/B cutover via Workbench — same agent role + same real task, run once with legacy backend and once with hestai-context-mcp backend; measure judged agent output quality + total session token cost; whichever wins consistently across N tasks triggers a swift cutover. |
 | **OA (legacy)** | Operational for Claude-with-MCP sessions | Maintenance | Replaced by Alley-Oop for headless dispatch |
 | **PAL (legacy)** | Being eliminated | Elimination | Workbench natively replaces all dispatch |
 
@@ -415,7 +415,7 @@ Before the outcome-quality A/B test against legacy hestai-mcp can be meaningful,
 
 ### hestai-mcp (this repo)
 
-**Status:** Legacy. v2.1.0, 1033 tests, maintenance mode. Stays operational for A/B comparison.
+**Status:** Legacy. v1.2.0, 1033 tests, maintenance mode. Stays operational for A/B comparison.
 
 hestai-mcp is NOT being absorbed into the Workbench. ADR-0353 resolved this: the governance engine logic (clock_in, clock_out, ContextSteward, RedactionEngine, submit_review) was harvested into a NEW repo (`hestai-context-mcp`, Phase 1 complete 2026-04-17), not subtracted from here. The legacy system remains intact so the same agent + same task can be tested under both the old ceremony and the new engine.
 

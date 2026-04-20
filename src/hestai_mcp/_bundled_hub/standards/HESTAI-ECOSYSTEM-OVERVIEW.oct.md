@@ -32,7 +32,7 @@ STANDALONE_1::"DEBATE_HALL_MCP[REPO::elevanaltd/debate-hall-mcp, ROLE::The Delib
 STANDALONE_2::"OCTAVE_MCP[REPO::elevanaltd/octave-mcp, ROLE::The Language, VERSION::1.9.6, OWNS::[octave_format_spec, validation, generation, compression, grammar_compilation], KEY_PROPERTY::Pure protocol. Zero dependencies on governance. Maximum community adoption potential. 54-68 percent token reduction., DEPENDS_ON::[nothing]]"
 §3::LEGACY_SYSTEMS
 HESTAI_MCP::[
-  STATUS::legacy_maintenance_mode_v2.1.0_1033_tests,
+  STATUS::legacy_maintenance_mode_v1.2.0_1033_tests,
   REPO::"elevanaltd/HestAI-MCP",
   DISPOSITION::[
     "Library content (_bundled_hub: agents, skills, standards, cognitions) moves to Vault",
@@ -42,7 +42,7 @@ HESTAI_MCP::[
     "Legacy system stays intact for outcome-quality A/B comparison until new system proven"
   ],
   NOT_BEING_ABSORBED::"ADR-0353 resolved: hestai-mcp is NOT being absorbed into the Workbench. Governance engine logic has been harvested into the NEW repo (hestai-context-mcp, Phase 1 complete 2026-04-17). Legacy stays for comparison.",
-  EVIDENCE::"1033 tests, v2.1.0, maintenance mode. Proven patterns inform the harvest.",
+  EVIDENCE::"1033 tests, v1.2.0, maintenance mode. Proven patterns inform the harvest.",
   DECISIONS_LOCKED::[
     "DEPRECATION_CRITERION::A/B cutover via Workbench. Same agent role + same real task; run once with legacy backend, run once with hestai-context-mcp backend; measure judged agent output quality + total session token cost. Repeat across N tasks. Whichever wins consistently triggers swift cutover. DECIDED 2026-04-20.",
     "PYPI_PLAN::Internal-first. Build, prove via A/B internally, then publish externally only after the new system wins consistently. Not publishing early. DECIDED 2026-04-20.",
@@ -135,7 +135,7 @@ OCTAVE_STATUS::[
   NEXT::"Standalone community adoption. No governance dependencies."
 ]
 HESTAI_MCP_LEGACY_STATUS::[
-  STATUS::"operational, v2.1.0, 1033 tests, maintenance mode",
+  STATUS::"operational, v1.2.0, 1033 tests, maintenance mode",
   DISPOSITION::"Stays for outcome-quality A/B comparison via Workbench (DECIDED 2026-04-20). Cutover when new system wins consistently across N tasks on judged output quality + total session token cost. Worktree pattern confirmed (Workbench + worktrees, same as legacy workflow). PyPI publication for hestai-context-mcp is internal-first — publish externally only after A/B proves the system."
 ]
 §8::KEY_PRINCIPLES

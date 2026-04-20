@@ -79,22 +79,13 @@ HESTAI_CONTEXT_MCP::[
   PHANTOMS_NOT_GAPS::["ContextSteward and dynamic phase constraints (core/context_steward.py:36-184 + tests) — implemented","Focus conflict detection (core/session.py:91-128 + 4 behavioural tests) — implemented"],
   KEY_FACT::"Harvested from hestai-mcp (clock_in harvested, clock_out redesigned with provider adapter pattern). Owns clock_in, clock_out, get_context, submit_review, ContextSteward, RedactionEngine. Stdio MCP transport. Legacy hestai-mcp stays intact for outcome-quality A/B comparison."
 ]
-HESTAI_MCP_LEGACY::[
-  VERSION::"2.1.0",
-  PHASE::B1_FOUNDATION,
-  HEALTH::FUNCTIONAL,
-  TESTS::"1033 passing, maintenance mode",
-  TOOLS::[
-    clock_in,
-    clock_out,
-    bind,
-    submit_review,
-    submit_rccafp_record
-  ],
-  STATUS::legacy_stays_for_AB_comparison,
-  DEPRECATION_CRITERION::"DECIDED 2026-04-20 — A/B cutover via Workbench. Same agent role + same real task; run once with legacy backend, run once with hestai-context-mcp backend; measure judged agent output quality + total session token cost. Repeat across N tasks. Whichever wins consistently triggers swift cutover.",
-  KEY_FACT::"NOT being absorbed. Governance engine logic harvested into hestai-context-mcp (Phase 1 complete 2026-04-17). Legacy stays for outcome-quality A/B comparison."
-]
+HESTAI_MCP_LEGACY::[VERSION::"1.2.0",PHASE::B1_FOUNDATION,HEALTH::FUNCTIONAL,TESTS::"1033 passing, maintenance mode",TOOLS::[
+  clock_in,
+  clock_out,
+  bind,
+  submit_review,
+  submit_rccafp_record
+],STATUS::legacy_stays_for_AB_comparison,DEPRECATION_CRITERION::"DECIDED 2026-04-20 — A/B cutover via Workbench. Same agent role + same real task; run once with legacy backend, run once with hestai-context-mcp backend; measure judged agent output quality + total session token cost. Repeat across N tasks. Whichever wins consistently triggers swift cutover.",KEY_FACT::"NOT being absorbed. Governance engine logic harvested into hestai-context-mcp (Phase 1 complete 2026-04-17). Legacy stays for outcome-quality A/B comparison."]
 ODYSSEAN_ANCHOR_MCP::[
   VERSION::"0.1.1",
   PHASE::ALPHA,
