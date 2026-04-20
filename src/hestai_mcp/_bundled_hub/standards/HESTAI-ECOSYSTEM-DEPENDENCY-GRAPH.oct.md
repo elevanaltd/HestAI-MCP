@@ -1,11 +1,11 @@
 ===DEPENDENCY_GRAPH===
 META:
   TYPE::ECOSYSTEM_DEPENDENCY_GRAPH
-  VERSION::"4.0"
+  VERSION::"4.2"
   STATUS::TARGET
   PURPOSE::"Cross-system build sequence, blocking relationships, and phase alignment"
   CREATED::"2026-02-22"
-  REVISED::"2026-04-09"
+  REVISED::"2026-04-20"
   FORMAT::octave
   RESOLVES::"#265 (Cross-repo ecosystem dependency graph)"
   SUPPLEMENTS::HESTAI-ECOSYSTEM-OVERVIEW.oct.md
@@ -62,25 +62,30 @@ VAULT::[
   KEY_FACT::"Git-backed, immutable at runtime. Workbench reads directly. Glass Agent Editor provides CRUD with auto-commit."
 ]
 HESTAI_CONTEXT_MCP::[
-  STATUS::"ADR-0353 accepted. Interface contract done. Feature-parity matrix done.",
-  REPO::"elevanaltd/hestai-context-mcp (NEW, not yet created)",
-  KEY_FACT::"Will be harvested from hestai-mcp. Owns clock_in, clock_out, ContextSteward, RedactionEngine, submit_review, submit_rccafp_record, submit_friction_record. Stdio MCP transport."
-]
-HESTAI_MCP_LEGACY::[
-  VERSION::pre-release,
-  PHASE::B1_FOUNDATION,
+  STATUS::"Phase 1 COMPLETE — elevanaltd/hestai-context-mcp repo created and shipped 2026-04-17. 4 MCP tools operational (clock_in, clock_out, get_context, submit_review). TranscriptParser ABC + ClaudeTranscriptParser adapter. ADR-0353 accepted. Interface contract done.",
+  REPO::"elevanaltd/hestai-context-mcp (IMPLEMENTED)",
+  VERSION::"1.0.0",
+  PHASE::B1_FOUNDATION_COMPLETE,
   HEALTH::FUNCTIONAL,
-  TESTS::"930 passing, 92 percent coverage",
+  TESTS::"361 passing, 89 percent coverage",
   TOOLS::[
     clock_in,
     clock_out,
-    bind,
-    submit_review,
-    submit_rccafp_record
+    get_context,
+    submit_review
   ],
-  STATUS::legacy_stays_for_AB_comparison,
-  KEY_FACT::"NOT being absorbed. Governance engine logic harvested into hestai-context-mcp. Legacy stays for A/B comparison."
+  PRE_AB_WORK::"Phase 1.5 integration-viability gaps tracked in elevanaltd/hestai-context-mcp issues #4 (P0a ai_synthesis field + phase normalisation), #5 (P0b AIClient port), #6 (P1 North Star structured constraint extraction), #7 (P-side conflicts field). Required so the Payload Compiler can read both backends' responses. NOT structural-parity work — outcome-quality A/B is the goal.",
+  AI_SYNTHESIS_FRAMING::"Legacy has working AI synthesis when configured; new repo currently lacks the path entirely (covered by P0b/issue #5). Without API keys, both produce structured non-AI output.",
+  PHANTOMS_NOT_GAPS::["ContextSteward and dynamic phase constraints (core/context_steward.py:36-184 + tests) — implemented","Focus conflict detection (core/session.py:91-128 + 4 behavioural tests) — implemented"],
+  KEY_FACT::"Harvested from hestai-mcp (clock_in harvested, clock_out redesigned with provider adapter pattern). Owns clock_in, clock_out, get_context, submit_review, ContextSteward, RedactionEngine. Stdio MCP transport. Legacy hestai-mcp stays intact for outcome-quality A/B comparison."
 ]
+HESTAI_MCP_LEGACY::[VERSION::"1.2.0",PHASE::B1_FOUNDATION,HEALTH::FUNCTIONAL,TESTS::"1033 passing, maintenance mode",TOOLS::[
+  clock_in,
+  clock_out,
+  bind,
+  submit_review,
+  submit_rccafp_record
+],STATUS::legacy_stays_for_AB_comparison,DEPRECATION_CRITERION::"DECIDED 2026-04-20 — A/B cutover via Workbench. Same agent role + same real task; run once with legacy backend, run once with hestai-context-mcp backend; measure judged agent output quality + total session token cost. Repeat across N tasks. Whichever wins consistently triggers swift cutover.",KEY_FACT::"NOT being absorbed. Governance engine logic harvested into hestai-context-mcp (Phase 1 complete 2026-04-17). Legacy stays for outcome-quality A/B comparison."]
 ODYSSEAN_ANCHOR_MCP::[
   VERSION::"0.1.1",
   PHASE::ALPHA,
@@ -110,8 +115,20 @@ ARROWS::[
 LAYER_0::"FOUNDATION — octave-mcp: SOLID, v1.9.6, production. ACTION: Update deps when releases happen. No structural changes needed."
 LAYER_1::"DELIBERATION — debate-hall-mcp: SOLID, v0.5.0, production, 17 tools. ACTION: Continue independently. Issue 163 (Governance Hall)."
 LAYER_2::"IDENTITY — Vault: POPULATED, git-backed. ACTION: Populate as Payload Compiler demands content."
-LAYER_3::"CONTEXT — hestai-context-mcp: PLANNED, ADR-0353 accepted. ACTION: Phase 1 harvest from hestai-mcp."
+LAYER_3::"CONTEXT — hestai-context-mcp: Phase 1 COMPLETE (2026-04-17). 4 tools operational, 361 tests, 89 percent coverage. ACTION: Phase 1.5 Pre-A/B Work (issues #4 P0a, #5 P0b, #6 P1, #7 P-side) closes integration-viability gaps so the Payload Compiler can read both backends' responses. Then Phase 2 — workbench Payload Compiler integration via stdio at KVAEPH Position 3 (blocked on workbench Step 3B Phase 2). Framing: outcome-quality A/B, NOT structural-parity A/B — backends are allowed to differ; that difference is the variable being tested."
 LAYER_4::"DISPATCH — hestai-workbench: 3A-PREP COMPLETE. ACTION: Build Payload Compiler (Step 3A), then dispatch_colleague (Step 3B)."
+§3b::PRE_AB_WORK_FOR_HESTAI_CONTEXT_MCP
+PURPOSE::"Phase 1.5 integration-viability gaps that block meaningful outcome-quality A/B testing"
+FRAMING::"Outcome-quality A/B (judged agent output + token cost), NOT structural-parity A/B. Systems are explicitly allowed to differ in actual content; that difference is the variable being tested. Parity work is limited to what the Payload Compiler needs to read both backends' responses."
+ITEMS::[
+  "P0a::issue#4 — add ai_synthesis field with fallback OCTAVE; normalise phase string to legacy's full format",
+  "P0b::issue#5 — port AIClient + synthesize_fast_layer_with_ai from legacy src/hestai_mcp/modules/services/ai/",
+  "P1::issue#6 — harvest _extract_north_star_constraints (legacy clock_in.py:525-583); tests must exercise real Vault North Star format",
+  "P-side::issue#7 — surface distinct conflicts field rather than only active_sessions"
+]
+PHANTOMS_NOT_GAPS::["ContextSteward and dynamic phase constraints (core/context_steward.py:36-184 + tests) — implemented","Focus conflict detection (core/session.py:91-128 + 4 behavioural tests) — implemented"]
+ISSUE_TRACKER::"elevanaltd/hestai-context-mcp issues #4, #5, #6, #7"
+DECIDED::"2026-04-20"
 §4::SEQUENCED_BUILD_ORDER
 STEP_3A::[
   WHAT::"Payload Compiler in workbench",
@@ -142,17 +159,32 @@ STEP_4::[
   WORKBENCH_ISSUE::"#98"
 ]
 HARVEST_PHASE_1::[
-  WHAT::"Create hestai-context-mcp repo and harvest clock_in",
-  RATIONALE::"New repo (elevanaltd/hestai-context-mcp). Harvest clock_in logic from hestai-mcp. Redesign clock_out with TDD (ClaudeJsonlLens is broken, needs provider adapter pattern). Build get_context. Legacy hestai-mcp stays intact for A/B comparison.",
-  EFFORT::"medium — new repo setup, clock_in harvest, clock_out redesign, get_context",
+  WHAT::"Create hestai-context-mcp repo and harvest clock_in — DONE 2026-04-17",
+  STATUS::COMPLETE,
+  RATIONALE::"New repo (elevanaltd/hestai-context-mcp) created. clock_in harvested from hestai-mcp. clock_out REDESIGNED with provider adapter pattern (TranscriptParser ABC + ClaudeTranscriptParser) rather than harvested as-is. get_context built. Legacy hestai-mcp stays intact for A/B comparison. Delivered: 4 tools, 361 tests, 89% coverage in 8 days — validates EA10.",
+  EVIDENCE::"~20 commits, 4 PRs merged. git log verified 2026-04-17.",
+  PARALLEL_WITH::STEP_3A,
+  BLOCKS::[HARVEST_PHASE_1_5]
+]
+HARVEST_PHASE_1_5::[
+  WHAT::"Pre-A/B integration-viability work in hestai-context-mcp",
+  STATUS::"PLANNED — issues #4, #5, #6, #7 created 2026-04-20",
+  RATIONALE::"Close integration-viability gaps (ai_synthesis field, AIClient port, North Star constraint extraction, conflicts field) so the Payload Compiler can read both backends' responses and the outcome-quality A/B test becomes meaningful. NOT structural parity — backends are allowed to differ in content.",
+  EFFORT::"small-to-medium — 4 issues, mostly harvest from legacy",
   PARALLEL_WITH::STEP_3A,
   BLOCKS::[HARVEST_PHASE_2]
 ]
 HARVEST_PHASE_2::[
-  WHAT::"Workbench Payload Compiler calls hestai-context-mcp for Position 3",
-  RATIONALE::"Thin stdio MCP client in Payload Compiler. Spawn python -m hestai_context_mcp via stdio. Inject clock_in output at KVAEPH Position 3.",
+  WHAT::"Workbench Payload Compiler calls hestai-context-mcp for Position 3 — NEXT",
+  STATUS::PENDING,
+  RATIONALE::"Thin stdio MCP client in Payload Compiler. Spawn python -m hestai_context_mcp via stdio. Inject clock_in output at KVAEPH Position 3. BLOCKED on workbench Step 3B Phase 2 completion AND hestai-context-mcp Phase 1.5 Pre-A/B Work.",
   EFFORT::"small — stdio MCP client (~30 lines), integration",
-  PREREQ::[STEP_3A,HARVEST_PHASE_1]
+  PREREQ::[
+    STEP_3A,
+    HARVEST_PHASE_1,
+    HARVEST_PHASE_1_5,
+    WORKBENCH_STEP_3B_PHASE_2
+  ]
 ]
 HARVEST_PHASE_3::[
   WHAT::"Unify North Star injection",
@@ -174,13 +206,17 @@ GLASS_UI::[
 ]
 PAL_DECOMMISSION::[
   WHAT::"PAL decommission + legacy deprecation",
-  RATIONALE::"After workbench fully replaces all PAL dispatch capabilities. hestai-mcp deprecated (not archived) after new system proven in daily use.",
+  RATIONALE::"After workbench fully replaces all PAL dispatch capabilities. hestai-mcp deprecated (not archived) after outcome-quality A/B proves new system wins consistently across N tasks.",
   EFFORT::"small — decommission and deprecation",
-  PREREQ::[STEP_3B,HARVEST_PHASE_2]
+  PREREQ::[
+    STEP_3B,
+    HARVEST_PHASE_2,
+    AB_TEST_VICTORY
+  ]
 ]
 §5::CRITICAL_PATH
-CRITICAL_PATH::"STEP_3A (Payload Compiler) then STEP_3B (dispatch_colleague) then STEP_4 (Testing Lab). In parallel: HARVEST_PHASE_1 (hestai-context-mcp) feeds into HARVEST_PHASE_2 which integrates with STEP_3A."
-EXPLANATION::"All 3A prerequisites are met. The Payload Compiler is the next build step. It unlocks dispatch_colleague (3B) which unlocks empirical testing (4). The harvest of hestai-context-mcp runs in parallel — Phase 1 creates the repo, Phase 2 wires it into the Payload Compiler at Position 3."
+CRITICAL_PATH::"STEP_3A (Payload Compiler) then STEP_3B (dispatch_colleague) then STEP_4 (Testing Lab). In parallel: HARVEST_PHASE_1 (hestai-context-mcp) then HARVEST_PHASE_1_5 (Pre-A/B integration viability) feeds into HARVEST_PHASE_2 which integrates with STEP_3A."
+EXPLANATION::"All 3A prerequisites are met. The Payload Compiler is the next build step. It unlocks dispatch_colleague (3B) which unlocks empirical testing (4). The harvest of hestai-context-mcp runs in parallel — Phase 1 created the repo, Phase 1.5 closes integration-viability gaps (issues #4/#5/#6/#7), Phase 2 wires it into the Payload Compiler at Position 3."
 VISUAL::[
   "  octave-mcp (solid)          debate-hall (solid, own pace)",
   "       |                            |",
@@ -191,6 +227,10 @@ VISUAL::[
   "  STEP 3B:    HARVEST Phase 1       |",
   "  dispatch     (hestai-context-mcp) |",
   "  _colleague        |               |",
+  "       |       HARVEST Phase 1.5    |",
+  "       |       (Pre-A/B issues      |",
+  "       |        #4 #5 #6 #7)        |",
+  "       |            |               |",
   "       |       HARVEST Phase 2      |",
   "       |       (wire into 3A)       |",
   "       |            |               |",
@@ -223,8 +263,8 @@ DECISION_2::[
 ]
 DECISION_3::[
   QUESTION::"What happens to hestai-mcp?",
-  STATUS::"RESOLVED by ADR-0353",
-  ANSWER::"Legacy stays for A/B comparison. Governance engine logic harvested into hestai-context-mcp. Library content (_bundled_hub) moves to Vault. NOT being absorbed into Workbench. Deprecated only after new system proven."
+  STATUS::"RESOLVED by ADR-0353; deprecation criterion DECIDED 2026-04-20",
+  ANSWER::"Legacy stays for outcome-quality A/B comparison via Workbench. Same agent role + same real task: run once with legacy backend, run once with hestai-context-mcp backend; measure judged agent output quality + total session token cost. Repeat across N tasks. Whichever wins consistently triggers swift cutover. Governance engine logic harvested into hestai-context-mcp. Library content (_bundled_hub) moves to Vault. NOT being absorbed into Workbench. Worktree pattern confirmed (Workbench + worktrees, same as legacy workflow). PyPI publication is internal-first — publish externally only after A/B proves the system."
 ]
 DECISION_4::[
   QUESTION::"Does the on-disk structure change?",
@@ -255,9 +295,13 @@ ISSUES::[
   "workbench#111 (git status fixes)::DONE_PR_111",
   "workbench#112 (IL coverage gap)::DONE_PR_112",
   "debate-hall#163 (governance hall)::TRACK_B parallel",
+  "hestai-context-mcp#4 (P0a ai_synthesis + phase normalisation)::HARVEST_PHASE_1_5",
+  "hestai-context-mcp#5 (P0b AIClient port)::HARVEST_PHASE_1_5",
+  "hestai-context-mcp#6 (P1 North Star structured constraint extraction)::HARVEST_PHASE_1_5",
+  "hestai-context-mcp#7 (P-side conflicts field)::HARVEST_PHASE_1_5",
   "Project 15 (Ecosystem Build Order)::this_graph full_coordination"
 ]
 §8::OPERATOR_INSIGHT
-DIRECTION::"Three-Service Model (ADR-0353) reflects the resolved architecture: Workbench compiles and dispatches (Eyes and Hands), Vault stores identity (DNA), hestai-context-mcp manages session lifecycle and context (Memory and Environment). The critical path is: build the Payload Compiler (Step 3A, all prerequisites met), then dispatch_colleague (3B), then Testing Lab (4). In parallel, harvest hestai-context-mcp from the proven hestai-mcp codebase."
+DIRECTION::"Three-Service Model (ADR-0353) reflects the resolved architecture: Workbench compiles and dispatches (Eyes and Hands), Vault stores identity (DNA), hestai-context-mcp manages session lifecycle and context (Memory and Environment). The critical path is: build the Payload Compiler (Step 3A, all prerequisites met), then dispatch_colleague (3B), then Testing Lab (4). In parallel, harvest hestai-context-mcp from the proven hestai-mcp codebase, then close Phase 1.5 Pre-A/B integration-viability gaps (issues #4/#5/#6/#7)."
 ANTI_PATTERN::"Building governance logic into the Workbench. Governance belongs in hestai-context-mcp (proven Python, stdio transport, survives rebuilds). The Workbench is volatile — it will be rebuilt. Keep it thin: compile, dispatch, display."
 ===END===

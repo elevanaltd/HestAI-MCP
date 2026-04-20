@@ -1,12 +1,12 @@
 ===HESTAI_ECOSYSTEM_OVERVIEW===
 META:
   TYPE::ECOSYSTEM_MAP
-  VERSION::"4.0"
+  VERSION::"4.2"
   STATUS::TARGET
   PURPOSE::"How every system in the HestAI ecosystem connects and what each owns"
   CANONICAL::"src/hestai_mcp/_bundled_hub/standards/HESTAI-ECOSYSTEM-OVERVIEW.oct.md"
   CREATED::"2026-02-18"
-  REVISED::"2026-04-09"
+  REVISED::"2026-04-20"
   FORMAT::octave
   ARCHITECTURE::"THREE_SERVICE_MODEL<ADR-0353>"
 §0::ARCHITECTURE_NOTE
@@ -18,7 +18,7 @@ CLEAN_BREAK_RATIONALE::[
   "Governance logic (1500+ lines proven Python, 92% coverage) must survive Workbench rebuild",
   "Stdio MCP transport is the Git/VS Code pattern — zero network ports, zero daemon lifecycle",
   "Terminal parity is automatic — any CLI gets identical governance via one MCP config entry",
-  "Harvest not rewrite — legacy stays intact for A/B comparison"
+  "Harvest not rewrite — legacy stays intact for outcome-quality A/B comparison"
 ]
 §1::WHAT_THIS_IS
 HESTAI::"Design-and-build system for AI-assisted software development with installed operating discipline"
@@ -27,22 +27,27 @@ ECOSYSTEM::"Three services plus two standalone MCP servers that together provide
 §2::THE_THREE_SERVICES
 SYSTEM_1::"HESTAI_WORKBENCH[REPO::elevanaltd/hestai-workbench, ROLE::The Eyes and Hands, OWNS::[payload_compiler(KVAEPH), alley_oop_pattern, agent_registry, stratified_conditioning(baseline+reliability), multi_cli_dispatch, api_dispatch, session_management(worktrees+terminals), governance_chat_ui, system_dashboard, dispatch_chain_visibility, precedence_locked_materialized_resolver(matrix_defaults+matrix_overrides+v_resolved_matrix)], ARCHITECTURE::Payload Compiler (reads Vault + calls hestai-context-mcp) + Glass (React frontend) + Dispatch Service (CLI + API), KEY_PROPERTY::HIGH volatility. Planned Crystal-to-TypeScript rebuild. Governance logic survives in hestai-context-mcp untouched. Only ~30-line stdio MCP client adapter needs rewriting., DEPENDS_ON::[vault(identity reads), hestai-context-mcp(Position 3 context via stdio), debate-hall-mcp(deliberation calls), octave-mcp(format validation)]]"
 SYSTEM_2::"VAULT[LOCATION::~/.hestai-workbench/library/(git-backed+configurable_via_LIBRARY_ROOT), ROLE::The DNA, OWNS::[v9_agent_definitions, v9_skills_with_anchor_kernels, cognitions(ETHOS+PATHOS+LOGOS), standards(System_Standard+naming+visibility), patterns], KEY_PROPERTY::ZERO volatility. Git-backed, immutable at runtime. Workbench reads directly and compiles system prompts with no filesystem intermediate. Glass Agent Editor provides CRUD with auto-commit on save., DATA::[starter-library in Workbench resources/ for first-run bootstrap, agent definitions (~50 lines each blank-slate V9), 16 V9 skills with S5 ANCHOR_KERNEL sections]]"
-SYSTEM_3::"HESTAI_CONTEXT_MCP[REPO::elevanaltd/hestai-context-mcp(NEW-harvested_from_hestai-mcp), ROLE::The Memory and Environment, OWNS::[clock_in(session_creation+focus_resolution+AI_context_synthesis+conflict_detection), clock_out(transcript_parsing+credential_redaction+OCTAVE_compression+learnings_indexing), ContextSteward(dynamic_PhaseConstraints), submit_review(structured_review_verdicts+CI_gate+8_roles+dry_run+SHA_pinning), submit_rccafp_record(error_recovery+root_cause_analysis), submit_friction_record(F2D_governance_feedback), product_north_star_injection(KVAEPH_Position_3), dotHestai_state_management], KEY_PROPERTY::LOW volatility. Proven Python, 92% coverage. Stdio MCP transport (subprocess not daemon). Survives Workbench rebuilds untouched. Terminal parity automatic., TRANSPORT::stdio_JSON_RPC, DEPENDS_ON::[nothing_at_runtime]]"
+SYSTEM_3::"HESTAI_CONTEXT_MCP[REPO::\"elevanaltd/hestai-context-mcp (IMPLEMENTED — Phase 1 complete 2026-04-17; Phase 1.5 Pre-A/B Work planned)\", ROLE::The Memory and Environment, OWNS::[clock_in(session_creation+focus_resolution+focus_conflict_detection+ai_synthesis_path_pending_P0b), clock_out(TranscriptParser_ABC+ClaudeTranscriptParser_adapter+credential_redaction+OCTAVE_compression+learnings_indexing), get_context(read_only_context_synthesis), ContextSteward(dynamic_PhaseConstraints+implemented), submit_review(structured_review_verdicts+CI_gate+8_roles+dry_run+SHA_pinning), dotHestai_state_management, product_north_star_injection_planned_phase_3], TRANSPORT::stdio_JSON_RPC, DEPENDS_ON::[nothing_at_runtime], TESTS::\"361 passing, 89 percent coverage\", KEY_PROPERTY::\"LOW volatility. Python codebase, 361 tests, 89 percent coverage at Phase 1 close. Stdio MCP transport (subprocess not daemon). Survives Workbench rebuilds untouched. Terminal parity automatic.\", ADAPTER_PATTERN::\"clock_out redesigned with TranscriptParser ABC. ClaudeTranscriptParser implemented. Codex/Gemini/Goose adapters pending Phase 2+.\", PRE_AB_WORK::\"Phase 1.5 integration-viability gaps tracked in elevanaltd/hestai-context-mcp issues #4 (P0a ai_synthesis field + phase normalisation), #5 (P0b AIClient port), #6 (P1 North Star structured constraint extraction), #7 (P-side conflicts field). Required so the Payload Compiler can read both backends' responses. Outcome-quality A/B is the goal — backends are explicitly allowed to differ in actual content.\", AI_SYNTHESIS_FRAMING::\"Legacy has working AI synthesis when configured; new repo currently lacks the path entirely (covered by P0b/issue #5). Without API keys, both produce structured non-AI output.\", PHANTOMS_NOT_GAPS::[\"ContextSteward + dynamic phase constraints (core/context_steward.py:36-184 + tests) — implemented\",\"Focus conflict detection (core/session.py:91-128 + 4 behavioural tests) — implemented\"]]"
 STANDALONE_1::"DEBATE_HALL_MCP[REPO::elevanaltd/debate-hall-mcp, ROLE::The Deliberation Chamber, VERSION::0.5.0, OWNS::[wind_wall_door_debates, governance_operations, decision_records, hash_chain_integrity, RACI_mode, consult_convene], TOOLS::17, KEY_PROPERTY::Standalone deliberation (P6). Works without HestAI for non-governance users. Persistent transcripts with hash-chain integrity., DEPENDS_ON::[octave-mcp]]"
 STANDALONE_2::"OCTAVE_MCP[REPO::elevanaltd/octave-mcp, ROLE::The Language, VERSION::1.9.6, OWNS::[octave_format_spec, validation, generation, compression, grammar_compilation], KEY_PROPERTY::Pure protocol. Zero dependencies on governance. Maximum community adoption potential. 54-68 percent token reduction., DEPENDS_ON::[nothing]]"
 §3::LEGACY_SYSTEMS
 HESTAI_MCP::[
-  STATUS::legacy_stays_for_AB_comparison,
+  STATUS::legacy_maintenance_mode_v1.2.0_1033_tests,
   REPO::"elevanaltd/HestAI-MCP",
   DISPOSITION::[
     "Library content (_bundled_hub: agents, skills, standards, cognitions) moves to Vault",
     ".hestai-sys/ injection mechanism moves to Vault/Workbench",
-    "clock_in, clock_out, ContextSteward, RedactionEngine, submit_review, submit_rccafp_record harvested into hestai-context-mcp",
+    "clock_in, clock_out, ContextSteward, RedactionEngine, submit_review harvested into hestai-context-mcp (Phase 1 complete 2026-04-17)",
     "bind tool replaced by Alley-Oop for headless dispatch",
-    "Legacy system stays intact for A/B comparison until new system proven"
+    "Legacy system stays intact for outcome-quality A/B comparison until new system proven"
   ],
-  NOT_BEING_ABSORBED::"ADR-0353 resolved: hestai-mcp is NOT being absorbed into the Workbench. Governance engine logic is harvested into a NEW repo (hestai-context-mcp). Legacy stays for comparison.",
-  EVIDENCE::"930 tests, 92 percent coverage. Proven patterns inform the harvest."
+  NOT_BEING_ABSORBED::"ADR-0353 resolved: hestai-mcp is NOT being absorbed into the Workbench. Governance engine logic has been harvested into the NEW repo (hestai-context-mcp, Phase 1 complete 2026-04-17). Legacy stays for comparison.",
+  EVIDENCE::"1033 tests, v1.2.0, maintenance mode. Proven patterns inform the harvest.",
+  DECISIONS_LOCKED::[
+    "DEPRECATION_CRITERION::A/B cutover via Workbench. Same agent role + same real task; run once with legacy backend, run once with hestai-context-mcp backend; measure judged agent output quality + total session token cost. Repeat across N tasks. Whichever wins consistently triggers swift cutover. DECIDED 2026-04-20.",
+    "PYPI_PLAN::Internal-first. Build, prove via A/B internally, then publish externally only after the new system wins consistently. Not publishing early. DECIDED 2026-04-20.",
+    "WORKTREE_PATTERN::Confirmed — Workbench + worktrees, same as the current hestai-mcp workflow. DECIDED 2026-04-20."
+  ]
 ]
 ODYSSEAN_ANCHOR_MCP::[
   STATUS::legacy_for_claude_with_mcp_sessions,
@@ -114,8 +119,12 @@ VAULT_STATUS::[
   NEXT::"Populate as Payload Compiler demands content. Glass Agent Editor provides CRUD."
 ]
 HESTAI_CONTEXT_MCP_STATUS::[
-  STATUS::"ADR-0353 accepted. Interface contract done. Feature-parity matrix done.",
-  NEXT::"Phase 1: Create repo (elevanaltd/hestai-context-mcp). Harvest clock_in. Redesign clock_out with TDD. Build get_context. Legacy hestai-mcp stays intact."
+  STATUS::"Phase 1 COMPLETE (2026-04-17). elevanaltd/hestai-context-mcp repo shipped: 4 tools (clock_in, clock_out, get_context, submit_review), 361 tests, 89 percent coverage, all quality gates green.",
+  ADAPTER_PATTERN::"clock_out redesigned with TranscriptParser ABC + ClaudeTranscriptParser (Claude adapter implemented; Codex/Gemini/Goose adapters pending).",
+  AI_SYNTHESIS_FRAMING::"Legacy has working AI synthesis when configured; new repo currently lacks the path entirely (covered by Pre-A/B Work P0b — issue #5). Without API keys, both produce structured non-AI output.",
+  PRE_AB_WORK::"Phase 1.5 integration-viability gaps tracked in elevanaltd/hestai-context-mcp issues #4 (P0a ai_synthesis field + phase normalisation), #5 (P0b AIClient port), #6 (P1 North Star structured constraint extraction), #7 (P-side conflicts field). Required before outcome-quality A/B test against legacy is meaningful — the Payload Compiler must be able to read both backends' responses. Backends are explicitly allowed to differ in actual content.",
+  PHANTOMS_NOT_GAPS::["ContextSteward + dynamic phase constraints (core/context_steward.py:36-184 + tests) — implemented","Focus conflict detection (core/session.py:91-128 + 4 behavioural tests) — implemented"],
+  NEXT::"Phase 1.5 Pre-A/B Work (issues #4/#5/#6/#7), then Phase 2 — workbench Payload Compiler integration via stdio at KVAEPH Position 3. BLOCKED on workbench Step 3B Phase 2 completion."
 ]
 DEBATE_HALL_STATUS::[
   STATUS::"operational, v0.5.0, 17 tools",
@@ -126,8 +135,8 @@ OCTAVE_STATUS::[
   NEXT::"Standalone community adoption. No governance dependencies."
 ]
 HESTAI_MCP_LEGACY_STATUS::[
-  STATUS::"operational, 930 tests, 92 percent coverage",
-  DISPOSITION::"Stays for A/B comparison. Eventually deprecated after new system proven."
+  STATUS::"operational, v1.2.0, 1033 tests, maintenance mode",
+  DISPOSITION::"Stays for outcome-quality A/B comparison via Workbench (DECIDED 2026-04-20). Cutover when new system wins consistently across N tasks on judged output quality + total session token cost. Worktree pattern confirmed (Workbench + worktrees, same as legacy workflow). PyPI publication for hestai-context-mcp is internal-first — publish externally only after A/B proves the system."
 ]
 §8::KEY_PRINCIPLES
 P1::"The Workbench is the Eyes and Hands. It compiles and dispatches. It does NOT own governance state or agent identity."
@@ -137,6 +146,6 @@ P4::"OCTAVE is the universal format. All systems read and write it."
 P5::"The Workbench is the only GUI. debate-hall, octave-mcp, and hestai-context-mcp are headless."
 P6::"Deliberation is standalone. debate-hall-mcp works without HestAI for non-governance users."
 P7::"On-disk structure (.hestai-sys/, .hestai/, .hestai/state/) persists. Writer changes, format does not."
-P8::"Harvest not rewrite. Legacy stays intact for A/B comparison. Deprecation only after new system proven."
+P8::"Harvest not rewrite. Legacy stays intact for outcome-quality A/B comparison. Deprecation only after the new system wins consistently across N tasks."
 P9::"Rebuild survival is structural. Governance in hestai-context-mcp survives Workbench rebuilds. Only ~30-line stdio adapter rewrites."
 ===END===
