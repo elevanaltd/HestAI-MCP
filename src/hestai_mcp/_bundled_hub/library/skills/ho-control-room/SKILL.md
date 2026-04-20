@@ -3,13 +3,13 @@ name: ho-control-room
 description: Strategic oversight mode for the Holistic Orchestrator. Episodic State Machine pattern with ho-liaison advisory (via pal_clink), run_debate escalation, and oa-router delegation. REPLACES holistic-orchestration when loaded.
 allowed-tools: [Task, TodoWrite, AskUserQuestion, Read, Grep, Glob, Write, Edit, mcp__pal__clink, mcp__pal__chat, Skill, mcp__debate-hall__*]
 triggers: [control room, strategic oversight, high-level orchestration, episodic loop, advisory session, ho-strategic-ledger]
-version: 1.0
+version: 1.2
 ---
 
 ===HO_CONTROL_ROOM===
 META:
   TYPE::SKILL
-  VERSION::"1.0"
+  VERSION::"1.2"
   STATUS::ACTIVE
   COMPRESSION_TIER::AGGRESSIVE
   LOSS_PROFILE::"drop_nuance_and_narrative_preserve_core_thesis_and_protocol"
@@ -78,20 +78,39 @@ LEDGER:
   ]
 
 CONTEXT_MAINTENANCE:
-  RULE::"All .hestai/state/context/*.oct.md files MUST be authored by octave-secretary. HO never writes context files directly."
+  // REFS::[ADR-0033_Dual_Layer_Context, ADR-0046_Velocity_Layered_Fragments, ADR-0056_Fast_Layer_Lifecycle, ADR-0353_Three_Service_Model]
+  RULE::"Three-tier velocity model per ADR-0046:
+    SLOW[.hestai/workflow/]::human_only,
+    MEDIUM[.hestai/state/context/*.oct.md]::octave-secretary_only,
+    FAST[.hestai/state/context/state/*.oct.md]::session_lifecycle_tools_only[clock_in_populate∧clock_out_update∧clock_out_persist_blockers],
+    HO_writes_NONE"
   TRIGGER::[
-    "After PR merge",
-    "After triage completion",
-    "After strategic directive ratification",
-    "Session close (via clock_out→octave-secretary): Context deltas are passed to octave-secretary, NOT written directly by HO"
+    "After PR merge→MEDIUM delta→delegate octave-secretary",
+    "After triage completion→MEDIUM delta→delegate octave-secretary",
+    "After strategic directive ratification→MEDIUM delta→delegate octave-secretary",
+    "Session close (via clock_out→octave-secretary): MEDIUM context deltas are passed to octave-secretary, NOT written directly by HO",
+    "FAST tier updates are NEVER triggered by HO — they are owned by the session-lifecycle tools (clock_in populates on start; clock_out updates checklist and persists carry-forward blockers on end)"
   ]
-  DISPATCH::"octave-secretary via oa-router with schema-context-archival pattern"
+  DISPATCH::"MEDIUM→octave-secretary via oa-router with schema-context-archival pattern; FAST→clock_in(populate)∧clock_out(update/persist) (no HO dispatch possible)"
 
 DIRECT_WRITE_ALLOWED:
+  // REFS::[ADR-0033, ADR-0046, ADR-0056, ADR-0353_§Document_Contradiction_Resolution_path_layout_unchanged]
   ledger::.hestai/state/sessions/control-room-ledger.oct.md
   coordination::[".hestai/state/sessions/**/*", ".hestai/state/checklist/**/*"]
-  context_files_BLOCKED::".hestai/state/context/*.oct.md→octave-secretary_via_oa-router"
+  medium_context_BLOCKED::".hestai/state/context/*.oct.md→octave-secretary_via_oa-router"
+  fast_context_BLOCKED::".hestai/state/context/state/*.oct.md→owned_by_session_lifecycle_tools_only[clock_in∧clock_out][NEVER_HO∧NEVER_octave-secretary]"
   project_docs::[README.md, CLAUDE.md]
+  ARTIFACT_PLACEMENT_EXAMPLES::[
+    phase_BUILD_PLAN::.hestai/state/sessions/phase-<id>/BUILD-PLAN.oct.md,
+    phase_completion_ledger::.hestai/state/sessions/phase-<id>/completion.oct.md,
+    arbitration_record::.hestai/state/sessions/<session-id>/arbitration-<n>.oct.md,
+    delegation_log::control-room-ledger.oct.md_§2_DELEGATION_LOG,
+    medium_PROJECT_CONTEXT_delta::BLOCKED→delegate_to_octave-secretary,
+    fast_current-focus_update::BLOCKED→owned_by_session_lifecycle_tools,
+    fast_checklist_update::BLOCKED→owned_by_session_lifecycle_tools,
+    fast_blockers_update::BLOCKED→owned_by_session_lifecycle_tools
+  ]
+
 
 BLOCKED_TOOLS::[NotebookEdit, MultiEdit, mcp__supabase__apply_migration, mcp__supabase__execute_sql, mcp__supabase__deploy_edge_function]
 
@@ -136,7 +155,9 @@ NEVER::[
   deep_dive_into_codebase_inline,
   waste_ho-liaison_session_on_trivial_questions,
   delegate_without_ratified_directives_and_thresholds,
-  write_context_files_directly<delegate_to_octave-secretary>
+  write_medium_context_directly<.hestai/state/context/*.oct.md→delegate_to_octave-secretary>,
+  write_fast_context_directly<.hestai/state/context/state/*.oct.md→owned_by_session_lifecycle_tools[clock_in∧clock_out]>,
+  place_phase_artifacts_in_context_zone<BUILD-PLAN∨completion_ledger∨arbitration>
 ]
 MUST::[
   checkpoint_ledger_before_returning_output_to_user,
@@ -147,7 +168,9 @@ MUST::[
   keep_first_clink_prompt_under_300_words_with_one_clear_question,
   store_continuation_id_in_ledger_after_every_pal_clink_call,
   delegate_execution_via_oa-router_with_anchor_ceremony,
-  delegate_context_file_updates_to_octave-secretary
+  delegate_medium_context_updates_to_octave-secretary<.hestai/state/context/*.oct.md>,
+  leave_fast_context_untouched<.hestai/state/context/state/*.oct.md→owned_by_session_lifecycle_tools>,
+  place_phase_artifacts_in_sessions_zone<.hestai/state/sessions/phase-<id>/>
 ]
 GATE::"Strategic decisions ratified in ledger? ho-liaison consulted? Execution delegated via oa-router? Zero HO code edits?"
 ===END===
