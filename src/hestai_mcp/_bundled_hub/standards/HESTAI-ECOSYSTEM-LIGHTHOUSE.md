@@ -1,11 +1,11 @@
 ---
 type: LIGHTHOUSE
 id: ecosystem-lighthouse
-version: 4.1
+version: 4.2
 status: ACTIVE
 purpose: Target state vision for the fully integrated HestAI ecosystem
 created: 2026-02-25
-revised: 2026-04-17
+revised: 2026-04-20
 origin: Project 15 ecosystem build order coordination
 tracking: https://github.com/orgs/elevanaltd/projects/15
 architecture: ADR-0353 Three-Service Model
@@ -14,9 +14,9 @@ architecture: ADR-0353 Three-Service Model
 
 # HESTAI ECOSYSTEM LIGHTHOUSE
 
-**Version:** 4.1
+**Version:** 4.2
 **Status:** ACTIVE
-**Revised:** 2026-04-17
+**Revised:** 2026-04-20
 
 ---
 
@@ -143,9 +143,11 @@ The ecosystem comprises three services with clear ownership boundaries (ADR-0353
 - Harvest not rewrite: clock_in harvested from hestai-mcp; clock_out redesigned; legacy hestai-mcp stays intact (1033 tests) for A/B comparison.
 - Terminal parity is automatic — any CLI tool gets identical governance by adding one MCP config entry.
 
-**Known gap — AI synthesis regression:** `clock_in` AI synthesis currently returns `null`. This is a functional regression versus the legacy hestai-mcp `clock_in` and must be resolved before any A/B parity claim is made. Tracked as a Phase 2 prerequisite.
+**Known gap — AI synthesis feature parity:** Legacy hestai-mcp has a working AI synthesis path in `clock_in` when API keys are configured; the new repo currently lacks the path entirely. Without API keys, both produce structured non-AI output. Closing this is tracked as Pre-A/B Work item P0b (issue #5) — see "Pre-A/B Work" below — and must land before the outcome-quality A/B test is meaningful.
 
-**Target state:** `pip install hestai-context-mcp` gives you session lifecycle + context synthesis + learnings + review. Works with or without the Workbench. *(OPEN QUESTION: PyPI publication plan — distribution strategy not yet decided; flagged for human input.)*
+**Target state:** `pip install hestai-context-mcp` gives you session lifecycle + context synthesis + learnings + review. Works with or without the Workbench.
+
+**PyPI publication plan (DECIDED):** Internal-first. Build, prove via A/B internally, then publish externally only after the new system wins consistently. Not publishing early.
 
 ---
 
@@ -347,7 +349,7 @@ The ecosystem is "done" when:
 
 ## SECTION 7: CURRENT DISTANCE FROM TARGET
 
-As of 2026-04-17:
+As of 2026-04-20:
 
 | System | Current State | Distance | Next Step |
 |--------|--------------|----------|-----------|
@@ -356,7 +358,7 @@ As of 2026-04-17:
 | **Workbench** | v0.6.0, Step 3B Phase 2 in progress. PayloadCompiler done, DispatchService Phase 1 merged. | Medium | Complete Step 3B Phase 2 (blocks hestai-context-mcp Phase 2 integration) |
 | **Vault** | Populated library: 5 V9 agents, 16 V9 skills, 3 cognitions, System Standard | Medium | Populate as Payload Compiler demands content |
 | **hestai-context-mcp** | Phase 1 COMPLETE (2026-04-17). 4 tools shipped (clock_in, clock_out, get_context, submit_review). 361 tests, 89% coverage. TranscriptParser ABC + ClaudeTranscriptParser adapter. | Medium | Phase 2: workbench Payload Compiler integration via stdio at KVAEPH Position 3 (blocked on workbench Step 3B Phase 2) |
-| **hestai-mcp (legacy)** | Operational, v2.1.0, 1033 tests, maintenance mode | Maintenance | Stays for A/B comparison. NOT being absorbed. *(OPEN QUESTION: measurable deprecation criteria not yet defined — flagged for human decision.)* |
+| **hestai-mcp (legacy)** | Operational, v2.1.0, 1033 tests, maintenance mode | Maintenance | Stays for A/B comparison. NOT being absorbed. **Deprecation criterion (DECIDED):** A/B cutover via Workbench — same agent role + same real task, run once with legacy backend and once with hestai-context-mcp backend; measure judged agent output quality + total session token cost; whichever wins consistently across N tasks triggers a swift cutover. |
 | **OA (legacy)** | Operational for Claude-with-MCP sessions | Maintenance | Replaced by Alley-Oop for headless dispatch |
 | **PAL (legacy)** | Being eliminated | Elimination | Workbench natively replaces all dispatch |
 
@@ -376,6 +378,19 @@ In parallel: **hestai-context-mcp Phase 1** (harvest clock_in, redesign clock_ou
 - Matrix resolver (v_resolved_matrix) implemented with kernel_only column and headless experiment IPC.
 - 16 V9 skills with ANCHOR_KERNEL sections created and assigned in archetype matrix.
 - System Standard in vault (AP4 resolved).
+
+### Pre-A/B Work for hestai-context-mcp (Phase 1.5)
+
+Before the outcome-quality A/B test against legacy hestai-mcp can be meaningful, four integration-viability gaps must close. **Framing:** this is integration viability work — the Payload Compiler must be able to read both backends' responses. The systems are explicitly *allowed* to differ in their actual content; the differences are the variable being tested. This is **outcome-quality A/B**, not structural-parity A/B.
+
+| Issue | Priority | Scope |
+|-------|----------|-------|
+| [#4](https://github.com/elevanaltd/hestai-context-mcp/issues/4) | P0a | Integration viability shape: add `ai_synthesis` field with fallback OCTAVE; normalise phase string to legacy's full format |
+| [#5](https://github.com/elevanaltd/hestai-context-mcp/issues/5) | P0b | Port `AIClient` + `synthesize_fast_layer_with_ai` from legacy `src/hestai_mcp/modules/services/ai/` |
+| [#6](https://github.com/elevanaltd/hestai-context-mcp/issues/6) | P1 | Harvest `_extract_north_star_constraints` (legacy `clock_in.py:525-583`); tests must exercise real Vault North Star format |
+| [#7](https://github.com/elevanaltd/hestai-context-mcp/issues/7) | P-side | Surface distinct `conflicts` field rather than only `active_sessions` (small standalone) |
+
+**Already implemented (NOT gaps):** ContextSteward and dynamic phase constraints (`core/context_steward.py:36-184` + tests); focus conflict detection (`core/session.py:91-128` + 4 behavioural tests).
 
 ---
 
@@ -406,9 +421,12 @@ hestai-mcp is NOT being absorbed into the Workbench. ADR-0353 resolved this: the
 
 The `_bundled_hub/` content (agent definitions, skills, standards, cognitions) moves to the Vault. The `.hestai-sys/` injection mechanism moves to the Vault/Workbench. The `bind` tool is replaced by Alley-Oop for headless dispatch; the Odyssean Anchor ceremony remains for Claude-with-MCP sessions.
 
-**Parity blocker:** Before deprecation can be considered, the `clock_in` AI synthesis regression in hestai-context-mcp (currently returning `null`) must be resolved — otherwise A/B comparison against legacy is not like-for-like.
+**Pre-A/B blocker:** Before the outcome-quality A/B test against legacy can be meaningful, the four Pre-A/B Work items (#4, #5, #6, #7 — see Section 7) must close so the Payload Compiler can read both backends' responses. The systems are *allowed* to differ in their actual content; that difference is the variable being tested.
 
-Deprecation happens only after the new system is proven in daily use. *(OPEN QUESTIONS flagged for human decision: (a) measurable deprecation criteria; (b) worktree-pattern adoption in the new repo — the new repo currently excludes worktree directories via `.gitignore` but the broader pattern has not been formally endorsed.)*
+**Decisions (locked):**
+- **Deprecation criterion:** A/B cutover via Workbench measuring outcome quality (judged) + total session token cost. Cut when the new system wins consistently across N tasks.
+- **PyPI publication:** Internal-first. Publish externally only after A/B proves the system. Not publishing early.
+- **Worktree pattern:** Confirmed — Workbench + worktrees, same as the current hestai-mcp workflow.
 
 ### odyssean-anchor-mcp
 
