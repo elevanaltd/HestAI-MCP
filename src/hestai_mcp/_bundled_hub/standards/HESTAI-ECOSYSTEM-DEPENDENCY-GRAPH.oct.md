@@ -190,7 +190,7 @@ HARVEST_PHASE_1_5::[
   STATUS::"PLANNED — issues #4, #5, #6, #7 created 2026-04-20",
   RATIONALE::"Close integration-viability gaps (ai_synthesis field, AIClient port, North Star constraint extraction, conflicts field) so the Payload Compiler can read both backends' responses and the outcome-quality A/B test becomes meaningful. NOT structural parity — backends are allowed to differ in content.",
   EFFORT::"small-to-medium — 4 issues, mostly harvest from legacy",
-  PARALLEL_WITH::STEP_3B_PHASE_3,
+  PARALLEL_WITH::STEP_3B,
   BLOCKS::[HARVEST_PHASE_2]
 ]
 HARVEST_PHASE_2::[
@@ -202,7 +202,7 @@ HARVEST_PHASE_2::[
     STEP_3A,
     HARVEST_PHASE_1,
     HARVEST_PHASE_1_5,
-    WORKBENCH_STEP_3B_PHASE_3
+    STEP_3B
   ]
 ]
 HARVEST_PHASE_3::[
@@ -221,7 +221,7 @@ GLASS_UI::[
   WHAT::"Glass UI — session dashboard + dispatch chain + governance chat",
   RATIONALE::"Visual control panel. Session dashboard shows active agents. Dispatch chain shows routing. Governance chat wraps debate-hall with chat panel UI.",
   EFFORT::"large — React panels, real-time updates",
-  PARALLEL_WITH::STEP_3B_PHASE_3
+  PARALLEL_WITH::STEP_3B
 ]
 PAL_DECOMMISSION::[
   WHAT::"PAL decommission + legacy deprecation",
