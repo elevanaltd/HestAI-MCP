@@ -1,11 +1,11 @@
 ---
 type: LIGHTHOUSE
 id: ecosystem-lighthouse
-version: 4.2
+version: 4.3
 status: ACTIVE
 purpose: Target state vision for the fully integrated HestAI ecosystem
 created: 2026-02-25
-revised: 2026-04-20
+revised: 2026-04-21
 origin: Project 15 ecosystem build order coordination
 tracking: https://github.com/orgs/elevanaltd/projects/15
 architecture: ADR-0353 Three-Service Model
@@ -14,9 +14,9 @@ architecture: ADR-0353 Three-Service Model
 
 # HESTAI ECOSYSTEM LIGHTHOUSE
 
-**Version:** 4.2
+**Version:** 4.3
 **Status:** ACTIVE
-**Revised:** 2026-04-20
+**Revised:** 2026-04-21
 
 ---
 
@@ -88,6 +88,7 @@ The ecosystem comprises three services with clear ownership boundaries (ADR-0353
 | **provider** | AI provider | `anthropic`, `google`, `openai`, `openrouter` |
 | **model** | Specific model | `claude-opus-4-6`, `gemini-2.5-pro`, `codex-mini`, `moonshotai/kimi-k2.5` |
 | **dispatch** | CLI or API | `cli:claude`, `cli:codex`, `cli:gemini`, `cli:goose`, `api:openrouter` |
+| **isolation** | Worktree strategy for dispatched subagents (Claude Code 2.1.77+ `Agent` tool param; governs whether subagent gets a nested per-subagent worktree or inherits the parent's) | `worktree`, `inherit` |
 
 **Target state:** Operator opens Workbench, picks a role from registry, and works. The Payload Compiler assembles the full KVAEPH prompt, calls hestai-context-mcp for Position 3 context, and dispatches. Governance Chat panel shows debates as threaded conversations.
 
@@ -264,6 +265,8 @@ The Workbench validates cognitive grammar compliance (regex) before releasing th
 
 For **API-dispatched agents** (advisory roles via OpenRouter), identity injection uses **assistant prefilling**: the Workbench constructs the full system prompt, then injects a prefilled assistant turn that demonstrates cognitive alignment before the actual task is delivered. Provider-aware message construction is required, as not all OpenRouter backends handle prefilling identically.
 
+**API dispatch scope (reduced — advisory default is now Goose CLI):** The API-direct dispatch path is no longer the default for advisory roles. Most advisory consultations now route through Goose CLI (multi-provider via OpenRouter with a full micro-tier anchor ceremony), because the CLI path gives the same model access plus proper context injection at modest additional cost. `api:openrouter` dispatch is retained only for **uncontextualised lookups** — short, stateless queries (e.g., "what's the canonical spelling of X", API shape clarifications) where a full micro-tier anchor ceremony is disproportionate to the task. Rule of thumb: if the advisory needs any `.hestai/` context, route it via Goose CLI, not API-direct.
+
 **Legacy path**: The Odyssean Anchor MCP ceremony (5-stage KEAPH) remains operational for Claude-with-MCP sessions where agents have direct MCP access. The Alley-Oop pattern is for headless/non-MCP dispatch via the Workbench.
 
 ### Dual-path delegation
@@ -272,6 +275,8 @@ Agent delegation operates through two coexisting patterns:
 
 - **Pattern A (intra-session):** A CLI agent uses its native delegation mechanism (e.g., Claude's `Task()` tool) to spawn a subagent within the same worktree. The subagent inherits MCP server connections and can bind via micro-tier anchor. This is fast, same-provider delegation governed by the subagent-rules skill.
 
+  **Claude→Claude continuation (2.1.77+):** For Claude-target Pattern A, continuation uses Claude Code's native Agent Teams primitives (`SendMessage`, `agentId` resume) — gated behind `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`. The `dispatch_id` returned by `dispatch_colleague` maps directly to the Claude Code `agentId` (17-char hex) for Claude targets, valid **within the parent Claude panel's process lifetime only**. These primitives are continuation mechanics — they do **not** replace Vault identity canonicalisation, KVAEPH Position 3 context injection, Alley-Oop reliability pipeline, or multi-provider agnosticism. See ANTI-PATTERNS below.
+
 - **Pattern B (cross-provider):** The Workbench spawns a new panel with a different CLI tool, selected from the agent registry. The LLM signals the Workbench via an MCP tool (e.g., `dispatch_colleague`), the Workbench intercepts the call, spawns the target CLI panel, passes the task, waits for completion, and returns the result. To the calling agent, it looks like a normal tool call that took longer to respond.
 
 Both patterns are intentional. Pattern A is efficient for same-model work. Pattern B is the provider-agnostic path that makes multi-model orchestration invisible to the LLMs.
@@ -279,7 +284,8 @@ Both patterns are intentional. Pattern A is efficient for same-model work. Patte
 **`dispatch_colleague` MCP tool contract (Pattern B):** The bridge between CLI agents and the Workbench's dispatch system. When any agent calls `dispatch_colleague(role, task)`, the Workbench intercepts the call, looks up the role in the agent registry, and either spawns a CLI panel or makes an API call depending on the dispatch mode. The result returns to the calling agent as a normal tool response.
 
 Key mechanics:
-- **Continuation model:** Every dispatch returns a `dispatch_id`. To continue a conversation with the same dispatched agent (e.g., for rework loops or clarifying questions), the caller passes the `dispatch_id` back: `dispatch_colleague(dispatch_id="disp_7f8a9", task="Fix line 42")`. The Workbench's `ContinuationStore` maps each `dispatch_id` to the provider-specific identifier (Claude session ID, Goose conversation, OpenRouter thread, etc.).
+- **Continuation model:** Every dispatch returns a `dispatch_id`. To continue a conversation with the same dispatched agent (e.g., for rework loops or clarifying questions), the caller passes the `dispatch_id` back: `dispatch_colleague(dispatch_id="disp_7f8a9", task="Fix line 42")`. The Workbench's `ContinuationStore` maps each `dispatch_id` to the provider-specific identifier (Claude session ID, Claude Code 2.1.77+ `agentId`, Goose conversation, OpenRouter thread, etc.).
+- **In-process vs cross-process Claude continuation:** For Claude targets, `SendMessage` + `agentId` resume is **in-process only** — it requires the parent Claude panel to still be alive. Once the parent process exits, the `agentId` is no longer resolvable via `SendMessage`. Cross-process Claude continuation (resuming a Claude conversation from a freshly spawned panel) still requires `claude --resume <session_id>` via the ContinuationStore mapping. The ContinuationStore therefore holds **both** the in-process `agentId` (valid during parent panel lifetime) and the cross-process Claude session ID (valid after parent exit).
 - **Recursive delegation:** Any agent spawned via `dispatch_colleague` itself has access to `dispatch_colleague`. An Implementation Lead dispatched on Goose can dispatch a Test Methodology Guardian on a different provider for test review. Dispatch depth is configurable (default 3) with human approval required beyond the threshold.
 - **Registry snapshot:** The agent registry mapping is captured at dispatch time and stored with the dispatch record. Mid-chain registry changes do not affect running dispatches.
 
@@ -294,6 +300,22 @@ The Workbench is a Crystal fork that will eventually be rebuilt in TypeScript. T
 - `ContinuationStore` — maps `dispatch_id` to provider-specific conversation identifiers
 
 When the Workbench is rebuilt, the MCP tool contract (`dispatch_colleague` signature) and the `DispatchService` interface port directly. Only the Electron/UI layer changes. The 1500+ lines of governance Python in hestai-context-mcp remain untouched.
+
+### Anti-patterns
+
+Claude Code 2.1.77+ Agent Teams primitives (`SendMessage`, `TeamCreate`, `team_name`, `agentId` resume, `isolation: "worktree"`) are **continuation mechanics** gated behind `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`. They solve the same-provider same-process resume problem natively for Claude. They are **not** a replacement for the ecosystem's agent-definition and context-injection architecture. The following anti-patterns preserve that distinction:
+
+**AP1. Do NOT delegate to `.claude/agents/` file-based definitions.** Claude Code supports file-based agent definitions under `.claude/agents/`. Using that path as the authoritative agent registry would lose:
+- Vault canonicalisation (single git-backed source of agent identity)
+- KVAEPH Position 3 context injection (project context from hestai-context-mcp)
+- Alley-Oop reliability pipeline (cognitive-grammar enforcement for T2+ work)
+- Multi-provider agnosticism (the registry must dispatch Claude, Codex, Gemini, Goose identically)
+
+Claude Code's `agentId` is a **continuation primitive**, not an agent-definition system. Identity still compiles from the Vault via the Payload Compiler.
+
+**AP2. Do NOT use `Agent` tool `isolation: "worktree"` for resumable advisory roles.** Upstream bug [`anthropics/claude-code#50889`](https://github.com/anthropics/claude-code/issues/50889) causes the auto-reap of a per-subagent worktree to break `SendMessage` resume for that subagent — the `agentId` outlives the worktree but the process backing it is gone. Until that issue is fixed, use `isolation: "inherit"` for any advisory role that will be resumed via `SendMessage`. Worktree isolation is still appropriate for fire-and-forget subagents that complete in one shot.
+
+**AP3. Do NOT rely on `SendMessage` across process boundaries.** `SendMessage` + `agentId` resume is **in-process only** — it requires the parent Claude panel to still be alive. Cross-process Claude continuation (e.g., resuming a conversation from a freshly spawned panel after the original parent exited) must go through `claude --resume <session_id>` via the ContinuationStore's session-ID mapping. Treat `agentId` as an in-panel handle, not a durable cross-session identifier. See also upstream [`anthropics/claude-code#42999`](https://github.com/anthropics/claude-code/issues/42999) on `agentId`-vs-name addressing semantics.
 
 ---
 
@@ -406,7 +428,7 @@ Before the outcome-quality A/B test against legacy hestai-mcp can be meaningful,
 | EA6 | Debate Hall Governance Hall replaces ad hoc decision-making | 70% | MEDIUM | 2 months daily use |
 | EA7 | Single developer can maintain the ecosystem | 80% | CRITICAL | Post Step 3B assessment |
 | EA8 | Assistant prefilling achieves sufficient cognitive alignment for API-dispatched agents | 70% | HIGH | First API dispatch with prefilled mini-ceremony on 3+ OpenRouter backends |
-| EA9 | Recursive `dispatch_colleague` calls (depth 2-3) remain coherent without context degradation | 65% | HIGH | IL dispatching TMG dispatching back — full chain test with continuation |
+| EA9 | Recursive `dispatch_colleague` calls (depth 2-3) remain coherent without context degradation | 70% for Claude→Claude chains (raised 2026-04-21: Claude Code 2.1.77+ `SendMessage` + `agentId` provides native in-process resume); 65% for cross-provider chains | HIGH | IL dispatching TMG dispatching back — full chain test with continuation |
 | EA10 | Harvest approach (new repo from proven code) is faster than in-place modification | VALIDATED (95%) | HIGH | hestai-context-mcp Phase 1 delivered 4 tools + 361 tests / 89% coverage in 8 days (2026-04-09 → 2026-04-17); TranscriptParser ABC redesign proved safer than in-place patching of the broken ClaudeJsonlLens |
 
 ---
