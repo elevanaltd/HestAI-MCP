@@ -1,7 +1,7 @@
 ---
 type: LIGHTHOUSE
 id: ecosystem-lighthouse
-version: 4.3
+version: 4.4
 status: ACTIVE
 purpose: Target state vision for the fully integrated HestAI ecosystem
 created: 2026-02-25
@@ -14,7 +14,7 @@ architecture: ADR-0353 Three-Service Model
 
 # HESTAI ECOSYSTEM LIGHTHOUSE
 
-**Version:** 4.3
+**Version:** 4.4
 **Status:** ACTIVE
 **Revised:** 2026-04-21
 
@@ -276,6 +276,8 @@ Agent delegation operates through two coexisting patterns:
 - **Pattern A (intra-session):** A CLI agent uses its native delegation mechanism (e.g., Claude's `Task()` tool) to spawn a subagent within the same worktree. The subagent inherits MCP server connections and can bind via micro-tier anchor. This is fast, same-provider delegation governed by the subagent-rules skill.
 
   **Claude→Claude continuation (2.1.77+):** For Claude-target Pattern A, continuation uses Claude Code's native Agent Teams primitives (`SendMessage`, `agentId` resume) — gated behind `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`. The `dispatch_id` returned by `dispatch_colleague` maps directly to the Claude Code `agentId` (17-char hex) for Claude targets, valid **within the parent Claude panel's process lifetime only**. These primitives are continuation mechanics — they do **not** replace Vault identity canonicalisation, KVAEPH Position 3 context injection, Alley-Oop reliability pipeline, or multi-provider agnosticism. See ANTI-PATTERNS below.
+
+  **Flag-unset fallback:** If `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` is **not** set in the parent Claude panel's environment, the `SendMessage` tool is not surfaced at all — `agentId` resume is simply unavailable for that session (distinct from the "parent panel exited" failure mode, which applies even with the flag set). In that environment, Claude→Claude continuation must fall back to **Pattern B**: the agent calls `dispatch_colleague` via the Workbench, which uses cross-process `claude --resume <session_id>` through the ContinuationStore session-ID mapping. The Workbench is expected to inject `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` into the env of spawned Claude panels (tracked as [`hestai-workbench#144`](https://github.com/elevanaltd/hestai-workbench/issues/144)); until that issue lands, operators must either set the flag manually in their shell before launching Claude or accept Pattern B routing for all Claude→Claude continuation.
 
 - **Pattern B (cross-provider):** The Workbench spawns a new panel with a different CLI tool, selected from the agent registry. The LLM signals the Workbench via an MCP tool (e.g., `dispatch_colleague`), the Workbench intercepts the call, spawns the target CLI panel, passes the task, waits for completion, and returns the result. To the calling agent, it looks like a normal tool call that took longer to respond.
 
