@@ -1,11 +1,11 @@
 ===DEPENDENCY_GRAPH===
 META:
   TYPE::ECOSYSTEM_DEPENDENCY_GRAPH
-  VERSION::"4.3"
+  VERSION::"4.4"
   STATUS::TARGET
   PURPOSE::"Cross-system build sequence, blocking relationships, and phase alignment"
   CREATED::"2026-02-22"
-  REVISED::"2026-04-20"
+  REVISED::"2026-04-21"
   FORMAT::octave
   RESOLVES::"#265 (Cross-repo ecosystem dependency graph)"
   SUPPLEMENTS::HESTAI-ECOSYSTEM-OVERVIEW.oct.md
@@ -15,6 +15,7 @@ CONTEXT::"Single developer + AI agents. Three-Service Model architecture (ADR-03
 ARCHITECTURE_DECISION::"Thick Client model (v3.0) replaced by Three-Service Model (v4.0). See ADR-0353 (2026-04-06). Identity injection via Alley-Oop pattern in Payload Compiler. Context management via hestai-context-mcp stdio MCP."
 PREVIOUS_MODEL::"v3.0 described 9-step absorption build sequence where workbench absorbs hestai-mcp and OA. CORRECTED: Workbench owns dispatch only. Governance engine harvested into hestai-context-mcp. Agent identity moves to Vault."
 ONTOLOGY_AMENDMENT::"ADR-0002 I1 amendment (accepted 2026-04-20 via workbench commit 077ea0a): Session/Dispatch ontology separation. API_DISPATCH is I1-by-exemption — API-dispatched agents inherit I1 (Persistent Cognitive Continuity) semantics through their parent session context rather than owning an independent session, because they are stateless advisory calls routed via OpenRouter. See §3 LAYER_4 and §6 DECISION_5 for application."
+CLAUDE_CODE_PRIMITIVES::"Claude Code v2.1.77+ introduced Agent Teams primitives (SendMessage, TeamCreate, team_name, agentId resume, Agent tool isolation:worktree|inherit). Gated behind CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1. These are continuation mechanics that affect Pattern A (intra-session Claude→Claude delegation) IMPLEMENTATION, not the architecture. Vault remains authoritative for identity; KVAEPH Position 3 remains authoritative for context; Alley-Oop remains authoritative for T2+ reliability. See HESTAI-ECOSYSTEM-LIGHTHOUSE.md §4 Anti-patterns (AP1/AP2/AP3) and upstream bugs anthropics/claude-code#50889 (auto-reap breaks resume) and #42999 (agentId-vs-name addressing)."
 §1::CURRENT_STATE
 OCTAVE_MCP::[
   VERSION::"1.9.6",
@@ -305,6 +306,7 @@ ISSUES::[
   "#265 (this graph)::meta_coordination",
   "#353 (ADR-0353 Three-Service Model)::architectural_pivot",
   "#364 (ecosystem doc updates)::documentation_alignment",
+  "#381 (Claude Code 2.1.77+ Agent Teams primitives doc update)::ecosystem_standards_refresh_2026-04-21",
   "workbench#1 (evolve crystal)::STEPS_3A_through_4",
   "workbench#99 (Payload Compiler)::STEP_3A_COMPLETE",
   "workbench#33 (native dispatch)::STEP_3B",
@@ -316,6 +318,8 @@ ISSUES::[
   "workbench#112 (IL coverage gap)::DONE_PR_112",
   "workbench#134 (CA-BCE + unlock_work gate)::STEP_3B_PHASE_1_MERGED",
   "workbench#137 (ApiDispatcher + ContinuationStore)::STEP_3B_PHASE_2_MERGED_2026-04-20",
+  "workbench#144 (claudeCodeManager CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS env injection)::CLAUDE_CODE_2_1_77_FOLLOWUP",
+  "workbench#145 (Vault subagent-rules SendMessage inbound-handling + agentId/name addressing)::CLAUDE_CODE_2_1_77_FOLLOWUP",
   "workbench#147 (subagent-discipline; ho-control-room V9 agent)::STEP_3B_PHASE_2_MERGED_2026-04-20",
   "workbench@077ea0a (ADR-0002 I1 Session/Dispatch ontology amendment)::ACCEPTED_2026-04-20",
   "debate-hall#163 (governance hall)::TRACK_B parallel",
