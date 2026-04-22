@@ -114,7 +114,7 @@ META:
     STANDARD:
       match::[default]
       skills::[documentation-placement,codebase-synthesis]
-      patterns::[minimal-intervention,phase-transition-cleanup]
+      patterns::[mip-orchestration,phase-transition-cleanup]
       kernel_only::[drift-detection]
     DEEP:
       match::[
