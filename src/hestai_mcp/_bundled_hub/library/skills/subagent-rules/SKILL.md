@@ -8,12 +8,13 @@ triggers: ["subagent", "oa-router", "Task delegation", "anchor ceremony", "subag
 ===SKILL:SUBAGENT_RULES===
 META:
   TYPE::SKILL
-  VERSION::"2.4.0"
+  VERSION::"2.5.0"
   STATUS::ACTIVE
   PURPOSE::"Enforce oa-router delegation with anchor ceremony for all subagent Task() calls"
 
 §1::ROUTING_RULE
-  RULE::"ALL agent delegation MUST use subagent_type:'oa-router'. NEVER call role agents directly."
+  SCOPE::"Task()/Agent tool delegations only. External CLI dispatch (pal clink→goose/gemini/codex) is a separate mechanism — see /review §4."
+  RULE::"ALL Task() agent delegation MUST use subagent_type:'oa-router'. NEVER call role agents directly."
   RATIONALE::"oa-router runs anchor ceremony providing identity, governance, context, enforcement (I5)"
 
 §2::TEMPLATE
