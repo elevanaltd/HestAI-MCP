@@ -82,7 +82,9 @@ jobs:
             echo "SKIP canonical-paths (no .oct.md changes)"
             exit 0
           fi
-          xargs -a changed_octave.txt python scripts/ci/validate_canonical_paths.py
+          while IFS= read -r f; do
+            python scripts/ci/validate_canonical_paths.py "$f"
+          done < changed_octave.txt
 
       - name: Validate naming/visibility for changed docs
         shell: bash

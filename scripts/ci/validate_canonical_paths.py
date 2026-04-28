@@ -63,24 +63,30 @@ def _normalize_path(raw: str) -> str:
 
 
 def _git_repo_root() -> Path:
-    result = subprocess.run(
-        ["git", "rev-parse", "--show-toplevel"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except FileNotFoundError:
+        raise SystemExit("ERROR canonical-paths: git not found in PATH") from None
     if result.returncode != 0:
         raise SystemExit("ERROR canonical-paths: not in a git repository")
     return Path(result.stdout.strip())
 
 
 def _staged_oct_md_files() -> list[str]:
-    result = subprocess.run(
-        ["git", "diff", "--cached", "-z", "--name-only", "--diff-filter=ACMR"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    try:
+        result = subprocess.run(
+            ["git", "diff", "--cached", "-z", "--name-only", "--diff-filter=ACMR"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except FileNotFoundError:
+        raise SystemExit("ERROR canonical-paths: git not found in PATH") from None
     if result.returncode != 0:
         raise SystemExit("ERROR canonical-paths: git diff --cached failed")
     # -z outputs NUL-separated paths; handles filenames with spaces correctly
