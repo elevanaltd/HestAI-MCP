@@ -1,503 +1,428 @@
 ===VISIBILITY_RULES===
-
 META:
   TYPE::STANDARD
   ID::visibility-rules
-  VERSION::"1.8"
+  VERSION::"2.0"
   STATUS::ACTIVE
-  PURPOSE::"Placement and lifecycle rules for artifacts to ensure discoverability"
+  PURPOSE::"Artifact placement, format, and lifecycle rules for HestAI ecosystem"
   DOMAIN::governance
-  OWNERS::[system-steward]
-  CREATED::2025-12-09
-  UPDATED::2026-03-04
-  CANONICAL::.hestai-sys/standards/rules/visibility-rules.oct.md
-  SOURCE::src/hestai_mcp/_bundled_hub/standards/rules/visibility-rules.oct.md
-  TAGS::[placement, visibility, documentation, lifecycle, hestai-sys, bundled-hub]
-
-===CORE_PRINCIPLE===
-
-LOCATION_RULE::VISIBILITY+PERMANENCE
-
-PLACEMENT_LOGIC::[
-  developer_docs→git_visibility[committed],
-  coordination_artifacts→ephemeral[gitignored],
-  placement→determines_audience+lifecycle
-]
-
-===PLACEMENT_RULES===
-
-RULE_0::SYSTEM_STANDARDS→.hestai-sys/::[
-  AUDIENCE::all_HestAI_products+agents,
-  LIFECYCLE::committed_in_source+read_only_when_injected,
-  TRACKING::git_history+MCP_injection_as_.hestai-sys/,
-
-  WHAT_GOES_HERE::[
-    system_north_star[universal_immutables],
-    agent_definition_templates[.oct.md],
-    standards_rules[naming+visibility+test_standards],
-    project_templates[north_star_templates],
-    reference_libraries[octave_pointers+guides],
-    system_skills[ecosystem_wide_operational_knowledge],
-    system_tools[validators+checkers]
-  ],
-
-  STRUCTURE::[
-    .hestai-sys/standards/workflow/→[000-SYSTEM-HESTAI-NORTH-STAR.md],
-    .hestai-sys/standards/rules/→[naming-standard.oct.md|visibility-rules.oct.md],
-    .hestai-sys/templates/→[project_templates],
-    .hestai-sys/library/skills/→[ecosystem_wide_skills],
-    .hestai-sys/library/agents/→[agent_definitions+agent_definition_templates],
-    .hestai-sys/library/patterns/→[reusable_patterns],
-    .hestai-sys/library/schemas/→[schema_definitions],
-    .hestai-sys/library/octave/→[octave_usage_guides],
-    .hestai-sys/tools/→[system_utilities]
-  ],
-
-  WHY_system_governance_layer::[
-    universal_governance≠product_specific,
-    authored_in_src/hestai_mcp/_bundled_hub/_and_injected_as_.hestai-sys/[read_only],
-    agents_cannot_modify_their_own_rules,
-    single_source_of_truth_across_products,
-    I3_DUAL_LAYER_AUTHORITY_enforcement
-  ],
-
-  INJECTION_MECHANISM::[
-    MCP_server→copies_src/hestai_mcp/_bundled_hub/→.hestai-sys/[runtime],
-    .hestai-sys/→gitignored[not_committed_per_product],
-    agents→read_.hestai-sys/[cannot_write]
+  OWNERS::[system-steward,octave-secretary]
+  CREATED::"2025-12-09"
+  UPDATED::"2026-04-28"
+  CANONICAL::".hestai-sys/standards/rules/visibility-rules.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/standards/rules/visibility-rules.oct.md"
+  COMPRESSION_TIER::AGGRESSIVE
+  LOSS_PROFILE::"preserve:rules∧placements∧format_decisions,drop:redundant_rationale∨narrative_prose"
+  TAGS::[
+    placement,
+    visibility,
+    format,
+    lifecycle,
+    governance,
+    bundled-hub
   ]
-]
-
-RULE_1::PERMANENT_ARCHITECTURAL→docs/::[
-  AUDIENCE::developers[via_git+GitHub+IDEs],
-  LIFECYCLE::committed+reviewed+permanent,
-  TRACKING::git_history_provides_versioning,
-
-  WHAT_GOES_HERE::[
-    architecture_decision_records[ADRs],
-    system_design_documents,
-    API_documentation,
-    database_schema_documentation,
-    deployment_guides,
-    development_setup_guides,
-    technical_reference_material
-  ],
-
-  STRUCTURE::[
-    docs/adr/→[adr-NNNN-topic.md|per_ADR-0031_issue_based_numbering],
-    docs/development/→SETUP.md,
-    docs/deployment/→DEPLOYMENT.md
-  ],
-
-  WHY_docs::[
-    visible_in_git_diffs+pull_requests,
-    searchable_in_GitHub_IDEs,
-    appears_in_repository_browsing,
-    versioned_alongside_code,
-    part_of_code_review_process
+§1::AXIOMS
+  PLACEMENT::audience⊕lifecycle→location
+  FORMAT::audience→oct_md∨md
+  AUTHORITY::governance_read_only⇌context_mutable
+  WRITE_PATH::oct_md⊕octave_secretary⊕octave_write→sole_path
+  SOURCE_FLOW::bundled_hub_authored→hestai_sys_injected_read_only_runtime
+  DUAL_LAYER::I3_separation_governance_from_context
+§2::TIERS
+  T1_SYSTEM:
+    location::".hestai-sys/"
+    audience::all_agents⊕all_products
+    lifecycle::injected_read_only
+    authored_at::"src/hestai_mcp/_bundled_hub/"
+  T2_DOCS:
+    location::"docs/"
+    audience::developers
+    lifecycle::permanent_committed
+    format::md
+  T3_GOVERNANCE:
+    location::".hestai/"
+    audience::project_governance
+    lifecycle::PR_controlled_committed
+    format::oct_md_dominant
+  T4_STATE:
+    location::".hestai/state/"
+    audience::agents⊕humans
+    lifecycle::shared_via_symlink
+    format::oct_md∨md∨jsonl
+  T5_CLAUDE:
+    location::".claude/"
+    audience::Claude_Code_CLI
+    lifecycle::infrastructure_committed
+    sync::cfg_config_sync
+  T6_DEBATES:
+    location::"debates/"
+    audience::cognitive_evidence
+    lifecycle::oct_md_committed⊕json_gitignored
+§3::PLACEMENT_TABLE
+  // artifact entries: [location, format, lifecycle, audience]
+  // single source of truth; all other sections defer to this table
+  P01_SYSTEM_NORTH_STAR::[
+    ".hestai-sys/standards/workflow/",
+    md,
+    read_only_injection,
+    all_agents
   ]
-]
-
-RULE_2::OPERATIONAL_STATE→.hestai/state/context/::[
-  AUDIENCE::AI_agents+human_coordination,
-  LIFECYCLE::living_documents+high_churn,
-  TRACKING::shared_across_worktrees[symlinked_to_.hestai-state/],
-
-  WHAT_GOES_HERE::[
-    PROJECT-CONTEXT.md[system_dashboard],
-    PROJECT-CHECKLIST.md[high_level_tasks],
-    PROJECT-HISTORY.md[significant_events],
-    app_specific_contexts[APP-CONTEXT.md|APP-CHECKLIST.md|APP-HISTORY.md]
-  ],
-
-  STRUCTURE::[
-    .hestai/state/context/→[PROJECT-CONTEXT.md|PROJECT-CHECKLIST.md|PROJECT-HISTORY.md],
-    .hestai/state/context/apps/{app}/→[APP-CONTEXT.md|APP-CHECKLIST.md|APP-HISTORY.md],
-    .hestai/state/context/.archive/→deprecated_docs
-  ],
-
-  WHY_.hestai_state::[
-    agents_need_fresh_context_per_invocation,
-    dashboard_pattern[PROJECT→APP_details],
-    high_update_frequency→no_PR_overhead,
-    shared_via_symlink→all_worktrees_see_same_state,
-    separate_from_developer_docs
+  P02_GOVERNANCE_RULES::[
+    ".hestai-sys/standards/rules/",
+    oct_md,
+    read_only_injection,
+    all_agents
   ]
-]
-
-RULE_3::SESSION_ARTIFACTS→.hestai/state/sessions/::[
-  AUDIENCE::session_continuity+audit_trail,
-  LIFECYCLE::active→archived,
-  TRACKING::shared_across_worktrees[symlinked_to_.hestai-state/],
-
-  WHAT_GOES_HERE::[
-    active_session_working_state[in_progress],
-    archived_session_transcripts[durable],
-    derived_artifacts[durable]
-  ],
-
-  STRUCTURE::[
-    .hestai/state/sessions/active/{session_id}/→[session.json|anchor.json],
-    .hestai/state/sessions/archive/→[
-      YYYY-MM-DD-{focus}-{id}-raw.jsonl,
-      YYYY-MM-DD-{focus}-{id}-octave.oct.md,
-      YYYY-MM-DD-{focus}-{id}.verification.json
-    ]
-  ],
-
-  WHY_shared_state::[
-    active→high_churn+partial_inconsistent_state,
-    archive→durable_record[continuity+auditability],
-    shared_via_symlink→visibility_across_worktrees
+  P03_AGENT_TEMPLATES_SYSTEM::[
+    ".hestai-sys/library/agents/",
+    oct_md,
+    read_only_injection,
+    all_agents
   ]
-]
-
-RULE_4::PROJECT_GOVERNANCE→.hestai/::[
-  AUDIENCE::AI_agents+system_governance,
-  LIFECYCLE::committed+PR_controlled+stable_patterns,
-  TRACKING::git_history_tracks_governance_evolution,
-
-  WHAT_GOES_HERE::[
-    north_star_documents[immutable_requirements],
-    compiled_governance_decisions[debate_outcomes],
-    project_rules_and_schemas,
-    test_infrastructure_standards,
-    methodology_guides_and_workflow_standards
-  ],
-
-  STRUCTURE::[
-    .hestai/north-star/→000-{PROJECT}-NORTH-STAR.md+components/[ONLY_north_stars],
-    .hestai/decisions/→compiled_governance_decisions[debate_outcomes],
-    .hestai/rules/→project_standards+methodology+workflow_guidance,
-    .hestai/schemas/→schema_definitions
-  ],
-
-  WHY_.hestai_governance::[
-    methodology_governance≠implementation_docs,
-    binding_patterns→agents_must_follow,
-    stable_enough_for_git_tracking,
-    cross_project_patterns_standards
-  ],
-
-  NOTE::[
-    .hestai/decisions/≠docs/adr/,
-    .hestai/decisions/→compiled_debate_decisions[governance_level_outcomes],
-    docs/adr/→formal_ADRs[developer_facing_architecture_records]
+  P04_SYSTEM_SKILLS::[
+    ".hestai-sys/library/skills/",
+    oct_md,
+    read_only_injection,
+    all_agents
   ]
-]
-
-RULE_5::CLAUDE_CODE_CONFIG→.claude/::[
-  AUDIENCE::Claude_Code_CLI_infrastructure,
-  LIFECYCLE::committed+synchronized_across_projects,
-  TRACKING::git+sync_commands[cfg-config-sync],
-
-  WHAT_GOES_HERE::[
-    agent_definitions[.oct.md_files],
-    slash_commands[/activate|/role],
-    skills[operational_knowledge_modules],
-    hooks[git_workflow_automation]
-  ],
-
-  STRUCTURE::[
-    .claude/agents/→[implementation-lead.oct.md|critical-engineer.oct.md],
-    .claude/commands/→activate.md,
-    .claude/skills/build-execution/,
-    .claude/hooks/→pre-commit
-  ],
-
-  WHY_.claude::[
-    Claude_Code_CLI_convention,
-    isolated_per_project[or_global_~/.claude/],
-    synchronized_via_cfg-config-sync,
-    infrastructure≠documentation
-  ],
-
-  NOTE::[
-    .claude/skills/→project_specific_skills[per_repo],
-    .hestai-sys/library/skills/→ecosystem_wide_skills[system_governance_injected]
+  P05_PATTERNS_SCHEMAS::[
+    ".hestai-sys/library/patterns/",
+    oct_md,
+    read_only_injection,
+    all_agents
   ]
-]
-
-RULE_6::REPORTS→.hestai/state/reports/::[
-  AUDIENCE::humans+reviewers+governance,
-  LIFECYCLE::durable+time_scoped_evidence,
-  TRACKING::shared_across_worktrees[symlinked_to_.hestai-state/],
-
-  WHAT_GOES_HERE::[
-    phase_gate_evidence[B0_validation|B1-B3_reports|implementation_logs],
-    audit_reports[anchor_audits|gate_failures|integrity_checks],
-    security_scan_outputs[redaction_summaries|findings],
-    operational_diagnostics["why_clock_out_failed"],
-    quality_gate_evidence[retained_beyond_single_session]
-  ],
-
-  STRUCTURE::[
-    .hestai/state/reports/→[
-      YYYY-MM-DD-anchor-audit-clockout-clean-on-success.md,
-      YYYY-MM-DD-jsonl-secrets-scan-findings.json
-    ]
-  ],
-
-  WHY_.hestai_state_reports::[
-    evidence_discoverable≠polluting_docs,
-    separates_durable_evidence≠living_dashboard[.hestai/state/context/],
-    shared_via_symlink→visibility_across_worktrees
+  P06_TEMPLATES::[
+    ".hestai-sys/templates/",
+    mixed,
+    read_only_injection,
+    all_agents
   ]
-]
-
-===DECISION_MATRIX===
-
-// KEY DISTINCTION: .hestai-sys/ vs .hestai/
-//   .hestai-sys/ = SYSTEM governance (universal, injected as read-only)
-//   .hestai/     = PRODUCT context (specific to this repo, mutable within rules)
-// Source (maintainers): src/hestai_mcp/_bundled_hub/ is injected to .hestai-sys/
-
-PLACEMENT_TABLE::[
-  // SYSTEM GOVERNANCE (.hestai-sys/)
-  system_north_star→.hestai-sys/standards/workflow/[committed_in_source|all_products|read_only_injection],
-  governance_rules→.hestai-sys/standards/rules/[committed_in_source|all_products|read_only_injection],
-  agent_templates→.hestai-sys/library/agents/[committed_in_source|all_products|read_only_injection],
-  project_templates→.hestai-sys/templates/[committed_in_source|all_products|read_only_injection],
-  reference_libraries→.hestai-sys/library/[committed_in_source|all_products|read_only_injection],
-  system_skills→.hestai-sys/library/skills/[committed_in_source|all_products|read_only_injection],
-  system_tools→.hestai-sys/tools/[committed_in_source|all_products|read_only_injection],
-
-  // DEVELOPER DOCUMENTATION (docs/)
-  ADRs→docs/adr/[committed|developers|permanent],
-  API_docs→docs/api/[committed|developers|permanent],
-  setup_guides→docs/development/[committed|developers|permanent],
-
-  // PROJECT GOVERNANCE (.hestai/ - committed, PR-controlled)
-  product_north_star→.hestai/north-star/[committed|governance|stable],
-  governance_decisions→.hestai/decisions/[committed|governance|stable],
-  project_rules→.hestai/rules/[committed|governance|stable],
-  project_schemas→.hestai/schemas/[committed|governance|stable],
-  phase_specs[D2+D3+B1]→.hestai/rules/specs/[committed|governance|phase_scoped],
-  phase_reports[B0-B3]→.hestai/state/reports/[shared|evidence|timestamped],
-  phase_docs[B4_graduated]→docs/[committed|developers|permanent],
-  implementation_specs[superseded]→.hestai/state/context/.archive/specs/[shared|ephemeral|archived],
-
-  // PROJECT WORKING STATE (.hestai/state/ - shared via symlink, no PR)
-  PROJECT-CONTEXT→.hestai/state/context/[shared|agents+human|living],
-  APP-CONTEXT→.hestai/state/context/apps/{app}/[shared|agents+human|living],
-  session_notes→.hestai/state/sessions/active/[shared|session_only|ephemeral],
-  reports→.hestai/state/reports/[shared|humans+governance|durable_evidence],
-
-  // DEBATE ARTIFACTS (debates/)
-  debate_transcripts→debates/[split_tracking:json_ignored|octave_committed|cognitive_evidence|durable],
-
-  // CLAUDE CODE INFRASTRUCTURE (.claude/)
-  agent_definitions→.claude/agents/[committed|Claude_Code|infrastructure],
-  project_skills→.claude/skills/[committed|Claude_Code|infrastructure]
-]
-
-===PHASE_DELIVERABLES===
-
-// Lifecycle model: Spec (the plan) → Report (the evidence) → Doc (the product)
-// Artifacts graduate through the lifecycle as phases progress
-
-LIFECYCLE_PRIMITIVE::[
-  SPEC[the_plan]→.hestai/rules/specs/[active_mutable_guidance],
-  REPORT[the_evidence]→.hestai/state/reports/[timestamped_immutable_evidence],
-  DOC[the_product]→docs/[permanent_developer_facing]
-]
-
-PHASE_MAPPING::[
-  D1_NORTH_STAR→.hestai/north-star/[immutable_anchor],
-  D2_IDEAS_CONSTRAINTS_DESIGN→.hestai/rules/specs/[active_spec],
-  D3_BLUEPRINT→.hestai/rules/specs/[spec_MIGRATES_to_docs/_at_B1_gate],
-  B0_VALIDATION→.hestai/state/reports/[gate_evidence|architectural_reasoning→docs/adr/],
-  B1_BUILD_PLAN→.hestai/rules/specs/[task_breakdown_for_B2],
-  B2_IMPLEMENTATION_LOG→.hestai/state/reports/[evidence_stream],
-  B3_QA_SECURITY→.hestai/state/reports/[audit_trail],
-  B4_HANDOFF_USER_GUIDE→docs/[graduated_permanent_documentation]
-]
-
-GRADUATION_RULES::[
-  D3_blueprint→migrates_from_.hestai/rules/specs/_to_docs/_at_B1_gate,
-  B0_architectural_decisions→recorded_as_ADRs_in_docs/adr/,
-  B4_handoff_docs→graduate_from_draft_to_docs/_at_delivery
-]
-
-ADR_SUPREMACY::[
-  RULE::"When in doubt between .hestai/decisions/ and docs/adr/ → choose docs/adr/",
-  .hestai/decisions/→compiled_debate_decisions[agent_facing_OCTAVE_format_governance_outcomes],
-  docs/adr/→all_architecture_implementation_design_decisions[developer_facing_markdown],
-  .hestai/state/reports/→gate_passage_evidence[B0-B3],
-  DISTINCTION::"debate-hall exports→.hestai/decisions/[.oct.md] | developer decisions→docs/adr/[.md]"
-]
-
-===ANTI_PATTERNS===
-
-AVOID::[
-  DUPLICATE_CONTENT::[
-    problem::ADR_in_both_docs_and_.hestai,
-    fix::ADRs_ONLY_in_docs/adr/
-  ],
-
-  MIX_ABSTRACTION_LEVELS::[
-    problem::implementation_details_in_PROJECT-CONTEXT,
-    fix::dashboard[PROJECT]→guides_to→detail[APP]
-  ],
-
-  COMMIT_EPHEMERAL::[
-    problem::session_handoffs_cluttering_git_history,
-    fix::.hestai/state/sessions/active/→shared_state
-  ],
-
-  DEVELOPER_DOCS_IN_HESTAI::[
-    problem::developers_wont_find_setup_guides_in_.hestai,
-    fix::developer_facing_docs→docs/
-  ],
-
-  NON_NORTH_STAR_IN_NORTH_STAR_FOLDER::[
-    problem::workflow_specs_methodology_docs_in_.hestai/north-star/,
-    fix::only_000-*-NORTH-STAR*_files_and_components/_subfolder_belong_in_north-star/
-  ],
-
-  CONFUSE_DECISIONS_WITH_ADRS::[
-    problem::governance_decisions_placed_in_docs/adr/_or_ADRs_placed_in_.hestai/decisions/,
-    fix::.hestai/decisions/→compiled_debate_decisions[governance]+docs/adr/→formal_ADRs[architecture]
+  P07_SYSTEM_TOOLS::[
+    ".hestai-sys/tools/",
+    binary,
+    read_only_injection,
+    all_agents
   ]
-]
-
-===TIMELINE_TEST===
-
-QUESTION::"Was_this_needed_BEFORE_code_existed_or_discovered_AFTER?"
-
-TIMELINE_LOGIC::[
-  BEFORE_code::design_decisions+architecture→docs/|.hestai/north-star/,
-  AFTER_code::operational_state+progress_tracking→.hestai/state/context/,
-  DURING_session::handoffs+resumption→.hestai/state/sessions/
-]
-
-===MIGRATION_GUIDANCE===
-
-FROM_OLD→TO_THREE_TIER::[
-  ADRs::.hestai/architecture-decisions/→docs/adr/,
-  contexts::.hestai/context/→.hestai/state/context/[shared_via_symlink],
-  north_star::.hestai/workflow/→.hestai/north-star/[committed_PR_controlled],
-  decisions::.hestai/workflow/decisions/→.hestai/decisions/[committed_PR_controlled],
-  sessions::.hestai/sessions/→.hestai/state/sessions/[shared_via_symlink],
-  reports::.hestai/reports/→.hestai/state/reports/[shared_via_symlink],
-  research::.hestai/research/→.hestai/state/research/[shared_via_symlink]
-]
-
-===FORMAT_RULES===
-
-// When to use OCTAVE (.oct.md) vs Markdown (.md)
-
-OCTAVE_FORMAT[.oct.md]::[
-  agent_definitions,
-  governance_rules,
-  north_star_summaries[agent_consumed_compressed],
-  methodology_docs,
-  context_files[PROJECT-CONTEXT_etc],
-  session_archives,
-  compiled_debate_decisions
-]
-
-MARKDOWN_FORMAT[.md]::[
-  north_star_full[human_authored_strategic_vision],
-  developer_guides[setup_deployment],
-  ADRs[architecture_decisions],
-  READMEs[navigation_pointers],
-  human_first_documentation
-]
-
-NOTE_NORTH_STAR_FORMAT::[
-  000-*-NORTH-STAR.md→.md[human_authored_founding_document],
-  000-*-NORTH-STAR-SUMMARY.oct.md→.oct.md[agent_optimized_extraction],
-  RATIONALE::"Full North Stars are strategic vision prose written by humans; summaries are compressed for agent consumption"
-]
-
-FORMAT_DECISION_TREE::[
-  "Primary audience AI agents?"→YES→.oct.md,
-  "Standards/methodology/system-standard?"→YES→.oct.md,
-  "Primary audience human developers?"→YES→.md,
-  "ADR or setup guide?"→YES→.md
-]
-
-===FILE_RETENTION_POLICY===
-
-// Ratified by ADR-0060: JSON ephemeral, OCTAVE permanent
-// See: docs/adr/adr-0060-rfc-adr-alignment.md
-
-CORE_PRINCIPLE::"Raw machine formats are ephemeral; semantic compressions are permanent"
-
-RETENTION_TABLE::[
-  FORMAT                  | GIT_STATUS  | RATIONALE
-  ------------------------|-------------|------------------------------------------
-  .json/.jsonl[raw]       | GITIGNORED  | Machine_format+large+reconstructible
-  .oct.md[compressed]     | COMMITTED   | Semantic_density+human_readable+audit_trail
-]
-
-SESSION_ARCHIVES::[
-  LOCATION::.hestai/state/sessions/archive/,
-  GITIGNORED::[
-    *-raw.jsonl[full_transcript_machine_format],
-    *.verification.json[validation_metadata]
-  ],
-  COMMITTED::[
-    *-octave.oct.md[compressed_semantic_transcript]
-  ],
-  WHY::raw_transcripts_are_large+reconstructible_from_octave_if_needed
-]
-
-DEBATE_TRANSCRIPTS::[
-  LOCATION::debates/,
-  GITIGNORED::[
-    *.json[full_debate_machine_format]
-  ],
-  COMMITTED::[
-    *.oct.md[compressed_debate_synthesis]
-  ],
-  WHY::debate_json_is_working_state+synthesis_captures_decision_value
-]
-
-RETENTION_DECISION_TREE::[
-  "Is it raw machine format (.json/.jsonl)?"→YES→GITIGNORE,
-  "Is it semantic compression (.oct.md)?"→YES→COMMIT,
-  "Is it human-authored documentation?"→YES→COMMIT,
-  "Is it active session state?"→YES→GITIGNORE
-]
-
-FUTURE_EVOLUTION::[
-  EXTERNAL_ARTIFACT_STORE::Issue_#65[planned],
-  RATIONALE::large_artifacts_may_move_to_cloud_storage,
-  INTERIM_PATTERN::gitignore_now+external_store_later
-]
-
-===COMPATIBILITY===
-
-WITH_NAMING_STANDARD::[
-  .hestai-sys/standards/rules/visibility-rules.oct.md→answers["WHERE does artifact belong?"],
-  .hestai-sys/standards/rules/naming-standard.oct.md→answers["HOW to name once placed?"]
-]
-
-WITH_HUB_AUTHORING_RULES::[
-  .hestai-sys/standards/rules/visibility-rules.oct.md→answers["WHERE in PRODUCT?"],
-  .hestai/rules/hub-authoring-rules.oct.md→answers["WHERE in SYSTEM governance payload?" ]
-]
-
-===AUTHORITY===
-
-SOURCE::holistic-orchestrator_decision[2025-12-09]
-RATIONALE::separate_developer_docs[git_visible]≠coordination_artifacts[agent_focused]
-PATTERN::follows_HestAI_three_tier[ADMIN|DESIGN|BUILD_separation]
-COMPANION::naming-standard.md[naming+frontmatter_logic]
-
-===CHANGELOG===
-
-v1.8::2026-03-04→clarified_north_star_format[full_.md_summary_.oct.md]+harmonized_RULE_4_and_ADR_SUPREMACY[.hestai/decisions/_is_compiled_debate_decisions_not_system_standard_amendments_only]+added_DISTINCTION_to_ADR_SUPREMACY[debate-hall_exports_vs_developer_ADRs]
-v1.7::2026-03-04→added_PHASE_DELIVERABLES_section[lifecycle_model:Spec→Report→Doc]+phase_mapping_D1-B4+graduation_rules+ADR_SUPREMACY_policy+phase_deliverables_in_PLACEMENT_TABLE+phase_gate_evidence_in_RULE_6
-v1.6::2026-02-26→fixed_ADR_path_to_docs/adr/[per_ADR-0031]+clarified_.hestai/decisions/_as_compiled_governance_decisions[not_ADRs]+expanded_.hestai-sys/library/_structure[skills/agents/patterns/schemas/octave]+added_system_skills_to_RULE_0+added_skill_distinction_NOTE_to_RULE_5+added_CONFUSE_DECISIONS_WITH_ADRS_anti-pattern+added_system_skills_to_PLACEMENT_TABLE
-v1.5::2026-02-23→clarified_north-star_folder_strict_contents+expanded_rules_folder_scope+added_implementation_spec_placement+anti-pattern_for_north-star_contamination
-v1.4::2025-12-27→added_FILE_RETENTION_POLICY_section[ADR-0060_ratification]
-v1.3::2025-12-23→added_FORMAT_RULES_section+linked_HUB_AUTHORING_RULES
-v1.2::2025-12-23→added_RULE_0_hub/_system_governance+clarified_hub_vs_.hestai_distinction
-v1.1::2025-12-19→bundled_in_HestAI_MCP_Hub+OCTAVE_format_conversion
-v1.1::2025-12-18→added_frontmatter+linked_companion_NAMING-STANDARD
-v1.0::2025-12-09→initial_visibility_rules
-
+  P08_ADRS::[
+    "docs/adr/",
+    md,
+    committed_permanent,
+    developers
+  ]
+  P09_API_DOCS::[
+    "docs/api/",
+    md,
+    committed_permanent,
+    developers
+  ]
+  P10_SETUP_GUIDES::[
+    "docs/development/",
+    md,
+    committed_permanent,
+    developers
+  ]
+  P11_DEPLOYMENT_GUIDES::[
+    "docs/deployment/",
+    md,
+    committed_permanent,
+    developers
+  ]
+  P12_PRODUCT_NORTH_STAR_FULL::[
+    ".hestai/north-star/",
+    md,
+    committed_PR_controlled,
+    humans_plus_agents
+  ]
+  P13_PRODUCT_NORTH_STAR_SUMMARY::[
+    ".hestai/north-star/",
+    oct_md,
+    committed_PR_controlled,
+    agents
+  ]
+  P14_GOVERNANCE_DECISIONS::[
+    ".hestai/decisions/",
+    oct_md,
+    committed_PR_controlled,
+    agents
+  ]
+  P15_PROJECT_RULES::[
+    ".hestai/rules/",
+    oct_md,
+    committed_PR_controlled,
+    agents
+  ]
+  P16_PROJECT_SCHEMAS::[
+    ".hestai/schemas/",
+    oct_md,
+    committed_PR_controlled,
+    agents
+  ]
+  P17_PHASE_SPECS::[
+    ".hestai/rules/specs/",
+    oct_md,
+    phase_scoped_graduates_at_B1,
+    agents
+  ]
+  P18_CONTEXT_DASHBOARD::[
+    ".hestai/state/context/",
+    oct_md,
+    living_shared_high_churn,
+    agents_plus_humans
+  ]
+  P19_CONTEXT_APP::[
+    ".hestai/state/context/apps/<app>/",
+    oct_md,
+    living_shared_high_churn,
+    agents_plus_humans
+  ]
+  P20_CONTEXT_ARCHIVE::[
+    ".hestai/state/context/.archive/",
+    oct_md_or_md,
+    deprecated_shared,
+    audit_only
+  ]
+  P21_SESSION_ACTIVE::[
+    ".hestai/state/sessions/active/<id>/",
+    json,
+    ephemeral_shared,
+    session_only
+  ]
+  P22_SESSION_ARCHIVE_OCT::[
+    ".hestai/state/sessions/archive/",
+    oct_md,
+    committed_shared,
+    agents_plus_audit
+  ]
+  P23_SESSION_ARCHIVE_RAW::[
+    ".hestai/state/sessions/archive/",
+    jsonl,
+    gitignored_shared,
+    audit_reconstructible
+  ]
+  P24_SESSION_VERIFICATION::[
+    ".hestai/state/sessions/archive/",
+    json,
+    gitignored_shared,
+    validation_metadata
+  ]
+  P25_REPORTS::[
+    ".hestai/state/reports/",
+    oct_md_or_md,
+    timestamped_durable_shared,
+    humans_plus_governance
+  ]
+  P26_AGENT_DEFINITIONS_LOCAL::[
+    ".claude/agents/",
+    oct_md,
+    committed_infrastructure,
+    Claude_Code
+  ]
+  P27_PROJECT_SKILLS::[
+    ".claude/skills/",
+    oct_md,
+    committed_infrastructure,
+    Claude_Code
+  ]
+  P28_SLASH_COMMANDS::[
+    ".claude/commands/",
+    md,
+    committed_infrastructure,
+    Claude_Code
+  ]
+  P29_HOOKS::[
+    ".claude/hooks/",
+    mixed,
+    committed_infrastructure,
+    Claude_Code
+  ]
+  P30_DEBATE_SYNTHESIS::[
+    "debates/",
+    oct_md,
+    committed,
+    cognitive_evidence
+  ]
+  P31_DEBATE_TRANSCRIPT::[
+    "debates/",
+    json,
+    gitignored,
+    working_state
+  ]
+§4::FORMAT_RULES
+  CHOICE::primary_audience_determines_format
+  OCT_MD_WHEN:
+    audience::AI_agents_or_mixed
+    types::governance∨methodology∨compressed_summary∨context_dashboard∨session_archive∨compiled_decision∨agent_definition∨skill∨pattern∨schema
+  MD_WHEN:
+    audience::humans_primarily
+    types::strategic_vision∨setup_guide∨ADR∨README∨narrative_documentation∨full_north_star
+  HYBRID_PATTERN:
+    full_north_star::[md,human_authored_strategic_vision]
+    summary::[oct_md,agent_optimised_extraction]
+  WRITE_PATH:
+    rule::"All .oct.md creation and modification flows through octave-secretary via mcp__octave__octave_write"
+    rationale::single_validation_entry_point_prevents_silent_OCTAVE_drift
+    exception::none_trivial_typos_included
+    authority::octave_secretary_BLOCKING_oct_md_quality_syntax_unvalidated_writes
+  DECISION_TREE:
+    Q1_audience_AI_agents::oct_md
+    Q2_standards_methodology_or_governance::oct_md
+    Q3_audience_human_developers::md
+    Q4_ADR_or_setup_guide::md
+§5::LIFECYCLE_PRIMITIVE
+  // Spec → Report → Doc; artifacts graduate as phases progress
+  SPEC:
+    location::".hestai/rules/specs/"
+    mode::active_mutable_plan
+  REPORT:
+    location::".hestai/state/reports/"
+    mode::timestamped_immutable_evidence
+  DOC:
+    location::"docs/"
+    mode::permanent_published_developer_facing
+§6::PHASE_MAP
+  D1_NORTH_STAR::[".hestai/north-star/",immutable_anchor]
+  D2_DESIGN::[".hestai/rules/specs/",active_design_spec]
+  D3_BLUEPRINT::[".hestai/rules/specs/",blueprint_migrates_to_docs_at_B1_gate]
+  B0_VALIDATION::[".hestai/state/reports/",gate_evidence_plus_ADRs_to_docs_adr]
+  B1_BUILD_PLAN::[".hestai/rules/specs/",task_breakdown_for_B2]
+  B2_IMPLEMENTATION::[".hestai/state/reports/",evidence_stream]
+  B3_QA_SECURITY::[".hestai/state/reports/",audit_trail]
+  B4_HANDOFF::["docs/",graduated_permanent_user_guide]
+  GRADUATION_RULES::[
+    D3_blueprint_migrates_to_docs_at_B1_gate,
+    B0_architectural_decisions_recorded_as_ADRs_in_docs_adr,
+    B4_handoff_graduates_to_docs_at_delivery
+  ]
+§7::AUTHORITY_DISTINCTIONS
+  HESTAI_SYS_PROFILE::[
+    universal,
+    read_only,
+    injected_runtime,
+    gitignored_per_product
+  ]
+  HESTAI_PROFILE::[
+    product_specific,
+    mutable_within_rules,
+    committed_per_product
+  ]
+  DECISIONS_PROFILE::[
+    compiled_debate_outcomes,
+    oct_md,
+    agent_facing,
+    governance_level
+  ]
+  ADR_PROFILE::[
+    formal_ADRs,
+    md,
+    developer_facing,
+    architecture_implementation_design
+  ]
+  ADR_SUPREMACY::"When uncertain between .hestai/decisions/ and docs/adr/, choose docs/adr/"
+  REPORTS_PROFILE::[durable_timestamped_evidence]
+  CONTEXT_PROFILE::[living_dashboard_high_churn]
+  SOURCE_FLOW:
+    authored_at::"src/hestai_mcp/_bundled_hub/"
+    delivered_to::".hestai-sys/"
+    edit_target::source_only_never_injection
+    invariant::I3_DUAL_LAYER_AUTHORITY
+§8::RETENTION_POLICY
+  // Ratified by ADR-0060 — raw machine formats ephemeral, semantic compressions permanent
+  PRINCIPLE::"Raw machine formats are ephemeral; semantic compressions are permanent"
+  COMMIT::[
+    oct_md_compressed,
+    md_authored,
+    session_anchor_json_small
+  ]
+  GITIGNORE::[
+    jsonl_raw_transcript,
+    json_full_debate,
+    json_verification_metadata,
+    hestai_sys_runtime_copy
+  ]
+  RATIONALE::raw_machine_format_reconstructible_from_compression
+  FUTURE::external_artifact_store_planned_issue_65
+§9::TIMELINE_TEST
+  Q::"Was_this_needed_BEFORE_code_or_discovered_AFTER?"
+  BEFORE_CODE:
+    triggers::[design_decisions,architecture]
+    destinations::["docs/",".hestai/north-star/"]
+  AFTER_CODE:
+    triggers::[operational_state,progress_tracking]
+    destinations::[".hestai/state/context/"]
+  DURING_SESSION:
+    triggers::[handoffs,resumption]
+    destinations::[".hestai/state/sessions/"]
+§10::ANTI_PATTERNS
+  // problem⇌fix
+  AP01_DUPLICATE_ADR:
+    problem::ADR_in_both_docs_adr_and_hestai_decisions
+    fix::ADRs_only_in_docs_adr
+  AP02_MIXED_ABSTRACTION:
+    problem::implementation_detail_in_PROJECT_CONTEXT
+    fix::dashboard_at_PROJECT_detail_at_APP
+  AP03_COMMIT_EPHEMERAL:
+    problem::session_handoff_committed_to_git
+    fix::sessions_active_only_shared_state
+  AP04_DEV_DOCS_IN_HESTAI:
+    problem::setup_guide_in_hestai_path
+    fix::developer_facing_to_docs
+  AP05_NORTH_STAR_FOLDER_POLLUTION:
+    problem::workflow_specs_or_methodology_in_north_star_folder
+    fix::only_north_star_files_and_components_subfolder
+  AP06_DECISIONS_ADR_CONFUSION:
+    problem::governance_decision_in_docs_adr_or_ADR_in_hestai_decisions
+    fix::see_AUTHORITY_DISTINCTIONS
+  AP07_FORMAT_DRIFT_CONTEXT:
+    problem::context_file_committed_with_bare_md_extension
+    fix::context_files_for_agents_use_oct_md
+  AP08_RAW_EDIT_OCT_MD:
+    problem::oct_md_modified_with_raw_Edit_or_Write_tool
+    fix::route_through_octave_secretary_via_octave_write
+  AP09_EDIT_INJECTED_COPY:
+    problem::edit_made_directly_in_hestai_sys
+    fix::edit_authored_source_at_src_hestai_mcp_bundled_hub
+  AP10_BARE_NUMERIC_KEY:
+    problem::oct_md_keys_named_1_2_3_or_starting_with_digit
+    fix::use_R1_STEP_1_or_named_keys_per_octave_R3
+  AP11_UNQUOTED_TIMESTAMP:
+    problem::ISO_date_in_value_unquoted
+    fix::quote_all_ISO_timestamps_per_octave_R8
+§11::COMPATIBILITY
+  WHERE_QUESTION::visibility_rules_oct_md_answers_where_artifact_belongs
+  HOW_TO_NAME_QUESTION::naming_standard_oct_md_answers_naming_and_frontmatter
+  HUB_PAYLOAD_QUESTION::hub_authoring_rules_oct_md_answers_layout_within_bundled_hub
+§12::CHANGELOG
+  v2_0:
+    date::"2026-04-28"
+    note::complete_rewrite_octave_secretary_authored_for_OCTAVE_compliance_collapsed_redundant_WHY_blocks_canonical_placement_table_explicit_WRITE_PATH_authority_added_AP08_through_AP11_anti_patterns_quoted_all_paths_and_timestamps_replaced_curly_placeholders_with_angle_annotations_eliminated_bare_section_refs_in_values
+  v1_8:
+    date::"2026-03-04"
+    note::clarified_north_star_format_full_md_summary_oct_md_harmonized_RULE_4_ADR_SUPREMACY_DISTINCTION_debate_hall_versus_developer_ADRs
+  v1_7:
+    date::"2026-03-04"
+    note::added_PHASE_DELIVERABLES_lifecycle_Spec_Report_Doc_phase_mapping_D1_B4_graduation_rules_ADR_SUPREMACY_policy
+  v1_6:
+    date::"2026-02-26"
+    note::fixed_ADR_path_per_ADR_0031_clarified_compiled_governance_decisions_expanded_library_structure_system_skills_in_RULE_0_CONFUSE_DECISIONS_WITH_ADRS_anti_pattern
+  v1_5:
+    date::"2026-02-23"
+    note::clarified_north_star_folder_strict_contents_expanded_rules_folder_scope_added_implementation_spec_placement_anti_pattern_for_north_star_contamination
+  v1_4:
+    date::"2025-12-27"
+    note::added_FILE_RETENTION_POLICY_section_ADR_0060_ratification
+  v1_3:
+    date::"2025-12-23"
+    note::added_FORMAT_RULES_section_linked_HUB_AUTHORING_RULES
+  v1_2:
+    date::"2025-12-23"
+    note::added_RULE_0_hub_system_governance_clarified_hub_versus_hestai_distinction
+  v1_1:
+    date::"2025-12-19"
+    note::bundled_in_HestAI_MCP_Hub_OCTAVE_format_conversion
+  v1_1a:
+    date::"2025-12-18"
+    note::added_frontmatter_linked_companion_NAMING_STANDARD
+  v1_0:
+    date::"2025-12-09"
+    note::initial_visibility_rules
 ===END===
