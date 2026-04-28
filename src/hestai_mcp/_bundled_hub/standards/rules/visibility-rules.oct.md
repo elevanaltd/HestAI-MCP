@@ -2,7 +2,7 @@
 META:
   TYPE::STANDARD
   ID::visibility-rules
-  VERSION::"2.0"
+  VERSION::"2.1"
   STATUS::ACTIVE
   PURPOSE::"Artifact placement, format, and lifecycle rules for HestAI ecosystem"
   DOMAIN::governance
@@ -47,7 +47,8 @@ META:
   T4_STATE:
     location::".hestai/state/"
     audience::agents⊕humans
-    lifecycle::shared_via_symlink
+    lifecycle::shared_via_symlink_to_main_repo_writes_propagate_globally
+    storage::gitignored_per_gitignore_hestai_state_entry
     format::oct_md∨md∨jsonl
   T5_CLAUDE:
     location::".claude/"
@@ -166,31 +167,37 @@ META:
   P18_CONTEXT_DASHBOARD::[
     ".hestai/state/context/",
     oct_md,
-    living_shared_high_churn,
+    living_shared_high_churn_gitignored,
     agents_plus_humans
   ]
   P19_CONTEXT_APP::[
     ".hestai/state/context/apps/<app>/",
     oct_md,
-    living_shared_high_churn,
+    living_shared_high_churn_gitignored,
+    agents_plus_humans
+  ]
+  P19a_CROSS_REPO_APP_CONTEXT::[
+    owning_repo_only,
+    oct_md,
+    no_local_copy_pointer_only,
     agents_plus_humans
   ]
   P20_CONTEXT_ARCHIVE::[
     ".hestai/state/context/.archive/",
     oct_md_or_md,
-    deprecated_shared,
+    deprecated_shared_gitignored,
     audit_only
   ]
   P21_SESSION_ACTIVE::[
     ".hestai/state/sessions/active/<id>/",
     json,
-    ephemeral_shared,
+    ephemeral_shared_gitignored,
     session_only
   ]
   P22_SESSION_ARCHIVE_OCT::[
     ".hestai/state/sessions/archive/",
     oct_md,
-    committed_shared,
+    gitignored_shared,
     agents_plus_audit
   ]
   P23_SESSION_ARCHIVE_RAW::[
@@ -208,7 +215,7 @@ META:
   P25_REPORTS::[
     ".hestai/state/reports/",
     oct_md_or_md,
-    timestamped_durable_shared,
+    timestamped_durable_shared_gitignored,
     humans_plus_governance
   ]
   P26_AGENT_DEFINITIONS_LOCAL::[
@@ -261,7 +268,7 @@ META:
   WRITE_PATH:
     rule::"All .oct.md creation and modification flows through octave-secretary via mcp__octave__octave_write"
     rationale::single_validation_entry_point_prevents_silent_OCTAVE_drift
-    exception::none_trivial_typos_included
+    exception::"none — even single-character typo fixes route through octave-secretary"
     authority::octave_secretary_BLOCKING_oct_md_quality_syntax_unvalidated_writes
   DECISION_TREE:
     Q1_audience_AI_agents::oct_md
@@ -324,20 +331,35 @@ META:
     authored_at::"src/hestai_mcp/_bundled_hub/"
     delivered_to::".hestai-sys/"
     edit_target::source_only_never_injection
-    invariant::I3_DUAL_LAYER_AUTHORITY
+    invariant::I3_DUAL_LAYER_AUTHORITY_defined_in_system_north_star
 §8::RETENTION_POLICY
   // Ratified by ADR-0060 — raw machine formats ephemeral, semantic compressions permanent
-  PRINCIPLE::"Raw machine formats are ephemeral; semantic compressions are permanent"
-  COMMIT::[
-    oct_md_compressed,
-    md_authored,
-    session_anchor_json_small
-  ]
-  GITIGNORE::[
+  // Note: .hestai/state/ is gitignored; oct_md compressions there are durable on disk
+  // and shared via symlink across worktrees, but not tracked in git.
+  PRINCIPLE::"Raw machine formats are ephemeral; semantic compressions are durable on disk"
+  COMMIT_TRACKED::[oct_md_compressed_in_committed_paths,md_authored_in_committed_paths]
+  GITIGNORED::[
     jsonl_raw_transcript,
     json_full_debate,
     json_verification_metadata,
-    hestai_sys_runtime_copy
+    json_session_anchor,
+    hestai_sys_runtime_copy,
+    hestai_state_subtree
+  ]
+  COMMITTED_PATHS::[
+    docs_path,
+    hestai_north_star_path,
+    hestai_decisions_path,
+    hestai_rules_path,
+    hestai_schemas_path,
+    hestai_sys_authored_source_path,
+    claude_infrastructure_path,
+    debates_oct_md_path
+  ]
+  GITIGNORED_PATHS::[
+    hestai_sys_runtime_path,
+    hestai_state_subtree_path,
+    debates_json_path
   ]
   RATIONALE::raw_machine_format_reconstructible_from_compression
   FUTURE::external_artifact_store_planned_issue_65
@@ -387,11 +409,74 @@ META:
   AP11_UNQUOTED_TIMESTAMP:
     problem::ISO_date_in_value_unquoted
     fix::quote_all_ISO_timestamps_per_octave_R8
+  AP12_WORKTREE_PATH_TRAP:
+    problem::agent_assumes_writes_to_hestai_state_are_worktree_local
+    fix::treat_hestai_state_writes_as_global_main_repo_mutations_via_symlink
+  AP13_BROKEN_DASHBOARD_POINTER:
+    problem::PROJECT_CONTEXT_or_APP_CONTEXT_cites_path_with_wrong_extension_or_renamed_file
+    fix::dashboards_must_cite_real_existing_paths_validate_pointers_periodically
+  AP14_UNCANONICAL_STATE_SUBDIR:
+    problem::hestai_state_subdir_not_enumerated_in_PLACEMENT_TABLE
+    fix::migrate_archive_or_propose_new_PLACEMENT_TABLE_entry_via_PR
 §11::COMPATIBILITY
   WHERE_QUESTION::visibility_rules_oct_md_answers_where_artifact_belongs
   HOW_TO_NAME_QUESTION::naming_standard_oct_md_answers_naming_and_frontmatter
   HUB_PAYLOAD_QUESTION::hub_authoring_rules_oct_md_answers_layout_within_bundled_hub
-§12::CHANGELOG
+§12::LEGACY_MIGRATION
+  // One-time migration mapping for repos predating the three-tier structure.
+  // Use during cleanup audits; once complete, this section can be removed at v3.0.
+  M01_ARCHITECTURE_DECISIONS:
+    from::".hestai/architecture-decisions/"
+    to::"docs/adr/"
+    rationale::ADR_supremacy_per_ADR_0031
+  M02_CONTEXT:
+    from::".hestai/context/"
+    to::".hestai/state/context/"
+    rationale::shared_state_via_symlink
+  M03_WORKFLOW:
+    from::".hestai/workflow/"
+    to::".hestai/north-star/"
+    rationale::workflow_was_north_star_predecessor
+  M04_WORKFLOW_DECISIONS:
+    from::".hestai/workflow/decisions/"
+    to::".hestai/decisions/"
+    rationale::compiled_governance_decisions_top_level
+  M05_SESSIONS:
+    from::".hestai/sessions/"
+    to::".hestai/state/sessions/"
+    rationale::shared_state_via_symlink
+  M06_REPORTS:
+    from::".hestai/reports/"
+    to::".hestai/state/reports/"
+    rationale::shared_state_via_symlink
+  M07_RESEARCH:
+    from::".hestai/research/"
+    to::".hestai/state/research/"
+    rationale::shared_state_via_symlink
+  M08_AUDIT:
+    from::".hestai/audit/"
+    to::".hestai/state/reports/"
+    rationale::audit_artefacts_are_timestamped_durable_evidence
+  M09_DATA:
+    from::".hestai/data/"
+    to::propose_PLACEMENT_TABLE_entry_or_archive
+    rationale::no_canonical_data_dir_in_three_tier_structure
+  M10_ISSUES:
+    from::".hestai/issues/"
+    to::github_issues_or_archive
+    rationale::issue_tracking_belongs_in_git_forge_not_repo
+  M11_ORCHESTRATION:
+    from::".hestai/orchestration/"
+    to::".hestai/state/reports/_or_archive"
+    rationale::orchestration_logs_are_evidence_stream
+  M12_WORKFLOW_ARCHIVE:
+    from::".hestai/workflow-archive/"
+    to::".hestai/state/context/.archive/"
+    rationale::deprecated_artefacts_archive_under_state_context
+§13::CHANGELOG
+  v2_1:
+    date::"2026-04-28"
+    note::added_LEGACY_MIGRATION_table_AP12_WORKTREE_PATH_TRAP_AP13_BROKEN_DASHBOARD_POINTER_AP14_UNCANONICAL_STATE_SUBDIR_clarified_WRITE_PATH_exception_added_P19a_CROSS_REPO_APP_CONTEXT_corrected_P22_lifecycle_to_gitignored_shared_split_RETENTION_POLICY_into_COMMIT_TRACKED_and_GITIGNORED_annotated_T4_STATE_worktree_symlink_propagation_warning
   v2_0:
     date::"2026-04-28"
     note::complete_rewrite_octave_secretary_authored_for_OCTAVE_compliance_collapsed_redundant_WHY_blocks_canonical_placement_table_explicit_WRITE_PATH_authority_added_AP08_through_AP11_anti_patterns_quoted_all_paths_and_timestamps_replaced_curly_placeholders_with_angle_annotations_eliminated_bare_section_refs_in_values
