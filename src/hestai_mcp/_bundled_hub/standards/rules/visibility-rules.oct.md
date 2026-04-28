@@ -2,7 +2,7 @@
 META:
   TYPE::STANDARD
   ID::visibility-rules
-  VERSION::"2.1"
+  VERSION::"2.2"
   STATUS::ACTIVE
   PURPOSE::"Artifact placement, format, and lifecycle rules for HestAI ecosystem"
   DOMAIN::governance
@@ -28,6 +28,7 @@ META:
   WRITE_PATH::oct_md⊕octave_secretary⊕octave_write→sole_path
   SOURCE_FLOW::bundled_hub_authored→hestai_sys_injected_read_only_runtime
   DUAL_LAYER::I3_separation_governance_from_context
+  SELF_LOCATING::governance_documents_declare_their_canonical_path_in_META
 §2::TIERS
   T1_SYSTEM:
     location::".hestai-sys/"
@@ -270,6 +271,15 @@ META:
     rationale::single_validation_entry_point_prevents_silent_OCTAVE_drift
     exception::"none — even single-character typo fixes route through octave-secretary"
     authority::octave_secretary_BLOCKING_oct_md_quality_syntax_unvalidated_writes
+  META_REQUIREMENTS:
+    RULE::"All governance .oct.md documents MUST declare their canonical location in META"
+    REQUIRED::CANONICAL_field_for_all_governance_oct_md
+    REQUIRED_IF_AUTHORED_ELSEWHERE::SOURCE_field_when_canonical_path_differs_from_authored_path
+    RATIONALE::self_locating_documents_enable_automated_placement_validation_and_resist_silent_relocation
+    VALIDATION_HOOK_SPEC::pre_commit_check_that_file_path_matches_META_CANONICAL_or_META_SOURCE_relative_to_repo_root
+    EXAMPLE::this_file_declares_CANONICAL_and_SOURCE_in_META_lines_12_to_13_committed_path_must_match_META_SOURCE
+    SCOPE::governance_documents_under_hestai_sys_or_hestai_or_bundled_hub
+    OUT_OF_SCOPE::session_archives_and_other_high_churn_gitignored_state
   DECISION_TREE:
     Q1_audience_AI_agents::oct_md
     Q2_standards_methodology_or_governance::oct_md
@@ -333,7 +343,8 @@ META:
     edit_target::source_only_never_injection
     invariant::I3_DUAL_LAYER_AUTHORITY_defined_in_system_north_star
 §8::RETENTION_POLICY
-  // Ratified by ADR-0060 — raw machine formats ephemeral, semantic compressions permanent
+  // Ratified by ADR-0060 (RFC/ADR audit corpus scope per 2026-04-28 amendment).
+  // For path-by-path placement / commit / gitignore decisions see PLACEMENT_TABLE in section three.
   // Note: .hestai/state/ is gitignored; oct_md compressions there are durable on disk
   // and shared via symlink across worktrees, but not tracked in git.
   PRINCIPLE::"Raw machine formats are ephemeral; semantic compressions are durable on disk"
@@ -418,6 +429,12 @@ META:
   AP14_UNCANONICAL_STATE_SUBDIR:
     problem::hestai_state_subdir_not_enumerated_in_PLACEMENT_TABLE
     fix::migrate_archive_or_propose_new_PLACEMENT_TABLE_entry_via_PR
+  AP15_MISPLACED_DOCUMENT:
+    problem::oct_md_committed_at_path_contradicting_its_META_CANONICAL_or_META_SOURCE
+    fix::move_file_to_declared_canonical_path_or_update_META_to_match_actual_location_via_octave_secretary
+  AP16_BUNDLED_HUB_OCTAVE_QUALITY_GAP:
+    problem::pre_commit_octave_validate_hook_excludes_src_hestai_mcp_bundled_hub_so_low_quality_OCTAVE_can_accumulate
+    fix::deliberate_exclusion_to_prevent_legacy_drift_blocking_commits_substituted_by_octave_write_dry_run_discipline_at_authoring_time_octave_secretary_AUTHORITY_BLOCKING_holds_the_quality_line
 §11::COMPATIBILITY
   WHERE_QUESTION::visibility_rules_oct_md_answers_where_artifact_belongs
   HOW_TO_NAME_QUESTION::naming_standard_oct_md_answers_naming_and_frontmatter
@@ -474,6 +491,9 @@ META:
     to::".hestai/state/context/.archive/"
     rationale::deprecated_artefacts_archive_under_state_context
 §13::CHANGELOG
+  v2_2:
+    date::"2026-04-28"
+    note::added_META_REQUIREMENTS_subblock_to_FORMAT_RULES_codifying_CANONICAL_and_SOURCE_fields_for_self_locating_governance_documents_added_AP15_MISPLACED_DOCUMENT_anti_pattern_added_AP16_BUNDLED_HUB_OCTAVE_QUALITY_GAP_documenting_deliberate_pre_commit_exclusion_added_SELF_LOCATING_axiom_clarified_RETENTION_POLICY_scope_per_ADR_0060_amendment_133b745
   v2_1:
     date::"2026-04-28"
     note::added_LEGACY_MIGRATION_table_AP12_WORKTREE_PATH_TRAP_AP13_BROKEN_DASHBOARD_POINTER_AP14_UNCANONICAL_STATE_SUBDIR_clarified_WRITE_PATH_exception_added_P19a_CROSS_REPO_APP_CONTEXT_corrected_P22_lifecycle_to_gitignored_shared_split_RETENTION_POLICY_into_COMMIT_TRACKED_and_GITIGNORED_annotated_T4_STATE_worktree_symlink_propagation_warning
