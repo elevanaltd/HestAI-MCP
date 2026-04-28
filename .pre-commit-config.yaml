@@ -24,7 +24,7 @@ repos:
 
       - id: canonical-paths-validate
         name: Validate canonical paths for staged .oct.md
-        entry: bash -c 'set -euo pipefail; files="$(git diff --cached --name-only --diff-filter=ACMR | grep -E "\\.oct\\.md$" || true)"; if [ -z "$files" ]; then echo "SKIP canonical-paths (no .oct.md staged)"; exit 0; fi; echo "$files" | xargs python3 scripts/ci/validate_canonical_paths.py'
+        entry: bash -c 'set -euo pipefail; files="$(git diff --cached -z --name-only --diff-filter=ACMR | tr "\0" "\n" | grep -E "\\.oct\\.md$" || true)"; if [ -z "$files" ]; then echo "SKIP canonical-paths (no .oct.md staged)"; exit 0; fi; echo "$files" | xargs python3 scripts/ci/validate_canonical_paths.py'
         language: system
         pass_filenames: false
         always_run: true

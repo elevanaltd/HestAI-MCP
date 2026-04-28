@@ -248,3 +248,59 @@ class TestValidateCanonicalPaths:
         assert _normalize_path("./src/foo/bar.oct.md") == "src/foo/bar.oct.md"
         assert _normalize_path("src/foo/bar.oct.md") == "src/foo/bar.oct.md"
         assert _normalize_path(".hestai/rules/foo.oct.md") == ".hestai/rules/foo.oct.md"
+
+    # ------------------------------------------------------------------
+    # CRS rework: edge cases identified in review
+    # ------------------------------------------------------------------
+
+    def test_pass_root_level_file_no_slash(self, tmp_path: Path) -> None:
+        """Root-level .oct.md with SOURCE::"root.oct.md" (no /) must pass.
+
+        The '/' guard in the original implementation incorrectly blocked root
+        files whose SOURCE value contains no path separator.
+        """
+        rel = "root.oct.md"
+        _write_oct_md(tmp_path, rel, f'  SOURCE::"{rel}"\n')
+        from scripts.ci.validate_canonical_paths import main
+
+        assert main(["--repo-root", str(tmp_path), rel]) == 0
+
+    def test_pass_meta_with_blank_line_between_fields(self, tmp_path: Path) -> None:
+        """Blank line inside META block must not truncate field extraction.
+
+        The original _RE_META_BLOCK regex required every line to be indented,
+        stopping capture at the first blank line and silently missing subsequent
+        CANONICAL/SOURCE declarations.
+        """
+        rel = "src/foo/spaced.oct.md"
+        (tmp_path / "src" / "foo").mkdir(parents=True, exist_ok=True)
+        (tmp_path / rel).write_text(
+            "===DOC===\n"
+            "META:\n"
+            "  TYPE::STANDARD\n"
+            "\n"
+            f'  SOURCE::"{rel}"\n'
+            "§1::CONTENT\n"
+            "  VALUE::test\n"
+            "===END===\n",
+            encoding="utf-8",
+        )
+        from scripts.ci.validate_canonical_paths import main
+
+        assert main(["--repo-root", str(tmp_path), rel]) == 0
+
+    def test_extract_meta_fields_blank_line_in_meta(self) -> None:
+        """_extract_meta_fields must parse SOURCE even after a blank META line."""
+        from scripts.ci.validate_canonical_paths import _extract_meta_fields
+
+        content = (
+            "===DOC===\n"
+            "META:\n"
+            "  TYPE::STANDARD\n"
+            "\n"
+            '  SOURCE::"src/foo/bar.oct.md"\n'
+            "§1::SECTION\n"
+            "===END===\n"
+        )
+        fields = _extract_meta_fields(content)
+        assert fields.get("SOURCE") == "src/foo/bar.oct.md"

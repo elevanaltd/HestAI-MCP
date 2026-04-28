@@ -31,8 +31,9 @@ _RE_FIELD = re.compile(
 
 # Captures the META block: everything after "META:\n" up to (but not
 # including) the first section marker (§) or document end (===).
+# Allows blank lines within the block (authors sometimes add them for readability).
 _RE_META_BLOCK = re.compile(
-    r"^META:\s*\n((?:(?!§|===)[ \t][^\n]*\n)*)",
+    r"^META:\s*\n((?:(?!§|===)(?:[ \t][^\n]*|\s*)\n)*)",
     re.MULTILINE,
 )
 
@@ -75,14 +76,15 @@ def _git_repo_root() -> Path:
 
 def _staged_oct_md_files() -> list[str]:
     result = subprocess.run(
-        ["git", "diff", "--cached", "--name-only", "--diff-filter=ACMR"],
+        ["git", "diff", "--cached", "-z", "--name-only", "--diff-filter=ACMR"],
         capture_output=True,
         text=True,
         check=False,
     )
     if result.returncode != 0:
         raise SystemExit("ERROR canonical-paths: git diff --cached failed")
-    return [line.strip() for line in result.stdout.splitlines() if line.strip().endswith(".oct.md")]
+    # -z outputs NUL-separated paths; handles filenames with spaces correctly
+    return [f for f in result.stdout.split("\0") if f.endswith(".oct.md")]
 
 
 def _validate_file(file_path: str, repo_root: Path) -> str | None:
@@ -115,8 +117,7 @@ def _validate_file(file_path: str, repo_root: Path) -> str | None:
     for value in (canonical, source):
         if not value:
             continue
-        # Only treat values that look like paths (contain /)
-        if "/" in value and _normalize_path(value) == file_norm:
+        if _normalize_path(value) == file_norm:
             return None
 
     declared: list[str] = []
