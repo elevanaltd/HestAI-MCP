@@ -4,7 +4,7 @@
 - **Type**: ADR
 - **Author**: holistic-orchestrator (synthesized from debate-hall session)
 - **Created**: 2025-12-27
-- **Updated**: 2025-12-27
+- **Updated**: 2026-04-28
 - **GitHub Issue**: [#60](https://github.com/elevanaltd/HestAI-MCP/issues/60)
 - **Phase**: D1
 - **Supersedes**: (none)
@@ -53,14 +53,18 @@ The current structure treats "proposal" and "decision" as distinct when they're 
 
 ### File Retention Policy
 
+**Scope**: This policy governs the RFC/ADR-aligned audit corpus only — namely session archives and debate transcripts. It is *not* a blanket rule that every `.oct.md` file in the repository must be committed.
+
 | Format | Git Status | Rationale |
 |--------|------------|-----------|
 | `.json` / `.jsonl` (raw) | GITIGNORED | Machine format, large, reconstructible |
-| `.oct.md` (compressed) | COMMITTED | Semantic density, human-readable, audit trail |
+| `.oct.md` (compressed) | COMMITTED *(within scope)* | Semantic density, human-readable, audit trail |
 
 This applies to:
 - Session archives: `.jsonl` gitignored, `.oct.md` committed
 - Debate transcripts: `.json` gitignored, `.oct.md` committed
+
+**Out of scope**: Ephemeral `.oct.md` documents (e.g. shared runtime state under `.hestai/state/`, scratch agent context, transient reports) may remain gitignored. The committed-vs-gitignored placement for any given `.oct.md` path is governed by `visibility-rules.oct.md` §3 PLACEMENT_TABLE and §8 RETENTION_POLICY, which enumerate `COMMITTED_PATHS` and `GITIGNORED_PATHS` explicitly. Where a path's lifecycle is `ephemeral_shared_gitignored` or `gitignored_shared`, the `.oct.md` artifact is durable on disk but not tracked in git — and that does **not** violate this ADR.
 
 ## Consequences
 
@@ -99,6 +103,10 @@ The following automation tools are **out of scope** for this ADR and belong to d
 - `human_interject` - Inject human feedback into debates
 
 These are implementation details, not policy decisions. See debate-hall-mcp Issue tracker for progress.
+
+## Amendments
+
+- **2026-04-28** — Clarified the scope of "File Retention Policy". The COMMITTED status for `.oct.md` was originally articulated in the context of RFC/ADR audit artifacts (session archives, debate transcripts) and was being misread as a blanket commit-everywhere rule. Added explicit out-of-scope language preserving ephemeral `.oct.md` use cases under `.hestai/state/` and similar gitignored paths, and pointed to `visibility-rules.oct.md` §3/§8 as the authoritative path-by-path placement source. Status remains Accepted; no decision reversed.
 
 ---
 
