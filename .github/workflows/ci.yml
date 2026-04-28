@@ -74,6 +74,16 @@ jobs:
             python src/hestai_mcp/_bundled_hub/tools/octave-validator.py --profile protocol "$f"
           done < changed_octave.txt
 
+      - name: Validate canonical paths for changed .oct.md
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ steps.diff.outputs.changed_octave_count }}" = "0" ]; then
+            echo "SKIP canonical-paths (no .oct.md changes)"
+            exit 0
+          fi
+          xargs -a changed_octave.txt python scripts/ci/validate_canonical_paths.py
+
       - name: Validate naming/visibility for changed docs
         shell: bash
         run: |
