@@ -2,7 +2,7 @@
 META:
   TYPE::STANDARD
   ID::visibility-rules
-  VERSION::"2.2"
+  VERSION::"2.3"
   STATUS::ACTIVE
   PURPOSE::"Artifact placement, format, and lifecycle rules for HestAI ecosystem"
   DOMAIN::governance
@@ -277,6 +277,7 @@ META:
     REQUIRED_IF_AUTHORED_ELSEWHERE::SOURCE_field_when_canonical_path_differs_from_authored_path
     RATIONALE::self_locating_documents_enable_automated_placement_validation_and_resist_silent_relocation
     VALIDATION_HOOK_SPEC::pre_commit_check_that_file_path_matches_META_CANONICAL_or_META_SOURCE_relative_to_repo_root
+    ENFORCEMENT::pending_issue_394_policy_authoritative_now_pre_commit_hook_implementation_tracked_at_github_elevanaltd_HestAI_MCP_issues_394
     EXAMPLE::this_file_declares_CANONICAL_and_SOURCE_in_META_lines_12_to_13_committed_path_must_match_META_SOURCE
     SCOPE::governance_documents_under_hestai_sys_or_hestai_or_bundled_hub
     OUT_OF_SCOPE::session_archives_and_other_high_churn_gitignored_state
@@ -491,6 +492,9 @@ META:
     to::".hestai/state/context/.archive/"
     rationale::deprecated_artefacts_archive_under_state_context
 §13::CHANGELOG
+  v2_3:
+    date::"2026-04-28"
+    note::added_ENFORCEMENT_field_to_META_REQUIREMENTS_pointing_at_pending_issue_394_for_validate_canonical_paths_pre_commit_hook_implementation_makes_policy_vs_enforcement_gap_self_documenting
   v2_2:
     date::"2026-04-28"
     note::added_META_REQUIREMENTS_subblock_to_FORMAT_RULES_codifying_CANONICAL_and_SOURCE_fields_for_self_locating_governance_documents_added_AP15_MISPLACED_DOCUMENT_anti_pattern_added_AP16_BUNDLED_HUB_OCTAVE_QUALITY_GAP_documenting_deliberate_pre_commit_exclusion_added_SELF_LOCATING_axiom_clarified_RETENTION_POLICY_scope_per_ADR_0060_amendment_133b745
