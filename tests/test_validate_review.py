@@ -516,7 +516,7 @@ class TestPRBodyScanning:
         assert approved is True, "Approvals split between body and comments should pass"
 
     def test_gh_cli_fetches_body_and_comments(self, ci_environment, monkeypatch):
-        """The gh CLI call should request both 'body' and 'comments' fields."""
+        """The gh CLI call should request 'body', 'comments', and 'reviews' fields."""
         captured_cmds = []
 
         def mock_run(cmd, *args, **kwargs):
@@ -529,6 +529,7 @@ class TestPRBodyScanning:
                             {"body": "CRS APPROVED: ok"},
                             {"body": "CE APPROVED: ok"},
                         ],
+                        "reviews": [],
                     }
                 ),
                 returncode=0,
@@ -539,12 +540,12 @@ class TestPRBodyScanning:
 
         validate_review.check_pr_comments("TIER_2_STANDARD")
 
-        # Verify gh pr view fetches both body and comments
+        # Verify gh pr view fetches body, comments, and reviews
         assert len(captured_cmds) > 0
         gh_cmd = captured_cmds[0]
-        assert (
-            "comments,body" in gh_cmd or "body,comments" in gh_cmd
-        ), f"gh CLI should fetch both comments and body, got: {gh_cmd}"
+        json_arg = next((a for a in gh_cmd if "comments" in a and "body" in a), None)
+        assert json_arg is not None, f"gh CLI should fetch comments and body, got: {gh_cmd}"
+        assert "reviews" in json_arg, f"gh CLI should also fetch reviews, got: {gh_cmd}"
 
     def test_empty_pr_body_still_checks_comments(self, ci_environment, monkeypatch):
         """Empty or null PR body should not break comment checking."""
