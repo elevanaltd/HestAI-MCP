@@ -14,6 +14,8 @@ name: Review Gate
 on:
   pull_request:
     types: [opened, synchronize, reopened, edited]
+  pull_request_review:
+    types: [submitted, edited, dismissed]
   issue_comment:
     types: [created, edited]
   workflow_call:
@@ -36,6 +38,7 @@ jobs:
     if: >-
       github.event_name == 'pull_request'
       || github.event_name == 'workflow_call'
+      || github.event_name == 'pull_request_review'
       || (github.event.issue.pull_request
           && github.event.comment.user.type != 'Bot'
           && (contains(github.event.comment.body, 'APPROVED')
@@ -98,6 +101,8 @@ jobs:
             echo "number=${{ inputs.pr_number }}" >> $GITHUB_OUTPUT
           elif [ "${{ github.event_name }}" = "pull_request" ]; then
             echo "number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" = "pull_request_review" ]; then
+            echo "number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
           else
             # For issue_comment events on PRs
             PR_NUMBER=$(echo "${{ github.event.issue.pull_request.url }}" | grep -oE '[0-9]+$')
@@ -109,9 +114,9 @@ jobs:
       # Parse the existing status comment for cached tier/reviewers/SHA to avoid
       # re-running file classification. If the cached SHA matches the PR head,
       # pass the cached data to validate_review.py via CACHED_GATE_DATA.
-      - name: Extract cached gate data (comment events only)
+      - name: Extract cached gate data (comment and review events)
         id: cached_gate
-        if: github.event_name == 'issue_comment'
+        if: github.event_name == 'issue_comment' || github.event_name == 'pull_request_review'
         uses: actions/github-script@v7
         env:
           PR_NUMBER: ${{ steps.pr.outputs.number }}
@@ -397,6 +402,9 @@ jobs:
           # Get the PR's head SHA
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             PR_HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          elif [ "${{ github.event_name }}" = "pull_request_review" ]; then
+            # pull_request_review exposes the reviewed commit directly
+            PR_HEAD_SHA="${{ github.event.review.commit_id }}"
           else
             # For issue_comment events, fetch from API
             PR_HEAD_SHA=$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json headRefOid --jq '.headRefOid')

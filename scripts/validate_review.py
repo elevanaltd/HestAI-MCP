@@ -483,22 +483,22 @@ def check_pr_comments(
 
     print(f"   Checking PR #{pr_number} for review comments...")
 
-    # Use gh CLI to get comments and PR body
+    # Use gh CLI to get comments, PR body, and PR reviews
     try:
         result = subprocess.run(
-            ["gh", "pr", "view", pr_number, "--json", "comments,body"],
+            ["gh", "pr", "view", pr_number, "--json", "comments,body,reviews"],
             capture_output=True,
             text=True,
             check=True,
         )
         pr_data = json.loads(result.stdout)
 
-        # Collect all searchable text: PR body + comment bodies
-        # Exclude ALL bot comments to prevent false positive approval matches.
+        # Collect all searchable text: PR body + comment bodies + review bodies
+        # Exclude ALL bot comments/reviews to prevent false positive approval matches.
         # Bot review prose (Copilot, Cubic, github-actions) often
         # contains "APPROVED", "GO", etc. which would falsely clear the gate.
         def _is_bot_comment(comment: dict[str, Any]) -> bool:
-            """Check if a comment is from a bot author."""
+            """Check if a comment or review is from a bot author."""
             login = comment.get("author", {}).get("login", "")
             if login in _BOT_LOGIN_SET:
                 return True
@@ -521,6 +521,19 @@ def check_pr_comments(
                 skipped_bots.append(bot_login)
             else:
                 searchable_texts.append(c.get("body", ""))
+
+        # Include PR review bodies — GitHub PR Reviews (submitted via the Review
+        # button, pulls/{n}/reviews API) are a separate resource from issue-level
+        # comments.  Reviewers who self-review must use state=COMMENTED (GitHub
+        # forbids self-approve), so we check body text only — not state.
+        for r in pr_data.get("reviews", []):
+            if _is_bot_comment(r):
+                bot_login = r.get("author", {}).get("login", "unknown")
+                skipped_bots.append(bot_login)
+            else:
+                review_body = r.get("body", "")
+                if review_body:
+                    searchable_texts.append(review_body)
 
         if skipped_bots:
             print(
