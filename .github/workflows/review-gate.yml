@@ -403,8 +403,7 @@ jobs:
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             PR_HEAD_SHA="${{ github.event.pull_request.head.sha }}"
           elif [ "${{ github.event_name }}" = "pull_request_review" ]; then
-            # pull_request_review exposes the reviewed commit directly
-            PR_HEAD_SHA="${{ github.event.review.commit_id }}"
+            PR_HEAD_SHA="${{ github.event.pull_request.head.sha }}"
           else
             # For issue_comment events, fetch from API
             PR_HEAD_SHA=$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json headRefOid --jq '.headRefOid')

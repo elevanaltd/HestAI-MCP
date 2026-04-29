@@ -1,10 +1,9 @@
 """Tests for check_pr_comments() including PR review bodies.
 
-TDD RED phase: written before the fix is implemented.
-
 Contract:
 - check_pr_comments() fetches `reviews` alongside `comments,body`
-- Each review's .body is included in searchable_texts (same as a comment)
+- Each review's .body is included in searchable_texts for APPROVED and COMMENTED states
+- DISMISSED and PENDING reviews are excluded regardless of body content
 - Bot reviews are excluded using the same _BOT_LOGIN_SET logic
 - A review body containing a valid approval satisfies the relevant role checker
 - Existing comment-path behaviour is unaffected (no regression)
@@ -189,6 +188,97 @@ class TestCheckPrCommentsIncludesReviews:
         approved, _msg, missing = _run_check(pr_data, required_roles={"CE"})
         assert approved is False
         assert "CE" in missing
+
+
+# ---------------------------------------------------------------------------
+# Tests: dismissed and pending reviews are excluded
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+class TestCheckPrCommentsReviewStateFiltering:
+    """Only APPROVED and COMMENTED reviews must contribute to approval matching."""
+
+    def test_dismissed_review_approval_is_ignored(self) -> None:
+        """A DISMISSED review containing an approval keyword must not satisfy the gate."""
+        pr_data = _make_pr_data(
+            reviews=[
+                {
+                    "author": {"login": "crs-agent"},
+                    "state": "DISMISSED",
+                    "body": "CRS APPROVED: looked good at the time",
+                }
+            ]
+        )
+        approved, _msg, missing = _run_check(pr_data, required_roles={"CRS"})
+        assert approved is False, "DISMISSED review must not satisfy the gate"
+        assert "CRS" in missing
+
+    def test_pending_review_approval_is_ignored(self) -> None:
+        """A PENDING review (not yet submitted) must not satisfy the gate."""
+        pr_data = _make_pr_data(
+            reviews=[
+                {
+                    "author": {"login": "ce-agent"},
+                    "state": "PENDING",
+                    "body": "CE APPROVED: draft review",
+                }
+            ]
+        )
+        approved, _msg, missing = _run_check(pr_data, required_roles={"CE"})
+        assert approved is False, "PENDING review must not satisfy the gate"
+        assert "CE" in missing
+
+    def test_commented_review_approval_is_included(self) -> None:
+        """A COMMENTED review (self-review state) must satisfy the gate."""
+        pr_data = _make_pr_data(
+            reviews=[
+                {
+                    "author": {"login": "crs-agent"},
+                    "state": "COMMENTED",
+                    "body": "CRS APPROVED: review complete",
+                }
+            ]
+        )
+        approved, _msg, missing = _run_check(pr_data, required_roles={"CRS"})
+        assert approved is True, "COMMENTED review must satisfy the gate"
+        assert missing == []
+
+    def test_approved_state_review_is_included(self) -> None:
+        """A review with state=APPROVED must also satisfy the gate."""
+        pr_data = _make_pr_data(
+            reviews=[
+                {
+                    "author": {"login": "crs-agent"},
+                    "state": "APPROVED",
+                    "body": "CRS APPROVED: full approval",
+                }
+            ]
+        )
+        approved, _msg, missing = _run_check(pr_data, required_roles={"CRS"})
+        assert approved is True, "APPROVED-state review must satisfy the gate"
+        assert missing == []
+
+    def test_dismissed_review_does_not_block_valid_comment_approval(self) -> None:
+        """A dismissed review for a role must not prevent a valid comment from satisfying it."""
+        pr_data = _make_pr_data(
+            comments=[
+                {
+                    "author": {"login": "crs-user"},
+                    "body": "CRS APPROVED: approved via comment",
+                }
+            ],
+            reviews=[
+                {
+                    "author": {"login": "crs-agent"},
+                    "state": "DISMISSED",
+                    "body": "CRS APPROVED: earlier dismissed review",
+                }
+            ],
+        )
+        approved, _msg, missing = _run_check(pr_data, required_roles={"CRS"})
+        assert approved is True, "Valid comment approval must satisfy gate despite dismissed review"
+        assert missing == []
 
 
 # ---------------------------------------------------------------------------

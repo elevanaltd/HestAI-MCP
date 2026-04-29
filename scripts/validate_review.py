@@ -525,8 +525,13 @@ def check_pr_comments(
         # Include PR review bodies — GitHub PR Reviews (submitted via the Review
         # button, pulls/{n}/reviews API) are a separate resource from issue-level
         # comments.  Reviewers who self-review must use state=COMMENTED (GitHub
-        # forbids self-approve), so we check body text only — not state.
+        # forbids self-approve).  DISMISSED reviews are excluded: the reviewer
+        # retracted their assessment, so it must not satisfy the gate.
+        # PENDING reviews have not been submitted yet and are also excluded.
+        active_review_states: frozenset[str] = frozenset({"APPROVED", "COMMENTED"})
         for r in pr_data.get("reviews", []):
+            if r.get("state") not in active_review_states:
+                continue
             if _is_bot_comment(r):
                 bot_login = r.get("author", {}).get("login", "unknown")
                 skipped_bots.append(bot_login)
