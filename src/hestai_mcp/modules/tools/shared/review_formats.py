@@ -69,13 +69,17 @@ def matches_approval_pattern(text: str, prefix: str, keyword: str) -> bool:
     # after a markdown table pipe character.
     prefix_re = re.compile(rf"(?:^|(?<=\|))\s*{re.escape(prefix)}\b", re.MULTILINE | re.IGNORECASE)
     keyword_re = re.compile(rf"\b{re.escape(keyword)}\b", re.IGNORECASE)
+    # Strip markdown heading markers (##, ###, etc.) per-line so agents that
+    # write '## TMG APPROVED ✅' are accepted alongside the canonical format.
+    heading_re = re.compile(r"^#{1,6}\s*")
 
     for line in cleaned.splitlines():
-        prefix_match = prefix_re.search(line)
+        stripped = heading_re.sub("", line)
+        prefix_match = prefix_re.search(stripped)
         if not prefix_match:
             continue
         # Keyword must appear after the prefix on the same line
-        keyword_match = keyword_re.search(line, prefix_match.end())
+        keyword_match = keyword_re.search(stripped, prefix_match.end())
         if keyword_match:
             return True
 

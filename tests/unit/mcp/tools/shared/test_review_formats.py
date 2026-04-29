@@ -215,6 +215,47 @@ class TestMatchesApprovalPattern:
 
         assert not matches_approval_pattern("", "CRS", "APPROVED")
 
+    def test_markdown_h2_heading_format(self) -> None:
+        """Matches '## TMG APPROVED ✅' — agents naturally use heading format."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            matches_approval_pattern,
+        )
+
+        assert matches_approval_pattern("## TMG APPROVED ✅", "TMG", "APPROVED")
+
+    def test_markdown_h1_heading_format(self) -> None:
+        """Matches '# CRS APPROVED: assessment' with h1 heading marker."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            matches_approval_pattern,
+        )
+
+        assert matches_approval_pattern("# CRS APPROVED: assessment", "CRS", "APPROVED")
+
+    def test_markdown_h3_heading_format(self) -> None:
+        """Matches '### CIV APPROVED: assessment' with deep heading marker."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            matches_approval_pattern,
+        )
+
+        assert matches_approval_pattern("### CIV APPROVED: assessment", "CIV", "APPROVED")
+
+    def test_markdown_heading_with_go_keyword(self) -> None:
+        """Matches '## TMG GO ✅' — heading format with GO keyword."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            matches_approval_pattern,
+        )
+
+        assert matches_approval_pattern("## TMG GO ✅", "TMG", "GO")
+
+    def test_markdown_heading_in_multiline(self) -> None:
+        """Matches heading-format approval within multiline review comment."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            matches_approval_pattern,
+        )
+
+        text = "Review summary:\n\n## TMG APPROVED ✅\n\nAll checks passed."
+        assert matches_approval_pattern(text, "TMG", "APPROVED")
+
 
 @pytest.mark.unit
 class TestHelperFunctions:
