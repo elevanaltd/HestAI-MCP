@@ -44,6 +44,8 @@ def matches_approval_pattern(text: str, prefix: str, keyword: str) -> bool:
       - 'CRS  APPROVED' (extra whitespace)
       - 'IL SELF-REVIEWED:' and 'IL (Claude): SELF-REVIEWED:'
       - '| CRS | Gemini | **APPROVED** |' (markdown table with bold)
+      - '## TMG APPROVED ✅' (markdown heading, stripped before matching)
+      - '  ## CRS APPROVED:' (indented markdown heading)
 
     Uses word boundaries around both prefix and keyword to prevent false
     positives (e.g., 'XCRS' must not match 'CRS', 'APPROVEDLY' must not
@@ -111,6 +113,11 @@ def has_crs_model_approval(texts: list[str], model: str) -> bool:
     separator characters (whitespace, colon, dashes) in between. This prevents
     spoofing where a single APPROVED keyword satisfies multiple model checks,
     or where intervening tokens like BLOCKED are ignored.
+
+    Note: this function does NOT strip markdown heading markers. It is
+    intentionally stricter than matches_approval_pattern() — its purpose is
+    spoofing prevention (ensuring a specific model name is present), not
+    format tolerance.
 
     Args:
         texts: List of comment/body texts to search.

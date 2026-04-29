@@ -319,6 +319,36 @@ class TestHelperFunctions:
 
 
 @pytest.mark.unit
+class TestHelperFunctionsHeadingFormat:
+    """Test that helper functions accept heading-format approvals via matches_approval_pattern."""
+
+    def test_has_crs_approval_with_h2_heading(self):
+        from hestai_mcp.modules.tools.shared.review_formats import has_crs_approval
+
+        assert has_crs_approval(["## CRS APPROVED: looks good"])
+
+    def test_has_ce_approval_with_h2_heading(self):
+        from hestai_mcp.modules.tools.shared.review_formats import has_ce_approval
+
+        assert has_ce_approval(["## CE APPROVED: architecture sound"])
+
+    def test_has_tmg_approval_with_h2_heading(self):
+        from hestai_mcp.modules.tools.shared.review_formats import has_tmg_approval
+
+        assert has_tmg_approval(["## TMG APPROVED ✅"])
+
+    def test_has_civ_approval_with_h2_heading(self):
+        from hestai_mcp.modules.tools.shared.review_formats import has_civ_approval
+
+        assert has_civ_approval(["## CIV APPROVED: implementation valid"])
+
+    def test_has_crs_approval_with_indented_heading(self):
+        from hestai_mcp.modules.tools.shared.review_formats import has_crs_approval
+
+        assert has_crs_approval(["  ## CRS APPROVED: indented"])
+
+
+@pytest.mark.unit
 class TestFormatReviewComment:
     """Test comment formatting that produces gate-clearable comments."""
 
