@@ -44,6 +44,8 @@ def matches_approval_pattern(text: str, prefix: str, keyword: str) -> bool:
       - 'CRS  APPROVED' (extra whitespace)
       - 'IL SELF-REVIEWED:' and 'IL (Claude): SELF-REVIEWED:'
       - '| CRS | Gemini | **APPROVED** |' (markdown table with bold)
+      - '## TMG APPROVED ✅' (markdown heading, stripped before matching)
+      - '  ## CRS APPROVED:' (indented markdown heading)
 
     Uses word boundaries around both prefix and keyword to prevent false
     positives (e.g., 'XCRS' must not match 'CRS', 'APPROVEDLY' must not
@@ -69,13 +71,17 @@ def matches_approval_pattern(text: str, prefix: str, keyword: str) -> bool:
     # after a markdown table pipe character.
     prefix_re = re.compile(rf"(?:^|(?<=\|))\s*{re.escape(prefix)}\b", re.MULTILINE | re.IGNORECASE)
     keyword_re = re.compile(rf"\b{re.escape(keyword)}\b", re.IGNORECASE)
+    # Strip markdown heading markers (##, ###, etc.) per-line so agents that
+    # write '## TMG APPROVED ✅' are accepted alongside the canonical format.
+    heading_re = re.compile(r"^\s*#{1,6}\s*")
 
     for line in cleaned.splitlines():
-        prefix_match = prefix_re.search(line)
+        stripped = heading_re.sub("", line)
+        prefix_match = prefix_re.search(stripped)
         if not prefix_match:
             continue
         # Keyword must appear after the prefix on the same line
-        keyword_match = keyword_re.search(line, prefix_match.end())
+        keyword_match = keyword_re.search(stripped, prefix_match.end())
         if keyword_match:
             return True
 
@@ -107,6 +113,11 @@ def has_crs_model_approval(texts: list[str], model: str) -> bool:
     separator characters (whitespace, colon, dashes) in between. This prevents
     spoofing where a single APPROVED keyword satisfies multiple model checks,
     or where intervening tokens like BLOCKED are ignored.
+
+    Note: this function does NOT strip markdown heading markers. It is
+    intentionally stricter than matches_approval_pattern() — its purpose is
+    spoofing prevention (ensuring a specific model name is present), not
+    format tolerance.
 
     Args:
         texts: List of comment/body texts to search.

@@ -215,6 +215,55 @@ class TestMatchesApprovalPattern:
 
         assert not matches_approval_pattern("", "CRS", "APPROVED")
 
+    def test_markdown_h2_heading_format(self) -> None:
+        """Matches '## TMG APPROVED ✅' — agents naturally use heading format."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            matches_approval_pattern,
+        )
+
+        assert matches_approval_pattern("## TMG APPROVED ✅", "TMG", "APPROVED")
+
+    def test_markdown_h1_heading_format(self) -> None:
+        """Matches '# CRS APPROVED: assessment' with h1 heading marker."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            matches_approval_pattern,
+        )
+
+        assert matches_approval_pattern("# CRS APPROVED: assessment", "CRS", "APPROVED")
+
+    def test_markdown_h3_heading_format(self) -> None:
+        """Matches '### CIV APPROVED: assessment' with deep heading marker."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            matches_approval_pattern,
+        )
+
+        assert matches_approval_pattern("### CIV APPROVED: assessment", "CIV", "APPROVED")
+
+    def test_markdown_heading_with_go_keyword(self) -> None:
+        """Matches '## TMG GO ✅' — heading format with GO keyword."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            matches_approval_pattern,
+        )
+
+        assert matches_approval_pattern("## TMG GO ✅", "TMG", "GO")
+
+    def test_markdown_heading_in_multiline(self) -> None:
+        """Matches heading-format approval within multiline review comment."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            matches_approval_pattern,
+        )
+
+        text = "Review summary:\n\n## TMG APPROVED ✅\n\nAll checks passed."
+        assert matches_approval_pattern(text, "TMG", "APPROVED")
+
+    def test_indented_markdown_heading_format(self) -> None:
+        """Matches '  ## TMG APPROVED ✅' — heading with leading indentation."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            matches_approval_pattern,
+        )
+
+        assert matches_approval_pattern("  ## TMG APPROVED ✅", "TMG", "APPROVED")
+
 
 @pytest.mark.unit
 class TestHelperFunctions:
@@ -267,6 +316,41 @@ class TestHelperFunctions:
         from hestai_mcp.modules.tools.shared.review_formats import has_il_self_review
 
         assert not has_il_self_review(["CRS APPROVED: Not IL"])
+
+
+@pytest.mark.unit
+class TestHelperFunctionsHeadingFormat:
+    """Test that helper functions accept heading-format approvals via matches_approval_pattern."""
+
+    def test_has_crs_approval_with_h2_heading(self) -> None:
+        """has_crs_approval returns True for an H2 CRS approval heading."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_crs_approval
+
+        assert has_crs_approval(["## CRS APPROVED: looks good"])
+
+    def test_has_ce_approval_with_h2_heading(self) -> None:
+        """has_ce_approval returns True for an H2 CE approval heading."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_ce_approval
+
+        assert has_ce_approval(["## CE APPROVED: architecture sound"])
+
+    def test_has_tmg_approval_with_h2_heading(self) -> None:
+        """has_tmg_approval returns True for an H2 TMG approval heading."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_tmg_approval
+
+        assert has_tmg_approval(["## TMG APPROVED ✅"])
+
+    def test_has_civ_approval_with_h2_heading(self) -> None:
+        """has_civ_approval returns True for an H2 CIV approval heading."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_civ_approval
+
+        assert has_civ_approval(["## CIV APPROVED: implementation valid"])
+
+    def test_has_crs_approval_with_indented_heading(self) -> None:
+        """has_crs_approval returns True for an indented H2 CRS approval heading."""
+        from hestai_mcp.modules.tools.shared.review_formats import has_crs_approval
+
+        assert has_crs_approval(["  ## CRS APPROVED: indented"])
 
 
 @pytest.mark.unit
