@@ -256,6 +256,14 @@ class TestMatchesApprovalPattern:
         text = "Review summary:\n\n## TMG APPROVED ✅\n\nAll checks passed."
         assert matches_approval_pattern(text, "TMG", "APPROVED")
 
+    def test_indented_markdown_heading_format(self) -> None:
+        """Matches '  ## TMG APPROVED ✅' — heading with leading indentation."""
+        from hestai_mcp.modules.tools.shared.review_formats import (
+            matches_approval_pattern,
+        )
+
+        assert matches_approval_pattern("  ## TMG APPROVED ✅", "TMG", "APPROVED")
+
 
 @pytest.mark.unit
 class TestHelperFunctions:

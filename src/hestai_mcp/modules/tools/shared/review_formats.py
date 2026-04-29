@@ -71,7 +71,7 @@ def matches_approval_pattern(text: str, prefix: str, keyword: str) -> bool:
     keyword_re = re.compile(rf"\b{re.escape(keyword)}\b", re.IGNORECASE)
     # Strip markdown heading markers (##, ###, etc.) per-line so agents that
     # write '## TMG APPROVED ✅' are accepted alongside the canonical format.
-    heading_re = re.compile(r"^#{1,6}\s*")
+    heading_re = re.compile(r"^\s*#{1,6}\s*")
 
     for line in cleaned.splitlines():
         stripped = heading_re.sub("", line)
