@@ -669,6 +669,16 @@ class TestListTools:
 class TestCallTool:
     """Test MCP tool execution routing."""
 
+    @pytest.fixture(autouse=True)
+    def _enable_legacy_rollback(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """ADR-0353: clock_in/clock_out/submit_review are deactivated by default.
+
+        These tests exercise legacy execution routing — they need the rollback
+        flag to bypass the deprecation gate. The default-OFF behaviour is
+        covered by tests/unit/mcp/test_legacy_tool_gate.py.
+        """
+        monkeypatch.setenv("HESTAI_MCP_LEGACY_TOOLS_ENABLED", "1")
+
     @pytest.mark.asyncio
     async def test_routes_clock_in_correctly(self, tmp_path: Path):
         """Routes clock_in tool call to clock_in function."""
@@ -863,6 +873,11 @@ class TestMCPClockInAISynthesisIntegration:
     - The exported clock_in must use async path with AI synthesis capability
     """
 
+    @pytest.fixture(autouse=True)
+    def _enable_legacy_rollback(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """ADR-0353: rollback flag enables legacy clock_in execution path."""
+        monkeypatch.setenv("HESTAI_MCP_LEGACY_TOOLS_ENABLED", "1")
+
     @pytest.mark.asyncio
     async def test_mcp_clock_in_calls_async_path_with_ai_synthesis(self, tmp_path: Path):
         """
@@ -975,6 +990,11 @@ class TestMCPClockInAISynthesisIntegration:
 @pytest.mark.unit
 class TestGovernanceIntegrityAtSessionBoundaries:
     """Test Holographic System Standard integrity checks at clock_in and clock_out."""
+
+    @pytest.fixture(autouse=True)
+    def _enable_legacy_rollback(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """ADR-0353: integrity checks live inside the legacy execution path; need rollback flag."""
+        monkeypatch.setenv("HESTAI_MCP_LEGACY_TOOLS_ENABLED", "1")
 
     @pytest.mark.asyncio
     async def test_clock_in_detects_and_heals_tampering(self, tmp_path: Path):
