@@ -28,6 +28,15 @@ from hestai_mcp.modules.tools.bind import bind
 from hestai_mcp.modules.tools.clock_in import clock_in_async, validate_working_dir
 from hestai_mcp.modules.tools.clock_out import clock_out
 from hestai_mcp.modules.tools.shared.governance_integrity import store_governance_hash
+from hestai_mcp.modules.tools.shared.legacy_deprecation import (
+    SOFT_DEPRECATED_TOOLS,
+    deprecation_field,
+    deprecation_payload,
+    emit_stderr_warning,
+    is_legacy_enabled,
+    record_legacy_invocation,
+    resolve_audit_path,
+)
 from hestai_mcp.modules.tools.shared.review_formats import VALID_ROLES as REVIEW_VALID_ROLES
 from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
 from hestai_mcp.modules.tools.submit_review import submit_review
@@ -681,6 +690,32 @@ async def list_tools() -> list[Tool]:
     ]
 
 
+def _resolve_legacy_working_dir(arguments: dict[str, Any]) -> str:
+    """Resolve a working_dir for legacy-tool telemetry, falling back to cwd."""
+    raw = arguments.get("working_dir")
+    if isinstance(raw, str) and raw:
+        return raw
+    return str(Path.cwd())
+
+
+def _record_legacy_telemetry_safely(tool_name: str, working_dir: str) -> None:
+    """Append a telemetry record on the rollback path; never break the tool call."""
+    try:
+        project_root = Path(working_dir)
+        record_legacy_invocation(
+            tool_name=tool_name,
+            audit_path=resolve_audit_path(project_root),
+            working_dir=working_dir,
+            caller_session_id=None,
+        )
+    except Exception as telemetry_error:  # pragma: no cover - defensive
+        logger.warning(
+            "Failed to record legacy-tool telemetry for %s: %s",
+            tool_name,
+            telemetry_error,
+        )
+
+
 @app.call_tool()
 async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     """
@@ -696,6 +731,17 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     Raises:
         ValueError: If tool name is unknown
     """
+    # ADR-0353 / issue #400: soft-deprecation gate for legacy hestai-mcp tools.
+    # Default state (env-var unset/0): return structured deprecation payload.
+    # Rollback state (env-var=1): execute legacy logic and emit three breadcrumbs
+    # (stderr, additive `_deprecation` field, jsonl telemetry) — handled inline
+    # in each legacy branch below.
+    if name in SOFT_DEPRECATED_TOOLS and not is_legacy_enabled():
+        import json
+
+        payload = deprecation_payload(name)
+        return [TextContent(type="text", text=json.dumps(payload, indent=2))]
+
     if name == "clock_in":
         # Validate working_dir before any governance writes (fail-closed).
         working_dir_path = validate_working_dir(arguments["working_dir"])
@@ -727,6 +773,11 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             model=arguments.get("model"),
             enable_ai_synthesis=True,
         )
+        # ADR-0353 rollback breadcrumbs (env-var=1 path).
+        emit_stderr_warning("clock_in")
+        if isinstance(result, dict):
+            result["_deprecation"] = deprecation_field("clock_in")
+        _record_legacy_telemetry_safely("clock_in", _resolve_legacy_working_dir(arguments))
         import json
 
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
@@ -802,6 +853,11 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             description=arguments.get("description", ""),
             project_root=actual_project_root,
         )
+        # ADR-0353 rollback breadcrumbs (env-var=1 path).
+        emit_stderr_warning("clock_out")
+        if isinstance(result, dict):
+            result["_deprecation"] = deprecation_field("clock_out")
+        _record_legacy_telemetry_safely("clock_out", str(actual_project_root))
 
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
@@ -836,6 +892,11 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             dry_run=arguments.get("dry_run", False),
             commit_sha=arguments.get("commit_sha"),
         )
+        # ADR-0353 rollback breadcrumbs (env-var=1 path).
+        emit_stderr_warning("submit_review")
+        if isinstance(result, dict):
+            result["_deprecation"] = deprecation_field("submit_review")
+        _record_legacy_telemetry_safely("submit_review", _resolve_legacy_working_dir(arguments))
 
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
