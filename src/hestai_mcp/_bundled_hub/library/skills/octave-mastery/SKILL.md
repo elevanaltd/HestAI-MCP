@@ -62,6 +62,9 @@ META:
   // Do NOT use NAME[qualifier] for archetypes — that is constructor syntax, not annotation.
   // Do NOT stack multiple qualifiers: HEPHAESTUS<a,b> is invalid. Use one facet per archetype.
   ANTI_PATTERN::"HEPHAESTUS[faithful_transcription] — wrong bracket form for archetype annotation"
+  CONTENT_DISCIPLINE::"Qualifier content MUST be ≤32 chars and ≤4 underscore-tokens. Longer content is snake_case prose masquerading as an annotation — extract to a sibling field."
+  CONTENT_WRONG::"HEPHAESTUS<faithful_and_precise_transcription_of_all_content_without_loss>"
+  CONTENT_RIGHT::"HEPHAESTUS<faithful_transcription> + PRINCIPLE::\"Transcribe all content without loss.\""
   MULTI_ARCH::"[HEPHAESTUS<faithful_transcription>, ATLAS<reliable_execution>] — list of annotated archetypes"
 §4::HOLOGRAPHIC_CONTRACTS
   // v6: Documents carry their own validation law in META. Two distinct uses:
@@ -144,4 +147,22 @@ CONDUCT:
   BURIED_NETWORK::"RELATED_TO::other_service hidden in prose comment — use explicit operator: auth→payments[dependency]"
   OPERATOR_SOUP::"RESULT::A+B->C~D all in one expression — break into separate keyed fields"
   PROSE_BLEED::"Using natural language sentences as values — every token must carry semantic payload"
+§7::TIER_NORMALIZATION_AUDIT_CHANNEL
+  // ADR-0006 SR1-T1 Step 3 (v1.12.0): centralised audit channel for I4 completeness
+  MODULE::"octave-mcp:src/octave_mcp/core/grammar/tier_normalize.py"
+  // ^ path is in the octave-mcp repo (upstream OCTAVE implementation), not this repo.
+  API:
+    LOG_REPAIR::"log_repair(log, rule_id, before, after, *, safe=True, semantics_changed=False) — single precise entry point appending a RepairTier.NORMALIZATION entry"
+    ACTIVE::"active(log) context manager — binds ``log`` as the ContextVar-scoped sink so pipeline-internal sites (notably emitter identifier-dequoting) can record receipts without threading RepairLog through emit()'s public signature"
+    RECONCILE::"reconcile_canonical_emission(log, baseline_bytes, canonical_bytes) — reconciler bridge"
+  RULE_IDS:
+    PRECISE::"TN_IDENTIFIER_DEQUOTE — was_quoted-driven dequoting at emit_assignment"
+    BRIDGE::"TN_RECONCILE_CANONICAL — coarse-grained post-emit baseline-vs-canonical receipt"
+  RECONCILER_BRIDGE_PATTERN:
+    PURPOSE::"Closes the audit-cardinality gap for diffs that upstream precise loggers do not yet cover (blank-line stripping pending Sprint 3+ trivia population; triple-quote collapse pending new lexer W-code)"
+    DEDUP_DISCRIMINANT::"Only RepairTier.NORMALIZATION entries on the log suppress the bridge. RepairTier.REPAIR (schema repairs) and RepairTier.FORBIDDEN entries do NOT count — they are orthogonal dimensions"
+    SELF_DEPRECATION::"When Sprint 3+ trivia and the new triple-quote lexer W-code land, precise loggers will cover their respective diffs, the dedup precondition fails, and the reconciler no-ops without any code change"
+  INTEGRATION_POINTS:
+    EMITTER::"emit_assignment: precise log when assignment.was_quoted is True AND emitter chose to emit bare (identifier-shape dequoting)"
+    WRITE_PY::"octave-mcp:src/octave_mcp/mcp/write.py — tier_normalize.active(tier_normalize_log) wraps each _emit_with_style call; reconcile_canonical_emission runs after final emit; entries drain into result[corrections]"
 ===END===
