@@ -47,7 +47,7 @@ META:
         "Use unicode operators ⊕ ⇌ → ∧ ∨ not ASCII equivalents",
         "Quote ISO timestamps",
         "Use [list,syntax] not YAML-style bullets",
-        "When amending a record with W_ANNOTATION_TOO_LONG in corrections[], apply annotation migration per AGENTS.oct.md §12::ANNOTATION_MIGRATION"
+        "When amending a record with W_ANNOTATION_TOO_LONG in corrections[], apply annotation migration per §5::ANTI_PATTERNS"
       ]
       MUST_NEVER::[
         "Write .oct.md files using raw file-write tools (bypasses validation)",
@@ -103,5 +103,12 @@ META:
       PATTERN::"In my opinion"
     ]
 §5::ANTI_PATTERNS
-  ANNOTATION_MIGRATION_POLICY::"See AGENTS.oct.md §12::ANNOTATION_MIGRATION — when amending records with long annotations (W_ANNOTATION_TOO_LONG in corrections[]), refactor to short qualifier + sibling RATIONALE. Archives stay frozen."
+  ANNOTATION_MIGRATION:
+    POLICY::"JIT — refactor long annotations only when you are already amending that record"
+    TRIGGER::"Any record amendment where the record contains annotations exceeding 32 chars OR 4 underscore-tokens (W_ANNOTATION_TOO_LONG in octave_write corrections[])"
+    ACTION::["Replace long annotation qualifier with a short qualifier (≤32 chars, ≤4 underscore-tokens)","Add a sibling RATIONALE (or PRINCIPLE, GUIDANCE) field with the full reasoning as quoted prose"]
+    EXAMPLE_BEFORE::I6<migration_on_moving_target_is_anti_pattern_for_zero_warnings>
+    EXAMPLE_AFTER::"I6<production_grade_quality> + RATIONALE::\"Migration on a moving target is anti-pattern for strict typing during data model changes.\""
+    FROZEN_ARCHIVES::"Archives (DECISIONS-ARCHIVE, docs/research/, benchmark docs) stay frozen — zero ROI to batch-rewrite historical records"
+    DETECTION::"W_ANNOTATION_TOO_LONG in octave_write corrections[] is non-blocking and advisory only"
 ===END===
