@@ -40,8 +40,8 @@ META:
       ]
     AGGRESSIVE:
       TARGET::"70%_fidelity"
-      PRESERVE::core_thesis∧conclusions
-      DROP::nuance∨narrative
+      PRESERVE::[core_thesis∧conclusions]
+      DROP::[nuance∨narrative]
       LOSS::"30%[explanatory_depth,tradeoff_narratives,edge_case_exploration]"
       USE::[
         context_window_scarcity,
@@ -50,7 +50,7 @@ META:
       ]
     ULTRA:
       TARGET::"50%_fidelity"
-      PRESERVE::facts∧structure
+      PRESERVE::[facts∧structure]
       DROP::all_narrative
       LOSS::"50%[almost_all_explanatory_content,tradeoff_reasoning]"
       USE::[
@@ -58,6 +58,14 @@ META:
         embedding_generation,
         dense_reference
       ]
+    ULTRA_MYTHIC:
+      TARGET::"60%_compression"
+      PRESERVE::[soul∧constraints]
+      METHOD::mythological_atoms
+      USE::[agent_binding, identity_transfer]
+      REQUIRES::octave-ultra-mythic
+      // Specialized identity compression skill for agent binding and
+      // identity transfer contexts. See skills/octave-ultra-mythic.
   DECISION_RULES::[
     "IF[reconstruction_accuracy_critical]→CONSERVATIVE∨LOSSLESS",
     "IF[context_window_scarce∧loss_acceptable]→AGGRESSIVE∨ULTRA",
@@ -68,19 +76,19 @@ META:
   // I4::TRANSFORM_AUDITABILITY — every transformation must log what was preserved vs dropped.
   // These META fields are MANDATORY for any compressed output.
   REQUIRED_META_FIELDS::[COMPRESSION_TIER,LOSS_PROFILE]
-  LOSS_PROFILE_FORMAT::[preserve:X,drop:Y]
+  LOSS_PROFILE_FORMAT::"[preserve:X,drop:Y]"
   // LOSS_PROFILE must be explicit — never hidden
   EXAMPLES:
-    CONSERVATIVE::[preserve:causal_chains,drop:verbose_phrasing]
-    AGGRESSIVE::[preserve:core_thesis∧conclusions,drop:explanatory_depth∨edge_cases]
-    ULTRA::[preserve:facts∧structure,drop:all_narrative∨tradeoff_reasoning]
+    CONSERVATIVE::"[preserve:causal_chains,drop:verbose_phrasing]"
+    AGGRESSIVE::"[preserve:core_thesis∧conclusions,drop:explanatory_depth∨edge_cases]"
+    ULTRA::"[preserve:facts∧structure,drop:all_narrative∨tradeoff_reasoning]"
   META_BLOCK_TEMPLATE:
     ```
 META:
   TYPE::DECISION
   VERSION::"1.0.0"
   COMPRESSION_TIER::CONSERVATIVE
-  LOSS_PROFILE::[preserve:causal_chains,drop:verbose_phrasing]
+  LOSS_PROFILE::"[preserve:causal_chains,drop:verbose_phrasing]"
     ```
   I4_RULE::"If bits were dropped, the output must carry a receipt. No silent loss."
 §3::TRANSFORMATION_WORKFLOW
@@ -115,7 +123,7 @@ META:
     FIDELITY::"Are all causal chains intact?"
     LOSS_RECEIPT::"Does META carry COMPRESSION_TIER and LOSS_PROFILE?"
     GROUNDING::"Is there at least one concrete example per major abstraction?"
-    WARNINGS::"Check octave_write warnings[] — W_BARE_LINE_DROPPED and W_NUMERIC_KEY_DROPPED are silent data loss"
+    WARNINGS::"Check octave_write warnings[] — W_BARE_LINE_DROPPED and W_NUMERIC_KEY_DROPPED are silent data loss. NOTE: warnings[] semantics change post ADR-0006 SR1-T4 (no-op normalisation default) and SR3-T2 (octave_fmt bifurcation) — see octave-literacy §6::FORTHCOMING_BEHAVIOR."
 §4::COMPRESSION_RULES
   R1::"Preserve CAUSALITY — X→Y because Z. Never flatten to X→Y alone."
   R2::"Preserve CONDITIONAL QUALIFIERS — when X, if Y, unless Z carry material risk info"
