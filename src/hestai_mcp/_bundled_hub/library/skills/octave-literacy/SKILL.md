@@ -149,7 +149,8 @@ METRICS:
 §6::FORTHCOMING_BEHAVIOR
   // Per ADR-0006 (Writer/Reader Symmetry Programme). The writer surface is bifurcating.
   // This section is truthful BEFORE and AFTER the milestones land — read the timing markers.
-  REF::"docs/adr/ADR-0006-writer-reader-symmetry.md"
+  REF::"octave-mcp:docs/adr/ADR-0006-writer-reader-symmetry.md"
+  // ^ path is in the octave-mcp repo (upstream OCTAVE spec authority), not this repo.
   §6a::TIMELINE
     TODAY::"octave_write canonicalises (normalises syntax) on every write. warnings[] enumerates what changed during normalisation. Empty warnings[] ⇒ source was already canonical."
     AFTER_SR1_T4::"Default behaviour becomes NO-OP normalisation. octave_write commits bytes as supplied (subject to schema validation). warnings[] enumerates what would have changed had normalisation been ATTEMPTED. Empty warnings[] ⇒ no normalisation was attempted — NOT a guarantee of canonicality. Sprint 1 milestone."
