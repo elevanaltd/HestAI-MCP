@@ -177,7 +177,7 @@ def _build_command_steps(
             "",
             "T0::TodoWrite(TODOS)->mark_complete",
             f'T1::SYSTEM_STANDARD->Read(".hestai-sys/library/agents/{role}.oct.md")->EXTRACT[COGNITION,ARCHETYPES,MUST[2],NEVER[2]]->SET_AUTHORITY[main->RESPONSIBLE[scope]|sub->DELEGATED[parent_session]]->EMIT',
-            f'T2::CLOCK_IN->mcp__hestai__clock_in(role:"{role}",working_dir:"{working_dir}",focus:"{focus}")->CAPTURE[SESSION_ID,CONTEXT_PATHS]->IF[FAIL]->STOP',
+            f'T2::CLOCK_IN->mcp__hestai-context__clock_in(role:"{role}",working_dir:"{working_dir}",focus:"{focus}")->CAPTURE[SESSION_ID,CONTEXT_PATHS]->IF[FAIL]->STOP',
             "T2b::ARM_CONTEXT->Read(project_context)->Bash(git_log+status+branch+ahead_behind)->EXTRACT[PHASE,BRANCH,FILES]->EMIT",
             "T3::TENSION->GENERATE[L{N}::[constraint]<->CTX:{path}[state]->TRIGGER[action]]->MIN_COUNT_PER_TIER->mark_complete",
             "T4::COMMIT->DECLARE[ARTIFACT::concrete_path,GATE::validation_method]->mark_complete",

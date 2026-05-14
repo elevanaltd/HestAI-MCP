@@ -355,7 +355,10 @@ NEVER::[c,d]
     # Step skeleton should be present
     assert "T0::TodoWrite" in steps
     assert "T1::SYSTEM_STANDARD" in steps
-    assert "mcp__hestai__clock_in" in steps
+    # ADR-0353: bind T2 step targets the new hestai-context-mcp tool, not the
+    # soft-deprecated legacy hestai-mcp clock_in.
+    assert "mcp__hestai-context__clock_in" in steps
+    assert "mcp__hestai__clock_in" not in steps
     assert "mcp__odyssean-anchor__anchor_request" in steps
 
 
