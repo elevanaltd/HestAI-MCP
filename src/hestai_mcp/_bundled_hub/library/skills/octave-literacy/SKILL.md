@@ -244,6 +244,7 @@ METRICS:
     // Mixed markdown ## headings inside ===NAME=== envelopes fail E_TOKENIZE under
     // strict 1.13 lexer (the `(` in "## IMMUTABLES (6 Total)" trips the lexer).
     RULE::"governance .oct.md → ZERO markdown headings inside envelope"
+    SCOPE::"applies to active governance artefacts. Generators (template files, /ns-summary-create skill, north-star-architect agent) that still emit legacy ## headings are Phase B follow-up — not retro-non-compliant, but MUST migrate before next governance amendment cycle."
     TRANSFORM:
       FROM::"^## (.*)$"
       TO::"§N::SECTION_NAME"
@@ -284,7 +285,7 @@ METRICS:
     STEP_4::"add META.CANONICAL ⊕ META.SOURCE"
     STEP_5::"telegraphic-compress reasoning values per R3a (operators carry connectives)"
     STEP_6::"octave_validate STRICT → confirm warnings:[] ⊕ errors:[] ⊕ repairs:[]"
-    INVARIANT::"every legacy field name preserved (PRINCIPLE, WHY, STATUS, INHERITS, IS, IS_NOT, GATES, LOAD_FULL_NORTH_STAR_IF, PROTECTION_CLAUSE, THE_OATH, …)"
+    INVARIANT::"core structural field names preserved (PRINCIPLE, WHY, STATUS, INHERITS, IS, IS_NOT, GATES, LOAD_FULL_NORTH_STAR_IF, THE_OATH, …). Permitted semantic splits where the legacy form encoded multiple values in one slot: ASSUMPTIONS::N[note] → ASSUMPTIONS_COUNT::N ⊕ ASSUMPTIONS_NOTE::note. RELATED::[issues]∨[adrs] → RELATED_ISSUES::[…] ⊕ RELATED_ADRS::[…]. IF::trigger,THEN::[actions] → TRIGGER::trigger ⊕ ACTION::[actions] (within §::PROTECTION_CLAUSE block). Splits are mechanical and lossless — no semantic content dropped."
   §8h::ENFORCEMENT_LOCI
     // The convention is enforced at three structural points — drift in any one is detectable.
     LOCUS_1::"this skill — declares the pattern (vault delivery via _bundled_hub)"
