@@ -17,8 +17,8 @@ FOUNDATION::[
   STANDARD_NAMING::.hestai-sys/governance/rules/naming-standard.oct.md
   STANDARD_VISIBILITY::.hestai-sys/governance/rules/visibility-rules.oct.md
   OCTAVE_GUIDE::.hestai-sys/library/octave/octave-usage-guide.oct.md
-  OCTAVE_VALIDATOR::src/hestai_mcp/_bundled_hub/tools/octave-validator.py[vendored_from:/Volumes/OCTAVE/octave/tools/]
-  OCTAVE_CANONICAL::/Volumes/OCTAVE/octave/[specs,tools,mcp]
+  OCTAVE_VALIDATOR::canonical_octave_mcp_cli[invocation:python_-m_octave_mcp.cli.main_validate]
+  OCTAVE_CANONICAL::octave-mcp[pip_transitive_dep]
 ]
 
 ===MODEL_NOW_SOON_LATER===
@@ -56,7 +56,7 @@ JOBS::[
   docs_validate::[
     PURPOSE::"Validate doc naming/visibility + OCTAVE protocol for changed .oct.md"
     EXECUTES::[
-      python src/hestai_mcp/_bundled_hub/tools/octave-validator.py --profile protocol {changed}.oct.md
+      python -m octave_mcp.cli.main validate {changed}.oct.md
       python scripts/ci/validate_naming_visibility.py {changed_docs}
     ]
   ]
