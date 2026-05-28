@@ -6,7 +6,7 @@ META:
   PURPOSE::"How every system in the HestAI ecosystem connects and what each owns"
   CANONICAL::"src/hestai_mcp/_bundled_hub/standards/HESTAI-ECOSYSTEM-OVERVIEW.oct.md"
   CREATED::"2026-02-18"
-  REVISED::"2026-04-21"
+  REVISED::"2026-05-28"
   FORMAT::octave
   ARCHITECTURE::"THREE_SERVICE_MODEL<ADR-0353>"
 §0::ARCHITECTURE_NOTE
@@ -29,7 +29,7 @@ SYSTEM_1::"HESTAI_WORKBENCH[REPO::elevanaltd/hestai-workbench, ROLE::The Eyes an
 SYSTEM_2::"VAULT[LOCATION::~/.hestai-workbench/library/(git-backed+configurable_via_LIBRARY_ROOT), ROLE::The DNA, OWNS::[v9_agent_definitions, v9_skills_with_anchor_kernels, cognitions(ETHOS+PATHOS+LOGOS), standards(System_Standard+naming+visibility), patterns], KEY_PROPERTY::ZERO volatility. Git-backed, immutable at runtime. Workbench reads directly and compiles system prompts with no filesystem intermediate. Glass Agent Editor provides CRUD with auto-commit on save., DATA::[starter-library in Workbench resources/ for first-run bootstrap, agent definitions (~50 lines each blank-slate V9), 16 V9 skills with S5 ANCHOR_KERNEL sections]]"
 SYSTEM_3::"HESTAI_CONTEXT_MCP[REPO::\"elevanaltd/hestai-context-mcp (IMPLEMENTED — Phase 1 complete 2026-04-17; Phase 1.5 Pre-A/B Work planned)\", ROLE::The Memory and Environment, OWNS::[clock_in(session_creation+focus_resolution+focus_conflict_detection+ai_synthesis_path_pending_P0b), clock_out(TranscriptParser_ABC+ClaudeTranscriptParser_adapter+credential_redaction+OCTAVE_compression+learnings_indexing), get_context(read_only_context_synthesis), ContextSteward(dynamic_PhaseConstraints+implemented), submit_review(structured_review_verdicts+CI_gate+8_roles+dry_run+SHA_pinning), dotHestai_state_management, product_north_star_injection_planned_phase_3], TRANSPORT::stdio_JSON_RPC, DEPENDS_ON::[nothing_at_runtime], TESTS::\"361 passing, 89 percent coverage\", KEY_PROPERTY::\"LOW volatility. Python codebase, 361 tests, 89 percent coverage at Phase 1 close. Stdio MCP transport (subprocess not daemon). Survives Workbench rebuilds untouched. Terminal parity automatic.\", ADAPTER_PATTERN::\"clock_out redesigned with TranscriptParser ABC. ClaudeTranscriptParser implemented. Codex/Gemini/Goose adapters pending Phase 2+.\", PRE_AB_WORK::\"Phase 1.5 integration-viability gaps tracked in elevanaltd/hestai-context-mcp issues #4 (P0a ai_synthesis field + phase normalisation), #5 (P0b AIClient port), #6 (P1 North Star structured constraint extraction), #7 (P-side conflicts field). Required so the Payload Compiler can read both backends' responses. Outcome-quality A/B is the goal — backends are explicitly allowed to differ in actual content.\", AI_SYNTHESIS_FRAMING::\"Legacy has working AI synthesis when configured; new repo currently lacks the path entirely (covered by P0b/issue #5). Without API keys, both produce structured non-AI output.\", PHANTOMS_NOT_GAPS::[\"ContextSteward + dynamic phase constraints (core/context_steward.py:36-184 + tests) — implemented\",\"Focus conflict detection (core/session.py:91-128 + 4 behavioural tests) — implemented\"]]"
 STANDALONE_1::"DEBATE_HALL_MCP[REPO::elevanaltd/debate-hall-mcp, ROLE::The Deliberation Chamber, VERSION::0.5.0, OWNS::[wind_wall_door_debates, governance_operations, decision_records, hash_chain_integrity, RACI_mode, consult_convene], TOOLS::17, KEY_PROPERTY::Standalone deliberation (P6). Works without HestAI for non-governance users. Persistent transcripts with hash-chain integrity., DEPENDS_ON::[octave-mcp]]"
-STANDALONE_2::"OCTAVE_MCP[REPO::elevanaltd/octave-mcp, ROLE::The Language, VERSION::1.9.6, OWNS::[octave_format_spec, validation, generation, compression, grammar_compilation], KEY_PROPERTY::Pure protocol. Zero dependencies on governance. Maximum community adoption potential. 54-68 percent token reduction., DEPENDS_ON::[nothing]]"
+STANDALONE_2::"OCTAVE_MCP[REPO::elevanaltd/octave-mcp, ROLE::The Language, VERSION::1.13.0, OWNS::[octave_format_spec, validation, generation, compression, grammar_compilation], KEY_PROPERTY::Pure protocol. Zero dependencies on governance. Maximum community adoption potential. 54-68 percent token reduction., DEPENDS_ON::[nothing]]"
 §3::LEGACY_SYSTEMS
 HESTAI_MCP::[
   STATUS::legacy_maintenance_mode_v1.2.0_1033_tests,
@@ -131,7 +131,7 @@ DEBATE_HALL_STATUS::[
   NEXT::"Continue at own pace. Issue 163 (Governance Hall). Independent of other systems."
 ]
 OCTAVE_STATUS::[
-  STATUS::"operational, v1.9.6, PyPI published",
+  STATUS::"operational, v1.13.0, PyPI published",
   NEXT::"Standalone community adoption. No governance dependencies."
 ]
 HESTAI_MCP_LEGACY_STATUS::[
