@@ -1,7 +1,7 @@
 ===LIVING_ARTIFACTS_NORTH_STAR_SUMMARY===
 META:
   TYPE::NORTH_STAR_SUMMARY
-  VERSION::"2.0-UPOG"
+  VERSION::"2.1-UPOG-TELEGRAPHIC"
   STATUS::ACTIVE
   NAMESPACE::PROD
   PURPOSE::"Operational decision-logic for Living Artifacts pattern"
@@ -17,32 +17,32 @@ META:
 §1::IMMUTABLES
   COUNT::5
   LA_I1<SPLIT_ARTIFACT_AUTHORITY>:
-    PRINCIPLE::"strict separation between Audit Trail and Operational State"
-    WHY::"log and state have distinct update cycles and truth sources"
+    PRINCIPLE::"Audit Trail ⇌ Operational State [strict separation]"
+    WHY::"log ⇌ state [distinct cycles ⊕ truth sources]"
     STATUS::PENDING
     OWNER::implementation-lead
     GATE::B1
   LA_I2<QUERY_DRIVEN_FRESHNESS>:
-    PRINCIPLE::"operational state generated at runtime, not from stale files"
-    WHY::"stored state rots — generated state is environmental truth"
+    PRINCIPLE::"operational state → runtime generation ⇌ stale files"
+    WHY::"stored state → rot ⇌ generated state → environmental truth"
     STATUS::PENDING
     OWNER::implementation-lead
     GATE::B1
   LA_I3<SINGLE_BRANCH_CI_WRITES>:
-    PRINCIPLE::"CI processes ONLY write to branch they run on"
-    WHY::"cross-branch writes introduce race conditions and merge conflicts"
+    PRINCIPLE::"CI processes → writes scoped to running branch"
+    WHY::"cross-branch writes → race conditions ⊕ merge conflicts"
     STATUS::PENDING
     OWNER::implementation-lead
     GATE::B1
   LA_I4<BLOCKING_STALENESS>:
-    PRINCIPLE::"stale context artifacts must block or flag AT_RISK"
-    WHY::"bad data worse than no data — see Product I4"
+    PRINCIPLE::"stale artifacts → block ∨ AT_RISK flag"
+    WHY::"bad data ⇌ no data [bad worse, Product I4]"
     STATUS::PENDING
     OWNER::implementation-lead
     GATE::B1
   LA_I5<PERSISTENT_AUDIT_TRACE>:
-    PRINCIPLE::"every significant change leaves permanent trace in Audit Trail"
-    WHY::"automated state is ephemeral — need permanent evolution history"
+    PRINCIPLE::"significant change → permanent Audit Trail trace"
+    WHY::"automated state → ephemeral ⇌ permanent evolution history needed"
     STATUS::PENDING
     OWNER::implementation-lead
     GATE::B1
@@ -86,14 +86,14 @@ META:
     GATE::B1
 §3::CONSTRAINED_VARIABLES
   STATE_SOURCE:
-    IMMUTABLE::"environment query — see LA-I2"
+    IMMUTABLE::"environment query [LA-I2]"
     FLEXIBLE::specific_queries_run
   AUDIT_LOCATION:
-    IMMUTABLE::"in-repo file — see LA-I5"
+    IMMUTABLE::"in-repo file [LA-I5]"
     FLEXIBLE::file_name_plus_path
   STALENESS_THRESHOLD:
-    IMMUTABLE::"must exist — see LA-I4"
-    FLEXIBLE::"duration — 24h or 12h"
+    IMMUTABLE::"exists [LA-I4]"
+    FLEXIBLE::"duration [24h ∨ 12h]"
 §4::SCOPE_BOUNDARIES
   IS::[
     audit_trail_maintenance_CHANGELOG,
@@ -114,15 +114,15 @@ META:
   GATES::[D1_DONE→B0_PENDING→B1_PENDING→B2_PENDING→B3_PENDING]
 §6::ARTIFACT_PATTERN
   SPLIT_ARTIFACT:
-    AUDIT_TRAIL::"CHANGELOG.md — immutable history"
-    OPERATIONAL_STATE::"current_state.oct — JIT snapshot"
+    AUDIT_TRAIL::"CHANGELOG.md → immutable history"
+    OPERATIONAL_STATE::"current_state.oct → JIT snapshot"
   FRESHNESS_RULES:
-    clock_in::"executes generation logic — git query plus test count"
-    staleness::"threshold based — configurable"
-    blocking::"pre-commit hooks or tool guards"
+    clock_in::"generation logic → git query ⊕ test count"
+    staleness::"threshold-based [configurable]"
+    blocking::"pre-commit hooks ∨ tool guards"
   CI_PATTERN:
-    WRITES_TO::"HEAD — current branch only"
-    NEVER::"cross-branch writes — no orphan magic"
+    WRITES_TO::"HEAD → current branch only"
+    NEVER::"cross-branch writes [no orphan magic]"
     APPENDS::"CHANGELOG.md on merge"
 §7::DEPENDENCIES
   BLOCKING::[]
@@ -139,11 +139,11 @@ META:
 §9::TRIGGER_PATTERNS
   LOAD_FULL_NORTH_STAR_IF:
     IMMUTABLE_CONFLICT::"violates LA-I1-I5"
-    AUDIT_VS_STATE::"split artifact question"
+    AUDIT_OR_STATE::"split artifact question"
     STALENESS_POLICY::"threshold decision"
     CI_WRITE_PATTERN::"branch strategy"
 §10::PROTECTION_CLAUSE
   TRIGGER::"work contradicts North Star"
   ACTION::[STOP→CITE_LA_I→ESCALATE_REQUIREMENTS_STEWARD]
-  THE_OATH::"5 Immutables LA-I1-I5 bind Living Artifacts implementation. Contradiction requires STOP, CITE, ESCALATE."
+  THE_OATH::"5 Immutables LA-I1-I5 bind Living Artifacts. Contradiction → STOP⊕CITE⊕ESCALATE."
 ===END===

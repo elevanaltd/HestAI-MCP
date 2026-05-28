@@ -1,7 +1,7 @@
 ===CLOCK_IN_NORTH_STAR_SUMMARY===
 META:
   TYPE::NORTH_STAR_SUMMARY
-  VERSION::"2.0-UPOG"
+  VERSION::"2.1-UPOG-TELEGRAPHIC"
   STATUS::ACTIVE
   NAMESPACE::PROD
   PURPOSE::"Operational decision-logic for clock_in MCP tool"
@@ -21,38 +21,38 @@ META:
 §1::IMMUTABLES
   COUNT::6
   CI_I1<SESSION_REGISTRATION_MANDATORY>:
-    PRINCIPLE::"every agent session begins with clock_in"
-    WHY::"enables audit trails, conflict detection, cognitive continuity"
+    PRINCIPLE::"agent session → clock_in [first action]"
+    WHY::"audit trails ⊕ conflict detection ⊕ cognitive continuity"
     STATUS::PENDING
     OWNER::implementation-lead
     GATE::B1
   CI_I2<CONTEXT_MUST_BE_FRESH>:
-    PRINCIPLE::"generate fresh state on every invocation"
-    WHY::"prevents hallucinations from stale data — see Product I4"
+    PRINCIPLE::"every invocation → fresh state generation"
+    WHY::"stale data → hallucinations [Product I4]"
     STATUS::PENDING
     OWNER::implementation-lead
     GATE::B1
   CI_I3<AI_ASSISTED_CONTEXT_SELECTION>:
-    PRINCIPLE::"AI selects and synthesizes context by role and focus"
-    WHY::"agents need curated context — see Issue 87"
+    PRINCIPLE::"AI → context selection ⊕ synthesis [role⊕focus driven]"
+    WHY::"agents → curated context [Issue 87]"
     STATUS::PENDING
     OWNER::implementation-lead
     GATE::B1
   CI_I4<FAST_LAYER_LIFECYCLE>:
-    PRINCIPLE::"clock_in updates .hestai/context/state/"
-    WHY::"agents need current focus, blockers, checklist — see ADR-0056"
+    PRINCIPLE::"clock_in → .hestai/context/state/ updates"
+    WHY::"agents → current focus ⊕ blockers ⊕ checklist [ADR-0056]"
     STATUS::PENDING
     OWNER::implementation-lead
     GATE::B1
   CI_I5<FOCUS_CONFLICT_DETECTION>:
-    PRINCIPLE::"detect active session in same worktree"
-    WHY::"prevents concurrent agents overwriting context"
+    PRINCIPLE::"same worktree → active session detection"
+    WHY::"concurrent agents ⇌ context [prevent overwrite]"
     STATUS::PENDING
     OWNER::implementation-lead
     GATE::B1
   CI_I6<TDD_DISCIPLINE_ENFORCEMENT>:
-    PRINCIPLE::"RED then GREEN then REFACTOR discipline required"
-    WHY::"System North Star I1 — test-first mandate"
+    PRINCIPLE::"RED→GREEN→REFACTOR discipline"
+    WHY::"System NS I1 → test-first mandate"
     STATUS::PENDING
     OWNER::implementation-lead
     GATE::B1
@@ -97,15 +97,15 @@ META:
 §3::CONSTRAINED_VARIABLES
   CONTEXT_SOURCES:
     IMMUTABLE::must_gather_comprehensive
-    FLEXIBLE::"Repomix or other tools"
+    FLEXIBLE::"Repomix ∨ other tools"
   FOCUS_RESOLUTION:
     IMMUTABLE::must_resolve
     PRIORITY::[explicit→GitHub→branch→default]
   AI_MODEL:
-    IMMUTABLE::"must use async — see SS-I2"
-    FLEXIBLE::"~/.hestai/config/ai.yaml or .env"
+    IMMUTABLE::"async [SS-I2]"
+    FLEXIBLE::"~/.hestai/config/ai.yaml ∨ .env"
   AI_PROMPTS:
-    IMMUTABLE::"versioned and auditable — see SS-I5"
+    IMMUTABLE::"versioned ⊕ auditable [SS-I5]"
     FLEXIBLE::prompt_content
 §4::SCOPE_BOUNDARIES
   IS::[
@@ -138,7 +138,7 @@ META:
   ]
 §7::EXECUTION_SEQUENCE
   CLOCK_IN::[VALIDATE_INPUT→DETECT_CONFLICT→CREATE_SESSION→RESOLVE_FOCUS→GATHER_CONTEXT_AI→SYNTHESIZE_FAST_AI→WRITE_FAST→RETURN_RESPONSE]
-  FALLBACK::"deterministic file list if AI fails — see SS-I6"
+  FALLBACK::"AI failure → deterministic file list [SS-I6]"
 §8::BINDING_CEREMONY_POSITION
   ODYSSEAN_SEQUENCE::[READ_PROMPT→CLOCK_IN_THIS→READ_CONTEXT→ODYSSEAN_ANCHOR→DASHBOARD]
 §9::DEPENDENCIES
@@ -178,5 +178,5 @@ META:
 §12::PROTECTION_CLAUSE
   TRIGGER::"work contradicts North Star"
   ACTION::[STOP→CITE_CI_I→ESCALATE_REQUIREMENTS_STEWARD]
-  THE_OATH::"6 Immutables CI-I1-I6 bind clock_in implementation. Contradiction requires STOP, CITE, ESCALATE."
+  THE_OATH::"6 Immutables CI-I1-I6 bind clock_in. Contradiction → STOP⊕CITE⊕ESCALATE."
 ===END===

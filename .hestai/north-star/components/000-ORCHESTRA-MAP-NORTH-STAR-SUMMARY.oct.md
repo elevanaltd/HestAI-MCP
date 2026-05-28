@@ -1,7 +1,7 @@
 ===ORCHESTRA_MAP_NORTH_STAR_SUMMARY===
 META:
   TYPE::NORTH_STAR_SUMMARY
-  VERSION::"2.0-UPOG"
+  VERSION::"2.1-UPOG-TELEGRAPHIC"
   STATUS::ACTIVE
   NAMESPACE::PROD
   PURPOSE::"Operational decision-logic for Orchestra Map subsystem"
@@ -17,32 +17,32 @@ META:
 §1::IMMUTABLES
   COUNT::5
   OM_I1<ANCHOR_PATTERN_INVERSION>:
-    PRINCIPLE::"Specs claim Code via imports, not vice versa"
-    WHY::"code annotations rot — active imports are verifiable"
+    PRINCIPLE::"Specs → Code via imports ⇌ Code annotates Specs"
+    WHY::"code annotations → rot ⇌ active imports → verifiable"
     STATUS::PENDING
     OWNER::implementation-lead
     GATE::B1
   OM_I2<ONE_WAY_BUILD_ISOLATION>:
-    PRINCIPLE::"governance artifacts excluded from production builds"
-    WHY::"governance metadata must not bloat or break shipping product"
+    PRINCIPLE::"production builds ⇌ governance artifacts [excluded]"
+    WHY::"governance metadata → shipping product safety [no bloat ⊕ no break]"
     STATUS::PENDING
     OWNER::implementation-lead
     GATE::B1
   OM_I3<ALGORITHMIC_STALENESS>:
-    PRINCIPLE::"staleness is binary computable function of git timestamps"
-    WHY::"agents need binary signals Stop/Go, not nuanced probabilities"
+    PRINCIPLE::"staleness → binary function over git timestamps"
+    WHY::"agents → binary Stop/Go signals ⇌ nuanced probabilities"
     STATUS::PENDING
     OWNER::implementation-lead
     GATE::B1
   OM_I4<POLYGLOT_UNIVERSALITY>:
-    PRINCIPLE::"architecture relies only on universal concepts — Files plus Imports"
-    WHY::"HestAI must work for Python plus TS plus Rust plus Go plus etc"
+    PRINCIPLE::"architecture → Files ⊕ Imports universals only"
+    WHY::"HestAI → Python ⊕ TS ⊕ Rust ⊕ Go ⊕ etc [universal]"
     STATUS::PENDING
     OWNER::implementation-lead
     GATE::B1
   OM_I5<AST_BASED_TRUTH>:
-    PRINCIPLE::"dependencies derived from AST analysis, not regex"
-    WHY::"grep is brittle — true deps require language structure understanding"
+    PRINCIPLE::"dependencies → AST analysis ⇌ regex"
+    WHY::"grep → brittle ⇌ true deps need language structure"
     STATUS::PENDING
     OWNER::implementation-lead
     GATE::B1
@@ -86,19 +86,19 @@ META:
     GATE::B1
 §3::CONSTRAINED_VARIABLES
   LINK_DIRECTION:
-    IMMUTABLE::"Spec to Code — see OM-I1"
+    IMMUTABLE::"Spec → Code [OM-I1]"
     FLEXIBLE::file_naming_convention
   STALENESS_LOGIC:
-    IMMUTABLE::"time-based — see OM-I3"
+    IMMUTABLE::"time-based [OM-I3]"
     FLEXIBLE::grace_period_parameters
   TOOLING:
-    IMMUTABLE::"AST-based — see OM-I5"
+    IMMUTABLE::"AST-based [OM-I5]"
     FLEXIBLE::specific_libraries_used
   BUILD_EXCLUSION:
-    IMMUTABLE::"governance excluded — see OM-I2"
+    IMMUTABLE::"governance excluded [OM-I2]"
     FLEXIBLE::exclusion_mechanism
   LANGUAGE_SUPPORT:
-    IMMUTABLE::"universal concepts — see OM-I4"
+    IMMUTABLE::"universal concepts [OM-I4]"
     FLEXIBLE::priority_order_rollout
 §4::SCOPE_BOUNDARIES
   IS::[
@@ -120,21 +120,21 @@ META:
   GATES::[D1_DONE→B0_PENDING→B1_PENDING→B2_PENDING→B3_PENDING]
 §6::DEPENDENCY_PATTERN
   ANCHOR_INVERSION:
-    DIRECTION::"Spec imports Code, not Code annotates Spec"
+    DIRECTION::"Spec imports Code ⇌ Code annotates Spec"
     VALIDATION::"CI fails if src/ imports anchors/"
-    RATIONALE::"active imports are verifiable and dont rot"
+    RATIONALE::"active imports → verifiable ⊕ no rot"
   STALENESS_ALGORITHM:
-    FORMULA::"LastCommit(Spec) before LastCommit(Impl) equals STALE"
+    FORMULA::"LastCommit(Spec) before LastCommit(Impl) → STALE"
     BINARY::"no subjective health scores"
     SCRIPT::"staleness check uses git logs"
   BUILD_ISOLATION:
     EXCLUDED::[anchors_dir,specs_dir]
-    ARROW::"Governance to Production — one way only"
+    ARROW::"Governance → Production [one-way only]"
     VALIDATION::"build config explicitly excludes"
   AST_TOOLING:
-    REQUIRED::"dependency-cruiser or ast_module or equivalent"
+    REQUIRED::"dependency-cruiser ∨ ast_module ∨ equivalent"
     PROHIBITED::"regex text search for deps"
-    RATIONALE::"reliability over simplicity"
+    RATIONALE::"reliability ≻ simplicity"
 §7::DEPENDENCIES
   BLOCKING::[]
   RELATED_ADRS::[ADR-0046]
@@ -155,5 +155,5 @@ META:
 §10::PROTECTION_CLAUSE
   TRIGGER::"work contradicts North Star"
   ACTION::[STOP→CITE_OM_I→ESCALATE_REQUIREMENTS_STEWARD]
-  THE_OATH::"5 Immutables OM-I1-I5 bind Orchestra Map implementation. Contradiction requires STOP, CITE, ESCALATE."
+  THE_OATH::"5 Immutables OM-I1-I5 bind Orchestra Map. Contradiction → STOP⊕CITE⊕ESCALATE."
 ===END===

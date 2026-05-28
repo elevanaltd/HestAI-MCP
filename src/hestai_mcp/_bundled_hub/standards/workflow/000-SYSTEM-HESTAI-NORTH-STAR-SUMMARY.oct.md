@@ -2,7 +2,7 @@
 META:
   TYPE::NORTH_STAR_SUMMARY
   ID::system-hestai-north-star-summary
-  VERSION::"2.0-UPOG"
+  VERSION::"2.1-UPOG-TELEGRAPHIC"
   STATUS::APPROVED
   NAMESPACE::SYS
   PURPOSE::"Operating discipline and standards for all HestAI projects"
@@ -15,33 +15,33 @@ META:
 §1::IMMUTABLES
   COUNT::6
   I1<VERIFIABLE_BEHAVIORAL_SPECIFICATION_FIRST>:
-    PRINCIPLE::"behavioral spec must exist before implementation"
-    WHY::"prevents drift and ensures testability"
+    PRINCIPLE::"behavioral spec → implementation [order required]"
+    WHY::"prevent drift ⊕ ensure testability"
     STATUS::PROVEN
     EVIDENCE::TDD_discipline
   I2<PHASE_GATED_PROGRESSION>:
-    PRINCIPLE::"work progresses through defined stages D0 to B5"
-    WHY::"prevents skipping validation and ensures completeness"
+    PRINCIPLE::"work → D0→D1→D2→D3→B0→B1→B2→B3→B4→B5"
+    WHY::"prevent validation skip ⊕ ensure completeness"
     STATUS::PROVEN
     EVIDENCE::phase_definitions
   I3<HUMAN_PRIMACY>:
-    PRINCIPLE::"human judgment determines direction and retains override authority"
-    WHY::"AI advises and executes, human decides"
+    PRINCIPLE::"human judgment → direction ⊕ override authority"
+    WHY::"AI advises ⊕ executes ⇌ human decides"
     STATUS::PROVEN
     EVIDENCE::approval_gates
   I4<DISCOVERABLE_ARTIFACT_PERSISTENCE>:
-    PRINCIPLE::"work produces persistent addressable discoverable records"
-    WHY::"solves context loss and enables async collaboration"
+    PRINCIPLE::"work → persistent ⊕ addressable ⊕ discoverable records"
+    WHY::"solve context loss ⊕ enable async collaboration"
     STATUS::PROVEN
     EVIDENCE::artifact_rules
   I5<QUALITY_VERIFICATION_BEFORE_PROGRESSION>:
-    PRINCIPLE::"quality must be verified before work progresses"
-    WHY::"gates block defects from compounding"
+    PRINCIPLE::"quality verification → progression [order required]"
+    WHY::"gates → defect compounding blocked"
     STATUS::PROVEN
     EVIDENCE::blocking_gates
   I6<EXPLICIT_ACCOUNTABILITY>:
-    PRINCIPLE::"every decision has identifiable traceable accountability"
-    WHY::"prevents orphan decisions and distributed responsibility failure"
+    PRINCIPLE::"decisions → identifiable ⊕ traceable accountability"
+    WHY::"prevent orphan decisions ⊕ distributed responsibility failure"
     STATUS::PROVEN
     EVIDENCE::decision_logs
 §2::CRITICAL_ASSUMPTIONS
@@ -60,8 +60,8 @@ META:
     EVIDENCE::[ADR-0001,ADR-0003]
 §3::CONSTRAINED_VARIABLES
   GOVERNANCE_ENVELOPE:
-    IMMUTABLE::phase_gates_and_accountability_evidence
-    FLEXIBLE::ceremony_density_adapts_to_pressure
+    IMMUTABLE::"phase gates ⊕ accountability evidence"
+    FLEXIBLE::"ceremony density → adapts to pressure"
     NEGOTIABLE::specific_artifacts_if_evidence_exists
   DOCUMENTATION_DEPTH:
     IMMUTABLE::discoverable_persistence_required
@@ -69,7 +69,7 @@ META:
     NEGOTIABLE::storage_location_within_reason
   COORDINATION_STRUCTURE:
     IMMUTABLE::accountability_ownership_required
-    FLEXIBLE::"RACI or other models"
+    FLEXIBLE::"RACI ∨ other models"
     NEGOTIABLE::role_naming_conventions
 §4::SCOPE_BOUNDARIES
   IS::[

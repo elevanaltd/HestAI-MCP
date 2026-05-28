@@ -1,7 +1,7 @@
 ===SYSTEM_STEWARD_NORTH_STAR_SUMMARY===
 META:
   TYPE::NORTH_STAR_SUMMARY
-  VERSION::"2.0-UPOG"
+  VERSION::"2.1-UPOG-TELEGRAPHIC"
   STATUS::ACTIVE
   NAMESPACE::PROD
   PURPOSE::"Operational decision-logic for System Steward subsystem"
@@ -17,38 +17,38 @@ META:
 §1::IMMUTABLES
   COUNT::6
   SS_I1<DUAL_CONTROL_PLANE_SEPARATION>:
-    PRINCIPLE::"AI orchestration and OCTAVE validation are separate control planes"
-    WHY::"deterministic document ops cannot depend on probabilistic AI"
+    PRINCIPLE::"AI orchestration ⇌ OCTAVE validation [separate planes]"
+    WHY::"deterministic doc ops ⇌ probabilistic AI [forbid dependency]"
     STATUS::PENDING
     OWNER::implementation-lead
     GATE::B1
   SS_I2<ASYNC_FIRST_ARCHITECTURE>:
-    PRINCIPLE::"all provider calls and MCP invocations must be async"
-    WHY::"blocking degrades entire MCP server event loop"
+    PRINCIPLE::"provider calls ⊕ MCP invocations → async"
+    WHY::"blocking → MCP event loop degradation"
     STATUS::PENDING
     OWNER::implementation-lead
     GATE::B1
   SS_I3<MCP_SERVER_CHAINING>:
-    PRINCIPLE::"HestAI-MCP acts as both server and client with namespaced tools"
-    WHY::"enables composition — OCTAVE plus Memory plus Git plus Repomix"
+    PRINCIPLE::"HestAI-MCP → server ⊕ client roles [namespaced tools]"
+    WHY::"composition → OCTAVE ⊕ Memory ⊕ Git ⊕ Repomix"
     STATUS::PENDING
     OWNER::technical-architect
     GATE::B1
   SS_I4<SINGLE_WRITER_PRESERVATION>:
-    PRINCIPLE::"only System Steward MCP tools write to .hestai/"
-    WHY::"prevents governance drift, ensures validated atomic mutations"
+    PRINCIPLE::"System Steward tools → sole writer to .hestai/"
+    WHY::"prevent governance drift ⊕ ensure validated atomic mutations"
     STATUS::PENDING
     OWNER::implementation-lead
     GATE::B1
   SS_I5<INTELLIGENCE_IN_PROMPTS_AND_MANIFESTS>:
-    PRINCIPLE::"AI reasoning in versioned prompts and manifests, not opaque runtime"
-    WHY::"codified intelligence is auditable, testable, human controllable"
+    PRINCIPLE::"AI reasoning → versioned prompts ⊕ manifests ⇌ opaque runtime"
+    WHY::"codified intelligence → auditable ⊕ testable ⊕ human-controllable"
     STATUS::PENDING
     OWNER::implementation-lead
     GATE::B2
   SS_I6<GRACEFUL_DEGRADATION>:
-    PRINCIPLE::"if AI fails, fall back to deterministic behavior"
-    WHY::"reliability critical for autonomous systems — see Product I2"
+    PRINCIPLE::"AI failure → deterministic fallback"
+    WHY::"reliability critical → autonomous systems [Product I2]"
     STATUS::PENDING
     OWNER::implementation-lead
     GATE::B1
@@ -92,16 +92,16 @@ META:
     GATE::B2
 §3::CONSTRAINED_VARIABLES
   AI_PROVIDER:
-    IMMUTABLE::"must use async — see SS-I2"
-    FLEXIBLE::"OpenRouter or OpenAI or Anthropic or local"
+    IMMUTABLE::"async [SS-I2]"
+    FLEXIBLE::"OpenRouter ∨ OpenAI ∨ Anthropic ∨ local"
   CONTROL_PLANES:
-    IMMUTABLE::"separate — see SS-I1"
+    IMMUTABLE::"separate [SS-I1]"
     FLEXIBLE::which_tools_in_each
   MANIFEST_SCHEMA:
-    IMMUTABLE::"must exist — see SS-I5"
+    IMMUTABLE::"exists [SS-I5]"
     FLEXIBLE::schema_evolution
   UPSTREAM_MCP:
-    IMMUTABLE::"namespaced — see SS-I3"
+    IMMUTABLE::"namespaced [SS-I3]"
     FLEXIBLE::which_servers
   CONTEXT_SELECTION:
     IMMUTABLE::AI_preferred
@@ -126,21 +126,21 @@ META:
   GATES::[D1_DONE→B0_PENDING→B1_PENDING→B2_PENDING→B3_PENDING]
 §6::ARCHITECTURE_SUMMARY
   LIVING_LENS_METAPHOR:
-    ORCHESTRA_MAP::"BRAIN — relevance graph"
-    REPOMIX::"RETINA — code capture"
-    OCTAVE::"OPTIC_NERVE — validation plus compression"
-    AI_CLIENT::"CORTEX — interpretation"
+    ORCHESTRA_MAP::"BRAIN → relevance graph"
+    REPOMIX::"RETINA → code capture"
+    OCTAVE::"OPTIC_NERVE → validation ⊕ compression"
+    AI_CLIENT::"CORTEX → interpretation"
   DUAL_CONTROL_PLANE:
-    AGENTIC::"HestAI_MCP — clock_in plus clock_out plus context_update plus document_submit"
-    DOCUMENT::"OCTAVE_MCP — octave_ingest plus octave_create plus octave_amend plus octave_eject"
+    AGENTIC::"HestAI_MCP → clock_in ⊕ clock_out ⊕ context_update ⊕ document_submit"
+    DOCUMENT::"OCTAVE_MCP → octave_ingest ⊕ octave_create ⊕ octave_amend ⊕ octave_eject"
   MVP_SEQUENCE::[Query_Orchestra_Map→Invoke_Repomix_MCP→Call_AIClient→Validate_octave_ingest→Write_octave_create]
 §7::CHILD_COMPONENTS
   TOOLS:
-    clock_in::"session registration plus context synthesis — see 000-CLOCK-IN-NORTH-STAR.md"
-    clock_out::"session archival plus transcript compression — TBD"
-    odyssean_anchor::"identity validation plus binding ceremony — see 000-ODYSSEAN-ANCHOR-NORTH-STAR.md"
-    context_update::"mid-session context mutation — TBD"
-    document_submit::"document routing plus placement — TBD"
+    clock_in::"session registration ⊕ context synthesis [000-CLOCK-IN-NORTH-STAR.md]"
+    clock_out::"session archival ⊕ transcript compression [TBD]"
+    odyssean_anchor::"identity validation ⊕ binding ceremony [000-ODYSSEAN-ANCHOR-NORTH-STAR.md]"
+    context_update::"mid-session context mutation [TBD]"
+    document_submit::"document routing ⊕ placement [TBD]"
 §8::DEPENDENCIES
   BLOCKING::[]
   RELATED_ISSUES::[
@@ -172,5 +172,5 @@ META:
 §11::PROTECTION_CLAUSE
   TRIGGER::"work contradicts North Star"
   ACTION::[STOP→CITE_SS_I→ESCALATE_REQUIREMENTS_STEWARD]
-  THE_OATH::"6 Immutables SS-I1-I6 bind System Steward implementation. Contradiction requires STOP, CITE, ESCALATE."
+  THE_OATH::"6 Immutables SS-I1-I6 bind System Steward. Contradiction → STOP⊕CITE⊕ESCALATE."
 ===END===

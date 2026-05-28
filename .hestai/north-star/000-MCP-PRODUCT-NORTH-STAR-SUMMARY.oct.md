@@ -2,7 +2,7 @@
 META:
   TYPE::NORTH_STAR_SUMMARY
   ID::mcp-product-north-star-summary
-  VERSION::"2.0-UPOG"
+  VERSION::"2.1-UPOG-TELEGRAPHIC"
   STATUS::ACTIVE
   NAMESPACE::PROD
   PURPOSE::"Operational decision-logic for HestAI-MCP product development"
@@ -13,34 +13,34 @@ META:
 §1::IMMUTABLES
   COUNT::6
   I1<PERSISTENT_COGNITIVE_CONTINUITY>:
-    PRINCIPLE::"system must persist context, decisions, learnings across sessions"
-    WHY::"prevents costly re-learning — amnesia is system failure"
+    PRINCIPLE::"persist context⊕decisions⊕learnings → cross-session continuity"
+    WHY::"amnesia → system failure [prevent re-learning cost]"
     STATUS::PENDING
     OWNER::implementation-lead
     GATE::B1
   I2<STRUCTURAL_INTEGRITY_PRIORITY>:
-    PRINCIPLE::"correctness and compliance take precedence over velocity"
-    WHY::"reliability is critical for autonomous systems"
+    PRINCIPLE::"correctness⊕compliance → precedence over velocity"
+    WHY::"reliability → autonomous systems [criticality]"
     STATUS::PROVEN
     EVIDENCE::architectural_mandate
   I3<DUAL_LAYER_AUTHORITY>:
-    PRINCIPLE::"strict separation between read-only governance and mutable context"
-    WHY::"prevents governance drift and agent rule rewriting"
+    PRINCIPLE::"read-only governance ⇌ mutable context [strict separation]"
+    WHY::"prevent governance drift ⊕ agent rule rewriting"
     STATUS::PROVEN
     EVIDENCE::ADR-0001
   I4<FRESHNESS_VERIFICATION>:
-    PRINCIPLE::"context must be verified as current before use"
-    WHY::"prevents hallucinations from stale data"
+    PRINCIPLE::"context → verify current → use"
+    WHY::"stale data → hallucinations [prevent]"
     STATUS::PENDING
     GATE::B1_freshness_check
   I5<ODYSSEAN_IDENTITY_BINDING>:
-    PRINCIPLE::"agents must undergo structural identity verification to operate"
-    WHY::"prevents generic drift and enforces role constraints"
+    PRINCIPLE::"agents → structural identity verification → operate"
+    WHY::"prevent generic drift ⊕ enforce role constraints"
     STATUS::PENDING
     GATE::bind_command
   I6<UNIVERSAL_SCOPE>:
-    PRINCIPLE::"system must function on any repository structure"
-    WHY::"ensures broad adoption and handles legacy diversity"
+    PRINCIPLE::"system → any repository structure"
+    WHY::"broad adoption ⊕ legacy diversity"
     STATUS::PENDING
     GATE::multi_repo_testing
 §2::CRITICAL_ASSUMPTIONS
@@ -57,12 +57,12 @@ META:
     STATUS::PENDING
 §3::CONSTRAINED_VARIABLES
   WORKFLOW_LATENCY:
-    IMMUTABLE::"integrity checks cannot be skipped for speed"
-    FLEXIBLE::"startup latency up to 2m acceptable"
+    IMMUTABLE::"integrity checks ⇌ speed [no skip]"
+    FLEXIBLE::"startup latency ≤ 2m"
     NEGOTIABLE::specific_optimization_targets
   TECHNOLOGY_SUBSTRATE:
     IMMUTABLE::Git_as_coordination_substrate
-    FLEXIBLE::"MCP or other agent protocols"
+    FLEXIBLE::"MCP ∨ other agent protocols"
     NEGOTIABLE::specific_CLI_implementations
   STORAGE_MODEL:
     IMMUTABLE::persistent_memory_guarantee
