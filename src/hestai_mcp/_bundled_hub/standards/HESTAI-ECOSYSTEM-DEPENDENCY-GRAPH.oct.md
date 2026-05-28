@@ -5,11 +5,12 @@ META:
   STATUS::TARGET
   PURPOSE::"Cross-system build sequence, blocking relationships, and phase alignment"
   CREATED::"2026-02-22"
-  REVISED::"2026-04-21"
+  REVISED::"2026-05-28"
   FORMAT::octave
   RESOLVES::"#265 (Cross-repo ecosystem dependency graph)"
   SUPPLEMENTS::HESTAI-ECOSYSTEM-OVERVIEW.oct.md
   ARCHITECTURE::"THREE_SERVICE_MODEL<ADR-0353>"
+  CANONICAL::"src/hestai_mcp/_bundled_hub/standards/HESTAI-ECOSYSTEM-DEPENDENCY-GRAPH.oct.md"
 §0::PREAMBLE
 CONTEXT::"Single developer + AI agents. Three-Service Model architecture (ADR-0353) — Workbench (Eyes and Hands), Vault (DNA), hestai-context-mcp (Memory and Environment). Two standalone MCP servers: debate-hall, octave-mcp. Legacy systems (hestai-mcp, OA, PAL) stay for A/B comparison."
 ARCHITECTURE_DECISION::"Thick Client model (v3.0) replaced by Three-Service Model (v4.0). See ADR-0353 (2026-04-06). Identity injection via Alley-Oop pattern in Payload Compiler. Context management via hestai-context-mcp stdio MCP."
@@ -18,7 +19,7 @@ ONTOLOGY_AMENDMENT::"ADR-0002 I1 amendment (accepted 2026-04-20 via workbench co
 CLAUDE_CODE_PRIMITIVES::"Claude Code v2.1.77+ introduced Agent Teams primitives (SendMessage, TeamCreate, team_name, agentId resume, Agent tool isolation:worktree|inherit). Gated behind CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1. These are continuation mechanics that affect Pattern A (intra-session Claude→Claude delegation) IMPLEMENTATION, not the architecture. Vault remains authoritative for identity; KVAEPH Position 3 remains authoritative for context; Alley-Oop remains authoritative for T2+ reliability. See HESTAI-ECOSYSTEM-LIGHTHOUSE.md §4 Anti-patterns (AP1/AP2/AP3) and upstream bugs anthropics/claude-code#50889 (auto-reap breaks resume) and #42999 (agentId-vs-name addressing)."
 §1::CURRENT_STATE
 OCTAVE_MCP::[
-  VERSION::"1.9.6",
+  VERSION::"1.13.0",
   PHASE::B5_DOCUMENTATION,
   HEALTH::PRODUCTION_READY,
   PYPI::published,
@@ -127,7 +128,7 @@ ARROWS::[
   "hestai-context-mcp --[writes]--> .hestai/state/ (sessions, context, reports)"
 ]
 §3::LAYER_MODEL_WITH_STATE
-LAYER_0::"FOUNDATION — octave-mcp: SOLID, v1.9.6, production. ACTION: Update deps when releases happen. No structural changes needed."
+LAYER_0::"FOUNDATION — octave-mcp: SOLID, v1.13.0, production. ACTION: Update deps when releases happen. No structural changes needed."
 LAYER_1::"DELIBERATION — debate-hall-mcp: SOLID, v0.5.0, production, 17 tools. ACTION: Continue independently. Issue 163 (Governance Hall)."
 LAYER_2::"IDENTITY — Vault: POPULATED, git-backed, 5 V9 agents (ho-control-room added 2026-04-20 via PR #147). ACTION: Populate as Payload Compiler demands content."
 LAYER_3::"CONTEXT — hestai-context-mcp: Phase 1 COMPLETE (2026-04-17). 4 tools operational, 361 tests, 89 percent coverage. ACTION: Phase 1.5 Pre-A/B Work (issues #4 P0a, #5 P0b, #6 P1, #7 P-side) closes integration-viability gaps so the Payload Compiler can read both backends' responses. Then Phase 2 — workbench Payload Compiler integration via stdio at KVAEPH Position 3 (blocked on workbench Step 3B Phase 3). Framing: outcome-quality A/B, NOT structural-parity A/B — backends are allowed to differ; that difference is the variable being tested."

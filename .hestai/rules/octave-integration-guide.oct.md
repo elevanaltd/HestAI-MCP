@@ -15,10 +15,8 @@ META:
     internal,
     hestai-mcp
   ]
-  OCTAVE_VERSION::"1.9.6"
+  OCTAVE_VERSION::"1.13.0"
 ---
-// This file is HestAI-MCP INTERNAL documentation.
-// Consumer-facing OCTAVE guide: .hestai-sys/library/octave/octave-usage-guide.oct.md
 §1::INTERNAL_FILE_LOCATIONS
 PROCESSING_CODE::[
   "src/hestai_mcp/mcp/tools/shared/compression.py<session_compression>",

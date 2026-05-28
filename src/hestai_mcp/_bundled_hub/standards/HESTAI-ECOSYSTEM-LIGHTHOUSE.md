@@ -377,7 +377,7 @@ As of 2026-04-20:
 
 | System | Current State | Distance | Next Step |
 |--------|--------------|----------|-----------|
-| **OCTAVE MCP** | v1.9.6, production, PyPI published | Close | Standalone community adoption |
+| **OCTAVE MCP** | v1.13.0, production, PyPI published | Close | Standalone community adoption |
 | **Debate Hall** | v0.5.0, 17 tools, consult/convene/RACI shipped | Medium | Governance Hall (#163) |
 | **Workbench** | v0.6.0, Step 3B Phase 2 COMPLETE 2026-04-20 (CA-BCE + unlock_work gate via #134, ApiDispatcher + ContinuationStore via #137, subagent-discipline via #147, ADR-0002 I1 Session/Dispatch ontology via 077ea0a). Phase 3 in progress: egress DAL validation, recursive dispatch_colleague, dispatch-chain UI (#82). | Medium | Complete Step 3B Phase 3 (unblocks hestai-context-mcp Phase 2 integration) |
 | **Vault** | Populated library: 5 V9 agents, 16 V9 skills, 3 cognitions, System Standard | Medium | Populate as Payload Compiler demands content |
