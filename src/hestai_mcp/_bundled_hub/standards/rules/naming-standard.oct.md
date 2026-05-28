@@ -144,7 +144,7 @@ METADATA::[
     report-001-architecture-assessment.md
   ]
 §9::FOLDER_BASED_CONTEXT
-  PRINCIPLE::folders_carry_semantic_context→DO_NOT_repeat_in_filenames
+  PRINCIPLE::"folders carry semantic context → filenames must not repeat folder context"
   STANDARD_STRUCTURE::[
     ".hestai-sys/standards/rules/ → visibility-rules.oct.md, naming-standard.oct.md",
     ".hestai-sys/standards/workflow/ → 000-SYSTEM-HESTAI-NORTH-STAR.md",
