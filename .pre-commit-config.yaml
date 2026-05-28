@@ -24,7 +24,7 @@ repos:
         # NOTE: legacy hybrid-form governance docs that pre-date strict OCTAVE parsing are skipped
         # via OCTAVE_STRICT_SKIP — see .hestai/state/context/PROJECT-CONTEXT.oct.md follow-up
         # tracked as the UPOG/hybrid-form migration (out of scope for #406 Phase 3).
-        entry: bash -c 'set -euo pipefail; files="$(git diff --cached --name-only --diff-filter=ACMR | grep -E "\\.oct\\.md$" | grep -v "^src/hestai_mcp/_bundled_hub/" | grep -vE "^\\.hestai/rules/ci-progressive-testing\\.oct\\.md$" || true)"; if [ -z "$files" ]; then echo "SKIP octave validator (no .oct.md staged after legacy exclusions)"; exit 0; fi; PY="${VIRTUAL_ENV:-.venv}/bin/python"; [ -x "$PY" ] || PY="python3"; for f in $files; do "$PY" -m octave_mcp.cli.main validate "$f"; done'
+        entry: bash -c 'set -euo pipefail; files="$(git diff --cached --name-only --diff-filter=ACMR | grep -E "\\.oct\\.md$" | grep -v "^src/hestai_mcp/_bundled_hub/" | grep -vE "^\\.hestai/rules/ci-progressive-testing\\.oct\\.md$" || true)"; if [ -z "$files" ]; then echo "SKIP octave validator (no .oct.md staged after legacy exclusions)"; exit 0; fi; PY="${VIRTUAL_ENV:-.venv}/bin/python"; [ -x "$PY" ] || { echo "ERROR octave validator requires ${VIRTUAL_ENV:-.venv}/bin/python (run uv sync --all-extras)"; exit 1; }; for f in $files; do "$PY" -m octave_mcp.cli.main validate "$f"; done'
         language: system
         pass_filenames: false
         always_run: true
