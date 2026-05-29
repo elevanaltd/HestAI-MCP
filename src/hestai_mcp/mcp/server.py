@@ -690,11 +690,23 @@ async def list_tools() -> list[Tool]:
     ]
 
 
-def _resolve_legacy_working_dir(arguments: dict[str, Any]) -> str:
-    """Resolve a working_dir for legacy-tool telemetry, falling back to cwd."""
+def _resolve_validated_legacy_working_dir(arguments: dict[str, Any]) -> str:
+    """Resolve a fail-closed-validated working_dir for legacy-tool telemetry.
+
+    Security (cubic-dev-ai, PR #401): the telemetry filesystem write path must
+    never derive from a raw, attacker-controlled ``working_dir`` argument. Any
+    supplied ``working_dir`` is routed through the same fail-closed
+    ``validate_working_dir`` control used elsewhere in this module (rejects
+    path traversal, non-existent, and non-directory paths). When no
+    ``working_dir`` is supplied, fall back to the server's own (trusted) cwd.
+
+    Used by tools that lack an already-validated project root in scope (e.g.
+    ``submit_review``). Tools that already validated ``working_dir`` MUST pass
+    that validated path directly instead of calling this helper.
+    """
     raw = arguments.get("working_dir")
     if isinstance(raw, str) and raw:
-        return raw
+        return str(validate_working_dir(raw))
     return str(Path.cwd())
 
 
@@ -774,10 +786,12 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             enable_ai_synthesis=True,
         )
         # ADR-0353 rollback breadcrumbs (env-var=1 path).
+        # Security (PR #401): telemetry uses the already-validated path
+        # (working_dir_path, validated above), never the raw argument.
         emit_stderr_warning("clock_in")
         if isinstance(result, dict):
             result["_deprecation"] = deprecation_field("clock_in")
-        _record_legacy_telemetry_safely("clock_in", _resolve_legacy_working_dir(arguments))
+        _record_legacy_telemetry_safely("clock_in", str(working_dir_path))
         import json
 
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
@@ -893,10 +907,16 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             commit_sha=arguments.get("commit_sha"),
         )
         # ADR-0353 rollback breadcrumbs (env-var=1 path).
+        # Security (PR #401): submit_review has no project-root in scope, so any
+        # supplied working_dir is routed through the fail-closed validator
+        # before deriving the telemetry write path; absent one, the trusted
+        # server cwd is used.
         emit_stderr_warning("submit_review")
         if isinstance(result, dict):
             result["_deprecation"] = deprecation_field("submit_review")
-        _record_legacy_telemetry_safely("submit_review", _resolve_legacy_working_dir(arguments))
+        _record_legacy_telemetry_safely(
+            "submit_review", _resolve_validated_legacy_working_dir(arguments)
+        )
 
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
