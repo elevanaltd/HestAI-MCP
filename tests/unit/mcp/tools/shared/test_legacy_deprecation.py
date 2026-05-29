@@ -5,7 +5,7 @@ TDD discipline:
 2. GREEN: minimal helper to pass
 3. REFACTOR: only if tests still green
 
-The helper provides three responsibilities under issue #400:
+The helper provides five responsibilities under issue #400:
   (a) is_legacy_enabled() — read HESTAI_MCP_LEGACY_TOOLS_ENABLED
   (b) deprecation_payload(tool_name) — Q2 structured payload (default state)
   (c) record_legacy_invocation(tool_name, audit_path) — Q3 telemetry on rollback

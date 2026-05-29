@@ -92,7 +92,15 @@ def emit_stderr_warning(tool_short_name: str) -> None:
 def resolve_audit_path(project_root: Path) -> Path:
     """Resolve the canonical audit-log path under a project root.
 
-    Mirrors the precedent set by ``.hestai/state/audit/bypass-log.jsonl``.
+    The write location ``.hestai/state/audit/legacy-tool-invocations.jsonl`` is
+    fixed by the Q3 contract (ADR-0353 / issue #400) and is intentionally under
+    the gitignored ``state/`` tree.
+
+    Note: the related emergency-bypass audit log
+    (``scripts/validate_review.py``) writes to ``.hestai/audit/bypass-log.jsonl``
+    — i.e. WITHOUT the ``state/`` segment. The two audit logs deliberately live
+    in different locations; the Q3 contract placed legacy-tool telemetry under
+    ``state/audit/`` so it is not committed.
     """
     return project_root / ".hestai" / "state" / "audit" / "legacy-tool-invocations.jsonl"
 
