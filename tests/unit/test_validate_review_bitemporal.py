@@ -675,3 +675,175 @@ class TestMainEndToEndEscalation:
         assert exit_code == 0
         out = capsys.readouterr().out
         assert "TIER_0_EXEMPT" in out
+
+
+# ---------------------------------------------------------------------------
+# 8. Copilot bot-resolution: exclude rules-schema file from declaration scan
+# ---------------------------------------------------------------------------
+@pytest.mark.unit
+@pytest.mark.behavior
+class TestRulesSchemaFileExcludedFromDeclarationScan:
+    """The gate's own rules-schema doc uses REQUIRED_REVIEWERS:: DESCRIPTIVELY
+    (to define per-facet reviewers). Those lines are config, NOT a PR-level
+    declaration, and must not be picked up by the bitemporal collector.
+
+    Match by basename so BOTH the bundled-hub source and the .hestai-sys runtime
+    copy are skipped as declaration SOURCES.
+    """
+
+    # The rules-schema doc's own content trips the extractor: a descriptive
+    # OCTAVE REQUIRED_REVIEWERS:: line AND the §8 documentation that quotes the
+    # HTML-comment marker example. This fixture reproduces content the extractor
+    # genuinely matches today, so the test is RED (picks up roles) before the
+    # basename-exclusion fix.
+    _SCHEMA_BLOB = (
+        "===REVIEW_REQUIREMENTS===\n"
+        "META:\n"
+        "  TYPE::RULE\n"
+        '  REQUIRED_REVIEWERS::"{CIV, CE, CRS, SR, TMG}"\n'
+        "// §8 documents the marker, which the extractor also matches:\n"
+        "// <!-- review-requirements: [CIV, CE, CRS, SR, TMG] -->\n"
+    )
+
+    def test_bundled_hub_schema_path_not_scanned(self, monkeypatch) -> None:
+        """A PR editing the bundled-hub rules-schema must NOT union its
+        descriptive REQUIRED_REVIEWERS lines as a declaration."""
+
+        def fake_show(sha, path):
+            return self._SCHEMA_BLOB  # both base & head return the schema body
+
+        monkeypatch.setattr(validate_review, "_git_show_file", fake_show)
+        files = [_f("src/hestai_mcp/_bundled_hub/standards/rules/review-requirements.oct.md")]
+        declared, prov = validate_review._collect_bitemporal_declarations(
+            files=files, pr_body="", base_sha="base", head_sha="head"
+        )
+        assert declared == set(), f"schema file must not declare roles, got {declared}"
+        assert prov == {}
+
+    def test_runtime_copy_schema_path_not_scanned(self, monkeypatch) -> None:
+        """The .hestai-sys runtime copy is also excluded (matched by basename)."""
+
+        def fake_show(sha, path):
+            return self._SCHEMA_BLOB
+
+        monkeypatch.setattr(validate_review, "_git_show_file", fake_show)
+        files = [_f(".hestai-sys/standards/rules/review-requirements.oct.md")]
+        declared, _prov = validate_review._collect_bitemporal_declarations(
+            files=files, pr_body="", base_sha="base", head_sha="head"
+        )
+        assert declared == set()
+
+    def test_pr_body_marker_still_scanned_when_schema_changed(self, monkeypatch) -> None:
+        """Excluding the schema file must NOT disable the PR-body marker path."""
+
+        def fake_show(sha, path):
+            return self._SCHEMA_BLOB
+
+        monkeypatch.setattr(validate_review, "_git_show_file", fake_show)
+        files = [_f("src/hestai_mcp/_bundled_hub/standards/rules/review-requirements.oct.md")]
+        declared, prov = validate_review._collect_bitemporal_declarations(
+            files=files,
+            pr_body="<!-- review-requirements: [CIV, CE, CRS, SR, TMG] -->",
+            base_sha="base",
+            head_sha="head",
+        )
+        # Roles come from the PR body ONLY (not the schema's descriptive lines).
+        assert declared == {"CIV", "CE", "CRS", "SR", "TMG"}
+        for role in declared:
+            assert prov[role] == {"PR_BODY"}, f"{role} must be PR_BODY-sourced, got {prov[role]}"
+
+    def test_non_schema_oct_md_still_scanned(self, monkeypatch) -> None:
+        """A DIFFERENT .oct.md (not the rules schema) is still a valid source."""
+
+        def fake_show(sha, path):
+            if sha == "head":
+                return 'REQUIRED_REVIEWERS::"{SR}"\n'
+            return None
+
+        monkeypatch.setattr(validate_review, "_git_show_file", fake_show)
+        files = [_f("docs/governance/SOME-ADR.oct.md")]
+        declared, prov = validate_review._collect_bitemporal_declarations(
+            files=files, pr_body="", base_sha="base", head_sha="head"
+        )
+        assert declared == {"SR"}
+        assert prov["SR"] == {"HEAD"}
+
+    def test_this_pr_still_escalates_via_facet_not_schema_lines(self, monkeypatch) -> None:
+        """THIS PR (edits validate_review.py + the rules schema) must STILL
+        escalate to {CE, CIV, CRS, SR, TMG} at TIER_3_CRITICAL — sourced from the
+        META_CONTROL_PLANE FACET + PR body, NOT the schema's descriptive lines."""
+
+        def fake_show(sha, path):
+            return self._SCHEMA_BLOB
+
+        monkeypatch.setattr(validate_review, "_git_show_file", fake_show)
+        files = [
+            _f("scripts/validate_review.py", added=50, deleted=10),  # META_CONTROL_PLANE facet
+            _f("src/hestai_mcp/_bundled_hub/standards/rules/review-requirements.oct.md"),
+        ]
+        declared, prov = validate_review._collect_bitemporal_declarations(
+            files=files,
+            pr_body="<!-- review-requirements: [CIV, CE, CRS, SR, TMG] -->",
+            base_sha="base",
+            head_sha="head",
+        )
+        # Declared roles come from PR body only (schema lines excluded).
+        assert declared == {"CIV", "CE", "CRS", "SR", "TMG"}
+        for role in declared:
+            assert "PR_BODY" in prov[role]
+            assert "HEAD" not in prov[role], "schema descriptive lines must not be a source"
+        facets, roles, tier, _ = validate_review.classify_pr_facets(files, declared_roles=declared)
+        assert tier == "TIER_3_CRITICAL"
+        assert {"CE", "CIV", "CRS", "SR", "TMG"}.issubset(roles)
+        assert "META_CONTROL_PLANE" in facets, "facet (real routing input) drives escalation"
+
+
+# ---------------------------------------------------------------------------
+# 9. Copilot bot-resolution: warn (non-fatal) on unrecognized review-tier
+# ---------------------------------------------------------------------------
+@pytest.mark.unit
+@pytest.mark.behavior
+class TestUnrecognizedReviewTierWarns:
+    """A review-tier marker whose value is not in the tier->role map must emit a
+    non-fatal warning (so the author gets a signal) and contribute no roles —
+    never a silent no-op, never a crash."""
+
+    def test_unknown_tier_warns_and_contributes_no_roles(self, capsys) -> None:
+        decl = validate_review._parse_review_declaration("<!-- review-tier: TIER_0_EXEMPT -->")
+        # tier is recorded, but no roles contributed
+        assert decl.get("tier") == "TIER_0_EXEMPT"
+        assert not decl.get("roles")
+        err = capsys.readouterr().err
+        assert "TIER_0_EXEMPT" in err
+        assert "review-tier" in err.lower() or "tier" in err.lower()
+
+    def test_misspelled_tier_warns(self, capsys) -> None:
+        decl = validate_review._parse_review_declaration(
+            "<!-- review-tier: TIER_3_CRITCAL: typo here -->"
+        )
+        assert decl.get("tier") == "TIER_3_CRITCAL"
+        assert not decl.get("roles")
+        err = capsys.readouterr().err
+        assert "TIER_3_CRITCAL" in err
+
+    def test_recognized_tier_does_not_warn(self, capsys) -> None:
+        decl = validate_review._parse_review_declaration(
+            "<!-- review-tier: TIER_3_CRITICAL: ok -->"
+        )
+        assert "CIV" in decl["roles"]
+        err = capsys.readouterr().err
+        assert "TIER_3_CRITICAL" not in err  # no warning for a mapped tier
+
+    def test_unknown_tier_does_not_crash_collector(self, monkeypatch) -> None:
+        def fake_show(sha, path):
+            if sha == "head":
+                return "<!-- review-tier: TIER_9_BOGUS -->"
+            return None
+
+        monkeypatch.setattr(validate_review, "_git_show_file", fake_show)
+        files = [_f("docs/ADR.md")]
+        declared, prov = validate_review._collect_bitemporal_declarations(
+            files=files, pr_body="", base_sha="base", head_sha="head"
+        )
+        assert declared == set()
+        assert prov == {}
