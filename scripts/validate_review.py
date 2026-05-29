@@ -610,6 +610,14 @@ def _git_show_file(sha: str, path: str) -> str | None:
             ["git", "show", f"{sha}:{path}"],
             capture_output=True,
             text=True,
+            # A PR may change binary files (png, jpg, …). `git show` emits the
+            # raw blob bytes, which need not be valid UTF-8. Decode with
+            # errors="replace" so a binary blob degrades to a (garbage but
+            # declaration-free) string instead of raising UnicodeDecodeError
+            # and crashing the org-wide gate (I2). check=False keeps a missing
+            # blob (new/deleted file) returning a non-zero rc, handled below.
+            encoding="utf-8",
+            errors="replace",
             check=False,
         )
     except OSError:
