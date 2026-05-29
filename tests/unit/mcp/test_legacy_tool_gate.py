@@ -192,6 +192,7 @@ class TestRollbackStateClockIn:
         assert record["tool"] == "mcp__hestai__clock_in"
         assert record["env"] == "HESTAI_MCP_LEGACY_TOOLS_ENABLED=1"
         assert record["working_dir"] == str(project)
+        assert "timestamp" in record
         # caller_session_id correlates with clock_in's own result session_id.
         assert record["caller_session_id"] == "s-1"
 
