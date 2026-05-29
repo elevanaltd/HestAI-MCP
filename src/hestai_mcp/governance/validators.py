@@ -18,11 +18,13 @@ class ValidationResult(TypedDict):
     exists: bool
 
 
-# Current HestAI MCP server only provides bind in steady state.
+# Steady-state (non-deprecated) HestAI MCP tools: bind and submit_rccafp_record
+# both register in list_tools and execute in call_tool with no deprecation gate.
 # Per ADR-0353 / issue #400, clock_in/clock_out/submit_review are soft-deprecated
 # (registered but default-OFF; restorable via HESTAI_MCP_LEGACY_TOOLS_ENABLED=1).
 VALID_HESTAI_MCP_TOOLS = {
     "mcp__hestai__bind",
+    "mcp__hestai__submit_rccafp_record",
 }
 
 # Soft-deprecated tools: still registered and visible to MCP clients, but the

@@ -8,7 +8,7 @@ submit_review} are soft-deprecated:
   - replacement: mcp__hestai-context__*
 
 Governance reconciliation:
-  - VALID_HESTAI_MCP_TOOLS now contains only mcp__hestai__bind
+  - VALID_HESTAI_MCP_TOOLS holds the steady-state tools: bind + submit_rccafp_record
   - SOFT_DEPRECATED_HESTAI_MCP_TOOLS is a NEW set with the three legacy names
   - DEPRECATED_HESTAI_MCP_TOOLS (hard-deprecated, must not appear) unchanged
   - validate_no_deprecated_tools(...) does NOT flag soft-deprecated names
@@ -28,8 +28,12 @@ from hestai_mcp.governance.validators import (
 
 
 @pytest.mark.unit
-def test_valid_set_only_contains_bind() -> None:
-    assert {"mcp__hestai__bind"} == VALID_HESTAI_MCP_TOOLS
+def test_valid_set_contains_steady_state_tools() -> None:
+    """bind and submit_rccafp_record are the live, non-deprecated steady-state tools."""
+    assert {
+        "mcp__hestai__bind",
+        "mcp__hestai__submit_rccafp_record",
+    } == VALID_HESTAI_MCP_TOOLS
 
 
 @pytest.mark.unit
