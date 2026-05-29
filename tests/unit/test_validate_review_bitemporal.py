@@ -486,6 +486,97 @@ class TestGitShowAndPrBodyHelpers:
         monkeypatch.setattr(sp, "run", boom)
         assert validate_review._git_show_file("sha", "path") is None
 
+    def test_git_show_binary_blob_does_not_crash(self, tmp_path) -> None:
+        """P2 (cubic 8): a binary/non-UTF-8 blob must NOT raise UnicodeDecodeError.
+
+        Exercises the REAL subprocess.run decode path against a git blob whose
+        bytes are not valid UTF-8 (e.g. a PNG). The gate runs org-wide on every
+        PR; a single binary file in a PR must not crash it (I2).
+        """
+        import os
+        import subprocess as sp
+
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        env = {
+            **os.environ,
+            "GIT_AUTHOR_NAME": "t",
+            "GIT_AUTHOR_EMAIL": "t@t.t",
+            "GIT_COMMITTER_NAME": "t",
+            "GIT_COMMITTER_EMAIL": "t@t.t",
+        }
+        sp.run(["git", "init", "-q"], cwd=repo, check=True, env=env)
+        # Invalid UTF-8 bytes (0xFF 0xFE ... 0x80) — a PNG-like binary blob.
+        binary = b"\x89PNG\r\n\x1a\n\xff\xfe\x00\x80\x81\x82binarydata\xc3\x28"
+        (repo / "image.png").write_bytes(binary)
+        sp.run(["git", "add", "-A"], cwd=repo, check=True, env=env)
+        sp.run(["git", "commit", "-qm", "add binary"], cwd=repo, check=True, env=env)
+        sha = sp.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=repo,
+            capture_output=True,
+            text=True,
+            check=True,
+            env=env,
+        ).stdout.strip()
+
+        # Run _git_show_file from within the repo (it shells out to `git show`).
+        cwd0 = os.getcwd()
+        try:
+            os.chdir(repo)
+            # MUST NOT raise UnicodeDecodeError; returns a (replacement-decoded) str.
+            result = validate_review._git_show_file(sha, "image.png")
+        finally:
+            os.chdir(cwd0)
+        assert result is not None
+        assert isinstance(result, str)
+
+    def test_collect_with_binary_file_does_not_crash(self, tmp_path) -> None:
+        """End-to-end: a PR changing a binary file must not crash collection.
+
+        The collector reads BASE/HEAD blobs for every changed file; a binary
+        blob must degrade to "no declaration" rather than raising.
+        """
+        import os
+        import subprocess as sp
+
+        repo = tmp_path / "repo2"
+        repo.mkdir()
+        env = {
+            **os.environ,
+            "GIT_AUTHOR_NAME": "t",
+            "GIT_AUTHOR_EMAIL": "t@t.t",
+            "GIT_COMMITTER_NAME": "t",
+            "GIT_COMMITTER_EMAIL": "t@t.t",
+        }
+        sp.run(["git", "init", "-q"], cwd=repo, check=True, env=env)
+        (repo / "logo.png").write_bytes(b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x80\x81")
+        sp.run(["git", "add", "-A"], cwd=repo, check=True, env=env)
+        sp.run(["git", "commit", "-qm", "binary"], cwd=repo, check=True, env=env)
+        sha = sp.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=repo,
+            capture_output=True,
+            text=True,
+            check=True,
+            env=env,
+        ).stdout.strip()
+
+        cwd0 = os.getcwd()
+        try:
+            os.chdir(repo)
+            roles, prov = validate_review._collect_bitemporal_declarations(
+                files=[_f("logo.png", status="M")],
+                pr_body="",
+                base_sha=sha,
+                head_sha=sha,
+            )
+        finally:
+            os.chdir(cwd0)
+        # Binary blob carries no declaration; collection must succeed (no crash).
+        assert roles == set()
+        assert prov == {}
+
     def test_get_pr_body_empty_outside_ci(self, monkeypatch) -> None:
         monkeypatch.delenv("CI", raising=False)
         assert validate_review._get_pr_body() == ""
