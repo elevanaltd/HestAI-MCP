@@ -5,7 +5,7 @@ META:
   STATUS::ACTIVE
   NAMESPACE::PROD
   PURPOSE::"Operational decision-logic for clock_in MCP tool"
-  FULL_DOC::".hestai/workflow/components/000-CLOCK-IN-NORTH-STAR.md"
+  FULL_DOC::".hestai/north-star/components/000-CLOCK-IN-NORTH-STAR.md"
   INHERITS::[
     System_NS,
     Product_NS,

@@ -6,14 +6,14 @@ created: 2025-12-27
 status: approved
 approved_by: requirements-steward
 approved_date: 2025-12-28
-parent_north_star: .hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md
+parent_north_star: .hestai/north-star/000-MCP-PRODUCT-NORTH-STAR.md
 version: 1.2
 ---
 
 # COMPONENT NORTH STAR: ORCHESTRA MAP
 
 **Component**: Orchestra Map (Dependency Analysis)
-**Parent**: .hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md
+**Parent**: .hestai/north-star/000-MCP-PRODUCT-NORTH-STAR.md
 **Status**: ACTIVE
 **Version**: 1.2
 **Date**: 2025-12-28
@@ -28,7 +28,7 @@ This document establishes the immutable requirements for the **Orchestra Map** c
 
 **Inheritance Chain**:
 - System North Star (.hestai-sys/governance/workflow/000-SYSTEM-HESTAI-NORTH-STAR.md) - Constitutional Authority
-- HestAI-MCP Product North Star (.hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md) - Product Binding
+- HestAI-MCP Product North Star (.hestai/north-star/000-MCP-PRODUCT-NORTH-STAR.md) - Product Binding
 - This Component North Star - Subsystem Specifics
 
 **Authority**: All work on Orchestra Map must align with these requirements AND all parent requirements.
