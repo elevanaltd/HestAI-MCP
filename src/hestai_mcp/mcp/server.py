@@ -28,6 +28,15 @@ from hestai_mcp.modules.tools.bind import bind
 from hestai_mcp.modules.tools.clock_in import clock_in_async, validate_working_dir
 from hestai_mcp.modules.tools.clock_out import clock_out
 from hestai_mcp.modules.tools.shared.governance_integrity import store_governance_hash
+from hestai_mcp.modules.tools.shared.legacy_deprecation import (
+    SOFT_DEPRECATED_TOOLS,
+    deprecation_field,
+    deprecation_payload,
+    emit_stderr_warning,
+    is_legacy_enabled,
+    record_legacy_invocation,
+    resolve_audit_path,
+)
 from hestai_mcp.modules.tools.shared.review_formats import VALID_ROLES as REVIEW_VALID_ROLES
 from hestai_mcp.modules.tools.submit_rccafp import submit_rccafp_record
 from hestai_mcp.modules.tools.submit_review import submit_review
@@ -681,6 +690,76 @@ async def list_tools() -> list[Tool]:
     ]
 
 
+def _resolve_validated_legacy_working_dir(arguments: dict[str, Any]) -> str:
+    """Resolve a fail-closed-validated working_dir for legacy-tool telemetry.
+
+    Security (cubic-dev-ai, PR #401): the telemetry filesystem write path must
+    never derive from a raw, attacker-controlled ``working_dir`` argument. Any
+    supplied ``working_dir`` is routed through the same fail-closed
+    ``validate_working_dir`` control used elsewhere in this module (rejects
+    path traversal, non-existent, and non-directory paths). When no
+    ``working_dir`` is supplied, fall back to the server's own (trusted) cwd.
+
+    Used by tools that lack an already-validated project root in scope (e.g.
+    ``submit_review``). Tools that already validated ``working_dir`` MUST pass
+    that validated path directly instead of calling this helper.
+    """
+    raw = arguments.get("working_dir")
+    if isinstance(raw, str) and raw:
+        return str(validate_working_dir(raw))
+    return str(Path.cwd())
+
+
+def _record_legacy_telemetry_safely(
+    tool_name: str,
+    working_dir: str | None = None,
+    *,
+    resolve_from: dict[str, Any] | None = None,
+    caller_session_id: str | None = None,
+) -> None:
+    """Append a telemetry record on the rollback path; never break the tool call.
+
+    Two calling modes:
+
+    - ``working_dir`` (clock_in/clock_out): the caller has ALREADY validated the
+      project root up-front because the tool operation itself requires it. The
+      pre-validated path string is passed directly; it cannot raise here.
+
+    - ``resolve_from`` (submit_review): the tool does NOT need a working_dir for
+      its operation — it is telemetry-only. Resolution AND fail-closed
+      validation therefore happen INSIDE this failure-isolation boundary, so an
+      invalid telemetry-only working_dir can never convert an already-completed
+      review into an error (CE finding, PR #401). The security property from the
+      prior rework is preserved: validation still runs (via
+      ``_resolve_validated_legacy_working_dir``), so telemetry is never written
+      to an unvalidated/attacker-controlled path — on failure it is simply
+      skipped with a logged warning.
+
+    ``caller_session_id`` correlates the invocation with the caller's session
+    where one is cleanly in scope (clock_out: the session being closed;
+    clock_in: the session_id from its result). submit_review has no session in
+    scope and passes None.
+    """
+    try:
+        if working_dir is None:
+            if resolve_from is None:  # pragma: no cover - defensive guard
+                raise ValueError("either working_dir or resolve_from is required")
+            working_dir = _resolve_validated_legacy_working_dir(resolve_from)
+        project_root = Path(working_dir)
+        record_legacy_invocation(
+            tool_name=tool_name,
+            audit_path=resolve_audit_path(project_root),
+            working_dir=working_dir,
+            caller_session_id=caller_session_id,
+        )
+    except Exception as telemetry_error:
+        logger.warning(
+            "Failed to record legacy-tool telemetry for %s: %s",
+            tool_name,
+            telemetry_error,
+        )
+
+
 @app.call_tool()
 async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     """
@@ -696,6 +775,17 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     Raises:
         ValueError: If tool name is unknown
     """
+    # ADR-0353 / issue #400: soft-deprecation gate for legacy hestai-mcp tools.
+    # Default state (env-var unset/0): return structured deprecation payload.
+    # Rollback state (env-var=1): execute legacy logic and emit three breadcrumbs
+    # (stderr, additive `_deprecation` field, jsonl telemetry) — handled inline
+    # in each legacy branch below.
+    if name in SOFT_DEPRECATED_TOOLS and not is_legacy_enabled():
+        import json
+
+        payload = deprecation_payload(name)
+        return [TextContent(type="text", text=json.dumps(payload, indent=2))]
+
     if name == "clock_in":
         # Validate working_dir before any governance writes (fail-closed).
         working_dir_path = validate_working_dir(arguments["working_dir"])
@@ -726,6 +816,16 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             focus=arguments.get("focus", "general"),
             model=arguments.get("model"),
             enable_ai_synthesis=True,
+        )
+        # ADR-0353 rollback breadcrumbs (env-var=1 path).
+        # Security (PR #401): telemetry uses the already-validated path
+        # (working_dir_path, validated above), never the raw argument.
+        emit_stderr_warning("clock_in")
+        clock_in_session_id = result.get("session_id") if isinstance(result, dict) else None
+        if isinstance(result, dict):
+            result["_deprecation"] = deprecation_field("clock_in")
+        _record_legacy_telemetry_safely(
+            "clock_in", str(working_dir_path), caller_session_id=clock_in_session_id
         )
         import json
 
@@ -802,6 +902,15 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             description=arguments.get("description", ""),
             project_root=actual_project_root,
         )
+        # ADR-0353 rollback breadcrumbs (env-var=1 path).
+        emit_stderr_warning("clock_out")
+        if isinstance(result, dict):
+            result["_deprecation"] = deprecation_field("clock_out")
+        _record_legacy_telemetry_safely(
+            "clock_out",
+            str(actual_project_root),
+            caller_session_id=arguments.get("session_id"),
+        )
 
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
@@ -836,6 +945,17 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             dry_run=arguments.get("dry_run", False),
             commit_sha=arguments.get("commit_sha"),
         )
+        # ADR-0353 rollback breadcrumbs (env-var=1 path).
+        # Security + failure-isolation (PR #401): submit_review's working_dir is
+        # telemetry-only. The review has already completed successfully above, so
+        # resolution AND fail-closed validation are deferred INSIDE
+        # _record_legacy_telemetry_safely — a bad telemetry-only working_dir is
+        # rejected for the write path (security preserved) but skipped with a
+        # warning rather than crashing the completed review (CE finding).
+        emit_stderr_warning("submit_review")
+        if isinstance(result, dict):
+            result["_deprecation"] = deprecation_field("submit_review")
+        _record_legacy_telemetry_safely("submit_review", resolve_from=arguments)
 
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
 

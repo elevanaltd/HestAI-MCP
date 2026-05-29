@@ -18,11 +18,24 @@ class ValidationResult(TypedDict):
     exists: bool
 
 
-# Current HestAI MCP server only provides these 4 tools
+# Steady-state (non-deprecated) HestAI MCP tools: bind and submit_rccafp_record
+# both register in list_tools and execute in call_tool with no deprecation gate.
+# Per ADR-0353 / issue #400, clock_in/clock_out/submit_review are soft-deprecated
+# (registered but default-OFF; restorable via HESTAI_MCP_LEGACY_TOOLS_ENABLED=1).
 VALID_HESTAI_MCP_TOOLS = {
+    "mcp__hestai__bind",
+    "mcp__hestai__submit_rccafp_record",
+}
+
+# Soft-deprecated tools: still registered and visible to MCP clients, but the
+# steady-state default returns a structured deprecation payload instead of
+# executing legacy logic. Workflow documentation may still reference these
+# names during the transition window — they are NOT flagged by
+# validate_no_deprecated_tools(). Hard-deprecation moves names from this set
+# into DEPRECATED_HESTAI_MCP_TOOLS.
+SOFT_DEPRECATED_HESTAI_MCP_TOOLS = {
     "mcp__hestai__clock_in",
     "mcp__hestai__clock_out",
-    "mcp__hestai__bind",
     "mcp__hestai__submit_review",
 }
 
