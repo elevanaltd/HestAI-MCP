@@ -126,6 +126,23 @@ def get_changed_files() -> list[dict[str, Any]]:
                 )
             elif len(parts) == 3:
                 added, deleted, filename = parts
+                # Resolve arrow/brace rename notation that real git --numstat emits.
+                # Three forms exist (all 3-field, ' => ' inside the filename field):
+                #   Plain:     "old/path.md => new/path.md"
+                #   Same-dir:  "dir/{old.md => new.md}"
+                #   Cross-dir: "{old/dir => new/dir}/file.md"
+                if " => " in filename:
+                    brace_match = re.search(r"\{([^}]*) => ([^}]*)\}", filename)
+                    if brace_match:
+                        # Replace the entire {old => new} fragment with just the new side.
+                        filename = (
+                            filename[: brace_match.start()]
+                            + brace_match.group(2)
+                            + filename[brace_match.end() :]
+                        )
+                    else:
+                        # Plain "old_path => new_path" — take the new (right) side.
+                        filename = filename.split(" => ", 1)[1]
                 files.append(
                     {
                         "path": filename,

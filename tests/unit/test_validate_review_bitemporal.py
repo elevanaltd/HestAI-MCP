@@ -1154,37 +1154,12 @@ class TestRenameAwareBaseDeclaration:
         assert "CE" in declared, "BASE declaration on modified file must still be collected"
         assert "BASE" in prov.get("CE", set()), "CE must be attributed to BASE source"
 
-    def test_get_changed_files_rename_parsing(self, monkeypatch) -> None:
-        """get_changed_files() must detect R-status renames and produce dicts with
-        both path (new path) and previous_path (old path).
-
-        Also verifies the numstat path key is the new path only — NOT the
-        literal 'old => new' string that --numstat emits for renames.
-        """
+    def _make_rename_mock(self, monkeypatch, numstat_output: str, name_status_output: str):
+        """Helper: wire subprocess.run mocks for get_changed_files() rename tests."""
         import subprocess as sp
         from unittest.mock import MagicMock
 
-        # --numstat output for a rename: git emits "{old}\t{new}" on a single tab-
-        # separated line when there is no brace expansion, but the ACTUAL format
-        # git uses for renames in --numstat is:
-        #   <added>\t<deleted>\t{old_path => new_path}
-        # or (with -M similarity threshold):
-        #   <added>\t<deleted>\told/path\tnew/path
-        # The common real-world format uses curly-brace notation in the filename
-        # column. We test the tab-separated 3-field form with the rename syntax
-        # that appears when full paths differ:
-        #   3\t1\told/governance/OLD-NAME.oct.md => new/governance/NEW-NAME.oct.md
-        numstat_output = "3\t1\told/governance/OLD-NAME.oct.md\tnew/governance/NEW-NAME.oct.md\n"
-        # --name-status output for the same rename: R<similarity>\t<old>\t<new>
-        name_status_output = (
-            "R100\told/governance/OLD-NAME.oct.md\tnew/governance/NEW-NAME.oct.md\n"
-        )
-
-        call_count = 0
-
         def mock_run(cmd, **kwargs):
-            nonlocal call_count
-            call_count += 1
             if "--numstat" in cmd:
                 return MagicMock(returncode=0, stdout=numstat_output)
             if "--name-status" in cmd:
@@ -1194,20 +1169,78 @@ class TestRenameAwareBaseDeclaration:
         monkeypatch.setattr(sp, "run", mock_run)
         monkeypatch.delenv("CI", raising=False)
 
+    def test_get_changed_files_rename_parsing_plain_arrow(self, monkeypatch) -> None:
+        """Plain arrow: real git --numstat 3-field format for cross-directory rename.
+
+        Real git output:  3\\t1\\told/governance/OLD-NAME.oct.md => new/governance/NEW-NAME.oct.md
+        (single tab-separated 3-field line; ' => ' is inside the filename field)
+        """
+        numstat_output = "3\t1\told/governance/OLD-NAME.oct.md => new/governance/NEW-NAME.oct.md\n"
+        name_status_output = (
+            "R100\told/governance/OLD-NAME.oct.md\tnew/governance/NEW-NAME.oct.md\n"
+        )
+        self._make_rename_mock(monkeypatch, numstat_output, name_status_output)
+
         files = validate_review.get_changed_files()
 
         assert len(files) == 1, f"Expected 1 file, got {len(files)}: {files}"
         f = files[0]
-
-        # New path (not the 'old => new' string)
         assert (
             f["path"] == "new/governance/NEW-NAME.oct.md"
         ), f"path must be new path only, got: {f['path']!r}"
-        # previous_path populated for renames
         assert (
             f.get("previous_path") == "old/governance/OLD-NAME.oct.md"
         ), f"previous_path must be old path, got: {f.get('previous_path')!r}"
-        # status is 'renamed' (or 'R')
+        assert f.get("status") in (
+            "renamed",
+            "R",
+        ), f"status must indicate rename, got: {f.get('status')!r}"
+
+    def test_get_changed_files_rename_parsing_same_dir_brace(self, monkeypatch) -> None:
+        """Same-directory brace notation: git abbreviates same-dir renames with braces.
+
+        Real git output:  3\\t1\\tgovernance/rules/{OLD-NAME.oct.md => NEW-NAME.oct.md}
+        """
+        numstat_output = "3\t1\tgovernance/rules/{OLD-NAME.oct.md => NEW-NAME.oct.md}\n"
+        name_status_output = (
+            "R100\tgovernance/rules/OLD-NAME.oct.md\tgovernance/rules/NEW-NAME.oct.md\n"
+        )
+        self._make_rename_mock(monkeypatch, numstat_output, name_status_output)
+
+        files = validate_review.get_changed_files()
+
+        assert len(files) == 1, f"Expected 1 file, got {len(files)}: {files}"
+        f = files[0]
+        assert (
+            f["path"] == "governance/rules/NEW-NAME.oct.md"
+        ), f"path must be new path only, got: {f['path']!r}"
+        assert (
+            f.get("previous_path") == "governance/rules/OLD-NAME.oct.md"
+        ), f"previous_path must be old path, got: {f.get('previous_path')!r}"
+        assert f.get("status") in (
+            "renamed",
+            "R",
+        ), f"status must indicate rename, got: {f.get('status')!r}"
+
+    def test_get_changed_files_rename_parsing_cross_dir_brace(self, monkeypatch) -> None:
+        """Cross-directory brace notation: git abbreviates dir-level renames with braces.
+
+        Real git output:  3\\t1\\t{old/governance => new/governance}/rule.oct.md
+        """
+        numstat_output = "3\t1\t{old/governance => new/governance}/rule.oct.md\n"
+        name_status_output = "R100\told/governance/rule.oct.md\tnew/governance/rule.oct.md\n"
+        self._make_rename_mock(monkeypatch, numstat_output, name_status_output)
+
+        files = validate_review.get_changed_files()
+
+        assert len(files) == 1, f"Expected 1 file, got {len(files)}: {files}"
+        f = files[0]
+        assert (
+            f["path"] == "new/governance/rule.oct.md"
+        ), f"path must be new path only, got: {f['path']!r}"
+        assert (
+            f.get("previous_path") == "old/governance/rule.oct.md"
+        ), f"previous_path must be old path, got: {f.get('previous_path')!r}"
         assert f.get("status") in (
             "renamed",
             "R",
