@@ -6,14 +6,14 @@ created: 2025-12-27
 status: in_progress
 approved_by: requirements-steward
 approved_date: 2025-12-28
-parent_north_star: .hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md
+parent_north_star: .hestai/north-star/000-MCP-PRODUCT-NORTH-STAR.md
 version: 1.3
 ---
 
 # COMPONENT NORTH STAR: SYSTEM STEWARD
 
 **Component**: System Steward (AI-Powered Context Orchestrator)
-**Parent**: .hestai/workflow/000-MCP-PRODUCT-NORTH-STAR.md
+**Parent**: .hestai/north-star/000-MCP-PRODUCT-NORTH-STAR.md
 **Status**: IN_PROGRESS (SS-I2, SS-I3, SS-I6 complete)
 **Version**: 1.3
 **Date**: 2025-12-28
