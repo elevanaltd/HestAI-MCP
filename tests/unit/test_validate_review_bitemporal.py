@@ -442,3 +442,145 @@ class TestProvenanceInJsonOutput:
         )
         out = capsys.readouterr().out
         assert "<!-- REVIEW_GATE_JSON:" in out
+
+
+# ---------------------------------------------------------------------------
+# 6. git-show + PR-body helpers (safe on missing blobs / missing context)
+# ---------------------------------------------------------------------------
+@pytest.mark.unit
+@pytest.mark.behavior
+class TestGitShowAndPrBodyHelpers:
+    """_git_show_file and _get_pr_body must degrade gracefully, never crash."""
+
+    def test_git_show_returns_content_on_success(self, monkeypatch) -> None:
+        import subprocess as sp
+        from unittest.mock import MagicMock
+
+        monkeypatch.setattr(
+            sp,
+            "run",
+            lambda *a, **k: MagicMock(returncode=0, stdout="hello body"),
+        )
+        assert validate_review._git_show_file("sha", "path") == "hello body"
+
+    def test_git_show_missing_blob_returns_none(self, monkeypatch) -> None:
+        import subprocess as sp
+        from unittest.mock import MagicMock
+
+        monkeypatch.setattr(
+            sp,
+            "run",
+            lambda *a, **k: MagicMock(returncode=128, stdout=""),
+        )
+        assert validate_review._git_show_file("sha", "path") is None
+
+    def test_git_show_empty_sha_returns_none(self) -> None:
+        assert validate_review._git_show_file("", "path") is None
+
+    def test_git_show_oserror_returns_none(self, monkeypatch) -> None:
+        import subprocess as sp
+
+        def boom(*a, **k):
+            raise OSError("no git")
+
+        monkeypatch.setattr(sp, "run", boom)
+        assert validate_review._git_show_file("sha", "path") is None
+
+    def test_get_pr_body_empty_outside_ci(self, monkeypatch) -> None:
+        monkeypatch.delenv("CI", raising=False)
+        assert validate_review._get_pr_body() == ""
+
+    def test_get_pr_body_empty_without_pr_number(self, monkeypatch) -> None:
+        monkeypatch.setenv("CI", "true")
+        monkeypatch.delenv("PR_NUMBER", raising=False)
+        assert validate_review._get_pr_body() == ""
+
+    def test_get_pr_body_returns_body_in_ci(self, monkeypatch) -> None:
+        import json as _json
+        import subprocess as sp
+        from unittest.mock import MagicMock
+
+        monkeypatch.setenv("CI", "true")
+        monkeypatch.setenv("PR_NUMBER", "412")
+        monkeypatch.setattr(
+            sp,
+            "run",
+            lambda *a, **k: MagicMock(
+                returncode=0, stdout=_json.dumps({"body": "<!-- review-requirements: [SR] -->"})
+            ),
+        )
+        assert "review-requirements" in validate_review._get_pr_body()
+
+
+# ---------------------------------------------------------------------------
+# 7. main() end-to-end — the originating elevana-studio #868 scenario
+# ---------------------------------------------------------------------------
+@pytest.mark.unit
+@pytest.mark.behavior
+class TestMainEndToEndEscalation:
+    """main() must escalate an all-exempt PR carrying a declaration, in CI."""
+
+    @pytest.fixture(autouse=True)
+    def ci_env(self, monkeypatch):
+        monkeypatch.setenv("CI", "true")
+        monkeypatch.setenv("PR_NUMBER", "868")
+        monkeypatch.delenv("CACHED_GATE_DATA", raising=False)
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(validate_review, "_get_head_sha", lambda: "headsha")
+        monkeypatch.setattr(validate_review, "_get_base_ref_sha", lambda: "basesha")
+
+    def test_all_exempt_markdown_adr_escalates_and_blocks(self, monkeypatch, capsys) -> None:
+        """#868: markdown ADR mandating a T3 chain must NOT be reported mergeable.
+
+        All-exempt diff + a HEAD declaration -> gate escalates to the declared
+        chain, finds no approvals, and BLOCKS (exit 1). Provenance is emitted.
+        """
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [_f("decisions/ADR-HO-AUTH.md", added=40, deleted=0, status="A")],
+        )
+        monkeypatch.setattr(validate_review, "_get_pr_body", lambda: "")
+
+        def fake_show(sha, path):
+            if sha == "headsha":
+                return "<!-- review-requirements: [TMG, CRS, CE, CIV, SR] -->"
+            return None  # new file: no base blob
+
+        monkeypatch.setattr(validate_review, "_git_show_file", fake_show)
+        # No approvals present
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *a, **k: (False, "Missing reviews", ["TMG", "CRS", "CE", "CIV", "SR"]),
+        )
+
+        exit_code = validate_review.main()
+        assert exit_code == 1, "all-exempt ADR with T3 declaration must block, not pass"
+
+        out = capsys.readouterr().out
+        assert "TIER_0_EXEMPT" not in out.split("REVIEW_GATE_JSON")[0] or "TIER_3" in out
+        import json as _json
+
+        payload = out.split("<!-- REVIEW_GATE_JSON:", 1)[1].split(" -->", 1)[0]
+        data = _json.loads(payload)
+        assert data["tier"] == "TIER_3_CRITICAL"
+        assert set(data["reviewers"]) == {"TMG", "CRS", "CE", "CIV", "SR"}
+        # Each declared role is attributed to the HEAD blob.
+        for role in {"TMG", "CRS", "CE", "CIV", "SR"}:
+            assert "HEAD" in data["provenance"][role]
+
+    def test_diff_only_no_declaration_still_exempt_in_main(self, monkeypatch, capsys) -> None:
+        """Regression: a pure-docs PR with no declaration still exits 0 (exempt)."""
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [_f("docs/README.md", added=5, deleted=2)],
+        )
+        monkeypatch.setattr(validate_review, "_get_pr_body", lambda: "")
+        monkeypatch.setattr(validate_review, "_git_show_file", lambda sha, path: None)
+
+        exit_code = validate_review.main()
+        assert exit_code == 0
+        out = capsys.readouterr().out
+        assert "TIER_0_EXEMPT" in out
