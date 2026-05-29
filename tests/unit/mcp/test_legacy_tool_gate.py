@@ -192,6 +192,8 @@ class TestRollbackStateClockIn:
         assert record["tool"] == "mcp__hestai__clock_in"
         assert record["env"] == "HESTAI_MCP_LEGACY_TOOLS_ENABLED=1"
         assert record["working_dir"] == str(project)
+        # caller_session_id correlates with clock_in's own result session_id.
+        assert record["caller_session_id"] == "s-1"
 
 
 @pytest.mark.unit
@@ -239,8 +241,8 @@ class TestRollbackStateClockOut:
         assert record["env"] == "HESTAI_MCP_LEGACY_TOOLS_ENABLED=1"
         assert record["working_dir"] == expected_working_dir
         assert "timestamp" in record
-        assert "caller_session_id" in record  # may be None
-        assert record["caller_session_id"] is None
+        # caller_session_id correlates with the session being closed.
+        assert record["caller_session_id"] == session_id
 
 
 @pytest.mark.unit
@@ -287,7 +289,8 @@ class TestRollbackStateSubmitReview:
         assert record["env"] == "HESTAI_MCP_LEGACY_TOOLS_ENABLED=1"
         assert record["working_dir"] == expected_working_dir
         assert "timestamp" in record
-        assert "caller_session_id" in record  # may be None
+        # submit_review has no session in scope — caller_session_id stays None.
+        assert "caller_session_id" in record
         assert record["caller_session_id"] is None
 
 

@@ -715,6 +715,7 @@ def _record_legacy_telemetry_safely(
     working_dir: str | None = None,
     *,
     resolve_from: dict[str, Any] | None = None,
+    caller_session_id: str | None = None,
 ) -> None:
     """Append a telemetry record on the rollback path; never break the tool call.
 
@@ -733,6 +734,11 @@ def _record_legacy_telemetry_safely(
       ``_resolve_validated_legacy_working_dir``), so telemetry is never written
       to an unvalidated/attacker-controlled path — on failure it is simply
       skipped with a logged warning.
+
+    ``caller_session_id`` correlates the invocation with the caller's session
+    where one is cleanly in scope (clock_out: the session being closed;
+    clock_in: the session_id from its result). submit_review has no session in
+    scope and passes None.
     """
     try:
         if working_dir is None:
@@ -744,7 +750,7 @@ def _record_legacy_telemetry_safely(
             tool_name=tool_name,
             audit_path=resolve_audit_path(project_root),
             working_dir=working_dir,
-            caller_session_id=None,
+            caller_session_id=caller_session_id,
         )
     except Exception as telemetry_error:
         logger.warning(
@@ -815,9 +821,12 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         # Security (PR #401): telemetry uses the already-validated path
         # (working_dir_path, validated above), never the raw argument.
         emit_stderr_warning("clock_in")
+        clock_in_session_id = result.get("session_id") if isinstance(result, dict) else None
         if isinstance(result, dict):
             result["_deprecation"] = deprecation_field("clock_in")
-        _record_legacy_telemetry_safely("clock_in", str(working_dir_path))
+        _record_legacy_telemetry_safely(
+            "clock_in", str(working_dir_path), caller_session_id=clock_in_session_id
+        )
         import json
 
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
@@ -897,7 +906,11 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         emit_stderr_warning("clock_out")
         if isinstance(result, dict):
             result["_deprecation"] = deprecation_field("clock_out")
-        _record_legacy_telemetry_safely("clock_out", str(actual_project_root))
+        _record_legacy_telemetry_safely(
+            "clock_out",
+            str(actual_project_root),
+            caller_session_id=arguments.get("session_id"),
+        )
 
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
