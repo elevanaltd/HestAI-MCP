@@ -148,7 +148,7 @@ CONDUCT:
   BURIED_NETWORK::"RELATED_TO::other_service hidden in prose comment — use explicit operator: auth→payments[dependency]"
   OPERATOR_SOUP::"RESULT::A+B->C~D all in one expression — break into separate keyed fields"
   PROSE_BLEED::"Using natural language sentences as values — every token must carry semantic payload"
-  INLINE_ARRAY_ROOT::"TOKEN::[KEY::v, KEY2::v2] — inline list used as map root. Triggers E_NESTED_INLINE_MAP (strict) / W_NESTED_INLINE_MAP (lenient). Fix: use BLOCK form (TOKEN: + indented children). Inline arrays are for scalar lists only."
+  INLINE_ARRAY_ROOT::"TOKEN::[KEY::v, KEY2::v2] — inline map used as multi-field token root. Non-canonical for map tokens even when values are atomic; BLOCK form is mandated. Triggers E_NESTED_INLINE_MAP as soon as any child value needs nesting (§5::BLOCK_NOTATION_RULE). Fix: use BLOCK form (TOKEN: + indented children) from the start."
   FLAT_PREFIX_SCALARS::"PARENT_CHILD::v, PARENT_CHILD2::v2 — flattened hierarchy via key name prefixes instead of BLOCK nesting. Destroys grouping and LLM attention. Fix: group under a PARENT: block with CHILD::v children."
 §7::TIER_NORMALIZATION_AUDIT_CHANNEL
   // ADR-0006 SR1-T1 Step 3 (v1.12.0): centralised audit channel for I4 completeness

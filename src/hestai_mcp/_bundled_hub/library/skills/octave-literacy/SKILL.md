@@ -75,7 +75,7 @@ META:
       ```
     SCALAR_LIST_ONLY::"Inline arrays ([a,b,c]) are for scalar lists only — IMMUTABLES::[…], CONSOLIDATES::[a,b] — never for maps-of-maps"
     WHY_BLOCK::"Indented children inherit parent context → fewer key tokens, better LLM attention, zero W_DUPLICATE_KEY collisions"
-    WHY_NOT_INLINE_ARRAY_ROOT::"KEY::[KEY2::v, KEY3::v] triggers E_NESTED_INLINE_MAP (strict) or W_NESTED_INLINE_MAP (lenient)"
+    WHY_NOT_INLINE_ARRAY_ROOT::"Inline map as token root is non-canonical for map tokens even when values are atomic (§1b::INLINE_MAP). Triggers E_NESTED_INLINE_MAP as soon as any child value needs nesting — restructuring after the fact is mechanical waste. Use BLOCK form from the start."
     WHY_NOT_FLAT_PREFIX::"PARENT_CHILD1 + PARENT_CHILD2 key proliferation destroys hierarchical grouping and LLM attention"
 §2::OPERATORS
   // Each operator encodes a relationship in a single token
