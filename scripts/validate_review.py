@@ -52,11 +52,15 @@ def get_changed_files() -> list[dict[str, Any]]:
     """Get list of changed files with line counts and file status.
 
     Each returned dict includes:
-      - path: file path
+      - path: new file path (or current path for non-renamed files)
       - added: lines added
       - deleted: lines deleted
       - total_changed: added + deleted
       - status: git status letter (A=added, M=modified, D=deleted, R=renamed)
+      - previous_path: (renames only) the old file path before the rename
+
+    For renamed files, ``previous_path`` is populated so that callers can
+    fetch the BASE blob using the old path (issue #417).
     """
     try:
         # In CI, compare against base branch; locally use cached
@@ -70,7 +74,37 @@ def get_changed_files() -> list[dict[str, Any]]:
             numstat_cmd = ["git", "diff", "--cached", "--numstat"]
             status_cmd = ["git", "diff", "--cached", "--name-status"]
 
-        # Get diff stats (line counts)
+        # Build rename map from --name-status first: old_path -> new_path.
+        # For renames git emits: "R<score>\t<old_path>\t<new_path>"
+        # We key by new_path to match against numstat entries, and store old_path
+        # as previous_path.
+        status_result = subprocess.run(status_cmd, capture_output=True, text=True, check=True)
+        status_map: dict[str, str] = {}  # new_path -> status letter
+        rename_map: dict[str, str] = {}  # new_path -> old_path
+        for line in status_result.stdout.strip().split("\n"):
+            if not line:
+                continue
+            parts = line.split("\t")
+            if len(parts) >= 2:
+                # Status is first char of first field (e.g., "M", "A", "R100")
+                status_letter = parts[0][0]
+                if status_letter == "R" and len(parts) >= 3:
+                    # Rename: parts[1]=old_path, parts[2]=new_path
+                    old_path = parts[1]
+                    new_path = parts[2]
+                    status_map[new_path] = "R"
+                    rename_map[new_path] = old_path
+                else:
+                    filename = parts[-1]  # Last field is the path
+                    status_map[filename] = status_letter
+
+        # Get diff stats (line counts).
+        # --numstat for renamed files emits either:
+        #   <added>\t<deleted>\t<old_path>\t<new_path>  (4 fields, with -M)
+        # or the brace-notation form:
+        #   <added>\t<deleted>\t{old => new}  (3 fields)
+        # We normalise both: for the 4-field form use new_path (parts[3]); for
+        # the 3-field form use rename_map to resolve the correct new_path key.
         result = subprocess.run(numstat_cmd, capture_output=True, text=True, check=True)
 
         files = []
@@ -78,8 +112,37 @@ def get_changed_files() -> list[dict[str, Any]]:
             if not line:
                 continue
             parts = line.split("\t")
-            if len(parts) == 3:
+            if len(parts) == 4:
+                # 4-field rename line: added, deleted, old_path, new_path
+                added, deleted, _old, new_path = parts
+                files.append(
+                    {
+                        "path": new_path,
+                        "added": int(added) if added != "-" else 0,
+                        "deleted": int(deleted) if deleted != "-" else 0,
+                        "total_changed": (int(added) if added != "-" else 0)
+                        + (int(deleted) if deleted != "-" else 0),
+                    }
+                )
+            elif len(parts) == 3:
                 added, deleted, filename = parts
+                # Resolve arrow/brace rename notation that real git --numstat emits.
+                # Three forms exist (all 3-field, ' => ' inside the filename field):
+                #   Plain:     "old/path.md => new/path.md"
+                #   Same-dir:  "dir/{old.md => new.md}"
+                #   Cross-dir: "{old/dir => new/dir}/file.md"
+                if " => " in filename:
+                    brace_match = re.search(r"\{([^}]*) => ([^}]*)\}", filename)
+                    if brace_match:
+                        # Replace the entire {old => new} fragment with just the new side.
+                        filename = (
+                            filename[: brace_match.start()]
+                            + brace_match.group(2)
+                            + filename[brace_match.end() :]
+                        )
+                    else:
+                        # Plain "old_path => new_path" — take the new (right) side.
+                        filename = filename.split(" => ", 1)[1]
                 files.append(
                     {
                         "path": filename,
@@ -90,22 +153,12 @@ def get_changed_files() -> list[dict[str, Any]]:
                     }
                 )
 
-        # Get file statuses (A=added, M=modified, D=deleted, R=renamed)
-        status_result = subprocess.run(status_cmd, capture_output=True, text=True, check=True)
-        status_map: dict[str, str] = {}
-        for line in status_result.stdout.strip().split("\n"):
-            if not line:
-                continue
-            parts = line.split("\t")
-            if len(parts) >= 2:
-                # Status is first char of first field (e.g., "M", "A", "R100")
-                status_letter = parts[0][0]
-                filename = parts[-1]  # Last field is the path (handles renames)
-                status_map[filename] = status_letter
-
-        # Merge status into file dicts
+        # Merge status (and previous_path for renames) into file dicts.
         for f in files:
-            f["status"] = status_map.get(f["path"], "M")  # Default to M if unknown
+            path = f["path"]
+            f["status"] = status_map.get(path, "M")  # Default to M if unknown
+            if path in rename_map:
+                f["previous_path"] = rename_map[path]
 
         return files
     except subprocess.CalledProcessError as e:
@@ -271,15 +324,28 @@ def _classify_file_facet(path: str) -> str | None:
 
 def classify_pr_facets(
     files: list[dict[str, Any]],
+    declared_roles: set[str] | None = None,
 ) -> tuple[set[str], set[str], str, str]:
     """Classify PR files into content facets and compute required reviewers.
 
     Each file is assigned a facet based on its path and content type.
-    Required reviewers = union of all facets' role requirements.
+    Required reviewers = union of all facets' role requirements UNION any
+    ``declared_roles`` (content-aware escalation, issue #412).
     Tier label is backward-computed from the reviewer set.
+
+    Escalation-only semantics (issue #412): ``declared_roles`` can only ADD
+    required reviewers, never remove them. A non-empty ``declared_roles`` set
+    suppresses BOTH the ``TIER_0_EXEMPT`` (all-exempt) and ``TIER_1_SELF``
+    (small single-file) short-circuits, so a docs-only PR carrying a
+    declaration still escalates to the declared chain. ``declared_roles`` is
+    expected to be pre-filtered through ``ALLOWED_ESCALATION_ROLES`` by
+    :func:`_collect_bitemporal_declarations`.
 
     Args:
         files: List of changed file dicts with 'path' and 'total_changed' keys.
+        declared_roles: Optional set of escalation roles unioned in BEFORE the
+            early returns. Must already be whitelist-filtered. Defaults to None
+            (no declaration -> unchanged diff-shape behaviour).
 
     Returns:
         Tuple of (facets, required_roles, tier_label, reason):
@@ -288,6 +354,8 @@ def classify_pr_facets(
         - tier_label: Backward-computed display tier (TIER_0_EXEMPT .. TIER_4_STRATEGIC)
         - reason: Human-readable explanation
     """
+    declared: set[str] = set(declared_roles) if declared_roles else set()
+
     facets: set[str] = set()
     non_exempt_files = []
 
@@ -297,11 +365,15 @@ def classify_pr_facets(
             facets.add(facet)
             non_exempt_files.append(f)
 
-    # If all files are exempt, no review needed
-    if not facets:
+    # CRITICAL ORDERING (issue #412, comment 4569387061): the declaration union
+    # MUST run BEFORE both early returns. A non-empty declared set suppresses
+    # the TIER_0_EXEMPT (all-exempt) and TIER_1_SELF short-circuits so that a
+    # docs-only / small-single-file PR carrying a declaration still escalates.
+    # If all files are exempt AND nothing was declared, no review needed.
+    if not facets and not declared:
         return set(), set(), "TIER_0_EXEMPT", "No review required - only exempt files changed"
 
-    # Compute required roles from facets
+    # Compute required roles from facets, then union the escalation declaration.
     required_roles: set[str] = set()
     for facet in facets:
         required_roles |= FACET_ROLE_MAP.get(facet, set())
@@ -311,13 +383,17 @@ def classify_pr_facets(
     if total_lines > 500 and "CIV" not in required_roles:
         required_roles.add("CIV")
 
-    # Check for T1 self-review eligibility
+    # Escalation-only union: declarations can only ADD roles (set-union).
+    required_roles |= declared
+
+    # Check for T1 self-review eligibility. A declaration suppresses self-review.
     has_new_test_files = any(
         f.get("status") == "A" and f["path"].startswith("tests/") for f in files
     )
 
     if (
-        total_lines < 10
+        not declared
+        and total_lines < 10
         and len(non_exempt_files) == 1
         and not has_new_test_files
         and "SECURITY" not in facets
@@ -339,9 +415,11 @@ def classify_pr_facets(
     else:
         tier_label = "TIER_2_STANDARD"
 
-    facet_names = ", ".join(sorted(facets))
+    facet_names = ", ".join(sorted(facets)) if facets else "(none — escalated by declaration)"
     role_names = ", ".join(sorted(required_roles))
     reason = f"Facets: [{facet_names}] -> Reviewers: [{role_names}]"
+    if declared:
+        reason += f" (escalated: [{', '.join(sorted(declared))}])"
     return facets, required_roles, tier_label, reason
 
 
@@ -437,6 +515,277 @@ except (ImportError, ModuleNotFoundError):
     _has_gr_approval = _review_formats.has_gr_approval
     _parse_review_metadata = _review_formats.parse_review_metadata
     _VALID_ROLES = _review_formats.VALID_ROLES
+
+
+# ---------------------------------------------------------------------------
+# Content-aware review-depth escalation (issue #412)
+# ---------------------------------------------------------------------------
+# Escalation-declarable whitelist. Derived from the single source of truth
+# (review_formats.VALID_ROLES) MINUS the self-review roles {IL, HO}: IL and HO
+# review their OWN work and therefore cannot be REQUIRED reviewers via an
+# escalation declaration. Declared tokens are intersected with this set;
+# out-of-set tokens (typos, [GOD_MODE]) are dropped non-fatally and logged.
+ALLOWED_ESCALATION_ROLES: frozenset[str] = frozenset(_VALID_ROLES) - {"IL", "HO"}
+
+# The gate's own rules-schema doc. Its REQUIRED_REVIEWERS:: facet lines and §8
+# marker examples are DESCRIPTIVE config, not a PR-level declaration, so this
+# file is excluded from the declaration scan (matched by basename to cover both
+# the bundled-hub source and the .hestai-sys runtime copy).
+_RULES_SCHEMA_BASENAME = "review-requirements.oct.md"
+
+# Tier -> role table for the `<!-- review-tier: TIER_X -->` marker. Mirrors the
+# backward-computed tier labels in classify_pr_facets (CIV => T3, PE => T4).
+_ESCALATION_TIER_ROLE_MAP: dict[str, set[str]] = {
+    "TIER_2_STANDARD": {"TMG", "CRS", "CE"},
+    "TIER_3_CRITICAL": {"TMG", "CRS", "CE", "CIV"},
+    "TIER_3_STRICT": {"TMG", "CRS", "CE", "CIV"},  # legacy alias
+    "TIER_4_STRATEGIC": {"TMG", "CRS", "CE", "CIV", "PE"},
+}
+
+# Markers (LOCKED schema, issue #412):
+#   <!-- review-requirements: [TMG, CRS, CE, CIV, SR] -->
+#   <!-- review-tier: TIER_3_CRITICAL: reason -->
+_REVIEW_REQUIREMENTS_COMMENT_RE = re.compile(
+    r"<!--\s*review-requirements:\s*\[([^\]]*)\]\s*-->", re.IGNORECASE
+)
+_REVIEW_TIER_COMMENT_RE = re.compile(
+    # Reason is non-greedy and anchored on the comment terminator (\s*-->), so an
+    # embedded '>' in the reason is preserved without over-capturing past `-->`.
+    r"<!--\s*review-tier:\s*(TIER_[0-9A-Z_]+)\s*(?::\s*(.*?))?\s*-->",
+    re.IGNORECASE,
+)
+# OCTAVE block field: REQUIRED_REVIEWERS::"{CE, CRS, SR}" (braces optional).
+_OCTAVE_REQUIRED_REVIEWERS_RE = re.compile(
+    r"^\s*REQUIRED_REVIEWERS\s*::\s*\"?\{?([^}\"\n]*)\}?\"?\s*$", re.MULTILINE
+)
+# YAML frontmatter: review-requirements: [CE, CRS] inside a leading --- block.
+_FRONTMATTER_RE = re.compile(r"\A---\s*\n(.*?)\n---\s*(?:\n|$)", re.DOTALL)
+_FRONTMATTER_REVIEWERS_RE = re.compile(
+    r"^\s*review-requirements:\s*\[([^\]]*)\]\s*$", re.MULTILINE | re.IGNORECASE
+)
+
+
+def _split_role_tokens(raw: str) -> set[str]:
+    """Split a comma/whitespace-separated role list into upper-cased tokens.
+
+    Tolerant of empty entries and stray whitespace (malformed declarations must
+    not crash — they degrade to whatever parsed cleanly).
+    """
+    tokens: set[str] = set()
+    for piece in re.split(r"[,\s]+", raw.strip()):
+        piece = piece.strip().upper()
+        if piece:
+            tokens.add(piece)
+    return tokens
+
+
+def _parse_review_declaration(text: str) -> dict[str, Any]:
+    """Single extractor for review-escalation declarations (issue #412).
+
+    Handles three declaration surfaces with ONE function (no per-surface
+    duplication):
+      1. OCTAVE block field ``REQUIRED_REVIEWERS::"{CE, CRS, SR}"``
+      2. HTML-comment markers ``<!-- review-requirements: [...] -->`` and
+         ``<!-- review-tier: TIER_X: reason -->``
+      3. YAML frontmatter ``review-requirements: [...]``
+
+    Roles from all matched surfaces are unioned. The ``review-tier`` marker is
+    mapped through the tier->role table. Tokens are NOT whitelist-filtered here
+    (that happens in :func:`_collect_bitemporal_declarations`) so the raw author
+    intent is visible to callers/tests.
+
+    Malformed input never raises: it degrades to an empty/partial result.
+
+    Args:
+        text: Arbitrary document or PR-body text to scan.
+
+    Returns:
+        Dict with optional keys: ``roles`` (set[str]), ``tier`` (str),
+        ``reason`` (str), and ``source`` (str label).
+    """
+    result: dict[str, Any] = {}
+    if not text:
+        return result
+
+    roles: set[str] = set()
+    sources: list[str] = []
+
+    try:
+        # 1. OCTAVE block field
+        for m in _OCTAVE_REQUIRED_REVIEWERS_RE.finditer(text):
+            parsed = _split_role_tokens(m.group(1))
+            if parsed:
+                roles |= parsed
+                sources.append("octave")
+
+        # 2a. HTML-comment review-requirements
+        for m in _REVIEW_REQUIREMENTS_COMMENT_RE.finditer(text):
+            parsed = _split_role_tokens(m.group(1))
+            if parsed:
+                roles |= parsed
+                sources.append("html_requirements")
+
+        # 2b. HTML-comment review-tier
+        tier_match = _REVIEW_TIER_COMMENT_RE.search(text)
+        if tier_match:
+            tier = tier_match.group(1).upper()
+            result["tier"] = tier
+            reason = (tier_match.group(2) or "").strip()
+            if reason:
+                result["reason"] = reason
+            mapped = _ESCALATION_TIER_ROLE_MAP.get(tier)
+            if mapped:
+                roles |= mapped
+                sources.append("html_tier")
+            else:
+                # Unrecognized/misspelled tier (e.g. TIER_0_EXEMPT, a typo like
+                # TIER_3_CRITCAL): contributes no roles. Warn non-fatally so the
+                # author gets a signal instead of a silent no-op. Never raise.
+                print(
+                    f"⚠️  Ignored unrecognized review-tier '{tier}' "
+                    f"(non-fatal): not in the tier->role table "
+                    f"{sorted(_ESCALATION_TIER_ROLE_MAP)}; no roles contributed.",
+                    file=sys.stderr,
+                )
+
+        # 3. YAML frontmatter
+        fm = _FRONTMATTER_RE.match(text)
+        if fm:
+            fm_match = _FRONTMATTER_REVIEWERS_RE.search(fm.group(1))
+            if fm_match:
+                parsed = _split_role_tokens(fm_match.group(1))
+                if parsed:
+                    roles |= parsed
+                    sources.append("frontmatter")
+    except Exception:
+        # Malformed declaration: never crash the gate. Keep whatever parsed.
+        pass
+
+    if roles:
+        result["roles"] = roles
+    if sources:
+        result["source"] = ",".join(sources)
+    return result
+
+
+def _git_show_file(sha: str, path: str) -> str | None:
+    """Return the contents of ``path`` at commit ``sha`` via ``git show``.
+
+    Returns None when the blob does not exist (e.g. a new file has no BASE
+    blob, or a deleted file has no HEAD blob). Never raises: any git failure
+    degrades to None so the bitemporal read is safe on missing blobs.
+    """
+    if not sha:
+        return None
+    try:
+        result = subprocess.run(
+            ["git", "show", f"{sha}:{path}"],
+            capture_output=True,
+            text=True,
+            # A PR may change binary files (png, jpg, …). `git show` emits the
+            # raw blob bytes, which need not be valid UTF-8. Decode with
+            # errors="replace" so a binary blob degrades to a (garbage but
+            # declaration-free) string instead of raising UnicodeDecodeError
+            # and crashing the org-wide gate (I2). check=False keeps a missing
+            # blob (new/deleted file) returning a non-zero rc, handled below.
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+    except OSError:
+        return None
+    if result.returncode != 0:
+        # Missing blob (new/deleted file) or bad ref — treat as absent.
+        return None
+    return result.stdout
+
+
+def _collect_bitemporal_declarations(
+    files: list[dict[str, Any]],
+    pr_body: str = "",
+    base_sha: str | None = None,
+    head_sha: str | None = None,
+) -> tuple[set[str], dict[str, set[str]]]:
+    """Collect escalation declarations across the bitemporal source set.
+
+    Runs the single extractor against FOUR sources and unions them
+    (issue #412)::
+
+        Required_Roles = Base_Roles ∪ Head_Roles ∪ PR_Body_Roles  (∪ Diff later)
+
+    Per the debate contribution, set-union makes escalation-only an *emergent*
+    property: an author cannot relax the gate by deleting a declaration in a
+    later commit because the BASE blob still contributes the role. The result is
+    intersected with :data:`ALLOWED_ESCALATION_ROLES`; out-of-set tokens are
+    dropped non-fatally and logged. Missing base/head blobs (new/deleted files)
+    are handled gracefully — :func:`_git_show_file` returns None and that source
+    contributes nothing.
+
+    Args:
+        files: Changed-file dicts (need a 'path' key).
+        pr_body: The PR description text.
+        base_sha: Base commit SHA (``pr.base.sha``) for BASE blob reads.
+        head_sha: Head commit SHA (``pr.head.sha``) for HEAD blob reads.
+
+    Returns:
+        Tuple ``(declared_roles, provenance)`` where:
+        - declared_roles: whitelist-filtered union of all declared roles.
+        - provenance: maps each surviving role -> set of contributing source
+          labels drawn from {"HEAD", "BASE", "PR_BODY"}.
+    """
+    provenance: dict[str, set[str]] = {}
+    dropped: set[str] = set()
+
+    def _ingest(text: str | None, source_label: str) -> None:
+        if not text:
+            return
+        decl = _parse_review_declaration(text)
+        declared = decl.get("roles")
+        if not declared:
+            return
+        for role in declared:
+            if role in ALLOWED_ESCALATION_ROLES:
+                provenance.setdefault(role, set()).add(source_label)
+            else:
+                dropped.add(role)
+
+    # PR body
+    _ingest(pr_body, "PR_BODY")
+
+    # Per-file BASE and HEAD blobs
+    for f in files:
+        path = f.get("path")
+        if not path:
+            continue
+        # Exclude the gate's OWN rules-schema doc from the declaration scan.
+        # review-requirements.oct.md uses REQUIRED_REVIEWERS:: DESCRIPTIVELY to
+        # define per-facet reviewers (and §8 quotes the marker examples); those
+        # are the gate's config, NOT a PR-level declaration. Match by basename
+        # so BOTH the bundled-hub source and the .hestai-sys runtime copy are
+        # skipped as declaration SOURCES. The file still routes via its facet
+        # (META_CONTROL_PLANE) and the PR-body marker path is unaffected.
+        if os.path.basename(path) == _RULES_SCHEMA_BASENAME:
+            continue
+        if base_sha:
+            # For renamed files, the BASE blob lives at the OLD path (previous_path).
+            # Using the new path for the BASE lookup silently misses the declaration
+            # when the file was renamed — breaking the escalation-only ratchet
+            # (issue #417). Fall back to path when previous_path is absent (new/
+            # modified files where old path == new path).
+            base_path = f.get("previous_path", path)
+            _ingest(_git_show_file(base_sha, base_path), "BASE")
+        if head_sha:
+            _ingest(_git_show_file(head_sha, path), "HEAD")
+
+    if dropped:
+        print(
+            f"⚠️  Dropped {len(dropped)} declared role(s) outside "
+            f"ALLOWED_ESCALATION_ROLES (non-fatal): {', '.join(sorted(dropped))}",
+            file=sys.stderr,
+        )
+
+    declared_roles = set(provenance.keys())
+    return declared_roles, provenance
 
 
 def _has_approval(texts: list[str], prefix: str, keyword: str) -> bool:
@@ -754,6 +1103,32 @@ def _get_head_sha() -> str:
         return "unknown"
 
 
+def _get_pr_body() -> str:
+    """Fetch the PR description text for declaration scanning (issue #412).
+
+    Uses ``gh pr view <PR_NUMBER> --json body``. Returns an empty string outside
+    CI (no PR context), when PR_NUMBER is unset, or on any gh/parse failure —
+    the bitemporal union simply omits the PR_BODY source rather than crashing.
+    """
+    if "CI" not in os.environ:
+        return ""
+    pr_number = os.environ.get("PR_NUMBER")
+    if not pr_number:
+        return ""
+    try:
+        result = subprocess.run(
+            ["gh", "pr", "view", pr_number, "--json", "body"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        data = json.loads(result.stdout)
+        body = data.get("body")
+        return body if isinstance(body, str) else ""
+    except (subprocess.CalledProcessError, json.JSONDecodeError, OSError):
+        return ""
+
+
 def _get_base_ref_sha() -> str:
     """Get the current tip SHA of the base branch.
 
@@ -793,6 +1168,7 @@ def _emit_json_summary(
     required_count: int,
     found_count: int,
     sha: str = "unknown",
+    provenance: dict[str, list[str]] | None = None,
 ) -> None:
     """Emit a structured JSON summary as an HTML comment for machine parsing.
 
@@ -806,6 +1182,11 @@ def _emit_json_summary(
     The ``sha`` field tracks which commit the review gate evaluated. Downstream
     consumers can compare this against the PR head SHA to detect stale approvals
     when new commits are pushed after approval.
+
+    The ``provenance`` field (issue #412) maps each required role to the list of
+    sources that contributed it — drawn from {"DIFF", "HEAD", "BASE", "PR_BODY"} —
+    so the status comment can render a per-role audit trail. A role present in
+    BASE but absent from HEAD shows ``BASE`` only (visible attempted reduction).
     """
     summary = {
         "tier": tier,
@@ -815,6 +1196,7 @@ def _emit_json_summary(
         "required_count": required_count,
         "found_count": found_count,
         "sha": sha,
+        "provenance": provenance or {},
     }
     print(f"<!-- REVIEW_GATE_JSON:{json.dumps(summary)} -->")
 
@@ -884,10 +1266,18 @@ def main() -> int:
         except (json.JSONDecodeError, TypeError):
             cached_gate = None
 
+    # Per-role provenance map (issue #412): role -> sorted list of contributing
+    # sources from {"DIFF", "HEAD", "BASE", "PR_BODY"}. Rendered by review-gate.yml.
+    provenance: dict[str, list[str]] = {}
+
     if cached_gate is not None:
         tier = str(cached_gate.get("tier", "UNKNOWN"))
         reason = str(cached_gate.get("reason", ""))
         required_roles = set(cached_gate.get("roles", []))
+        # Reuse cached provenance when present (display-only; diff unchanged).
+        cached_prov = cached_gate.get("provenance")
+        if isinstance(cached_prov, dict):
+            provenance = {k: list(v) for k, v in cached_prov.items()}
     else:
         # Get changed files
         files = get_changed_files()
@@ -903,8 +1293,43 @@ def main() -> int:
         if len(files) > 5:
             print(f"   ... and {len(files) - 5} more")
 
-        # Classify PR content into facets and compute required reviewers
-        _facets, required_roles, tier, reason = classify_pr_facets(files)
+        # --- Content-aware escalation: bitemporal declaration union (issue #412) ---
+        # Collect declarations from PR body + BASE blob + HEAD blob per changed
+        # file, intersect with ALLOWED_ESCALATION_ROLES, then union into the
+        # diff-computed floor. Reads are safe on missing blobs (new/deleted files).
+        base_sha = _get_base_ref_sha()
+        pr_body = _get_pr_body()
+        declared_roles, decl_provenance = _collect_bitemporal_declarations(
+            files=files,
+            pr_body=pr_body,
+            base_sha=None if base_sha == "unknown" else base_sha,
+            head_sha=None if head_sha == "unknown" else head_sha,
+        )
+
+        # Classify PR content into facets and compute required reviewers,
+        # unioning the (whitelist-filtered) declared roles BEFORE early returns.
+        _facets, required_roles, tier, reason = classify_pr_facets(
+            files, declared_roles=declared_roles
+        )
+
+        # Compute the diff/facet-only role floor (no declaration) so provenance
+        # can attribute DIFF independently of any declared source. A role that is
+        # BOTH diff-required AND declared must show ALL its sources.
+        _df, diff_roles, _dt, _dr = classify_pr_facets(files)
+
+        # Build the provenance map: every required role gets a source list. A
+        # role's sources are the UNION of its declaration origins (HEAD/BASE/
+        # PR_BODY) and DIFF when it is in the diff/facet floor — a role from
+        # multiple sources shows all of them.
+        for role in sorted(required_roles):
+            sources = set(decl_provenance.get(role, set()))
+            if role in diff_roles:
+                sources.add("DIFF")
+            if not sources:
+                # Defensive: a required role with no traced source (should not
+                # happen) is attributed to DIFF so provenance is never empty.
+                sources.add("DIFF")
+            provenance[role] = sorted(sources)
 
     print(f"\n📋 Review Tier: {tier}")
     print(f"   Reason: {reason}")
@@ -953,6 +1378,7 @@ def main() -> int:
             required_count=len(required_roles),
             found_count=found_count,
             sha=head_sha,
+            provenance=provenance,
         )
 
         # Only block in CI context
@@ -971,6 +1397,7 @@ def main() -> int:
         required_count=len(required_roles),
         found_count=len(required_roles),
         sha=head_sha,
+        provenance=provenance,
     )
     print("\n✓ Review requirements satisfied")
     return 0

@@ -1,10 +1,12 @@
 ===REVIEW_REQUIREMENTS===
 META:
   TYPE::RULE
-  VERSION::"3.0"
+  VERSION::"3.1"
   STATUS::ENFORCED
   PURPOSE::"Facet-based content-aware review requirements with automated enforcement"
   ENFORCEMENT::PRE_COMMIT⊕CI⊕PR_MERGE
+  CANONICAL::"src/hestai_mcp/_bundled_hub/standards/rules/review-requirements.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/standards/rules/review-requirements.oct.md"
 §1::CONTENT_FACETS
   // Reviewer assignment is content-aware, not just line-count based.
   // Each file emits a facet based on its content. Required reviewers = union of all facets.
@@ -160,4 +162,44 @@ EMERGENCY_BYPASS::[
   REVIEW::post_merge_mandatory
 ]
 DEPENDENCY_UPDATE::"PLANNED[manual_merge_during_bedding_in_phase→auto_merge_future]"
+§8::CONTENT_AWARE_ESCALATION
+  // Issue #412: a change can declare "this needs DEEPER review than the diff
+  // shape suggests" and the org-shared gate honours it with ZERO per-repo config.
+  // The mechanism is ESCALATION-ONLY: it can only ADD required reviewers, never
+  // remove them. This is enforced structurally by set-union, not procedurally.
+PRINCIPLE::"declared_reviewers ∪ diff_computed_reviewers → escalation_only[set_union_cannot_subtract]"
+CANONICAL_FIELD::REQUIRED_REVIEWERS
+// Reuses the EXISTING vocabulary already declared per-facet in §1. A document
+// declares an explicit REQUIRED_REVIEWERS override; it is unioned with the
+// diff-computed floor — it can raise the floor but never lower it.
+DECLARATION_SURFACES::[
+  OCTAVE_BLOCK_FIELD::"REQUIRED_REVIEWERS::\"{CE, CRS, SR}\" in any .oct.md (canonical, preferred path)",
+  HTML_COMMENT_ROLES::"<!-- review-requirements: [TMG, CRS, CE, CIV, SR] --> in plain .md or PR body",
+  HTML_COMMENT_TIER::"<!-- review-tier: TIER_3_CRITICAL: reason --> mapped through the tier→role table",
+  FRONTMATTER::"review-requirements: [CE, CRS] in YAML frontmatter"
+]
+BITEMPORAL_UNION::[
+  SOURCES::"Diff_Roles ∪ Base_Roles ∪ Head_Roles ∪ PR_Body_Roles",
+  BASE_READ::"declarations in changed files at pr.base.sha (git show <base>:<path>)",
+  HEAD_READ::"declarations in changed files at pr.head.sha (git show <head>:<path>)",
+  RATCHET::"a declaration present in BASE but removed in HEAD is RETAINED — set-union cannot subtract, closing the downgrade-by-deletion footgun",
+  MISSING_BLOB::"new file has no BASE blob, deleted file has no HEAD blob → that source contributes nothing, never crashes"
+]
+WHITELIST::[
+  ALLOWED_ESCALATION_ROLES::"{TMG, CRS, CE, CIV, PE, SR} = VALID_ROLES − {IL, HO}",
+  RATIONALE::"IL and HO are SELF-review roles and cannot be REQUIRED reviewers via escalation",
+  INTERSECTION::"declared set is intersected with ALLOWED_ESCALATION_ROLES before enforcement",
+  NON_FATAL::"out-of-set tokens (typos, [GOD_MODE]) are dropped + logged, never block or crash the gate"
+]
+ORDERING::[
+  RULE::"declaration collection + union runs BEFORE both early returns in classify_pr_facets",
+  SUPPRESS_TIER_0::"a non-empty declared set suppresses the TIER_0_EXEMPT (all-exempt) short-circuit",
+  SUPPRESS_TIER_1::"a non-empty declared set suppresses the TIER_1_SELF (small single-file) short-circuit",
+  WHY::"the originating all-markdown PR is all-exempt and would otherwise return TIER_0_EXEMPT before roles are ever computed"
+]
+PROVENANCE::[
+  EMIT::"validate_review.py emits a per-role source map {ROLE:[DIFF|HEAD|BASE|PR_BODY]} in the REVIEW_GATE_JSON payload",
+  RENDER::"review-gate.yml renders the source map as a status-comment audit table",
+  AUDIT_TRAIL::"a role contributed only by BASE displays BASE alone — a visible record of an attempted downgrade that set-union refused"
+]
 ===END===

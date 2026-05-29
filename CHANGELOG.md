@@ -4,6 +4,8 @@ All notable changes to HestAI-MCP.
 
 ## Features
 
+- update octave-mcp to v1.13.0 (strategy A span-aware preserve, multi-envelope parsing, W_SNAKE_CASE_BLOB advisory, canonical operator legends) - 2026-05-28
+
 - skills-expert v8.2.0 creation-first + subagent resume rule ([#319](https://github.com/elevanaltd/HestAI-MCP/pull/319)) - 2026-03-12
 - add agent-expert agent and refine skills ecosystem ([#315](https://github.com/elevanaltd/HestAI-MCP/pull/315)) - 2026-03-11
 - add skill-creator skill and missing patterns for skills-expert ([#314](https://github.com/elevanaltd/HestAI-MCP/pull/314)) - 2026-03-10

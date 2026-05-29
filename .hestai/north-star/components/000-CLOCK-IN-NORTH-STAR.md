@@ -6,14 +6,14 @@ created: 2025-12-28
 status: approved
 approved_by: requirements-steward
 approved_date: 2025-12-28
-parent_north_star: .hestai/workflow/components/000-SYSTEM-STEWARD-NORTH-STAR.md
+parent_north_star: .hestai/north-star/components/000-SYSTEM-STEWARD-NORTH-STAR.md
 version: 1.2
 ---
 
 # COMPONENT NORTH STAR: CLOCK_IN TOOL
 
 **Component**: clock_in MCP Tool (Session Registration & Context Synthesis)
-**Parent**: .hestai/workflow/components/000-SYSTEM-STEWARD-NORTH-STAR.md
+**Parent**: .hestai/north-star/components/000-SYSTEM-STEWARD-NORTH-STAR.md
 **Status**: ACTIVE
 **Version**: 1.2
 **Date**: 2025-12-28

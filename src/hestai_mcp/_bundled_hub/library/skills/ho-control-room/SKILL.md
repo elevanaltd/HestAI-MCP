@@ -94,17 +94,24 @@ CONTEXT_MAINTENANCE:
   DISPATCH::"MEDIUM→octave-secretary via oa-router with schema-context-archival pattern; FAST→clock_in(populate)∧clock_out(update/persist) (no HO dispatch possible)"
 
 DIRECT_WRITE_ALLOWED:
-  // REFS::[ADR-0033, ADR-0046, ADR-0056, ADR-0353_§Document_Contradiction_Resolution_path_layout_unchanged]
-  ledger::.hestai/state/sessions/control-room-ledger.oct.md
-  coordination::[".hestai/state/sessions/**/*", ".hestai/state/checklist/**/*"]
+  // REFS::[ADR-RFC-ARCH-001_artifact_placement_invariant, ADR-0033, ADR-0046, ADR-0056, ADR-0353_§Document_Contradiction_Resolution_path_layout_unchanged]
+  committed_governance::".hestai/decisions/**/*.{md,oct.md}"
+  committed_context_cards::".hestai/context/**/*.oct.md"
+  ledger::.hestai/state/sessions/control-room-ledger.oct.md          // ephemeral; not authoritative
+  coordination::".hestai/state/sessions/**/*"                        // ephemeral; not authoritative
+  optional_cache::".hestai/state/cache/**/*"                         // gitignored; never authoritative
   medium_context_BLOCKED::".hestai/state/context/*.oct.md→octave-secretary_via_oa-router"
-  fast_context_BLOCKED::".hestai/state/context/state/*.oct.md→owned_by_session_lifecycle_tools_only[clock_in∧clock_out][NEVER_HO∧NEVER_octave-secretary]"
+  fast_context_BLOCKED::".hestai/state/context/state/*.oct.md→owned_by_session_lifecycle_tools_only"
   project_docs::[README.md, CLAUDE.md]
   ARTIFACT_PLACEMENT_EXAMPLES::[
-    phase_BUILD_PLAN::.hestai/state/sessions/phase-<id>/BUILD-PLAN.oct.md,
-    phase_completion_ledger::.hestai/state/sessions/phase-<id>/completion.oct.md,
-    arbitration_record::.hestai/state/sessions/<session-id>/arbitration-<n>.oct.md,
-    delegation_log::control-room-ledger.oct.md_§2_DELEGATION_LOG,
+    phase_BUILD_PLAN::.hestai/decisions/phase-<id>/BUILD-PLAN.oct.md,
+    phase_completion_ledger::.hestai/decisions/phase-<id>/completion.oct.md,
+    arbitration_record::.hestai/decisions/phase-<id>/arbitration-<n>.oct.md,
+    phase_handoff::.hestai/decisions/handoff/<YYYY-MM-DD>-<topic>.md,
+    ADR::.hestai/decisions/<group>/ADR-<id>-<slug>.md,
+    facet_card::.hestai/context/concepts/<repo-id>/<CARD_ID>.oct.md,
+    control_room_ledger::.hestai/state/sessions/control-room-ledger.oct.md,   // ephemeral
+    delegation_log::control-room-ledger.oct.md_§2_DELEGATION_LOG,             // ephemeral
     medium_PROJECT_CONTEXT_delta::BLOCKED→delegate_to_octave-secretary,
     fast_current-focus_update::BLOCKED→owned_by_session_lifecycle_tools,
     fast_checklist_update::BLOCKED→owned_by_session_lifecycle_tools,
@@ -157,7 +164,8 @@ NEVER::[
   delegate_without_ratified_directives_and_thresholds,
   write_medium_context_directly<.hestai/state/context/*.oct.md→delegate_to_octave-secretary>,
   write_fast_context_directly<.hestai/state/context/state/*.oct.md→owned_by_session_lifecycle_tools[clock_in∧clock_out]>,
-  place_phase_artifacts_in_context_zone<BUILD-PLAN∨completion_ledger∨arbitration>
+  place_phase_artifacts_in_context_zone<BUILD-PLAN∨completion_ledger∨arbitration>,
+  place_authoritative_artifact_in_gitignored_path_without_explicit_EPHEMERAL_marker
 ]
 MUST::[
   checkpoint_ledger_before_returning_output_to_user,
@@ -170,7 +178,8 @@ MUST::[
   delegate_execution_via_oa-router_with_anchor_ceremony,
   delegate_medium_context_updates_to_octave-secretary<.hestai/state/context/*.oct.md>,
   leave_fast_context_untouched<.hestai/state/context/state/*.oct.md→owned_by_session_lifecycle_tools>,
-  place_phase_artifacts_in_sessions_zone<.hestai/state/sessions/phase-<id>/>
+  place_committed_governance_in_decisions_zone<.hestai/decisions/{phase-<id>|handoff|<group>}/>,
+  keep_only_ephemeral_state_in_sessions_zone<.hestai/state/sessions/>
 ]
 GATE::"Strategic decisions ratified in ledger? ho-liaison consulted? Execution delegated via oa-router? Zero HO code edits?"
 ===END===
