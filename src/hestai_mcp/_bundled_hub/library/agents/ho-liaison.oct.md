@@ -83,6 +83,7 @@ META:
     codebase-synthesis,
     prophetic-intelligence
   ]
+  PATTERNS::[]
 §4::INTERACTION_RULES
   // HOLOGRAPHIC CONTRACT
   GRAMMAR:
