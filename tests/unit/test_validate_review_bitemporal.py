@@ -912,3 +912,117 @@ class TestCachedProvenanceReRead:
         assert data["provenance"]["CRS"] == ["BASE"]
         assert data["provenance"]["TMG"] == ["HEAD", "PR_BODY"]
         assert data["tier"] == "TIER_3_CRITICAL"
+
+
+# ---------------------------------------------------------------------------
+# 11. CRS F1 — review-tier reason preserves an embedded '>' character
+# ---------------------------------------------------------------------------
+@pytest.mark.unit
+@pytest.mark.behavior
+class TestReviewTierReasonEmbeddedGt:
+    """The review-tier reason is display/log-only but must not truncate at '>'."""
+
+    def test_reason_with_embedded_gt_preserved(self) -> None:
+        decl = validate_review._parse_review_declaration(
+            "<!-- review-tier: TIER_3_CRITICAL: foo > bar -->"
+        )
+        assert decl["tier"] == "TIER_3_CRITICAL"
+        assert decl["reason"] == "foo > bar"
+        # tier still maps to roles correctly
+        assert "CIV" in decl["roles"]
+
+    def test_reason_without_gt_still_works(self) -> None:
+        decl = validate_review._parse_review_declaration(
+            "<!-- review-tier: TIER_3_CRITICAL: plain reason -->"
+        )
+        assert decl["reason"] == "plain reason"
+
+    def test_reason_does_not_overcapture_past_terminator(self) -> None:
+        """The reason must stop at the comment terminator, not swallow trailing text."""
+        decl = validate_review._parse_review_declaration(
+            "<!-- review-tier: TIER_3_CRITICAL: r --> trailing text"
+        )
+        assert decl["reason"] == "r"
+
+
+# ---------------------------------------------------------------------------
+# 12. CRS F2 — provenance shows ALL sources for a declared+diff role
+# ---------------------------------------------------------------------------
+@pytest.mark.unit
+@pytest.mark.behavior
+class TestProvenanceMultiSourceAttribution:
+    """A role both declared (HEAD/BASE/PR_BODY) AND diff/facet-required must show
+    BOTH sources in provenance — including DIFF — not just one."""
+
+    @pytest.fixture(autouse=True)
+    def ci_env(self, monkeypatch):
+        monkeypatch.setenv("CI", "true")
+        monkeypatch.setenv("PR_NUMBER", "414")
+        monkeypatch.delenv("CACHED_GATE_DATA", raising=False)
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        monkeypatch.setattr(validate_review, "_get_head_sha", lambda: "headsha")
+        monkeypatch.setattr(validate_review, "_get_base_ref_sha", lambda: "basesha")
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *a, **k: (True, "approvals present", []),
+        )
+
+    def test_declared_and_diff_role_shows_both_sources(self, monkeypatch, capsys) -> None:
+        """CRS, TMG, CE come from the .py DIFF facet (ROUTINE_CODE); the PR body
+        ALSO declares CRS. CRS provenance must be {DIFF, PR_BODY}; CE/TMG stay
+        DIFF-only; SR (PR_BODY only, not diff) stays PR_BODY-only."""
+        import json as _json
+
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [_f("src/core.py", added=50, deleted=20)],  # ROUTINE_CODE -> CE,CRS,TMG
+        )
+        # PR body declares CRS (overlaps diff) + SR (new). No blob declarations.
+        monkeypatch.setattr(
+            validate_review,
+            "_get_pr_body",
+            lambda: "<!-- review-requirements: [CRS, SR] -->",
+        )
+        monkeypatch.setattr(validate_review, "_git_show_file", lambda sha, path: None)
+
+        exit_code = validate_review.main()
+        assert exit_code == 0
+        out = capsys.readouterr().out
+        payload = out.split("<!-- REVIEW_GATE_JSON:", 1)[1].split(" -->", 1)[0]
+        data = _json.loads(payload)
+        prov = data["provenance"]
+        # CRS: declared (PR_BODY) AND diff-required (ROUTINE_CODE) -> BOTH.
+        assert set(prov["CRS"]) == {"DIFF", "PR_BODY"}, prov["CRS"]
+        # CE, TMG: diff-only.
+        assert prov["CE"] == ["DIFF"], prov["CE"]
+        assert prov["TMG"] == ["DIFF"], prov["TMG"]
+        # SR: declared only (not in the diff floor) -> PR_BODY only.
+        assert prov["SR"] == ["PR_BODY"], prov["SR"]
+
+    def test_pure_declared_role_stays_single_source(self, monkeypatch, capsys) -> None:
+        """Regression guard: an all-exempt PR with a PR_BODY-only declaration keeps
+        single-source provenance (no spurious DIFF added)."""
+        import json as _json
+
+        monkeypatch.setattr(
+            validate_review,
+            "get_changed_files",
+            lambda: [_f("docs/ADR.md", added=10, deleted=0)],  # exempt -> no diff roles
+        )
+        monkeypatch.setattr(
+            validate_review,
+            "_get_pr_body",
+            lambda: "<!-- review-requirements: [CIV, CRS] -->",
+        )
+        monkeypatch.setattr(validate_review, "_git_show_file", lambda sha, path: None)
+
+        exit_code = validate_review.main()
+        assert exit_code == 0
+        out = capsys.readouterr().out
+        payload = out.split("<!-- REVIEW_GATE_JSON:", 1)[1].split(" -->", 1)[0]
+        data = _json.loads(payload)
+        prov = data["provenance"]
+        assert prov["CIV"] == ["PR_BODY"], prov["CIV"]
+        assert prov["CRS"] == ["PR_BODY"], prov["CRS"]
