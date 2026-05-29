@@ -505,7 +505,11 @@ class TestGitShowAndPrBodyHelpers:
             "GIT_COMMITTER_NAME": "t",
             "GIT_COMMITTER_EMAIL": "t@t.t",
         }
-        sp.run(["git", "init", "-q"], cwd=repo, check=True, env=env)
+        # Use a non-"main"/non-"master" branch so the commit never collides
+        # with main-branch protection hooks (global core.hooksPath) present in
+        # some environments — keeps the test portable. -b overrides whatever
+        # init.defaultBranch is configured.
+        sp.run(["git", "init", "-q", "-b", "testwork"], cwd=repo, check=True, env=env)
         # Invalid UTF-8 bytes (0xFF 0xFE ... 0x80) — a PNG-like binary blob.
         binary = b"\x89PNG\r\n\x1a\n\xff\xfe\x00\x80\x81\x82binarydata\xc3\x28"
         (repo / "image.png").write_bytes(binary)
@@ -549,7 +553,9 @@ class TestGitShowAndPrBodyHelpers:
             "GIT_COMMITTER_NAME": "t",
             "GIT_COMMITTER_EMAIL": "t@t.t",
         }
-        sp.run(["git", "init", "-q"], cwd=repo, check=True, env=env)
+        # Non-"main"/non-"master" branch for portability under main-branch
+        # protection hooks (see test_git_show_binary_blob_does_not_crash).
+        sp.run(["git", "init", "-q", "-b", "testwork"], cwd=repo, check=True, env=env)
         (repo / "logo.png").write_bytes(b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x80\x81")
         sp.run(["git", "add", "-A"], cwd=repo, check=True, env=env)
         sp.run(["git", "commit", "-qm", "binary"], cwd=repo, check=True, env=env)
@@ -853,3 +859,56 @@ class TestUnrecognizedReviewTierWarns:
         )
         assert declared == set()
         assert prov == {}
+
+
+# ---------------------------------------------------------------------------
+# 10. Cached-provenance re-read branch in main() (comment-event fast path)
+# ---------------------------------------------------------------------------
+@pytest.mark.unit
+@pytest.mark.behavior
+class TestCachedProvenanceReRead:
+    """On the comment-event fast path, main() reuses the cached provenance map
+    (diff unchanged) instead of re-reading BASE/HEAD blobs, and re-emits it."""
+
+    def test_cached_provenance_reused_and_emitted(self, monkeypatch, capsys) -> None:
+        import json as _json
+
+        monkeypatch.setenv("CI", "true")
+        monkeypatch.setenv("PR_NUMBER", "414")
+        monkeypatch.setattr(validate_review, "check_emergency_bypass", lambda: False)
+        # Fast-path SHA guards: cached head/base must match the resolved SHAs.
+        monkeypatch.setattr(validate_review, "_get_head_sha", lambda: "headsha")
+        monkeypatch.setattr(validate_review, "_get_base_ref_sha", lambda: "basesha")
+        # Approvals satisfied so main() reaches the success emit (status="pass").
+        monkeypatch.setattr(
+            validate_review,
+            "check_pr_comments",
+            lambda *a, **k: (True, "all approvals present", []),
+        )
+
+        cached = {
+            "tier": "TIER_3_CRITICAL",
+            "reason": "cached",
+            "roles": ["CE", "CIV", "CRS", "SR", "TMG"],
+            "sha": "headsha",
+            "base_sha": "basesha",
+            "provenance": {
+                "CE": ["DIFF"],
+                "CIV": ["HEAD"],
+                "CRS": ["BASE"],
+                "SR": ["PR_BODY"],
+                "TMG": ["HEAD", "PR_BODY"],
+            },
+        }
+        monkeypatch.setenv("CACHED_GATE_DATA", _json.dumps(cached))
+
+        exit_code = validate_review.main()
+        assert exit_code == 0
+
+        out = capsys.readouterr().out
+        payload = out.split("<!-- REVIEW_GATE_JSON:", 1)[1].split(" -->", 1)[0]
+        data = _json.loads(payload)
+        # Provenance is re-read from cache and re-emitted unchanged.
+        assert data["provenance"]["CRS"] == ["BASE"]
+        assert data["provenance"]["TMG"] == ["HEAD", "PR_BODY"]
+        assert data["tier"] == "TIER_3_CRITICAL"
