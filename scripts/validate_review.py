@@ -496,7 +496,10 @@ _REVIEW_REQUIREMENTS_COMMENT_RE = re.compile(
     r"<!--\s*review-requirements:\s*\[([^\]]*)\]\s*-->", re.IGNORECASE
 )
 _REVIEW_TIER_COMMENT_RE = re.compile(
-    r"<!--\s*review-tier:\s*(TIER_[0-9A-Z_]+)\s*(?::\s*([^>]*?))?\s*-->", re.IGNORECASE
+    # Reason is non-greedy and anchored on the comment terminator (\s*-->), so an
+    # embedded '>' in the reason is preserved without over-capturing past `-->`.
+    r"<!--\s*review-tier:\s*(TIER_[0-9A-Z_]+)\s*(?::\s*(.*?))?\s*-->",
+    re.IGNORECASE,
 )
 # OCTAVE block field: REQUIRED_REVIEWERS::"{CE, CRS, SR}" (braces optional).
 _OCTAVE_REQUIRED_REVIEWERS_RE = re.compile(
@@ -1250,15 +1253,22 @@ def main() -> int:
             files, declared_roles=declared_roles
         )
 
-        # Build the provenance map: every required role gets a source list.
-        # Diff-computed roles are attributed to DIFF; declared roles carry their
-        # HEAD/BASE/PR_BODY origin. A role from both shows both.
+        # Compute the diff/facet-only role floor (no declaration) so provenance
+        # can attribute DIFF independently of any declared source. A role that is
+        # BOTH diff-required AND declared must show ALL its sources.
+        _df, diff_roles, _dt, _dr = classify_pr_facets(files)
+
+        # Build the provenance map: every required role gets a source list. A
+        # role's sources are the UNION of its declaration origins (HEAD/BASE/
+        # PR_BODY) and DIFF when it is in the diff/facet floor — a role from
+        # multiple sources shows all of them.
         for role in sorted(required_roles):
             sources = set(decl_provenance.get(role, set()))
-            if role not in declared_roles:
+            if role in diff_roles:
                 sources.add("DIFF")
-            elif not sources:
-                # Declared but lost its origin (defensive) — attribute to DIFF.
+            if not sources:
+                # Defensive: a required role with no traced source (should not
+                # happen) is attributed to DIFF so provenance is never empty.
                 sources.add("DIFF")
             provenance[role] = sorted(sources)
 
