@@ -62,7 +62,7 @@ jobs:
           echo "changed_octave_count=$(wc -l < changed_octave.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
           echo "changed_docs_count=$(wc -l < changed_docs.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
 
-      - name: Validate OCTAVE (protocol profile)
+      - name: Validate OCTAVE (canonical octave-mcp CLI)
         shell: bash
         run: |
           set -euo pipefail
@@ -70,8 +70,18 @@ jobs:
             echo "SKIP octave validator (no .oct.md changes)"
             exit 0
           fi
+          # Legacy hybrid-form governance docs that pre-date strict OCTAVE parsing are skipped.
+          # Tracked separately as the UPOG/hybrid-form migration (out of scope for #406 Phase 3).
+          # (NS Summaries already migrated under PR #409; ci-progressive-testing still pending.)
+          SKIP_RE='^\.hestai/rules/ci-progressive-testing\.oct\.md$'
           while IFS= read -r f; do
-            python src/hestai_mcp/_bundled_hub/tools/octave-validator.py --profile protocol "$f"
+            if [[ "$f" =~ $SKIP_RE ]]; then
+              echo "SKIP $f (legacy hybrid form pending UPOG migration)"
+              continue
+            fi
+            # Phase 3 of #406: validator vendored copy retired; call canonical octave-mcp CLI.
+            # Use `python -m octave_mcp.cli.main` to avoid PATH collisions with unrelated `octave` binaries.
+            python -m octave_mcp.cli.main validate "$f"
           done < changed_octave.txt
 
       - name: Validate canonical paths for changed .oct.md

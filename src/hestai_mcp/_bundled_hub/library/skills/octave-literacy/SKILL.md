@@ -102,7 +102,7 @@ META:
     // STATUS in META = document lifecycle (ACTIVE, DRAFT). STATUS in BODY = subject state. Both valid.
     COMPRESSION_TIER::ENUM[LOSSLESS,CONSERVATIVE,AGGRESSIVE,ULTRA]
     LOSS_PROFILE::"[preserve:causal_chains,drop:verbose_phrasing] — loss is explicit, never hidden"
-    // NOTE: LOSS_PROFILE is spec-valid but not yet in octave-validator allowed_meta — validator gap, not spec error
+    // NOTE: LOSS_PROFILE is spec-valid; older validators may not list it in allowed_meta — validator gap, not spec error
     CONTRACT::HOLOGRAPHIC<validation_law_in_document>
     GRAMMAR::GBNF_COMPILER<generate_constrained_output>
   §3c::ASSEMBLY_RULES
