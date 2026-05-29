@@ -5,7 +5,7 @@ META:
   STATUS::ACTIVE
   NAMESPACE::PROD
   PURPOSE::"Operational decision-logic for Living Artifacts pattern"
-  FULL_DOC::".hestai/workflow/components/000-LIVING-ARTIFACTS-NORTH-STAR.md"
+  FULL_DOC::".hestai/north-star/components/000-LIVING-ARTIFACTS-NORTH-STAR.md"
   INHERITS::[System_NS,Product_NS]
   REVIEWED_BY::requirements-steward
   REVIEW_DATE::"2025-12-28"
