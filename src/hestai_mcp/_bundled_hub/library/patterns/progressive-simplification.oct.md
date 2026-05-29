@@ -3,6 +3,8 @@ META:
   TYPE::PATTERN_DEFINITION
   VERSION::"1.0.0"
   PURPOSE::"Incremental simplification with rollback-safe progressive removal strategy"
+  CANONICAL::".hestai-sys/library/patterns/progressive-simplification.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/patterns/progressive-simplification.oct.md"
 §1::CORE_PRINCIPLE
 ESSENTIAL::"Simplify one component at a time — verify between each removal to preserve system integrity"
 ANTI_PATTERN::"big_bang_simplification<remove_multiple_components_simultaneously→cascading_failures⊕unclear_root_cause>"

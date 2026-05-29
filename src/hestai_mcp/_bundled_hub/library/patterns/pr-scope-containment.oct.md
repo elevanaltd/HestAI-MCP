@@ -3,6 +3,8 @@ META:
   TYPE::PATTERN_DEFINITION
   VERSION::"1.0.0"
   PURPOSE::"PR scope boundary enforcement — detect scope creep and ensure changes align with stated intent"
+  CANONICAL::".hestai-sys/library/patterns/pr-scope-containment.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/patterns/pr-scope-containment.oct.md"
 §1::CORE_PRINCIPLE
 ESSENTIAL::"Every PR change must trace back to the stated intent — unrelated changes dilute review quality and hide defects"
 ANTI_PATTERN::"scope_creep<refactoring⊕feature_additions⊕style_fixes_bundled_into_unrelated_PR→review_fatigue⊕hidden_bugs>"

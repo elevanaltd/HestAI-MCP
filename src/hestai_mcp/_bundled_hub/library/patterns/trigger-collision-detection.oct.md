@@ -3,6 +3,8 @@ META:
   TYPE::PATTERN_DEFINITION
   VERSION::"1.2.0"
   PURPOSE::"Detect and resolve trigger keyword collisions across the skill registry"
+  CANONICAL::".hestai-sys/library/patterns/trigger-collision-detection.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/patterns/trigger-collision-detection.oct.md"
 §1::CORE_PRINCIPLE
 ESSENTIAL::"Each skill must have unique trigger surface — collisions cause ambiguous skill loading"
 ANTI_PATTERN::"silent_overlap<two_skills_triggered_by_same_keyword→unpredictable_selection>"

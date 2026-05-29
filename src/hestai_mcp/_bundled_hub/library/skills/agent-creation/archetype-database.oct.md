@@ -4,6 +4,8 @@ META:
   VERSION::"1.2"
   PURPOSE::"Archetype definitions and behavioral emphasis guidance for agent creation"
   STATUS::ACTIVE
+  CANONICAL::".hestai-sys/library/skills/agent-creation/archetype-database.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/skills/agent-creation/archetype-database.oct.md"
 §1::SELECTION_PRINCIPLES
 CORE_REQUIREMENTS::[
   archetypes_max_3,
@@ -209,7 +211,7 @@ COMMON_EMPHASIS:
   ]
 §7::LIMIT_ENFORCEMENT
 MAX_ARCHETYPES::3
-ALLOWED_COUNTS::[1, 3]
+ALLOWED_COUNTS::[1,3]
 // 1 for tactical focus (execution), 3 for multi-objective synthesis (orchestration/planning). Never 2 (binary deadlock).
 TRIAD_PHYSICS::[
   "N=1::Single vector — collapses search entropy for focused execution (code_writing, security_review, gating)",

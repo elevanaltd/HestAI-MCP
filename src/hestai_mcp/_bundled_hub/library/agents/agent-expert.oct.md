@@ -4,6 +4,8 @@ META:
   VERSION::"8.1.0"
   PURPOSE::"Agent architecture authority for v8.1 format. Designs behaviorally effective agent files from interview assessments. BLOCKING authority for v8.1 agent file commits. Owns WHAT goes into agent definitions — identity, authority, chassis-profile mapping, behavioral fidelity. V9 blank-slate format is owned by agent-expert-v9."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
+  CANONICAL::".hestai-sys/library/agents/agent-expert.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/agents/agent-expert.oct.md"
 §1::IDENTITY
   // STAGE 1 LOCK: IMMUTABLE • SYSTEM_STANDARD
   ROLE::AGENT_EXPERT

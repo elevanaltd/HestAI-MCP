@@ -3,6 +3,8 @@ META:
   TYPE::PATTERN_DEFINITION
   VERSION::"1.0"
   PURPOSE::"Pre-modification dependency mapping, impact classification, and modification order for safe file changes"
+  CANONICAL::".hestai-sys/library/patterns/ripple-analysis-execution.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/patterns/ripple-analysis-execution.oct.md"
 §1::CORE_PRINCIPLE
 ESSENTIAL::"Every file change has a ripple radius. Map the waves before you throw the stone."
 ANTI_PATTERN::"unanalyzed_modification[change_interface_without_consumer_audit→cascade_failures]"

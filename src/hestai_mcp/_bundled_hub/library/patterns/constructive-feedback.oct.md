@@ -3,6 +3,8 @@ META:
   TYPE::PATTERN_DEFINITION
   VERSION::"1.1.0"
   PURPOSE::"Evidence-based review communication framework — structure findings for clarity and actionability"
+  CANONICAL::".hestai-sys/library/patterns/constructive-feedback.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/patterns/constructive-feedback.oct.md"
 §1::CORE_PRINCIPLE
 ESSENTIAL::"Every review finding must be actionable — state what, where, why, and how to fix"
 ANTI_PATTERN::"vague_criticism<'this looks wrong'⊕'consider refactoring'→developer_confusion⊕ignored_feedback>"

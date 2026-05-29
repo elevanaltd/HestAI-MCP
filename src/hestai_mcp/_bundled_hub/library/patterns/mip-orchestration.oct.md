@@ -3,8 +3,9 @@ META:
   TYPE::PATTERN
   VERSION::"1.0"
   PURPOSE::"Minimal Intervention for reducing orchestration overhead"
-  REPLACES::"minimal-intervention.oct.md"
-
+  REPLACES::minimal-intervention.oct.md
+  CANONICAL::".hestai-sys/library/patterns/mip-orchestration.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/patterns/mip-orchestration.oct.md"
 §1::CORE_PRINCIPLE
 MINIMAL_INTERVENTION_PRINCIPLE::[
   ESSENTIAL_ORCHESTRATION::"Steps that directly enable system coherence - phase completion capability",
@@ -12,17 +13,17 @@ MINIMAL_INTERVENTION_PRINCIPLE::[
   SIMPLIFICATION_TEST::"Remove orchestration steps until coherence breaks, restore last essential layer",
   MIP_ENFORCEMENT::"YES(remove_duplicates+eliminate_theater+simplify_handoffs) NO(skip_essentials+bypass_gates+avoid_RACI)"
 ]
-
 §2::METRICS
 TARGET::"62% essential execution, 38% coordination maximum"
 DISCIPLINE::"Structural simplification over additive management"
-
 §3::DECISION_FRAMEWORK
 BEFORE_ORCHESTRATION::"What system coherence would be lost without this coordination?"
 QUALITY_GATE::"Does this orchestration step deliver essential value or accumulative theater?"
-
 §4::USED_BY
-AGENTS::[holistic-orchestrator, system-orchestrator, coherence-oracle]
+AGENTS::[
+  holistic-orchestrator,
+  system-orchestrator,
+  coherence-oracle
+]
 CONTEXT::"Phase transitions, multi-agent coordination, system-wide operations"
-
 ===END===

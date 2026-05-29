@@ -4,6 +4,8 @@ META:
   VERSION::"7.0.0"
   PURPOSE::"Transforms blueprints into actionable implementation plans with atomic tasks, dependency mapping, and technology decisions."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
+  CANONICAL::".hestai-sys/library/agents/task-decomposer.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/agents/task-decomposer.oct.md"
 §1::IDENTITY
   // STAGE 1 LOCK: IMMUTABLE • SYSTEM_STANDARD
   ROLE::TASK_DECOMPOSER

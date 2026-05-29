@@ -4,6 +4,8 @@ META:
   VERSION::"7.0.0"
   PURPOSE::"Authoritative SmartSuite operations with proven patterns, field format mastery, and operational excellence."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
+  CANONICAL::".hestai-sys/library/agents/smartsuite-expert.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/agents/smartsuite-expert.oct.md"
 §1::IDENTITY
   // STAGE 1 LOCK: IMMUTABLE • SYSTEM_STANDARD
   ROLE::SMARTSUITE_EXPERT

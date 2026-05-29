@@ -4,6 +4,8 @@ META:
   VERSION::"2.2.0"
   STATUS::APPROVED
   PURPOSE::"LOGOS cognitive kernel — convergent synthesis and structural integration"
+  CANONICAL::".hestai-sys/library/cognitions/logos.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/cognitions/logos.oct.md"
 §1::COGNITIVE_IDENTITY
   NATURE:
     FORCE::STRUCTURE

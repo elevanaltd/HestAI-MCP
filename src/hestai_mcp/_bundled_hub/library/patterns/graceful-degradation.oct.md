@@ -3,6 +3,8 @@ META:
   TYPE::PATTERN_DEFINITION
   VERSION::"1.0.0"
   PURPOSE::"Fault-tolerant system design decision framework for partial failure handling"
+  CANONICAL::".hestai-sys/library/patterns/graceful-degradation.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/patterns/graceful-degradation.oct.md"
 §1::CORE_PRINCIPLE
 ESSENTIAL::"Systems must continue serving users at reduced capability rather than failing completely"
 ANTI_PATTERN::"catastrophic_cascade[single_component_failure→total_system_outage]"

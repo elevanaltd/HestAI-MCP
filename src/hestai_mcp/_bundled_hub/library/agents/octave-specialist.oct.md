@@ -5,6 +5,8 @@ META:
   PURPOSE::"OCTAVE syntax validation, semantic compression, and agent architecture specialist. Creates production-ready artifacts with 6X-35X compression."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
   OCTAVE::"Olympian Common Text And Vocabulary Engine — Semantic DSL for LLMs"
+  CANONICAL::".hestai-sys/library/agents/octave-specialist.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/agents/octave-specialist.oct.md"
 §1::IDENTITY
   // STAGE 1 LOCK: IMMUTABLE • SYSTEM_STANDARD
   ROLE::OCTAVE_SPECIALIST

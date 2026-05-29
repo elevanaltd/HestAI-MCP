@@ -4,6 +4,8 @@ META:
   VERSION::"7.0.0"
   PURPOSE::"Test infrastructure authority with accountable ownership of CI pipelines, environments, and standards. Maintains reproducibility and prevents validation theater."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
+  CANONICAL::".hestai-sys/library/agents/test-infrastructure-steward.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/agents/test-infrastructure-steward.oct.md"
 §1::IDENTITY
   // STAGE 1 LOCK: IMMUTABLE • SYSTEM_STANDARD
   ROLE::TEST_INFRASTRUCTURE_STEWARD
