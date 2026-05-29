@@ -1,4 +1,4 @@
-"""Self-application guard — bundled-hub + project NS artifacts must satisfy octave-mcp validators.
+"""Self-application guard — bundled-hub + project governance artifacts must satisfy octave-mcp validators.
 
 Walks every ``*.md`` and ``*.oct.md`` under ``src/hestai_mcp/_bundled_hub/`` and the
 project-local ``.hestai/north-star/`` and ``.hestai/rules/`` trees and runs octave-mcp's
