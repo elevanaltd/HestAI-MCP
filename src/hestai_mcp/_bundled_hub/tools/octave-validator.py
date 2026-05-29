@@ -25,9 +25,17 @@ def main() -> int:
     print(_WARNING, file=sys.stderr)  # stderr only; keep stdout clean for parsing
     args = sys.argv[1:]
     # The legacy CLI took `--profile <value>`; the canonical CLI has no equivalent
-    # and bare `validate <file>` is the chosen equivalence per the PR audit. Strip
-    # a leading `--profile <value>` pair if present, then forward remaining args.
+    # and bare `validate <file>` is the chosen equivalence per the PR audit. Strip a
+    # leading `--profile <value>` PAIR only when both flag and value are present, so a
+    # degenerate lone `--profile` is NOT silently turned into a file-less validate call.
     if args[:1] == ["--profile"]:
+        if len(args) < 2:
+            print(
+                "ERROR: legacy --profile flag requires a value; nothing to forward. "
+                "Migrate to: python -m octave_mcp.cli.main validate <file>",
+                file=sys.stderr,
+            )
+            return 2
         args = args[2:]
     result = subprocess.run([sys.executable, "-m", "octave_mcp.cli.main", "validate", *args])
     return result.returncode

@@ -376,6 +376,19 @@ class TestOctaveValidatorDeprecationStub:
         assert result.returncode == 0, result.stderr
         assert "DEPRECATED" in result.stderr
 
+    def test_stub_lone_profile_flag_errors_without_silent_fileless_call(self) -> None:
+        """A degenerate lone ``--profile`` (no value/file) errors instead of
+        silently forwarding a file-less ``validate`` call.
+
+        Without the guard, ``args[2:]`` on ``["--profile"]`` yields ``[]`` and the
+        stub would invoke ``validate`` with no target. The guard returns exit 2
+        with an actionable migration message on stderr.
+        """
+        result = self._run_stub("--profile")
+        assert result.returncode == 2, result.stderr
+        assert "--profile" in result.stderr
+        assert "octave_mcp.cli.main" in result.stderr
+
     def test_stub_propagates_nonzero_exit_on_malformed_doc(self, tmp_path: Path) -> None:
         """A malformed doc forwarded through the stub propagates a non-zero exit."""
         doc_path = tmp_path / "bad.oct.md"
