@@ -230,10 +230,17 @@ class TestRollbackStateClockOut:
             "[DEPRECATED] mcp__hestai__clock_out invoked under "
             "HESTAI_MCP_LEGACY_TOOLS_ENABLED=1" in capsys.readouterr().err
         )
-        audit = _patch_audit_path_under(project)
+        # clock_out telemetry derives from the validated session working_dir.
+        expected_working_dir = str(server.validate_working_dir(str(project)))
+        audit = _patch_audit_path_under(server.validate_working_dir(str(project)))
         assert audit.exists()
         record = json.loads(audit.read_text().strip())
         assert record["tool"] == "mcp__hestai__clock_out"
+        assert record["env"] == "HESTAI_MCP_LEGACY_TOOLS_ENABLED=1"
+        assert record["working_dir"] == expected_working_dir
+        assert "timestamp" in record
+        assert "caller_session_id" in record  # may be None
+        assert record["caller_session_id"] is None
 
 
 @pytest.mark.unit
@@ -271,10 +278,17 @@ class TestRollbackStateSubmitReview:
             "[DEPRECATED] mcp__hestai__submit_review invoked under "
             "HESTAI_MCP_LEGACY_TOOLS_ENABLED=1" in capsys.readouterr().err
         )
-        audit = _patch_audit_path_under(project)
+        # submit_review telemetry derives from the validated working_dir.
+        expected_working_dir = str(server.validate_working_dir(str(project)))
+        audit = _patch_audit_path_under(server.validate_working_dir(str(project)))
         assert audit.exists()
         record = json.loads(audit.read_text().strip())
         assert record["tool"] == "mcp__hestai__submit_review"
+        assert record["env"] == "HESTAI_MCP_LEGACY_TOOLS_ENABLED=1"
+        assert record["working_dir"] == expected_working_dir
+        assert "timestamp" in record
+        assert "caller_session_id" in record  # may be None
+        assert record["caller_session_id"] is None
 
 
 # =============================================================================
@@ -382,11 +396,12 @@ class TestTelemetryUsesValidatedWorkingDirClockIn:
     async def test_telemetry_path_derives_from_validated_path_not_raw_argument(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Telemetry resolves under the validated (resolved) working_dir, regardless of raw form.
+        """Behavioural: the WRITTEN telemetry record derives from the validated
+        (normalized) working_dir, not the raw unnormalized argument.
 
-        Passing a working_dir with a trailing slash / unnormalized form must still
-        resolve telemetry under the canonical validated path. We assert the
-        telemetry helper receives the validate_working_dir output, not the raw arg.
+        Passing a working_dir with a trailing slash must still resolve the real
+        jsonl write under the canonical validated path. No mocking of the
+        recorder — we assert the actual written record and its location.
         """
         monkeypatch.setenv("HESTAI_MCP_LEGACY_TOOLS_ENABLED", "1")
         project = _make_project(tmp_path)
@@ -399,7 +414,6 @@ class TestTelemetryUsesValidatedWorkingDirClockIn:
         with (
             patch.object(server, "ensure_system_governance", return_value={"status": "ok"}),
             patch.object(server, "clock_in_async", new_callable=AsyncMock) as mock_clock_in,
-            patch.object(server, "_record_legacy_telemetry_safely") as mock_record,
         ):
             mock_clock_in.return_value = {"session_id": "s-1", "context_paths": []}
             await call_tool(
@@ -407,7 +421,14 @@ class TestTelemetryUsesValidatedWorkingDirClockIn:
                 {"role": "r", "working_dir": raw_arg, "focus": "f"},
             )
 
-        mock_record.assert_called_once_with("clock_in", str(validated))
+        # Real write landed under the validated (normalized) path, not the raw arg.
+        audit = _patch_audit_path_under(validated)
+        assert audit.exists()
+        record = json.loads(audit.read_text().strip())
+        assert record["tool"] == "mcp__hestai__clock_in"
+        assert record["working_dir"] == str(validated)
+        # The unnormalized raw argument is explicitly NOT what was written.
+        assert record["working_dir"] != raw_arg
 
 
 @pytest.mark.unit

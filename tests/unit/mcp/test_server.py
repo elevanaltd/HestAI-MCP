@@ -89,7 +89,10 @@ class TestDotenvPathResolution:
         # We can't assert it *exists* in all environments (CI won't have it),
         # but we can assert the path structure is correct.
         assert resolved_env.name == ".env"
-        assert resolved_env.parent.name == resolved_env.parent.name  # is a real path
+        # The parent is the repo root: a non-empty directory that actually
+        # contains the src/ tree the server lives under (real, falsifiable).
+        assert resolved_env.parent.name != ""
+        assert (resolved_env.parent / "src" / "hestai_mcp" / "mcp" / "server.py").exists()
         # The parent should NOT be inside src/
         assert "src" not in resolved_env.parts
 
