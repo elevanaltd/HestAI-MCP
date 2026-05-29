@@ -269,12 +269,16 @@ jobs:
               }
             }
 
-            // Extract tier, reason, and roles — prefer JSON, fall back to regex
-            let tier, reason, roles;
+            // Extract tier, reason, roles, and provenance — prefer JSON, fall back to regex
+            let tier, reason, roles, provenance;
             if (gateData) {
               tier = gateData.tier || 'UNKNOWN';
               reason = gateData.reason || '';
               roles = (gateData.reviewers || []).sort();
+              // Per-role provenance map (issue #412): { ROLE: [DIFF|HEAD|BASE|PR_BODY] }.
+              provenance = (gateData.provenance && typeof gateData.provenance === 'object')
+                ? gateData.provenance
+                : {};
             } else {
               // Regex fallback for backward compatibility
               const tierMatch = validationOutput.match(/📋 Review Tier: (\S+)/);
@@ -283,7 +287,43 @@ jobs:
               tier = tierMatch ? tierMatch[1] : 'UNKNOWN';
               reason = reasonMatch ? reasonMatch[1] : '';
               roles = rolesMatch ? rolesMatch[1].split(', ').sort() : [];
+              provenance = {};
             }
+
+            // Render the per-role provenance table (issue #412 §4). Source labels
+            // map to human-readable origins. A role contributed ONLY by BASE
+            // (present in the base blob, removed in head) shows `BASE` alone — the
+            // visible audit trail of an attempted downgrade that set-union refused.
+            // Returns '' when no escalation provenance is present (pure diff-shape).
+            function renderProvenance(roleList, prov) {
+              const sourceLabel = {
+                DIFF: 'diff shape',
+                HEAD: 'declared in head blob',
+                BASE: 'declared in base blob',
+                PR_BODY: 'declared in PR body',
+              };
+              // Only render when at least one role was escalated by a declaration
+              // (i.e. a non-DIFF source contributed). Pure diff-shape PRs stay quiet.
+              const escalated = roleList.some(r => {
+                const s = prov[r];
+                return Array.isArray(s) && s.some(x => x !== 'DIFF');
+              });
+              if (!escalated) return '';
+              let table = '**Required reviewers** (provenance — escalation-only, set-union cannot subtract):\n';
+              table += '```\n';
+              for (const role of roleList) {
+                const srcs = Array.isArray(prov[role]) ? prov[role] : [];
+                const labels = srcs.length
+                  ? srcs.map(s => sourceLabel[s] || s).join(', ')
+                  : 'diff shape';
+                // Pad role to 5 chars for column alignment (e.g. "TMG  — ...").
+                const padded = (role + '     ').slice(0, 5);
+                table += `${padded}— ${labels} (${srcs.join(', ') || 'DIFF'})\n`;
+              }
+              table += '```\n';
+              return table;
+            }
+            const provenanceTable = renderProvenance(roles, provenance);
 
             // Build status message
             const status = success ? '✅' : '❌';
@@ -295,12 +335,19 @@ jobs:
               message += validationOutput.includes('TIER_0_EXEMPT')
                 ? '✓ Exempt from review (docs/tests only)\n'
                 : '✓ Required approvals found\n';
+              if (provenanceTable) {
+                message += '\n' + provenanceTable;
+              }
             } else {
               message = '**Review requirements not met**\n\n';
               message += `**Tier**: ${tier}\n`;
 
               if (reason) {
                 message += `**Reason**: ${reason}\n\n`;
+              }
+
+              if (provenanceTable) {
+                message += provenanceTable + '\n';
               }
 
               // Extract required reviewers dynamically from validation output.
@@ -343,7 +390,10 @@ jobs:
             } catch (e) {
               console.warn('Failed to fetch PR base SHA for caching:', e.message);
             }
-            const cachedData = JSON.stringify({ tier, reason, roles, sha, base_sha });
+            // Persist provenance in the cached payload so the comment-event fast
+            // path (which skips re-classification) can re-render the audit trail
+            // without re-reading the base/head blobs.
+            const cachedData = JSON.stringify({ tier, reason, roles, sha, base_sha, provenance });
             const dataComment = `<!-- review-gate-data:${cachedData} -->`;
 
             // Add or update status comment
