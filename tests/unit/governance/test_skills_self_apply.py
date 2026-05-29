@@ -1,8 +1,8 @@
-"""Self-application guard — bundled-hub + project NS artifacts must satisfy octave-mcp validators.
+"""Self-application guard — bundled-hub + project governance artifacts must satisfy octave-mcp validators.
 
 Walks every ``*.md`` and ``*.oct.md`` under ``src/hestai_mcp/_bundled_hub/`` and the
-project-local ``.hestai/north-star/`` tree and runs octave-mcp's ``W_SNAKE_CASE_BLOB``
-detector on each. Asserts zero hits.
+project-local ``.hestai/north-star/`` and ``.hestai/rules/`` trees and runs octave-mcp's
+``W_SNAKE_CASE_BLOB`` detector on each. Asserts zero hits.
 
 WHY THIS EXISTS (#406 Phase 1/2)
 --------------------------------
@@ -37,6 +37,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 _SCAN_ROOTS = [
     _REPO_ROOT / "src" / "hestai_mcp" / "_bundled_hub",
     _REPO_ROOT / ".hestai" / "north-star",
+    _REPO_ROOT / ".hestai" / "rules",
 ]
 
 
