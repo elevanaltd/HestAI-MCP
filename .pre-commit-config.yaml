@@ -21,9 +21,9 @@ repos:
         # `python -m octave_mcp.cli.main`. Use the project venv interpreter (which has octave-mcp
         # installed as a transitive dep) to avoid both PATH collisions with unrelated `octave`
         # binaries and system-python interpreters lacking the package.
-        # NOTE: bundled-hub sources under src/hestai_mcp/_bundled_hub/ are excluded inline — they are
-        # the packaged delivery source and are validated at their .hestai-sys/ delivery path instead.
-        entry: bash -c 'set -euo pipefail; files="$(git diff --cached --name-only --diff-filter=ACMR | grep -E "\\.oct\\.md$" | grep -v "^src/hestai_mcp/_bundled_hub/" || true)"; if [ -z "$files" ]; then echo "SKIP octave validator (no .oct.md staged after bundled-hub exclusion)"; exit 0; fi; PY="${VIRTUAL_ENV:-.venv}/bin/python"; [ -x "$PY" ] || { echo "ERROR octave validator requires ${VIRTUAL_ENV:-.venv}/bin/python (run uv sync --all-extras)"; exit 1; }; for f in $files; do "$PY" -m octave_mcp.cli.main validate "$f"; done'
+        # NOTE: bundled-hub sources under src/hestai_mcp/_bundled_hub/ are excluded from THIS pre-commit hook
+        #       (they are bulk-managed); they are still validated in CI's OCTAVE step at their source path.
+        entry: bash -c 'set -euo pipefail; files="$(git diff --cached --name-only --diff-filter=ACMR | grep -E "\\.oct\\.md$" | grep -v "^src/hestai_mcp/_bundled_hub/" || true)"; if [ -z "$files" ]; then echo "SKIP octave validator (no .oct.md staged after bundled-hub exclusion)"; exit 0; fi; PY="${VIRTUAL_ENV:-.venv}/bin/python"; [ -x "$PY" ] || { echo "ERROR octave validator requires ${VIRTUAL_ENV:-.venv}/bin/python (run uv sync --all-extras)"; exit 1; }; while IFS= read -r f; do [ -n "$f" ] && "$PY" -m octave_mcp.cli.main validate "$f"; done <<< "$files"'
         language: system
         pass_filenames: false
         always_run: true

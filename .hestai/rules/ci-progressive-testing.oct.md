@@ -36,7 +36,7 @@ META:
   JOBS:
     PREFLIGHT<preflight>:
       PURPOSE::"Route and enforce NOW/SOON/LATER invariants"
-      OUTPUTS::[run_contracts∨run_integration]
+      OUTPUTS::[run_contracts,run_integration]
       EXECUTES::"python scripts/ci/validate_progressive_behavior.py --github-output \"$GITHUB_OUTPUT\""
     DOCS_VALIDATE<docs_validate>:
       PURPOSE::"Validate doc naming/visibility + OCTAVE protocol for changed .oct.md"
