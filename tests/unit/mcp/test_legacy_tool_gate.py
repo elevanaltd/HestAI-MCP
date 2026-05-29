@@ -413,38 +413,64 @@ class TestTelemetryUsesValidatedWorkingDirClockIn:
 @pytest.mark.unit
 class TestTelemetryUsesValidatedWorkingDirSubmitReview:
     @pytest.mark.asyncio
-    async def test_path_traversal_working_dir_is_rejected_before_telemetry(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    async def test_invalid_working_dir_skips_telemetry_without_breaking_review(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
     ) -> None:
-        """submit_review must validate an attacker-supplied working_dir before telemetry write."""
+        """CE finding (PR #401): an invalid telemetry-only working_dir must NOT crash a
+        completed submit_review. Validation still runs (security preserved: nothing is
+        written to the attacker-controlled path), but failure is isolated — the review
+        returns normally and a warning is logged.
+        """
         monkeypatch.setenv("HESTAI_MCP_LEGACY_TOOLS_ENABLED", "1")
         project = _make_project(tmp_path)
         from hestai_mcp.mcp import server
         from hestai_mcp.mcp.server import call_tool
 
         malicious = f"{project}/../evil"
-        with patch.object(server, "submit_review", new_callable=AsyncMock) as mock_sr:
-            mock_sr.return_value = {"posted": True}
-            with pytest.raises(ValueError, match="[Pp]ath traversal"):
-                await call_tool(
-                    "submit_review",
-                    {
-                        "repo": "elevanaltd/test",
-                        "pr_number": 1,
-                        "role": "implementation-lead",
-                        "verdict": "APPROVED",
-                        "assessment": "ok",
-                        "working_dir": malicious,
-                    },
-                )
+        with (
+            patch.object(server, "submit_review", new_callable=AsyncMock) as mock_sr,
+            caplog.at_level("WARNING", logger="hestai_mcp.mcp.server"),
+        ):
+            mock_sr.return_value = {"posted": True, "comment_id": 7}
+            result = await call_tool(
+                "submit_review",
+                {
+                    "repo": "elevanaltd/test",
+                    "pr_number": 1,
+                    "role": "implementation-lead",
+                    "verdict": "APPROVED",
+                    "assessment": "ok",
+                    "working_dir": malicious,
+                },
+            )
 
-        # Telemetry must not be written to an attacker-controlled path.
+        # The completed review returns normally — no exception raised.
+        payload = json.loads(result[0].text)
+        assert payload["posted"] is True
+        assert payload["comment_id"] == 7
+        assert payload["_deprecation"]["tool"] == "mcp__hestai__submit_review"
+        # Security preserved: telemetry never written to the attacker-controlled path.
         assert not _patch_audit_path_under(project).exists()
+        evil_audit = (
+            project.parent
+            / "evil"
+            / ".hestai"
+            / "state"
+            / "audit"
+            / "legacy-tool-invocations.jsonl"
+        )
+        assert not evil_audit.exists()
+        # Telemetry was skipped, with a warning — not crashed.
+        assert any(
+            "Failed to record legacy-tool telemetry for submit_review" in rec.message
+            for rec in caplog.records
+        )
 
     @pytest.mark.asyncio
-    async def test_telemetry_path_derives_from_validated_path_not_raw_argument(
+    async def test_valid_working_dir_writes_telemetry_under_validated_path(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
+        """A valid (even unnormalized) working_dir resolves telemetry under the validated path."""
         monkeypatch.setenv("HESTAI_MCP_LEGACY_TOOLS_ENABLED", "1")
         project = _make_project(tmp_path)
         from hestai_mcp.mcp import server
@@ -453,10 +479,7 @@ class TestTelemetryUsesValidatedWorkingDirSubmitReview:
         validated = server.validate_working_dir(str(project))
         raw_arg = f"{project}/"  # unnormalized (trailing slash)
 
-        with (
-            patch.object(server, "submit_review", new_callable=AsyncMock) as mock_sr,
-            patch.object(server, "_record_legacy_telemetry_safely") as mock_record,
-        ):
+        with patch.object(server, "submit_review", new_callable=AsyncMock) as mock_sr:
             mock_sr.return_value = {"posted": True}
             await call_tool(
                 "submit_review",
@@ -470,7 +493,11 @@ class TestTelemetryUsesValidatedWorkingDirSubmitReview:
                 },
             )
 
-        mock_record.assert_called_once_with("submit_review", str(validated))
+        audit = _patch_audit_path_under(validated)
+        assert audit.exists()
+        record = json.loads(audit.read_text().strip())
+        assert record["tool"] == "mcp__hestai__submit_review"
+        assert record["working_dir"] == str(validated)
 
     @pytest.mark.asyncio
     async def test_submit_review_without_working_dir_uses_trusted_cwd(
@@ -487,10 +514,7 @@ class TestTelemetryUsesValidatedWorkingDirSubmitReview:
         from hestai_mcp.mcp import server
         from hestai_mcp.mcp.server import call_tool
 
-        with (
-            patch.object(server, "submit_review", new_callable=AsyncMock) as mock_sr,
-            patch.object(server, "_record_legacy_telemetry_safely") as mock_record,
-        ):
+        with patch.object(server, "submit_review", new_callable=AsyncMock) as mock_sr:
             mock_sr.return_value = {"posted": True}
             await call_tool(
                 "submit_review",
@@ -503,4 +527,7 @@ class TestTelemetryUsesValidatedWorkingDirSubmitReview:
                 },
             )
 
-        mock_record.assert_called_once_with("submit_review", str(project.resolve()))
+        audit = _patch_audit_path_under(project.resolve())
+        assert audit.exists()
+        record = json.loads(audit.read_text().strip())
+        assert record["tool"] == "mcp__hestai__submit_review"

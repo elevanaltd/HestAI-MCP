@@ -710,9 +710,35 @@ def _resolve_validated_legacy_working_dir(arguments: dict[str, Any]) -> str:
     return str(Path.cwd())
 
 
-def _record_legacy_telemetry_safely(tool_name: str, working_dir: str) -> None:
-    """Append a telemetry record on the rollback path; never break the tool call."""
+def _record_legacy_telemetry_safely(
+    tool_name: str,
+    working_dir: str | None = None,
+    *,
+    resolve_from: dict[str, Any] | None = None,
+) -> None:
+    """Append a telemetry record on the rollback path; never break the tool call.
+
+    Two calling modes:
+
+    - ``working_dir`` (clock_in/clock_out): the caller has ALREADY validated the
+      project root up-front because the tool operation itself requires it. The
+      pre-validated path string is passed directly; it cannot raise here.
+
+    - ``resolve_from`` (submit_review): the tool does NOT need a working_dir for
+      its operation — it is telemetry-only. Resolution AND fail-closed
+      validation therefore happen INSIDE this failure-isolation boundary, so an
+      invalid telemetry-only working_dir can never convert an already-completed
+      review into an error (CE finding, PR #401). The security property from the
+      prior rework is preserved: validation still runs (via
+      ``_resolve_validated_legacy_working_dir``), so telemetry is never written
+      to an unvalidated/attacker-controlled path — on failure it is simply
+      skipped with a logged warning.
+    """
     try:
+        if working_dir is None:
+            if resolve_from is None:  # pragma: no cover - defensive guard
+                raise ValueError("either working_dir or resolve_from is required")
+            working_dir = _resolve_validated_legacy_working_dir(resolve_from)
         project_root = Path(working_dir)
         record_legacy_invocation(
             tool_name=tool_name,
@@ -720,7 +746,7 @@ def _record_legacy_telemetry_safely(tool_name: str, working_dir: str) -> None:
             working_dir=working_dir,
             caller_session_id=None,
         )
-    except Exception as telemetry_error:  # pragma: no cover - defensive
+    except Exception as telemetry_error:
         logger.warning(
             "Failed to record legacy-tool telemetry for %s: %s",
             tool_name,
@@ -907,16 +933,16 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             commit_sha=arguments.get("commit_sha"),
         )
         # ADR-0353 rollback breadcrumbs (env-var=1 path).
-        # Security (PR #401): submit_review has no project-root in scope, so any
-        # supplied working_dir is routed through the fail-closed validator
-        # before deriving the telemetry write path; absent one, the trusted
-        # server cwd is used.
+        # Security + failure-isolation (PR #401): submit_review's working_dir is
+        # telemetry-only. The review has already completed successfully above, so
+        # resolution AND fail-closed validation are deferred INSIDE
+        # _record_legacy_telemetry_safely — a bad telemetry-only working_dir is
+        # rejected for the write path (security preserved) but skipped with a
+        # warning rather than crashing the completed review (CE finding).
         emit_stderr_warning("submit_review")
         if isinstance(result, dict):
             result["_deprecation"] = deprecation_field("submit_review")
-        _record_legacy_telemetry_safely(
-            "submit_review", _resolve_validated_legacy_working_dir(arguments)
-        )
+        _record_legacy_telemetry_safely("submit_review", resolve_from=arguments)
 
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
