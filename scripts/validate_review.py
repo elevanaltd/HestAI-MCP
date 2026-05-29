@@ -474,6 +474,12 @@ except (ImportError, ModuleNotFoundError):
 # out-of-set tokens (typos, [GOD_MODE]) are dropped non-fatally and logged.
 ALLOWED_ESCALATION_ROLES: frozenset[str] = frozenset(_VALID_ROLES) - {"IL", "HO"}
 
+# The gate's own rules-schema doc. Its REQUIRED_REVIEWERS:: facet lines and §8
+# marker examples are DESCRIPTIVE config, not a PR-level declaration, so this
+# file is excluded from the declaration scan (matched by basename to cover both
+# the bundled-hub source and the .hestai-sys runtime copy).
+_RULES_SCHEMA_BASENAME = "review-requirements.oct.md"
+
 # Tier -> role table for the `<!-- review-tier: TIER_X -->` marker. Mirrors the
 # backward-computed tier labels in classify_pr_facets (CIV => T3, PE => T4).
 _ESCALATION_TIER_ROLE_MAP: dict[str, set[str]] = {
@@ -575,6 +581,16 @@ def _parse_review_declaration(text: str) -> dict[str, Any]:
             if mapped:
                 roles |= mapped
                 sources.append("html_tier")
+            else:
+                # Unrecognized/misspelled tier (e.g. TIER_0_EXEMPT, a typo like
+                # TIER_3_CRITCAL): contributes no roles. Warn non-fatally so the
+                # author gets a signal instead of a silent no-op. Never raise.
+                print(
+                    f"⚠️  Ignored unrecognized review-tier '{tier}' "
+                    f"(non-fatal): not in the tier->role table "
+                    f"{sorted(_ESCALATION_TIER_ROLE_MAP)}; no roles contributed.",
+                    file=sys.stderr,
+                )
 
         # 3. YAML frontmatter
         fm = _FRONTMATTER_RE.match(text)
@@ -684,6 +700,15 @@ def _collect_bitemporal_declarations(
     for f in files:
         path = f.get("path")
         if not path:
+            continue
+        # Exclude the gate's OWN rules-schema doc from the declaration scan.
+        # review-requirements.oct.md uses REQUIRED_REVIEWERS:: DESCRIPTIVELY to
+        # define per-facet reviewers (and §8 quotes the marker examples); those
+        # are the gate's config, NOT a PR-level declaration. Match by basename
+        # so BOTH the bundled-hub source and the .hestai-sys runtime copy are
+        # skipped as declaration SOURCES. The file still routes via its facet
+        # (META_CONTROL_PLANE) and the PR-body marker path is unaffected.
+        if os.path.basename(path) == _RULES_SCHEMA_BASENAME:
             continue
         if base_sha:
             _ingest(_git_show_file(base_sha, path), "BASE")

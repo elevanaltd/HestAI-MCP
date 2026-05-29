@@ -774,7 +774,11 @@ class TestRulesSchemaFileExcludedFromDeclarationScan:
         META_CONTROL_PLANE FACET + PR body, NOT the schema's descriptive lines."""
 
         def fake_show(sha, path):
-            return self._SCHEMA_BLOB
+            # Only the schema doc carries the descriptive markers; the .py code
+            # file has no declaration content (realistic blob contents).
+            if "review-requirements.oct.md" in path:
+                return self._SCHEMA_BLOB
+            return ""
 
         monkeypatch.setattr(validate_review, "_git_show_file", fake_show)
         files = [
@@ -790,8 +794,10 @@ class TestRulesSchemaFileExcludedFromDeclarationScan:
         # Declared roles come from PR body only (schema lines excluded).
         assert declared == {"CIV", "CE", "CRS", "SR", "TMG"}
         for role in declared:
-            assert "PR_BODY" in prov[role]
-            assert "HEAD" not in prov[role], "schema descriptive lines must not be a source"
+            assert prov[role] == {"PR_BODY"}, (
+                f"{role} must be PR_BODY-only; schema/code lines must not be a "
+                f"source, got {prov[role]}"
+            )
         facets, roles, tier, _ = validate_review.classify_pr_facets(files, declared_roles=declared)
         assert tier == "TIER_3_CRITICAL"
         assert {"CE", "CIV", "CRS", "SR", "TMG"}.issubset(roles)
