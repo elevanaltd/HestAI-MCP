@@ -296,12 +296,6 @@ jobs:
             // visible audit trail of an attempted downgrade that set-union refused.
             // Returns '' when no escalation provenance is present (pure diff-shape).
             function renderProvenance(roleList, prov) {
-              const sourceLabel = {
-                DIFF: 'diff shape',
-                HEAD: 'declared in head blob',
-                BASE: 'declared in base blob',
-                PR_BODY: 'declared in PR body',
-              };
               // Only render when at least one role was escalated by a declaration
               // (i.e. a non-DIFF source contributed). Pure diff-shape PRs stay quiet.
               const escalated = roleList.some(r => {
@@ -309,16 +303,15 @@ jobs:
                 return Array.isArray(s) && s.some(x => x !== 'DIFF');
               });
               if (!escalated) return '';
-              let table = '**Required reviewers** (provenance — escalation-only, set-union cannot subtract):\n';
+              // Sources: DIFF=facets, HEAD/BASE=blob declaration, PR_BODY=declared in PR body.
+              // BASE-only = role was present in base but removed in head (ratchet retained it).
+              let table = '**Required reviewers** (sources: DIFF=facets, HEAD/BASE=blob, PR\\_BODY=PR body):\n';
               table += '```\n';
               for (const role of roleList) {
                 const srcs = Array.isArray(prov[role]) ? prov[role] : [];
-                const labels = srcs.length
-                  ? srcs.map(s => sourceLabel[s] || s).join(', ')
-                  : 'diff shape';
                 // Pad role to 5 chars for column alignment (e.g. "TMG  — ...").
                 const padded = (role + '     ').slice(0, 5);
-                table += `${padded}— ${labels} (${srcs.join(', ') || 'DIFF'})\n`;
+                table += `${padded}— ${srcs.join(', ') || 'DIFF'}\n`;
               }
               table += '```\n';
               return table;

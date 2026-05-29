@@ -52,11 +52,15 @@ def get_changed_files() -> list[dict[str, Any]]:
     """Get list of changed files with line counts and file status.
 
     Each returned dict includes:
-      - path: file path
+      - path: new file path (or current path for non-renamed files)
       - added: lines added
       - deleted: lines deleted
       - total_changed: added + deleted
       - status: git status letter (A=added, M=modified, D=deleted, R=renamed)
+      - previous_path: (renames only) the old file path before the rename
+
+    For renamed files, ``previous_path`` is populated so that callers can
+    fetch the BASE blob using the old path (issue #417).
     """
     try:
         # In CI, compare against base branch; locally use cached
@@ -70,7 +74,37 @@ def get_changed_files() -> list[dict[str, Any]]:
             numstat_cmd = ["git", "diff", "--cached", "--numstat"]
             status_cmd = ["git", "diff", "--cached", "--name-status"]
 
-        # Get diff stats (line counts)
+        # Build rename map from --name-status first: old_path -> new_path.
+        # For renames git emits: "R<score>\t<old_path>\t<new_path>"
+        # We key by new_path to match against numstat entries, and store old_path
+        # as previous_path.
+        status_result = subprocess.run(status_cmd, capture_output=True, text=True, check=True)
+        status_map: dict[str, str] = {}  # new_path -> status letter
+        rename_map: dict[str, str] = {}  # new_path -> old_path
+        for line in status_result.stdout.strip().split("\n"):
+            if not line:
+                continue
+            parts = line.split("\t")
+            if len(parts) >= 2:
+                # Status is first char of first field (e.g., "M", "A", "R100")
+                status_letter = parts[0][0]
+                if status_letter == "R" and len(parts) >= 3:
+                    # Rename: parts[1]=old_path, parts[2]=new_path
+                    old_path = parts[1]
+                    new_path = parts[2]
+                    status_map[new_path] = "R"
+                    rename_map[new_path] = old_path
+                else:
+                    filename = parts[-1]  # Last field is the path
+                    status_map[filename] = status_letter
+
+        # Get diff stats (line counts).
+        # --numstat for renamed files emits either:
+        #   <added>\t<deleted>\t<old_path>\t<new_path>  (4 fields, with -M)
+        # or the brace-notation form:
+        #   <added>\t<deleted>\t{old => new}  (3 fields)
+        # We normalise both: for the 4-field form use new_path (parts[3]); for
+        # the 3-field form use rename_map to resolve the correct new_path key.
         result = subprocess.run(numstat_cmd, capture_output=True, text=True, check=True)
 
         files = []
@@ -78,8 +112,37 @@ def get_changed_files() -> list[dict[str, Any]]:
             if not line:
                 continue
             parts = line.split("\t")
-            if len(parts) == 3:
+            if len(parts) == 4:
+                # 4-field rename line: added, deleted, old_path, new_path
+                added, deleted, _old, new_path = parts
+                files.append(
+                    {
+                        "path": new_path,
+                        "added": int(added) if added != "-" else 0,
+                        "deleted": int(deleted) if deleted != "-" else 0,
+                        "total_changed": (int(added) if added != "-" else 0)
+                        + (int(deleted) if deleted != "-" else 0),
+                    }
+                )
+            elif len(parts) == 3:
                 added, deleted, filename = parts
+                # Resolve arrow/brace rename notation that real git --numstat emits.
+                # Three forms exist (all 3-field, ' => ' inside the filename field):
+                #   Plain:     "old/path.md => new/path.md"
+                #   Same-dir:  "dir/{old.md => new.md}"
+                #   Cross-dir: "{old/dir => new/dir}/file.md"
+                if " => " in filename:
+                    brace_match = re.search(r"\{([^}]*) => ([^}]*)\}", filename)
+                    if brace_match:
+                        # Replace the entire {old => new} fragment with just the new side.
+                        filename = (
+                            filename[: brace_match.start()]
+                            + brace_match.group(2)
+                            + filename[brace_match.end() :]
+                        )
+                    else:
+                        # Plain "old_path => new_path" — take the new (right) side.
+                        filename = filename.split(" => ", 1)[1]
                 files.append(
                     {
                         "path": filename,
@@ -90,22 +153,12 @@ def get_changed_files() -> list[dict[str, Any]]:
                     }
                 )
 
-        # Get file statuses (A=added, M=modified, D=deleted, R=renamed)
-        status_result = subprocess.run(status_cmd, capture_output=True, text=True, check=True)
-        status_map: dict[str, str] = {}
-        for line in status_result.stdout.strip().split("\n"):
-            if not line:
-                continue
-            parts = line.split("\t")
-            if len(parts) >= 2:
-                # Status is first char of first field (e.g., "M", "A", "R100")
-                status_letter = parts[0][0]
-                filename = parts[-1]  # Last field is the path (handles renames)
-                status_map[filename] = status_letter
-
-        # Merge status into file dicts
+        # Merge status (and previous_path for renames) into file dicts.
         for f in files:
-            f["status"] = status_map.get(f["path"], "M")  # Default to M if unknown
+            path = f["path"]
+            f["status"] = status_map.get(path, "M")  # Default to M if unknown
+            if path in rename_map:
+                f["previous_path"] = rename_map[path]
 
         return files
     except subprocess.CalledProcessError as e:
@@ -714,7 +767,13 @@ def _collect_bitemporal_declarations(
         if os.path.basename(path) == _RULES_SCHEMA_BASENAME:
             continue
         if base_sha:
-            _ingest(_git_show_file(base_sha, path), "BASE")
+            # For renamed files, the BASE blob lives at the OLD path (previous_path).
+            # Using the new path for the BASE lookup silently misses the declaration
+            # when the file was renamed — breaking the escalation-only ratchet
+            # (issue #417). Fall back to path when previous_path is absent (new/
+            # modified files where old path == new path).
+            base_path = f.get("previous_path", path)
+            _ingest(_git_show_file(base_sha, base_path), "BASE")
         if head_sha:
             _ingest(_git_show_file(head_sha, path), "HEAD")
 
