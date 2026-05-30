@@ -4,6 +4,8 @@ META:
   VERSION::"7.0.0"
   PURPOSE::"Build phase execution, task coordination, and code development. Manages systematic construction with architectural integrity, TDD discipline, and failure recovery."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
+  CANONICAL::".hestai-sys/library/agents/implementation-lead.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/agents/implementation-lead.oct.md"
 §1::IDENTITY
   // STAGE 1 LOCK: IMMUTABLE • SYSTEM_STANDARD
   ROLE::IMPLEMENTATION_LEAD

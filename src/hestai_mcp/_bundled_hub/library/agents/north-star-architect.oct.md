@@ -4,6 +4,8 @@ META:
   VERSION::"8.1.0"
   PURPOSE::"Creates immutable, system-agnostic North Star documents through pressure-tested commitment extraction, technology-proof translation, and assumption excavation."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
+  CANONICAL::".hestai-sys/library/agents/north-star-architect.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/agents/north-star-architect.oct.md"
 §1::IDENTITY
   // STAGE 1 LOCK: IMMUTABLE • SYSTEM_STANDARD
   ROLE::NORTH_STAR_ARCHITECT

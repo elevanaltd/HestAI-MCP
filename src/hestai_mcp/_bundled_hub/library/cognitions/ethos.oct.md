@@ -4,6 +4,8 @@ META:
   VERSION::"2.2.0"
   STATUS::APPROVED
   PURPOSE::"ETHOS cognitive kernel — strict boundary enforcement and validation"
+  CANONICAL::".hestai-sys/library/cognitions/ethos.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/cognitions/ethos.oct.md"
 §1::COGNITIVE_IDENTITY
   NATURE:
     FORCE::CONSTRAINT

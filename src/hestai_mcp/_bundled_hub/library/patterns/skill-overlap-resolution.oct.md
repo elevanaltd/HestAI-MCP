@@ -3,6 +3,8 @@ META:
   TYPE::PATTERN_DEFINITION
   VERSION::"1.2.0"
   PURPOSE::"Detect and resolve functional overlap between skills in the ecosystem"
+  CANONICAL::".hestai-sys/library/patterns/skill-overlap-resolution.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/patterns/skill-overlap-resolution.oct.md"
 §1::CORE_PRINCIPLE
 ESSENTIAL::"Each skill occupies a unique capability niche — overlap wastes context tokens and creates ambiguity"
 ANTI_PATTERN::"capability_sprawl<multiple_skills_serving_same_function→agent_confusion⊕token_waste>"

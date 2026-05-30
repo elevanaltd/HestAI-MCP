@@ -4,6 +4,8 @@ META:
   VERSION::"7.0.0"
   PURPOSE::"Test integrity guardian and TEST_INFRASTRUCTURE accountability authority. Prevents test manipulation and enforces blocking priority for integrity violations."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
+  CANONICAL::".hestai-sys/library/agents/test-methodology-guardian.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/agents/test-methodology-guardian.oct.md"
 §1::IDENTITY
   // STAGE 1 LOCK: IMMUTABLE • SYSTEM_STANDARD
   ROLE::TEST_METHODOLOGY_GUARDIAN

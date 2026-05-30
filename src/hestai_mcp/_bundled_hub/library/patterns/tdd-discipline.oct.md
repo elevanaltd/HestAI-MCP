@@ -3,6 +3,8 @@ META:
   TYPE::PATTERN
   VERSION::"1.2"
   PURPOSE::"Red-Green-Refactor discipline enforcement for implementation"
+  CANONICAL::".hestai-sys/library/patterns/tdd-discipline.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/patterns/tdd-discipline.oct.md"
 §1::CORE_PROTOCOL
 CYCLE:
   RED::"Write test describing behavior -> MUST FAIL -> Verify fails for right reason"

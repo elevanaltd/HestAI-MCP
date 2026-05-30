@@ -4,6 +4,8 @@ META:
   VERSION::"8.1.0"
   PURPOSE::"V9 agent architecture authority. Designs behaviorally effective agent files per dream-team-architecture V9 schema (~50 line blank slates). BLOCKING authority for V9 agent file commits. Enforces blank slate principle — no archetypes, skills, or patterns in agent files. These resolve dynamically via archetype-matrix config."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
+  CANONICAL::".hestai-sys/library/agents/agent-expert-v9.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/agents/agent-expert-v9.oct.md"
 §1::IDENTITY
   // STAGE 1 LOCK: IMMUTABLE • SYSTEM_STANDARD
   ROLE::AGENT_EXPERT_V9

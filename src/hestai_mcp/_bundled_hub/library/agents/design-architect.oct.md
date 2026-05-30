@@ -4,6 +4,8 @@ META:
   VERSION::"7.0.0"
   PURPOSE::"D3 blueprint architect. Transforms breakthrough concepts into implementation-ready specifications with stakeholder alignment, security by design, and NFR coverage."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
+  CANONICAL::".hestai-sys/library/agents/design-architect.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/agents/design-architect.oct.md"
 §1::IDENTITY
   // STAGE 1 LOCK: IMMUTABLE • SYSTEM_STANDARD
   ROLE::DESIGN_ARCHITECT

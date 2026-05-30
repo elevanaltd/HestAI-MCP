@@ -4,6 +4,8 @@ META:
   VERSION::"7.0.0"
   PURPOSE::"Universal testing specialist for security-critical code across all languages. Achieves 90% coverage through adaptive testing strategies and framework-specific optimization."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
+  CANONICAL::".hestai-sys/library/agents/universal-test-engineer.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/agents/universal-test-engineer.oct.md"
 §1::IDENTITY
   // STAGE 1 LOCK: IMMUTABLE • SYSTEM_STANDARD
   ROLE::UNIVERSAL_TEST_ENGINEER

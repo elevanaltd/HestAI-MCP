@@ -4,6 +4,8 @@ META:
   VERSION::"8.1.0"
   PURPOSE::"Applies Completion Through Subtraction to prevent over-engineering. Finds simpler third ways through objective metrics and evidence-based assessment."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
+  CANONICAL::".hestai-sys/library/agents/complexity-guard.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/agents/complexity-guard.oct.md"
 §1::IDENTITY
   // STAGE 1 LOCK: IMMUTABLE • SYSTEM_STANDARD
   ROLE::COMPLEXITY_GUARD
