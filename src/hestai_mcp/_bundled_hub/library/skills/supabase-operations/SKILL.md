@@ -86,7 +86,7 @@ SECURITY_JUSTIFICATION::"Skills guide operations but don't mutate state. Write o
 §4::INTEGRATION
 
 CONSULTED_BY::[
-  supabase-expert[domain_authority_with_BLOCKING],
+  technical-architect[domain_authority_with_BLOCKING],
   implementation-lead[migration_execution],
   technical-architect[schema_design]
 ]

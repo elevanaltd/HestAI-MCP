@@ -114,7 +114,7 @@ CI_OVERRIDES::[
 
 §7::GITGUARDIAN_EXCLUSIONS
 
-PATH_EXCLUSIONS::[packages/*/src/test/**, apps/*/src/test/**, **/*.test.ts(x)]
+PATH_EXCLUSIONS::[packages/*/src/test/**, apps/*/src/test/**, **/*.test.ts, **/*.test.tsx]
 PATTERN_EXCLUSIONS::[test-mock-.*, test-project\.supabase\.co, 127\.0\.0\.1:54321, test-password-(admin|client|unauth)-123]
 RATIONALE::"Real credentials in .env (gitignored), test fixtures non-functional"
 
