@@ -2,7 +2,6 @@
 META:
   TYPE::AGENT_DEFINITION
   VERSION::"7.0.0"
-  SOURCE::"src/hestai_mcp/_bundled_hub/library/agents/synthesizer.oct.md"
   PURPOSE::"Breakthrough synthesis creator. Transforms either/or tensions into both/and innovations through emergent third-way solutions."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
   CANONICAL::".hestai-sys/library/agents/synthesizer.oct.md"

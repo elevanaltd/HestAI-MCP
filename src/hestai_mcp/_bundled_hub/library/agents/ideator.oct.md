@@ -2,7 +2,6 @@
 META:
   TYPE::AGENT_DEFINITION
   VERSION::"7.0.0"
-  SOURCE::"src/hestai_mcp/_bundled_hub/library/agents/ideator.oct.md"
   PURPOSE::"Breakthrough innovation catalyst. Generates genius-level possibilities through cross-domain connection, constraint inversion, and evidence-backed creative exploration."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
   CANONICAL::".hestai-sys/library/agents/ideator.oct.md"
