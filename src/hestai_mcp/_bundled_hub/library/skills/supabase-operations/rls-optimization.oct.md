@@ -85,6 +85,7 @@ CREATE FUNCTION get_user_records()
 RETURNS SETOF records
 SECURITY DEFINER
 SET search_path = public, pg_temp
+LANGUAGE plpgsql
 AS $$
   SELECT * FROM records WHERE user_id = current_user_id();
 $$;

@@ -9,7 +9,7 @@ META:
 OVERVIEW::"Database state awareness requires continuous validation of local development state vs remote production state to prevent migration divergence and maintain schema synchronization."
 §1::CURRENT_STATE_AWARENESS
 PRODUCTION_DB::[
-  "Project ID: zbxvjyrbkycbfhwmmnmy",
+  "Project ID: YOUR_PROJECT_ID",
   "Application: scripts-web",
   "Environment: Production"
 ]
@@ -38,7 +38,7 @@ LOCAL_VALIDATION::[
 STEP_2_QUERY_REMOTE:
   ```javascript
 const remoteMigrations = await mcp__supabase__list_migrations({
-  project_id: 'zbxvjyrbkycbfhwmmnmy'
+  project_id: 'YOUR_PROJECT_ID'
 });
   ```
 STEP_3_DETECT_DIVERGENCE:
@@ -62,7 +62,7 @@ git log --oneline -- supabase/migrations/
 
 # Apply pending migration
 mcp__supabase__apply_migration({
-  project_id: 'zbxvjyrbkycbfhwmmnmy',
+  project_id: 'YOUR_PROJECT_ID',
   name: '20231210092000_add_rls_policies',
   query: '[SQL CONTENT]'
 })
@@ -104,7 +104,7 @@ REPORT_EXAMPLE:
 SUPABASE STATE REPORT
 ═══════════════════════════════════════
 
-PROJECT: scripts-web (zbxvjyrbkycbfhwmmnmy)
+PROJECT: scripts-web (YOUR_PROJECT_ID)
 TIMESTAMP: 2023-12-15 14:30:00 UTC
 
 LOCAL STATE:
@@ -129,7 +129,7 @@ SYNC GUIDANCE:
 ═══════════════════════════════════════
   ```
 §5::LIVING_PROTOCOL_UPDATES
-PROTOCOL_LOCATION::"/Users/shaunbuswell/.claude/protocols/SUPABASE-OPERATIONS.md"
+PROTOCOL_LOCATION::"~/.claude/protocols/SUPABASE-OPERATIONS.md"
 UPDATE_TRIGGERS::[
   "After migration application",
   "After RLS optimization discovery",

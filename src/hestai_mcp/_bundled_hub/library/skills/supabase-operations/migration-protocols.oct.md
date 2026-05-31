@@ -100,7 +100,7 @@ DOCUMENT::[
   "Active RLS policies",
   "Any novel patterns discovered during migration"
 ]
-LOCATION::"/Users/shaunbuswell/.claude/protocols/SUPABASE-OPERATIONS.md"
+LOCATION::"~/.claude/protocols/SUPABASE-OPERATIONS.md"
 §9::MIGRATION_TYPES
 DDL_USE_APPLY_MIGRATION::[
   "CREATE TABLE",
@@ -113,7 +113,7 @@ DDL_USE_APPLY_MIGRATION::[
 DDL_BENEFITS::[
   "Tracked in migration history",
   "Reversible through rollback procedures",
-  Auditable
+  "Auditable"
 ]
 DML_USE_EXECUTE_SQL::[
   "INSERT data migrations",

@@ -93,11 +93,11 @@ PATTERN_6::SEED_SEQUENCE::[
 
 §5::TEST_USERS_STANDARDIZED
 
-CREDENTIALS::[
-  admin::[email::admin.test@example.com, password::test-password-admin-123],
-  client::[email::client.test@example.com, password::test-password-client-123],
-  unauthorized::[email::unauthorized.test@example.com, password::test-password-unauth-123]
-]
+ADMIN_EMAIL::admin.test@example.com
+CLIENT_EMAIL::client.test@example.com
+UNAUTH_EMAIL::unauthorized.test@example.com
+PASSWORDS::"see .env — TEST_USER_ADMIN_PASSWORD, TEST_USER_CLIENT_PASSWORD, TEST_USER_UNAUTH_PASSWORD"
+NOTE::"Emails are stable test fixtures. Passwords come from .env — never hardcode credentials."
 SOURCE::POC_src/test/supabase-test-client.ts:102-115
 
 §6::ENVIRONMENT_CONFIGURATION
@@ -115,7 +115,7 @@ CI_OVERRIDES::[
 §7::GITGUARDIAN_EXCLUSIONS
 
 PATH_EXCLUSIONS::["packages/*/src/test/**", "apps/*/src/test/**", "**/*.test.ts", "**/*.test.tsx"]
-PATTERN_EXCLUSIONS::["test-mock-.*", "test-project.supabase.co", "127.0.0.1:54321", "test-password-(admin|client|unauth)-123"]
+PATTERN_EXCLUSIONS::["test-mock-.*", "test-project\\.supabase\\.co", "127\\.0\\.0\\.1:54321", "test-password-(admin|client|unauth)-123"]
 RATIONALE::"Real credentials in .env (gitignored), test fixtures non-functional"
 
 §8::AGENT_CONSULTATION

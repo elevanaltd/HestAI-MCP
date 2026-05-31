@@ -30,7 +30,7 @@ COMPONENT_FK_INTEGRITY:
 -- Check: Do all component tables have component_id FK?
 SELECT table_name
 FROM information_schema.tables
-WHERE table_name LIKE '%_component%'
+WHERE table_name LIKE '%\_component%'
   AND table_name NOT IN (
     SELECT table_name
     FROM information_schema.columns

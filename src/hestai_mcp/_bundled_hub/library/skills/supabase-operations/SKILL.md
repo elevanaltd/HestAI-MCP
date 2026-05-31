@@ -1,7 +1,7 @@
 ---
 name: supabase-operations
 description: "Supabase operational knowledge for migrations, RLS optimization, MCP tool benchmarks, and ADR-003 compliance. Use when validating database migrations, optimizing Row-Level Security policies, checking MCP tool performance, or ensuring Supabase operational standards. Triggers on: migration validation, RLS patterns, Supabase benchmarks, ADR-003, database state tracking, schema governance."
-allowed-tools: Read, mcp__supabase__list_tables, mcp__supabase__list_extensions, mcp__supabase__list_migrations, mcp__supabase__get_advisors
+allowed-tools: ["Read", "mcp__supabase__list_tables", "mcp__supabase__list_extensions", "mcp__supabase__list_migrations", "mcp__supabase__get_advisors"]
 triggers: ["migration validation", "RLS patterns", "Supabase benchmarks", "ADR-003", "database state tracking", "schema governance", "supabase migration", "RLS optimization", "supabase operations", "supabase MCP tools", "types regen", "pgtap", "pgTAP", "supabase db reset", "gen types", "dropped constraint", "sentinel header", "type generation"]
 version: "1.1.0"
 ---

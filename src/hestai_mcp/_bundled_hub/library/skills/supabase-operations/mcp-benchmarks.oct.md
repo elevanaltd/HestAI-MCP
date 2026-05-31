@@ -6,7 +6,7 @@ META:
   STATUS::ACTIVE
   CANONICAL::".hestai-sys/library/skills/supabase-operations/mcp-benchmarks.oct.md"
   SOURCE::"src/hestai_mcp/_bundled_hub/library/skills/supabase-operations/mcp-benchmarks.oct.md"
-NOTE::"Performance data from production usage with scripts-web project (zbxvjyrbkycbfhwmmnmy)"
+NOTE::"Performance data from production usage. Replace YOUR_PROJECT_ID with your actual Supabase project ID."
 §1::TOOL_PERFORMANCE
 LIST_MIGRATIONS:
   PURPOSE::"Retrieve remote migration state for sync validation"
