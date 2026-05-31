@@ -40,13 +40,13 @@ SUPABASE_HARNESS::.hestai/state/context/test-context/SUPABASE-TEST-HARNESS.md→
 
 §3::POC_REFERENCE_WHEN_NEEDED
 
-PROVEN_INFRASTRUCTURE::/Volumes/HestAI-Projects/eav-ops/eav-apps/scripts-web/src/test/
+PROVEN_INFRASTRUCTURE::"/Volumes/HestAI-Projects/eav-ops/eav-apps/scripts-web/src/test/"
 FILES::[
   supabase-test-client.ts::"Test client with environment detection, fail-fast guards",
   auth-helpers.ts::"Auth utilities with rate limiting (750ms delay)"
 ]
 
-OPERATIONAL_SCRIPTS::/Volumes/HestAI-Projects/eav-ops/eav-apps/scripts-web/scripts/
+OPERATIONAL_SCRIPTS::"/Volumes/HestAI-Projects/eav-ops/eav-apps/scripts-web/scripts/"
 FILES::[
   create-test-users-via-api.mjs::"Test user creation via Auth Admin API (used by CI)"
 ]
@@ -103,19 +103,19 @@ SOURCE::POC_src/test/supabase-test-client.ts:102-115
 §6::ENVIRONMENT_CONFIGURATION
 
 ROOT_ENV::[
-  SUPABASE::[VITE_SUPABASE_URL:https://project.supabase.co, VITE_SUPABASE_PUBLISHABLE_KEY:sb_publishable_*, SUPABASE_SECRET_KEY:sb_secret_*]
+  SUPABASE::[VITE_SUPABASE_URL::"https://project.supabase.co", VITE_SUPABASE_PUBLISHABLE_KEY::"sb_publishable_*", SUPABASE_SECRET_KEY::"sb_secret_*"]
 ]
 
 CI_OVERRIDES::[
-  SUPABASE_PREVIEW_URL:https://preview-branch.supabase.co,
-  SUPABASE_PREVIEW_ANON_KEY:sb_publishable_preview_*,
-  VITEST_INTEGRATION:true
+  SUPABASE_PREVIEW_URL::"https://preview-branch.supabase.co",
+  SUPABASE_PREVIEW_ANON_KEY::"sb_publishable_preview_*",
+  VITEST_INTEGRATION::true
 ]
 
 §7::GITGUARDIAN_EXCLUSIONS
 
-PATH_EXCLUSIONS::[packages/*/src/test/**, apps/*/src/test/**, **/*.test.ts, **/*.test.tsx]
-PATTERN_EXCLUSIONS::[test-mock-.*, test-project\.supabase\.co, 127\.0\.0\.1:54321, test-password-(admin|client|unauth)-123]
+PATH_EXCLUSIONS::["packages/*/src/test/**", "apps/*/src/test/**", "**/*.test.ts", "**/*.test.tsx"]
+PATTERN_EXCLUSIONS::["test-mock-.*", "test-project.supabase.co", "127.0.0.1:54321", "test-password-(admin|client|unauth)-123"]
 RATIONALE::"Real credentials in .env (gitignored), test fixtures non-functional"
 
 §8::AGENT_CONSULTATION
@@ -135,8 +135,8 @@ DOCUMENTATION::[
 ]
 
 POC_REFERENCE::[
-  /Volumes/HestAI-Projects/eav-ops/eav-apps/scripts-web/src/test/,
-  /Volumes/HestAI-Projects/eav-ops/eav-apps/scripts-web/scripts/create-test-users-via-api.mjs
+  "/Volumes/HestAI-Projects/eav-ops/eav-apps/scripts-web/src/test/",
+  "/Volumes/HestAI-Projects/eav-ops/eav-apps/scripts-web/scripts/create-test-users-via-api.mjs"
 ]
 
 NORTH_STAR::.hestai/north-star/000-UNIVERSAL-EAV_SYSTEM-D1-NORTH-STAR.md[I7:TDD_RED_discipline, I8:production_grade_quality]
