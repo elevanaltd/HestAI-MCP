@@ -105,9 +105,9 @@ SOURCE::POC_src/test/supabase-test-client.ts:102-115
 VITE_SUPABASE_URL::"https://project.supabase.co"
 VITE_SUPABASE_PUBLISHABLE_KEY::"sb_publishable_*"
 SUPABASE_SECRET_KEY::"sb_secret_*"
-CI_PREVIEW_URL::"https://preview-branch.supabase.co"
-CI_PREVIEW_ANON_KEY::"sb_publishable_preview_*"
-CI_VITEST_INTEGRATION::true
+SUPABASE_PREVIEW_URL::"https://preview-branch.supabase.co"
+SUPABASE_PREVIEW_ANON_KEY::"sb_publishable_preview_*"
+VITEST_INTEGRATION::true
 
 §7::GITGUARDIAN_EXCLUSIONS
 
