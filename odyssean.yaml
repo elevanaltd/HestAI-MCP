@@ -4,3 +4,4 @@
 paths:
   north_star: .hestai/north-star
   context: .hestai/state/context
+  agents: .hestai-sys/library/agents
