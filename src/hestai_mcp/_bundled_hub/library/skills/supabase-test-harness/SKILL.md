@@ -1,6 +1,6 @@
 ---
 name: supabase-test-harness
-description: Supabase test harness patterns including local Supabase setup, test user creation via Auth Admin API, RLS testing, migration testing (db_reset), seed sequences, rate limiting, and environment detection. Use when setting up Supabase testing infrastructure, creating test users, troubleshooting Supabase test failures, or implementing RLS validation. Triggers on: supabase test setup, test user creation, supabase local testing, RLS testing, migration testing, supabase test harness, auth test helpers.
+description: "Supabase test harness patterns including local Supabase setup, test user creation via Auth Admin API, RLS testing, migration testing (db_reset), seed sequences, rate limiting, and environment detection. Use when setting up Supabase testing infrastructure, creating test users, troubleshooting Supabase test failures, or implementing RLS validation. Triggers on: supabase test setup, test user creation, supabase local testing, RLS testing, migration testing, supabase test harness, auth test helpers."
 allowed-tools: ["Read"]
 triggers: ["supabase test setup", "test user creation", "supabase local testing", "RLS testing", "migration testing", "supabase test harness", "auth test helpers", "supabase db reset test", "supabase seed sequence", "auth admin api test", "supabase rate limiting"]
 version: "1.0.0"
@@ -94,9 +94,9 @@ PATTERN_6::SEED_SEQUENCE::[
 §5::TEST_USERS_STANDARDIZED
 
 CREDENTIALS::[
-  admin::{email:admin.test@example.com, password:test-password-admin-123},
-  client::{email:client.test@example.com, password:test-password-client-123},
-  unauthorized::{email:unauthorized.test@example.com, password:test-password-unauth-123}
+  admin::[email::admin.test@example.com, password::test-password-admin-123],
+  client::[email::client.test@example.com, password::test-password-client-123],
+  unauthorized::[email::unauthorized.test@example.com, password::test-password-unauth-123]
 ]
 SOURCE::POC_src/test/supabase-test-client.ts:102-115
 
