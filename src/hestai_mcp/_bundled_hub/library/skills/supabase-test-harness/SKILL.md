@@ -67,7 +67,7 @@ PATTERN_2::TEST_USER_CREATION::[
 
 PATTERN_3::RATE_LIMITING::[
   DELAY::750ms_between_auth_operations,
-  IMPLEMENTATION::authDelay()_helper,
+  IMPLEMENTATION::auth_delay_helper,
   BECAUSE::"Prevents Supabase rate limit failures",
   EVIDENCE::POC_src/test/supabase-test-client.ts:121-131
 ]
@@ -80,7 +80,7 @@ PATTERN_4::FAIL_FAST_GUARDS::[
 ]
 
 PATTERN_5::ENVIRONMENT_PRIORITY::[
-  ORDER::SUPABASE_PREVIEW_URL > 127.0.0.1:54321 > VITE_SUPABASE_URL,
+  ORDER::"SUPABASE_PREVIEW_URL gt 127.0.0.1:54321 gt VITE_SUPABASE_URL",
   BECAUSE::"Automatic environment detection (CI preview > local > remote fallback)",
   EVIDENCE::POC_src/test/supabase-test-client.ts:37-41
 ]

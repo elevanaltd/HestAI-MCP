@@ -23,7 +23,7 @@ MIGRATION_VALIDATION::migration-protocols.oct.md::[
 ]
 
 RLS_OPTIMIZATION::rls-optimization.oct.md::[
-  proven_patterns→<50ms_query_performance,
+  proven_patterns→sub_50ms_query_performance,
   InitPlan_optimization,
   policy_consolidation
 ]
