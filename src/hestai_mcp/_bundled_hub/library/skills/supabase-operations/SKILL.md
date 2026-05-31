@@ -15,31 +15,31 @@ META:
 
 §1::CAPABILITIES_SUPPORTING_DOCUMENTATION
 
-MIGRATION_VALIDATION::migration-protocols.md::[
+MIGRATION_VALIDATION::migration-protocols.oct.md::[
   7_step_workflow,
   backwards_compatible_schema_changes,
   multi_app_deployment_safety,
   CI_gated_deployment[preferred_over_direct_MCP]
 ]
 
-RLS_OPTIMIZATION::rls-optimization.md::[
+RLS_OPTIMIZATION::rls-optimization.oct.md::[
   proven_patterns→<50ms_query_performance,
   InitPlan_optimization,
   policy_consolidation
 ]
 
-MCP_BENCHMARKS::mcp-benchmarks.md::[
+MCP_BENCHMARKS::mcp-benchmarks.oct.md::[
   performance_characteristics,
   best_practices,
   production_measurements
 ]
 
-ADR_003_COMPLIANCE::adr-003-compliance.md::[
+ADR_003_COMPLIANCE::adr-003-compliance.oct.md::[
   backwards_compatible_migration_governance,
   verification_checklist
 ]
 
-STATE_TRACKING::state-tracking.md::[
+STATE_TRACKING::state-tracking.oct.md::[
   local_remote_sync_validation,
   database_state_awareness_procedures
 ]
