@@ -80,11 +80,10 @@ META:
     octave-literacy,
     octave-mastery,
     octave-compression,
-    octave-mythology,
     octave-ultra-mythic,
     pattern-mastery
   ]
-  PATTERNS::[]
+  PATTERNS::[octave-tool-reference]
 §4::INTERACTION_RULES
   // HOLOGRAPHIC CONTRACT
   GRAMMAR:
