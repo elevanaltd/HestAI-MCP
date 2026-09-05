@@ -37,8 +37,12 @@ META:
   §1a::USAGE_LAW
     // Mythology compresses BEHAVIOR and STATE — not categories or labels
     TEST::"Does the mythology add behavioral dimensions the literal term loses? If not, use the literal."
-    GOOD::"Artemis_Scrape[Port_443 ∧ Hidden] — adds stealth ⊕ precision ⊕ hunting beyond 'monitoring_scrape'"
-    GOOD_2::"Ares_BruteForce[Login_Attempts ∧ SISYPHEAN] — adds aggression ⊕ relentlessness beyond 'security_attack'"
+    // GOOD: compound behavioural qualifiers — a literal zone so the canonicaliser does not rewrite the bracket form
+    GOOD:
+      ```
+      THREAT::Artemis_Scrape[Port_443 ∧ Hidden]        // adds stealth ⊕ precision ⊕ hunting — dimensions monitoring_scrape loses
+      THREAT::Ares_BruteForce[Login_Attempts ∧ SISYPHEAN] // adds aggression ⊕ relentlessness — dimensions security_attack loses
+      ```
     BAD::"ARTEMIS::monitoring_system — use MONITORING::system (literal is equally clear)"
     BAD_2::"ZEUS::executive_decision — use EXECUTIVE::decision (literal is equally clear)"
     COMPOUND_FORM::"Title_Case prefix (Artemis_Scrape, Ares_BruteForce) = qualified action, not a standalone archetype. Standalone archetype = [A-Z][A-Z_]*"
@@ -193,6 +197,7 @@ CONDUCT:
   PROSE_BLEED::"Stopword-laden English sentences as values — quoted telegraphic phrases ARE valid (see §7a). Ban applies when operators could compress the same semantics."
   INLINE_ARRAY_ROOT::"TOKEN::[KEY::v, KEY2::v2] — inline map used as multi-field token root. Non-canonical for map tokens even when values are atomic; BLOCK form is mandated. Triggers E_NESTED_INLINE_MAP as soon as any child value needs nesting (§6::BLOCK_NOTATION_RULE). Fix: use BLOCK form (TOKEN: + indented children) from the start."
   FLAT_PREFIX_SCALARS::"PARENT_CHILD::v, PARENT_CHILD2::v2 — flattened hierarchy via key name prefixes instead of BLOCK nesting. Destroys grouping and LLM attention. Fix: group under a PARENT: block with CHILD::v children."
+  STRUCTURAL_SYNTAX_SCOPE::"Applies to DATA values. Documentation that names a form (literacy §1b: NAME<qualifier>, ENUM[a,b]) or a fenced example is exempt — the rule targets facts smuggled into strings, not syntax being described."
   STRUCTURAL_SYNTAX_IN_VALUE::"<> annotation ∨ [] constructor embedded INSIDE a quoted telegraphic value — e.g. \"migration[high_risk]<legacy_db> → downtime\" or \"SISYPHEAN[bugs] ⊕ KAIROS[repair]\". Structural forms are key/identifier-only (§3, literacy §1b: <> qualifies identity, [] parameterizes operations). Inside a value the parser treats them as opaque text → all the ambiguity, none of the validation, and it blurs the structural⇌value boundary. Fix: inside a value, relations carry via telegraphic operators only (→ ⇌ ∧ ∨ ⊕); push facets to a sibling field or an annotated KEY. 'migration → downtime' + RISK::high ∨ MIGRATION<legacy_db>:."
   CEREMONIAL_MYTHOLOGY::"'As ATHENA, goddess of wisdom, I bestow...' — narrative prose, not functional compression. Mythology is a handle, never a voice."
   MYTHOLOGY_IN_REFERENCE_TABLES::"Spec tables and formal definitions stay literal; use examples, not tables, to activate mythology."

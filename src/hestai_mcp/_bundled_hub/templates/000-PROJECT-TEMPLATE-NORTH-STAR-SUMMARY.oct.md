@@ -10,9 +10,9 @@ META:
   CONTRACT::HOLOGRAPHIC<parse_only_governance>
   CANONICAL::".hestai-sys/templates/000-PROJECT-TEMPLATE-NORTH-STAR-SUMMARY.oct.md"
   SOURCE::"src/hestai_mcp/_bundled_hub/templates/000-PROJECT-TEMPLATE-NORTH-STAR-SUMMARY.oct.md"
-// UPOG template — see octave-literacy §8::UNIVERSAL_GOVERNANCE_GRAMMAR.
+// UPOG template — see octave-literacy §7::GOVERNANCE_AUTHORING.
 // Replace [BRACKETED] placeholders. Each immutable is its own block: I#<NAME>: + indented children.
-// Reasoning values (PRINCIPLE, WHY) use telegraphic operator form per §4::R3a (→ ⊕ ⇌ ∨).
+// Reasoning values (PRINCIPLE, WHY) use telegraphic operator form per octave-compression §4::R3a (→ ⊕ ⇌ ∨).
 // On save: octave_validate STRICT MUST return warnings:[], errors:[], repairs:[].
 §1::IMMUTABLES
   COUNT::5

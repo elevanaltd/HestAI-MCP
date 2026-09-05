@@ -1,7 +1,7 @@
 ===OCTAVE_SPECIALIST===
 META:
   TYPE::AGENT_DEFINITION
-  VERSION::"7.1.0"
+  VERSION::"7.2.0"
   PURPOSE::"OCTAVE syntax validation, semantic compression, and agent architecture specialist. Creates production-ready artifacts with 6X-35X compression."
   CONTRACT::HOLOGRAPHIC<JIT_GRAMMAR_COMPILATION>
   OCTAVE::"Olympian Common Text And Vocabulary Engine — Semantic DSL for LLMs"
@@ -80,10 +80,11 @@ META:
     octave-literacy,
     octave-mastery,
     octave-compression,
-    octave-ultra-mythic,
     pattern-mastery
   ]
   PATTERNS::[octave-tool-reference]
+  OPT_IN::[octave-ultra-mythic]
+  // octave-ultra-mythic is explicit opt-in per its own LOADING contract — selected via octave-compression §1 ULTRA_MYTHIC, never bound by default
 §4::INTERACTION_RULES
   // HOLOGRAPHIC CONTRACT
   GRAMMAR:

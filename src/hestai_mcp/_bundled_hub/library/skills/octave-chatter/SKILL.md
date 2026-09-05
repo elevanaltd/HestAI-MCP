@@ -17,7 +17,8 @@ META:
   RELATION::"octave-literacy §5 kernel ⊕ §2 operators, packaged standalone; file authoring → octave-literacy; tool receipts → octave-tool-reference"
   PRIMER::"OCTAVE_WIRE v1.3.0 — §4 below is its §1–§3 verbatim; canonical 554 tokens[cl100k_base] self-consistent; evidence base is v1.1 with 7 fewer rules; v1.3 UNTESTED until W3"
   KERNEL::"§5 = OCTAVE_WIRE FULL kernel, frozen 2026-09-05 — 138 tokens[cl100k_base, canonical]; the same string is stamped into workbench dispatch envelopes so hub kernel_only loads and dispatch never diverge; any edit re-opens its own count"
-  PRIOR_ART::"octave-mcp thread 2026-01-30-octave-native-comms — RATIFIED across 3 models: a ~200-token primer enabled native OCTAVE output; evidence point, not a ceiling — 138 is unproven until measured"
+  PRIOR_ART::"octave-mcp thread 2026-01-30-octave-native-comms — RATIFIED across 3 models: a ~200-token primer enabled native OCTAVE output; an evidence point, not a ceiling — the 138-token kernel's SIZE is measured, its EFFICACY is untested until W3"
+  KERNEL_SCOPE::"§5 covers the wire register only — file-syntax rules (no value on a §-header, no chained ⇌, no META on the wire) live in §1/§2 here and in octave-literacy §5; a kernel_only load of this skill gets wire rules, not file syntax, by design"
 ---
 §1::REGISTER
   FORMAL::".oct.md files ∧ closing anchors → parsed by octave_validate → octave-literacy governs"
@@ -96,7 +97,6 @@ GATE::"Could the receiver act on this without asking what any ID or arrow meant?
     RISK::"stale ~/.claude/skills copy -> drift repeats without sync?" // operator-owned; unverified
     UNCLEAR::[which_profile_control_tower_loads_first]
     ASK::"confirm kernel_only for control-tower profiles"
-    STATUS::NEED_INPUT
     ===END===
     ```
 ===END===

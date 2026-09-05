@@ -1,39 +1,47 @@
 {
   "version": "1.0.0",
   "skills": {
-    "build-anti-patterns": {
+    "build-execution": {
       "type": "domain",
-      "description": "Comprehensive catalog of build anti-patterns that degrade quality, increase maintenance, and introduce bugs. Includes detection frameworks and prevention strategies.",
+      "description": "Build execution philosophy including TDD discipline, Minimal Intervention Principle, system awareness, and verification protocols",
       "autoInject": false,
       "injectionOrder": 50,
       "promptTriggers": {
         "keywords": [
-          "anti-pattern",
-          "isolated edits",
-          "feature bloat",
-          "context destruction",
-          "premature optimization",
-          "test procrastination",
-          "snowball commits",
-          "code smell"
+          "build phase",
+          "TDD",
+          "test first",
+          "red green refactor",
+          "minimal code",
+          "system awareness",
+          "implementation",
+          "code quality",
+          "verification protocols",
+          "build philosophy",
+          "build execution",
+          "test driven development"
         ]
       }
     },
-    "build-philosophy": {
+    "ci-error-resolution": {
       "type": "domain",
-      "description": "Comprehensive build philosophy including system awareness, MIP for code, decision frameworks, and wisdom paths. Prevents accumulative complexity through systematic thinking.",
+      "description": "CI/CD pipeline failure resolution with autonomous iteration loops. Local validation → branch & PR creation → CI monitoring → iteration until green",
       "autoInject": false,
       "injectionOrder": 50,
       "promptTriggers": {
         "keywords": [
-          "build philosophy",
-          "system awareness",
-          "code complexity",
-          "minimal intervention",
-          "ripple mapping",
-          "UNDERSTAND SHAPE ACT",
-          "essential complexity",
-          "accumulative complexity"
+          "ci pipeline failures",
+          "github actions errors",
+          "autonomous ci resolution",
+          "ci iteration",
+          "pr creation for errors",
+          "pipeline validation",
+          "test failures in ci",
+          "build failures in ci",
+          "continuous integration",
+          "CI error",
+          "CI failed",
+          "pipeline failed"
         ]
       }
     },
@@ -55,23 +63,68 @@
     },
     "documentation-placement": {
       "type": "domain",
-      "description": "Document placement using timeline test and HestAI visibility rules. Maps artifacts to .hestai-sys/, .hestai/, docs/, .hestai/state/ with phase artifact rules, format selection, anti-patterns, and documentation-first protocols.",
+      "description": "Document placement rules, visibility protocols, and timeline test (before-code vs after-code). Defines where documentation belongs (dev/docs/ vs coordination/)",
       "autoInject": false,
       "injectionOrder": 50,
       "promptTriggers": {
         "keywords": [
           "documentation placement",
-          "ADR placement",
-          "phase artifact",
+          "where to put docs",
+          "document organization",
+          "visibility rules",
+          "timeline test",
+          "before-code vs after-code",
           "documentation first",
-          "B1 migration gate",
-          "visibility rules"
+          "phase artifact",
+          "coordination repo",
+          "dev repo",
+          "ADR placement"
+        ]
+      }
+    },
+    "error-triage": {
+      "type": "domain",
+      "description": "Systematic error resolution with priority-based triage preventing cascade failures. Build→Types→Unused→Async→Logic→Tests priority order",
+      "autoInject": false,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": [
+          "error resolution",
+          "CI failures",
+          "systematic error fixing",
+          "cascade detection",
+          "type safety theater",
+          "build errors",
+          "type errors",
+          "validation theater",
+          "error triage",
+          "fix errors",
+          "error cascade",
+          "type violations"
+        ]
+      }
+    },
+    "ho-mode": {
+      "type": "domain",
+      "description": "HO lane discipline enforcement. Coordination-only tools. Prevents direct code implementation, enforces delegation to specialists",
+      "autoInject": false,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": [
+          "/role ho",
+          "holistic orchestrator",
+          "HO mode",
+          "orchestrator mode",
+          "coordination only",
+          "delegate to specialists",
+          "orchestration discipline",
+          "HO activation"
         ]
       }
     },
     "ho-control-room": {
       "type": "domain",
-      "description": "Strategic oversight mode for the Holistic Orchestrator. Episodic State Machine pattern with ho-liaison advisory (via pal_clink), run_debate escalation, and oa-router delegation. REPLACES holistic-orchestration when loaded.",
+      "description": "Strategic oversight mode for HO. Episodic State Machine with ho-liaison advisory (via pal_clink), run_debate escalation, and oa-router delegation. REPLACES holistic-orchestration when loaded.",
       "autoInject": false,
       "injectionOrder": 50,
       "promptTriggers": {
@@ -81,22 +134,30 @@
           "high-level orchestration",
           "episodic loop",
           "advisory session",
-          "ho-strategic-ledger"
+          "ho-strategic-ledger",
+          "control room mode",
+          "strategic planning session"
         ]
       }
     },
-    "holistic-orchestration": {
+    "ho-orchestrate": {
       "type": "domain",
-      "description": "Core operating manual for the Holistic Orchestrator. Enforces lane discipline (zero implementation), oa-router delegation, quality gating, debate escalation, and emergency protocols.",
+      "description": "HO work orchestration protocol with enforced quality gates and debate-hall escalation. Loads ho-mode, ensures IL uses build-execution+TDD, quality gates via CRS(Gemini)+CE(Codex), debate-hall for complex decisions (Claude→Wind, Codex→Wall, Gemini→Door per M019/M021). NEVER implements directly. Use when orchestrating implementation work.",
       "autoInject": false,
       "injectionOrder": 50,
       "promptTriggers": {
         "keywords": [
-          "orchestrate",
-          "delegate",
-          "coordinate",
-          "review_gates",
-          "production_incident"
+          "orchestrate implementation",
+          "HO orchestrate",
+          "delegate work",
+          "quality gates",
+          "CRS review",
+          "CE review",
+          "debate escalation",
+          "orchestration protocol",
+          "implementation orchestration",
+          "subagent delegation",
+          "Task with binding"
         ]
       }
     },
@@ -110,7 +171,7 @@
           "MCP tool",
           "clock_in",
           "clock_out",
-          "bind",
+          "odyssean_anchor",
           "mcp server",
           "tool implementation",
           "hestai context",
@@ -120,26 +181,9 @@
         ]
       }
     },
-    "octave-chatter": {
-      "type": "domain",
-      "description": "OCTAVE on the wire \u2014 read and emit OCTAVE in agent-to-agent messages without authoring files. Syntax kernel, operator table, and the OCTAVE_WIRE primer v1.3 (provenance, hedges, verbatim IDs). For agents outside the workbench matrix.",
-      "autoInject": false,
-      "injectionOrder": 50,
-      "promptTriggers": {
-        "keywords": [
-          "octave chatter",
-          "octave wire",
-          "reply in octave",
-          "octave message",
-          "inter-agent message",
-          "read octave",
-          "answer in octave"
-        ]
-      }
-    },
     "octave-compression": {
       "type": "domain",
-      "description": "Workflow for transforming prose into semantic OCTAVE structures. Covers tier selection, transformation phases, loss accounting, and decision rules. REQUIRES octave-literacy.",
+      "description": "Specialized workflow for transforming verbose natural language into semantic OCTAVE structures. REQUIRES octave-literacy to be loaded first",
       "autoInject": false,
       "injectionOrder": 50,
       "promptTriggers": {
@@ -157,7 +201,7 @@
     },
     "octave-literacy": {
       "type": "domain",
-      "description": "LLM-native structured communication format. Teaches OCTAVE syntax rules, canonical forms, and warning prevention for zero-error .oct.md authoring.",
+      "description": "Fundamental reading and writing capability for the OCTAVE format. Basic structural competence without full architectural specifications",
       "autoInject": true,
       "injectionOrder": 50,
       "promptTriggers": {
@@ -169,17 +213,15 @@
           "OCTAVE basics",
           "OCTAVE literacy",
           "OCTAVE structure",
+          "semantic format",
           "key::value",
-          "OCTAVE notation",
-          "llm communication",
-          "token economy",
-          "loss accounting"
+          "OCTAVE notation"
         ]
       }
     },
     "octave-mastery": {
       "type": "domain",
-      "description": "Advanced semantic vocabulary, functional mythology, holographic contracts, and structural patterns for OCTAVE. REQUIRES octave-literacy. Absorbs octave-mythology: pantheon, narrative forces, usage law, archetype annotation, v6 contracts, anti-pattern rules.",
+      "description": "Advanced semantic vocabulary and architectural patterns for the OCTAVE format. REQUIRES octave-literacy to be loaded first",
       "autoInject": false,
       "injectionOrder": 50,
       "promptTriggers": {
@@ -193,33 +235,7 @@
           "archetypes",
           "high-density specifications",
           "system architecture",
-          "holographic contracts",
-          "archetype annotation",
-          "mythology",
-          "OCTAVE mythology",
-          "functional mythology",
-          "SISYPHEAN",
-          "ICARIAN",
-          "PROMETHEAN",
-          "mythological domains"
-        ]
-      }
-    },
-    "octave-ultra-mythic": {
-      "type": "domain",
-      "description": "Ultra-high density compression using mythological atoms and semantic shorthand. Preserves soul and constraints at 60% compression for identity transmission, binding protocols, and extreme token scarcity. REQUIRES octave-mastery and octave-compression.",
-      "autoInject": false,
-      "injectionOrder": 50,
-      "promptTriggers": {
-        "keywords": [
-          "ultra mythic",
-          "mythological compression",
-          "semantic atoms",
-          "identity compression",
-          "binding passport",
-          "cognitive passport",
-          "60% compression",
-          "soul preservation"
+          "OCTAVE patterns"
         ]
       }
     },
@@ -260,73 +276,6 @@
           "TODO",
           "FIXME",
           "NotImplementedError"
-        ]
-      }
-    },
-    "subagent-rules": {
-      "type": "domain",
-      "description": "Proper delegation patterns for Task() invocations with governance context injection",
-      "autoInject": false,
-      "injectionOrder": 50,
-      "promptTriggers": {
-        "keywords": [
-          "subagent",
-          "oa-router",
-          "Task delegation",
-          "anchor ceremony",
-          "subagent rules",
-          "delegate task",
-          "spawn agent",
-          "tier selection"
-        ]
-      }
-    },
-    "supabase-operations": {
-      "type": "domain",
-      "description": "Supabase operational knowledge for migrations, RLS optimization, MCP tool benchmarks, and ADR-003 compliance. Use when validating database migrations, optimizing Row-Level Security policies, checking MCP tool performance, or ensuring Supabase operational standards. Triggers on: migration validation, RLS patterns, Supabase benchmarks, ADR-003, database state tracking, schema governance.",
-      "autoInject": false,
-      "injectionOrder": 50,
-      "promptTriggers": {
-        "keywords": [
-          "migration validation",
-          "RLS patterns",
-          "Supabase benchmarks",
-          "ADR-003",
-          "database state tracking",
-          "schema governance",
-          "supabase migration",
-          "RLS optimization",
-          "supabase operations",
-          "supabase MCP tools",
-          "types regen",
-          "pgtap",
-          "pgTAP",
-          "supabase db reset",
-          "gen types",
-          "dropped constraint",
-          "sentinel header",
-          "type generation"
-        ]
-      }
-    },
-    "supabase-test-harness": {
-      "type": "domain",
-      "description": "Supabase test harness patterns including local Supabase setup, test user creation via Auth Admin API, RLS testing, migration testing (db_reset), seed sequences, rate limiting, and environment detection. Use when setting up Supabase testing infrastructure, creating test users, troubleshooting Supabase test failures, or implementing RLS validation. Triggers on: supabase test setup, test user creation, supabase local testing, RLS testing, migration testing, supabase test harness, auth test helpers.",
-      "autoInject": false,
-      "injectionOrder": 50,
-      "promptTriggers": {
-        "keywords": [
-          "supabase test setup",
-          "test user creation",
-          "supabase local testing",
-          "RLS testing",
-          "migration testing",
-          "supabase test harness",
-          "auth test helpers",
-          "supabase db reset test",
-          "supabase seed sequence",
-          "auth admin api test",
-          "supabase rate limiting"
         ]
       }
     },
@@ -426,6 +375,23 @@
           "preview URL",
           "vercel CI",
           "preview testing"
+        ]
+      }
+    },
+    "octave-chatter": {
+      "type": "domain",
+      "description": "OCTAVE on the wire — read and emit OCTAVE in agent-to-agent messages without authoring files. Syntax kernel, operator table, and the OCTAVE_WIRE primer v1.3 (provenance, hedges, verbatim IDs). For agents outside the workbench matrix.",
+      "autoInject": true,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": [
+          "octave chatter",
+          "octave wire",
+          "reply in octave",
+          "octave message",
+          "inter-agent message",
+          "read octave",
+          "answer in octave"
         ]
       }
     }

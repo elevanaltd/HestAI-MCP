@@ -28,10 +28,17 @@ META:
 §2::COMPRESSION_RULES
   §2a::IDENTITY_COMPRESSION
     ROLE::"keep verbatim"
-    ARCHETYPE::"map to mythological atoms — 'Guardian of Structure' → ATLAS<structure>"
-    MISSION::"combine into synthesis — GAP_OWNERSHIP ⊕ FAILURE_PREVENTION"
-    PRINCIPLES::"keep key phrase only — 'Boundaries catalyze breakthroughs' → CONSTRAINT_CATALYSIS"
-    CONSTRAINTS::"reduce to atoms — MUST_NEVER 'Direct implementation' → NEVER::DIRECT_IMPL"
+    ARCHETYPE::"map to a mythological atom in annotation form"
+    MISSION::"combine into a synthesis of atoms"
+    PRINCIPLES::"keep the key phrase only"
+    CONSTRAINTS::"reduce every MUST_NEVER item to a NEVER[atoms] constructor — one notation, never NEVER::atom"
+    EXAMPLES:
+      ```
+      Guardian of Structure              -> ATLAS<structure>
+      gap ownership + failure prevention -> GAP_OWNERSHIP⊕FAILURE_PREVENTION
+      Boundaries catalyze breakthroughs  -> CONSTRAINT_CATALYSIS
+      MUST_NEVER: direct implementation  -> NEVER[DIRECT_IMPL]
+      ```
   §2b::SKILL_COMPRESSION
     CAPABILITY::"list detection targets [A,B,C]"
     PATTERNS::"list pattern names only"
@@ -71,9 +78,10 @@ META:
     ```
   PROCESS:
     STEP_1::"identify role → Architect"
-    STEP_2::"identify archetype → high-level design → ATLAS<structure>"
-    STEP_3::"identify constraint → never write code → NEVER[DIRECT_IMPL]"
-    STEP_4::"identify delegation → delegate to Lead → DELEGATE[IMPL_LEAD]"
+    STEP_2::"identify archetype — high-level design maps to the ATLAS atom, structure facet"
+    STEP_3::"identify constraint — never write code becomes a NEVER atom"
+    STEP_4::"identify delegation — delegate to Lead becomes a DELEGATE atom"
+    // the atoms themselves are shown in OUTPUT below — structural forms stay out of quoted values
   OUTPUT:
     ```
     ID::ARCHITECT<ATLAS>
@@ -123,6 +131,6 @@ GATE::"Could the source identity be re-inflated from this seed with no NEVER los
     "Using JSON/YAML formatting — use OCTAVE syntax",
     "Dropping delegation rules",
     "Exceeding token budget without justification",
-    "ATLAS[structure] — constructor brackets on an archetype; annotation form is ATLAS<structure>"
+    "Constructor brackets on an archetype — archetypes take the annotation form (see §2a EXAMPLES)"
   ]
 ===END===
