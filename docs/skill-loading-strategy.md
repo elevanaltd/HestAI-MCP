@@ -25,8 +25,8 @@ Skills that define specific operational workflows. These are:
 - Extend or enhance constitutional capabilities
 
 **Example:** For holistic-orchestrator:
-- `holistic-orchestration` - Quality gates and debate-hall escalation are part of the same skill
-- Loaded via `Skill(holistic-orchestration)`
+- `debate-hall` - Wind/Wall/Door debate orchestration for architectural decisions; not in holistic-orchestrator §3::CAPABILITIES
+- Loaded via `Skill(debate-hall)` when a decision needs multi-perspective deliberation
 
 ## Decision Criteria
 
