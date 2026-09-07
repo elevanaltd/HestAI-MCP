@@ -74,11 +74,17 @@ jobs:
           fi
           # All governance .oct.md (including .hestai/rules/) are now UPOG-compliant and validated;
           # the legacy ci-progressive-testing skip was removed once that file migrated (#406 follow-up).
-          while IFS= read -r f; do
-            # Phase 3 of #406: validator vendored copy retired; call canonical octave-mcp CLI.
-            # Use `python -m octave_mcp.cli.main` to avoid PATH collisions with unrelated `octave` binaries.
-            uv run python -m octave_mcp.cli.main validate "$f"
-          done < changed_octave.txt
+          # Loop runs inside a single `uv run` invocation: `uv run` re-checks/syncs the
+          # environment on every call, so looping it per-file pays that cost once per
+          # changed doc. Hoisting into one `bash -c` pays it once for the whole step.
+          uv run bash -c '
+            set -euo pipefail
+            while IFS= read -r f; do
+              # Phase 3 of #406: validator vendored copy retired; call canonical octave-mcp CLI.
+              # Use `python -m octave_mcp.cli.main` to avoid PATH collisions with unrelated `octave` binaries.
+              python -m octave_mcp.cli.main validate "$f"
+            done < changed_octave.txt
+          '
 
       - name: Validate canonical paths for changed .oct.md
         shell: bash
@@ -88,9 +94,14 @@ jobs:
             echo "SKIP canonical-paths (no .oct.md changes)"
             exit 0
           fi
-          while IFS= read -r f; do
-            uv run python scripts/ci/validate_canonical_paths.py "$f"
-          done < changed_octave.txt
+          # See the OCTAVE-validate step above: hoist into one `uv run` invocation
+          # so the environment sync-check is paid once, not once per changed file.
+          uv run bash -c '
+            set -euo pipefail
+            while IFS= read -r f; do
+              python scripts/ci/validate_canonical_paths.py "$f"
+            done < changed_octave.txt
+          '
 
       - name: Validate naming/visibility for changed docs
         shell: bash
