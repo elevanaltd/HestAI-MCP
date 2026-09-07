@@ -1,7 +1,7 @@
 ===OCTAVE_TOOL_REFERENCE===
 META:
   TYPE::PATTERN_DEFINITION
-  VERSION::"1.1.3"
+  VERSION::"1.1.4"
   STATUS::ACTIVE
   PURPOSE::"Procedural contract for octave_write and octave_validate — modes, receipts, changes-mode semantics, warning remediation. Sole agent-facing home for tool behaviour."
   VERIFIED_AGAINST::"octave-mcp 1.15.0"
@@ -62,10 +62,10 @@ TRIAGE:
   DISCARDING::"content lost — W_BARE_LINE_DROPPED ∨ W_NUMERIC_KEY_DROPPED ∨ W_DUPLICATE_KEY ∨ W_UNQUOTED_SECTION_IN_VALUE → fix the source and rewrite. Hidden cause of W_DUPLICATE_KEY: an empty KEY:: where KEY: was meant opens no block, its children hoist into the parent scope and collide with the next record (literacy R13) — STRICT reports VALIDATED and warnings:[]; only repairs[] shows it"
   ADVISORY::"form debt, non-blocking — W_ANNOTATION_TOO_LONG ∨ W_SNAKE_CASE_BLOB → §6 value remediation; W_INLINE_ARRAY_ROOT ∨ W_FLAT_PREFIX_SCALAR ∨ W_CONSTRUCTOR_MISUSE → §6 STRUCTURAL_ADVISORY; each fires independently; all JIT, only when already amending the record"
   BENIGN::"tier NORMALIZATION ∧ safe:true — whitespace, blank lines, identifier dequoting, TN_INLINE_MAP_TO_BLOCK → no action"
-ALIAS::"octave_validate repairs[] type/subtype ⇌ octave_write corrections[] code → lenient_parse/duplicate_key⇌W_DUPLICATE_KEY ∧ lenient_parse/bare_line_dropped⇌W_BARE_LINE_DROPPED ∧ normalization⇌BENIGN tier — both sides measured on 1.15.0 (validate-side duplicate_key observed on an empty-value :: collapse)"
+ALIAS::"octave_validate repairs[] entries carry type ∧ subtype; map to TRIAGE by subtype — DISCARDING: duplicate_key ∨ bare_line_dropped ∨ numeric_key_dropped (content lost, measured); REPAIR-tier form changes (1.15.0 lenient_parse set: multi_word_coalesce, wrong_case, pattern_autoquote, unquoted_timestamp, curly_brace_annotation, bare_flow, constraint_outside_brackets, chained_tension, nested_inline_map, deep_nesting, constructor_misuse, source_compile_value, unclosed_list, boundary_missing) → BENIGN only if the entry's before/after preserve meaning, else consciously accept ∨ fix the source; type normalization → BENIGN; type spec_violation → surfaces in validation_errors[], not triage; ANY subtype not listed here → treat as DISCARDING until classified (fail closed). Write-side equivalents: duplicate_key⇌W_DUPLICATE_KEY, bare_line_dropped⇌W_BARE_LINE_DROPPED, numeric_key_dropped⇌W_NUMERIC_KEY_DROPPED"
 SCOPE_NOTE::"column-0 keys under a §N header are file-top-level — TARGET ∧ NEVER ∧ MUST ∧ GATE of a kernel must be unique in the file or W_DUPLICATE_KEY drops the earlier one"
 NOOP_INVARIANT::"content identical to target bytes → true no-op: no normalisation, corrections:[] (octave-mcp 1.12.0, #407)"
-RECEIPT_GATE::"status:success ∧ errors:[] ∧ validation_status ≠ INVALID ∧ warnings:[] ∧ every corrections[] entry AND every repairs[] entry (mapped via §3::ALIAS) triaged BENIGN ∨ consciously accepted — a DISCARDING entry on either side fails the gate even when validation_status says VALIDATED"
+RECEIPT_GATE::"status:success ∧ errors:[] ∧ validation_status ≠ INVALID ∧ warnings:[] ∧ every corrections[] entry AND every repairs[] entry triaged per §3::TRIAGE (repairs[] subtypes mapped by §3::ALIAS; unmapped subtype = DISCARDING) as BENIGN ∨ consciously accepted — a DISCARDING entry on either side fails the gate even when validation_status says VALIDATED"
 §4::CHANGES_MODE
   // octave-mcp 1.15.0 STRATEGY_S3 — HARD BREAK from earlier releases
 PATHS::"top-level KEY; META.FIELD; PARENT.CHILD into a top-level Block; §N.KEY ∨ §N::NAME.KEY into a Section — single child key only; a §-section itself is not a MERGE target; deeper paths → content= rewrite"
