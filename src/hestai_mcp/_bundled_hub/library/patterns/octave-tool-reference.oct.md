@@ -1,7 +1,7 @@
 ===OCTAVE_TOOL_REFERENCE===
 META:
   TYPE::PATTERN_DEFINITION
-  VERSION::"1.1.1"
+  VERSION::"1.1.2"
   STATUS::ACTIVE
   PURPOSE::"Procedural contract for octave_write and octave_validate — modes, receipts, changes-mode semantics, warning remediation. Sole agent-facing home for tool behaviour."
   VERIFIED_AGAINST::"octave-mcp 1.15.0"
@@ -59,10 +59,10 @@ WARNINGS::"the subset of corrections[] with safe:false — data-affecting only; 
 REPAIRS::"octave_validate ∧ lenient writes: schema repairs suggested (fix=false) ∨ applied (fix=true); repair_log is the per-repair audit trail that accompanies it — both [] on a clean artefact; read them alongside corrections[]"
 EMPTY_WARNINGS_RULE::"warnings:[] ≠ untouched — read corrections[] to learn what changed; only corrections:[] ∧ warnings:[] ∧ repairs:[] together mean the bytes were already canonical"
 TRIAGE:
-  DISCARDING::"content lost — W_BARE_LINE_DROPPED ∨ W_NUMERIC_KEY_DROPPED ∨ W_DUPLICATE_KEY ∨ W_UNQUOTED_SECTION_IN_VALUE → fix the source and rewrite"
+  DISCARDING::"content lost — W_BARE_LINE_DROPPED ∨ W_NUMERIC_KEY_DROPPED ∨ W_DUPLICATE_KEY ∨ W_UNQUOTED_SECTION_IN_VALUE → fix the source and rewrite. Hidden cause of W_DUPLICATE_KEY: an empty KEY:: where KEY: was meant opens no block, its children hoist into the parent scope and collide with the next record (literacy R13) — STRICT reports VALIDATED and warnings:[]; only repairs[] shows it"
   ADVISORY::"form debt, non-blocking — W_ANNOTATION_TOO_LONG ∨ W_SNAKE_CASE_BLOB → §6 value remediation; W_INLINE_ARRAY_ROOT ∨ W_FLAT_PREFIX_SCALAR ∨ W_CONSTRUCTOR_MISUSE → §6 STRUCTURAL_ADVISORY; each fires independently; all JIT, only when already amending the record"
   BENIGN::"tier NORMALIZATION ∧ safe:true — whitespace, blank lines, identifier dequoting, TN_INLINE_MAP_TO_BLOCK → no action"
-ALIAS::"octave_validate repairs[] subtype ⇌ octave_write corrections[] code → duplicate_key⇌W_DUPLICATE_KEY ∧ bare_line_dropped⇌W_BARE_LINE_DROPPED ∧ normalization⇌BENIGN tier — write-side W_ codes measured on 1.15.0; validate-side lowercase subtypes reported by octave-wire-build, not independently observed here"
+ALIAS::"octave_validate repairs[] type/subtype ⇌ octave_write corrections[] code → lenient_parse/duplicate_key⇌W_DUPLICATE_KEY ∧ lenient_parse/bare_line_dropped⇌W_BARE_LINE_DROPPED ∧ normalization⇌BENIGN tier — both sides measured on 1.15.0 (validate-side duplicate_key observed on an empty-value :: collapse)"
 SCOPE_NOTE::"column-0 keys under a §N header are file-top-level — TARGET ∧ NEVER ∧ MUST ∧ GATE of a kernel must be unique in the file or W_DUPLICATE_KEY drops the earlier one"
 NOOP_INVARIANT::"content identical to target bytes → true no-op: no normalisation, corrections:[] (octave-mcp 1.12.0, #407)"
 RECEIPT_GATE::"status:success ∧ errors:[] ∧ validation_status ≠ INVALID ∧ warnings:[] ∧ every corrections[] entry triaged BENIGN ∨ consciously accepted ∧ every repairs[] entry triaged the same way"

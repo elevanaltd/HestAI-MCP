@@ -108,6 +108,7 @@ META:
   R10::"Bare numeric keys trigger W_NUMERIC_KEY_DROPPED — use R1, STEP_1, not 1"
   R11::"Unkeyed prose sentences trigger W_BARE_LINE_DROPPED — comments (//) and list body lines are exempt"
   R12::"Section headers carry no value: §N::NAME then children on following lines. §N::NAME::\"value\" is parsed as a bare header — the value is silently dropped."
+  R13::"KEY:: with nothing after it opens NO block — it becomes KEY::\"\\n\" and the indented lines below hoist into the enclosing scope, colliding with the next record's keys (W_DUPLICATE_KEY, last write wins). A block opener is KEY: with a single colon."
   §3b::V6_ENVELOPE_STRUCTURE
     FILE_STRUCTURE::"===NAME=== then META then optional --- separator then BODY then ===END==="
     SEPARATOR::"--- signals metadata boundary to discovery/indexing tools. Place after META block."
@@ -142,7 +143,7 @@ META:
   // Receipt inspection (corrections[] ∧ warnings[]), changes-mode semantics, remediation → octave-tool-reference.
   W_BARE_LINE_DROPPED::"Cause: line has no key:: prefix. Fix: add a key or use // comment."
   W_NUMERIC_KEY_DROPPED::"Cause: bare integer key (1::thing). Fix: use R1::thing or STEP_1::thing."
-  W_DUPLICATE_KEY::"Cause: same key twice in one scope — last write wins. Fix: BLOCK form per §1d ∨ §7b."
+  W_DUPLICATE_KEY::"Cause: same key twice in one scope — last write wins. Fix: BLOCK form per §1d ∨ §7b. Frequent hidden cause: an empty KEY:: where KEY: was meant (R13) — STRICT still says VALIDATED; the loss shows only in repairs[]."
   W_UNQUOTED_SECTION_IN_VALUE::"Cause: bare § inside a value. Fix: quote per R8."
   W_INLINE_ARRAY_ROOT::"Cause: TOKEN::[KEY::v,…] map-as-inline-root. Fix: BLOCK form per §1d."
   W_FLAT_PREFIX_SCALAR::"Cause: PARENT_CHILD::v key-prefix flattening. Fix: BLOCK form per §1d."
