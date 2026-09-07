@@ -1,7 +1,7 @@
 ===OCTAVE_TOOL_REFERENCE===
 META:
   TYPE::PATTERN_DEFINITION
-  VERSION::"1.1.2"
+  VERSION::"1.1.3"
   STATUS::ACTIVE
   PURPOSE::"Procedural contract for octave_write and octave_validate — modes, receipts, changes-mode semantics, warning remediation. Sole agent-facing home for tool behaviour."
   VERIFIED_AGAINST::"octave-mcp 1.15.0"
@@ -65,7 +65,7 @@ TRIAGE:
 ALIAS::"octave_validate repairs[] type/subtype ⇌ octave_write corrections[] code → lenient_parse/duplicate_key⇌W_DUPLICATE_KEY ∧ lenient_parse/bare_line_dropped⇌W_BARE_LINE_DROPPED ∧ normalization⇌BENIGN tier — both sides measured on 1.15.0 (validate-side duplicate_key observed on an empty-value :: collapse)"
 SCOPE_NOTE::"column-0 keys under a §N header are file-top-level — TARGET ∧ NEVER ∧ MUST ∧ GATE of a kernel must be unique in the file or W_DUPLICATE_KEY drops the earlier one"
 NOOP_INVARIANT::"content identical to target bytes → true no-op: no normalisation, corrections:[] (octave-mcp 1.12.0, #407)"
-RECEIPT_GATE::"status:success ∧ errors:[] ∧ validation_status ≠ INVALID ∧ warnings:[] ∧ every corrections[] entry triaged BENIGN ∨ consciously accepted ∧ every repairs[] entry triaged the same way"
+RECEIPT_GATE::"status:success ∧ errors:[] ∧ validation_status ≠ INVALID ∧ warnings:[] ∧ every corrections[] entry AND every repairs[] entry (mapped via §3::ALIAS) triaged BENIGN ∨ consciously accepted — a DISCARDING entry on either side fails the gate even when validation_status says VALIDATED"
 §4::CHANGES_MODE
   // octave-mcp 1.15.0 STRATEGY_S3 — HARD BREAK from earlier releases
 PATHS::"top-level KEY; META.FIELD; PARENT.CHILD into a top-level Block; §N.KEY ∨ §N::NAME.KEY into a Section — single child key only; a §-section itself is not a MERGE target; deeper paths → content= rewrite"
