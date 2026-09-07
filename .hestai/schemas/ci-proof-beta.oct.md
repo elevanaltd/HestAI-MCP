@@ -3,5 +3,6 @@ META:
   TYPE::CI_PROOF_FIXTURE
   VERSION::"1.0"
   CANONICAL::".hestai/schemas/ci-proof-beta.oct.md"
-NOTE::"Throwaway fixture proving the hoisted docs_validate loop runs on a real CI runner and processes every changed file (see PR #433). Reverted after evidence capture."
+NOTE::"Deliberately invalid OCTAVE syntax to prove real-runner fail-fast in the hoisted OCTAVE-validate loop (see PR #433). Reverted after evidence capture."
+BROKEN::{wind:null,wall:null}
 ===END===
