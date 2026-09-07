@@ -18,7 +18,7 @@ META:
   PRIMER::"OCTAVE_WIRE v1.3.0 — §4 below is its §1–§3 verbatim; canonical 554 tokens[cl100k_base] self-consistent; evidence base is v1.1 with 7 fewer rules; v1.3 UNTESTED until W3"
   KERNEL::"§5 = OCTAVE_WIRE FULL kernel, frozen 2026-09-05 — 138 tokens[cl100k_base, canonical]; the same string is stamped into workbench dispatch envelopes so hub kernel_only loads and dispatch never diverge; any edit re-opens its own count"
   PRIOR_ART::"octave-mcp thread 2026-01-30-octave-native-comms — RATIFIED across 3 models: a ~200-token primer enabled native OCTAVE output; an evidence point, not a ceiling — the 138-token kernel's SIZE is measured, its EFFICACY is untested until W3"
-  KERNEL_SCOPE::"§5 covers the wire register only — file-syntax rules (no value on a §-header, no chained ⇌, no META on the wire) live in §1/§2 here and in octave-literacy §5; a kernel_only load of this skill gets wire rules, not file syntax, by design"
+  KERNEL_SCOPE::"§5 covers the wire register only — file-syntax rules (no META on the wire → §1, no value on a §-header → §2, no chained ⇌ → §3) live in §1–§3 here and in octave-literacy §5; a kernel_only load of this skill gets wire rules, not file syntax, by design"
 ---
 §1::REGISTER
   FORMAL::".oct.md files ∧ closing anchors → parsed by octave_validate → octave-literacy governs"
@@ -46,7 +46,7 @@ META:
   CONCAT::"⧺ mechanical join | ASCII ~"
   ANNOTATION::"NAME<facet> qualifies identity — HERMES<messenger>"
   CONSTRUCTOR::"NAME[args] parameterises — ENUM[a,b]"
-  IN_VALUES::"inside a quoted value only operators carry relations; <> and [] stay in keys"
+  IN_VALUES::"inside a quoted value only operators carry relations — <> and [] there are opaque text, never validated: SISYPHEAN<endless re-explaining> in the primer is a gloss, who[role] is a slot; when a form must be checked by the parser, put it in a key"
 §4::WIRE_PRIMER
   // OCTAVE_WIRE v1.3.0 §1–§3 verbatim (ASCII wire form preserved — the canonicaliser leaves quoted-value ASCII alone). Do not edit here; edit the primer and re-freeze.
   // Mythology = semantic zip, not decoration. HERMES = messenger. Meaning already in weights -> never literal, never a system name. First use in a thread carries its gloss, like this line.

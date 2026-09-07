@@ -1,7 +1,7 @@
 ===OCTAVE_TOOL_REFERENCE===
 META:
   TYPE::PATTERN_DEFINITION
-  VERSION::"1.1.0"
+  VERSION::"1.1.1"
   STATUS::ACTIVE
   PURPOSE::"Procedural contract for octave_write and octave_validate — modes, receipts, changes-mode semantics, warning remediation. Sole agent-facing home for tool behaviour."
   VERIFIED_AGAINST::"octave-mcp 1.15.0"
@@ -33,7 +33,8 @@ PARAMETERS:
   DRY_RUN::"dry_run=true ∨ corrections_only=true → receipt without disk write — use before any destructive changes-mode call"
   BASE_HASH::"base_hash=sha256 → compare-and-swap; mismatch → E_HASH, nothing written"
   LENIENT::"lenient=true → deterministic repairs ∧ salvage policy; default strict rejects on parse error"
-OCTAVE_VALIDATE::"content= ∨ file_path= (exclusive, .md ∨ .oct.md ∨ .octave only); profile STRICT ∨ STANDARD ∨ LENIENT ∨ ULTRA; schema required; compact=true → counts only; diff_only=true → diff not canonical body"
+OCTAVE_VALIDATE::"content= XOR file_path=; profile STRICT ∨ STANDARD ∨ LENIENT ∨ ULTRA; schema required; compact=true → counts only; diff_only=true → diff not canonical body"
+FILE_PATH_WHITELIST::"file_path= accepts .md ∨ .oct.md ∨ .octave only — anything else → E_PATH; content= has no extension constraint"
 §3::RECEIPT_GATES
 RESULT_FIELDS::[
   status,
@@ -55,16 +56,16 @@ STATUS::"success ⇌ error — error carries errors[] with code (E_PARSE, E_HASH
 VALIDATION_STATUS::"VALIDATED ∨ UNVALIDATED (no ∨ unknown schema) ∨ INVALID (schema violations in validation_errors[])"
 CORRECTIONS::"every normalisation ∧ repair the pipeline applied — entries carry rule_id ∧ before ∧ after ∧ safe ∧ semantics_changed ∧ tier (NORMALIZATION ∨ REPAIR ∨ LENIENT_PARSE)"
 WARNINGS::"the subset of corrections[] with safe:false — data-affecting only; a benign normalisation never appears here"
-REPAIRS::"octave_validate ∧ lenient writes: schema repairs suggested (fix=false) ∨ applied (fix=true) — templates expect repairs:[] on a clean artefact; read it alongside corrections[]"
+REPAIRS::"octave_validate ∧ lenient writes: schema repairs suggested (fix=false) ∨ applied (fix=true); repair_log is the per-repair audit trail that accompanies it — both [] on a clean artefact; read them alongside corrections[]"
 EMPTY_WARNINGS_RULE::"warnings:[] ≠ untouched — read corrections[] to learn what changed; only corrections:[] ∧ warnings:[] ∧ repairs:[] together mean the bytes were already canonical"
 TRIAGE:
-  DISCARDING::"content lost — W_BARE_LINE_DROPPED, W_NUMERIC_KEY_DROPPED, W_DUPLICATE_KEY, W_UNQUOTED_SECTION_IN_VALUE → fix the source and rewrite"
-  ADVISORY::"form debt, non-blocking — W_ANNOTATION_TOO_LONG ∧ W_SNAKE_CASE_BLOB → §6 value remediation; W_INLINE_ARRAY_ROOT ∧ W_FLAT_PREFIX_SCALAR ∧ W_CONSTRUCTOR_MISUSE → §6 STRUCTURAL_ADVISORY; all JIT, only when already amending the record"
+  DISCARDING::"content lost — W_BARE_LINE_DROPPED ∨ W_NUMERIC_KEY_DROPPED ∨ W_DUPLICATE_KEY ∨ W_UNQUOTED_SECTION_IN_VALUE → fix the source and rewrite"
+  ADVISORY::"form debt, non-blocking — W_ANNOTATION_TOO_LONG ∨ W_SNAKE_CASE_BLOB → §6 value remediation; W_INLINE_ARRAY_ROOT ∨ W_FLAT_PREFIX_SCALAR ∨ W_CONSTRUCTOR_MISUSE → §6 STRUCTURAL_ADVISORY; each fires independently; all JIT, only when already amending the record"
   BENIGN::"tier NORMALIZATION ∧ safe:true — whitespace, blank lines, identifier dequoting, TN_INLINE_MAP_TO_BLOCK → no action"
 ALIAS::"octave_validate repairs[] subtype ⇌ octave_write corrections[] code → duplicate_key⇌W_DUPLICATE_KEY ∧ bare_line_dropped⇌W_BARE_LINE_DROPPED ∧ normalization⇌BENIGN tier — write-side W_ codes measured on 1.15.0; validate-side lowercase subtypes reported by octave-wire-build, not independently observed here"
 SCOPE_NOTE::"column-0 keys under a §N header are file-top-level — TARGET ∧ NEVER ∧ MUST ∧ GATE of a kernel must be unique in the file or W_DUPLICATE_KEY drops the earlier one"
 NOOP_INVARIANT::"content identical to target bytes → true no-op: no normalisation, corrections:[] (octave-mcp 1.12.0, #407)"
-RECEIPT_GATE::"status:success ∧ errors:[] ∧ validation_status ≠ INVALID ∧ warnings:[] ∧ every corrections[] entry triaged BENIGN ∨ consciously accepted"
+RECEIPT_GATE::"status:success ∧ errors:[] ∧ validation_status ≠ INVALID ∧ warnings:[] ∧ every corrections[] entry triaged BENIGN ∨ consciously accepted ∧ every repairs[] entry triaged the same way"
 §4::CHANGES_MODE
   // octave-mcp 1.15.0 STRATEGY_S3 — HARD BREAK from earlier releases
 PATHS::"top-level KEY; META.FIELD; PARENT.CHILD into a top-level Block; §N.KEY ∨ §N::NAME.KEY into a Section — single child key only; a §-section itself is not a MERGE target; deeper paths → content= rewrite"
@@ -99,7 +100,7 @@ MUST::[
   "changes mode: MERGE to keep siblings; bare dict = FULL REPLACE; nested ∨ new key → content= preserve",
   "advisory warnings → remediate JIT per §6, only on the record already being amended"
 ]
-GATE::"Did I read the receipt, and can I name every correction the tool applied?"
+GATE::"Did I read the receipt, and can I name every correction and every repair the tool applied?"
 §6::REMEDIATION
   // JIT policy — remediate only when already amending the record that surfaced the warning
 ANNOTATION_MIGRATION:
@@ -161,7 +162,7 @@ P8::"literal-zone fence preservation under changes → CHANGELOG 1.14.0 (#460)"
 P9::"W_SNAKE_CASE_BLOB detector → src/octave_mcp/mcp/write_detection.py _detect_snake_case_blob"
 P10::"column-0 keys under § are top-level (W_DUPLICATE_KEY on a second kernel GATE) → observed on this pattern's own first write, octave-mcp 1.15.0"
 P11::"§-section is not a MERGE target ∧ changes cannot create a key (E_UNRESOLVABLE_PATH: single child key only) → observed adding ALIAS to this pattern, octave-mcp 1.15.0"
-P12::"repairs[] field ∧ validate file_path extension whitelist (.md .oct.md .octave, E_PATH) → observed on octave_validate receipts this session, octave-mcp 1.15.0"
+P12::"repairs[] ∧ repair_log[] fields on every octave_validate receipt (both [] on clean input) ∧ file_path extension whitelist (.md .oct.md .octave, E_PATH on .txt) → observed on octave_validate receipts this session, octave-mcp 1.15.0"
 §8::USED_BY
 AGENTS::[octave-secretary,octave-specialist]
 KERNEL_ONLY::"any agent that calls octave_write directly — north-star-architect, system-steward, agent-expert, skills-expert"
