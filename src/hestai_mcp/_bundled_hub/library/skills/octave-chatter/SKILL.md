@@ -38,12 +38,12 @@ META:
   ENVELOPE::"===NAME=== … ===END=== optional on the wire; use it when the message must be quotable as a unit"
 §3::OPERATORS
   // Reference table — which forms exist. The wire policy (when ASCII is legal, what the canonicaliser does) is §4b::ASCII.
-  SYNTHESIS::"⊕ emergent whole | ASCII +"
-  TENSION::"⇌ binary opposition, never chained | ASCII vs"
-  FLOW::"→ causality ∨ sequence, right-associative | ASCII ->"
-  CONSTRAINT::"∧ joint condition, inside brackets ∨ quoted values | ASCII &"
-  ALT::"∨ alternative | ASCII |"
-  CONCAT::"⧺ mechanical join | ASCII ~"
+  SYNTHESIS::"⊕ emergent whole — ASCII form: +"
+  TENSION::"⇌ binary opposition, never chained — ASCII form: vs (word boundaries required)"
+  FLOW::"→ causality ∨ sequence, right-associative — ASCII form: ->"
+  CONSTRAINT::"∧ joint condition, inside brackets ∨ quoted values — ASCII form: &"
+  ALT::"∨ alternative — ASCII form: the pipe character |"
+  CONCAT::"⧺ mechanical join — ASCII form: ~"
   ANNOTATION::"NAME<facet> qualifies identity — HERMES<messenger>"
   CONSTRUCTOR::"NAME[args] parameterises — ENUM[a,b]"
   IN_VALUES::"inside a quoted value only operators carry relations — <> and [] there are opaque text, never validated: SISYPHEAN<endless re-explaining> in the primer is a gloss, who[role] is a slot; when a form must be checked by the parser, put it in a key"

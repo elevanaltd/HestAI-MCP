@@ -342,7 +342,7 @@
     "octave-chatter": {
       "type": "domain",
       "description": "OCTAVE on the wire — read and emit OCTAVE in agent-to-agent messages without authoring files. Syntax kernel, operator table, and the OCTAVE_WIRE primer v1.3 (provenance, hedges, verbatim IDs). For agents outside the workbench matrix.",
-      "autoInject": true,
+      "autoInject": false,
       "injectionOrder": 50,
       "promptTriggers": {
         "keywords": [
