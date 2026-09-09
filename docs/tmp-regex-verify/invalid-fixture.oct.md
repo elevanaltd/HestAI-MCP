@@ -1,8 +1,8 @@
 ===GAMMA_FIXTURE===
 META:
   TYPE::SCRATCH
-  PURPOSE::"THROWAWAY fixture; will be invalidated in a follow-up commit to prove real-runner fail-fast"
+  PURPOSE::"Deliberately invalid OCTAVE syntax to prove real-runner fail-fast (see PR #436)"
   SOURCE::"docs/tmp-regex-verify/invalid-fixture.oct.md"
 §1::BODY
-  NOTE::"valid for now, expect PASS in this commit"
+  BROKEN::{unquoted:brace,map:here}
 ===END===
