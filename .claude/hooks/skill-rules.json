@@ -25,7 +25,7 @@
     },
     "ci-error-resolution": {
       "type": "domain",
-      "description": "CI/CD pipeline failure resolution with autonomous iteration loops. Local validation \u2192 branch & PR creation \u2192 CI monitoring \u2192 iteration until green",
+      "description": "CI/CD pipeline failure resolution with autonomous iteration loops. Local validation → branch & PR creation → CI monitoring → iteration until green",
       "autoInject": false,
       "injectionOrder": 50,
       "promptTriggers": {
@@ -84,7 +84,7 @@
     },
     "error-triage": {
       "type": "domain",
-      "description": "Systematic error resolution with priority-based triage preventing cascade failures. Build\u2192Types\u2192Unused\u2192Async\u2192Logic\u2192Tests priority order",
+      "description": "Systematic error resolution with priority-based triage preventing cascade failures. Build→Types→Unused→Async→Logic→Tests priority order",
       "autoInject": false,
       "injectionOrder": 50,
       "promptTriggers": {
@@ -104,24 +104,6 @@
         ]
       }
     },
-    "ho-mode": {
-      "type": "domain",
-      "description": "HO lane discipline enforcement. Coordination-only tools. Prevents direct code implementation, enforces delegation to specialists",
-      "autoInject": false,
-      "injectionOrder": 50,
-      "promptTriggers": {
-        "keywords": [
-          "/role ho",
-          "holistic orchestrator",
-          "HO mode",
-          "orchestrator mode",
-          "coordination only",
-          "delegate to specialists",
-          "orchestration discipline",
-          "HO activation"
-        ]
-      }
-    },
     "ho-control-room": {
       "type": "domain",
       "description": "Strategic oversight mode for HO. Episodic State Machine with ho-liaison advisory (via pal_clink), run_debate escalation, and oa-router delegation. REPLACES holistic-orchestration when loaded.",
@@ -137,27 +119,6 @@
           "ho-strategic-ledger",
           "control room mode",
           "strategic planning session"
-        ]
-      }
-    },
-    "ho-orchestrate": {
-      "type": "domain",
-      "description": "HO work orchestration protocol with enforced quality gates and debate-hall escalation. Loads ho-mode, ensures IL uses build-execution+TDD, quality gates via CRS(Gemini)+CE(Codex), debate-hall for complex decisions (Claude\u2192Wind, Codex\u2192Wall, Gemini\u2192Door per M019/M021). NEVER implements directly. Use when orchestrating implementation work.",
-      "autoInject": false,
-      "injectionOrder": 50,
-      "promptTriggers": {
-        "keywords": [
-          "orchestrate implementation",
-          "HO orchestrate",
-          "delegate work",
-          "quality gates",
-          "CRS review",
-          "CE review",
-          "debate escalation",
-          "orchestration protocol",
-          "implementation orchestration",
-          "subagent delegation",
-          "Task with binding"
         ]
       }
     },
@@ -236,27 +197,6 @@
           "high-density specifications",
           "system architecture",
           "OCTAVE patterns"
-        ]
-      }
-    },
-    "octave-mythology": {
-      "type": "domain",
-      "description": "Functional mythological compression for OCTAVE documents. Semantic shorthand for LLM audiences, not prose decoration",
-      "autoInject": false,
-      "injectionOrder": 50,
-      "promptTriggers": {
-        "keywords": [
-          "mythology",
-          "archetype",
-          "SISYPHEAN",
-          "ICARIAN",
-          "semantic compression",
-          "evidence-based",
-          "mythological domains",
-          "OCTAVE mythology",
-          "PROMETHEAN",
-          "functional mythology",
-          "compression patterns"
         ]
       }
     },
@@ -396,6 +336,38 @@
           "preview URL",
           "vercel CI",
           "preview testing"
+        ]
+      }
+    },
+    "octave-chatter": {
+      "type": "domain",
+      "description": "OCTAVE on the wire — read and emit OCTAVE in agent-to-agent messages without authoring files. Syntax kernel, operator table, and the OCTAVE_WIRE primer v1.3 (provenance, hedges, verbatim IDs). For agents outside the workbench matrix.",
+      "autoInject": false,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": [
+          "octave chatter",
+          "octave wire",
+          "reply in octave",
+          "octave message",
+          "inter-agent message",
+          "read octave",
+          "answer in octave"
+        ]
+      }
+    },
+    "holistic-orchestration": {
+      "type": "domain",
+      "description": "Core operating manual for the Holistic Orchestrator. Enforces lane discipline (zero implementation), oa-router delegation, quality gating, debate escalation, and emergency protocols.",
+      "autoInject": false,
+      "injectionOrder": 50,
+      "promptTriggers": {
+        "keywords": [
+          "orchestrate",
+          "delegate",
+          "coordinate",
+          "review_gates",
+          "production_incident"
         ]
       }
     }

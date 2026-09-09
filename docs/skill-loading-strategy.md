@@ -16,7 +16,7 @@ Skills that define the core constitutional capabilities of an agent. These are:
 - `gap-ownership` - Essential cross-boundary responsibility
 - `system-orchestration` - Fundamental coordination methodology
 - `constitutional-enforcement` - Required for system integrity
-- `ho-mode` - Critical lane discipline preventing implementation drift
+- `holistic-orchestration` - Lane discipline (zero implementation), oa-router delegation, quality gating, debate escalation; supersedes `ho-mode` and `ho-orchestrate` (REPLACES::[ho-mode@2.0, ho-orchestrate@2.1])
 
 ### 2. Operational Skills (Manually Loaded)
 Skills that define specific operational workflows. These are:
@@ -25,8 +25,8 @@ Skills that define specific operational workflows. These are:
 - Extend or enhance constitutional capabilities
 
 **Example:** For holistic-orchestrator:
-- `ho-orchestrate` - Extends ho-mode with quality gates and debate-hall
-- Loaded via `/ho-orchestrate` or `Skill(ho-orchestrate)`
+- `debate-hall` - Wind/Wall/Door debate orchestration for architectural decisions; not in holistic-orchestrator §3::CAPABILITIES
+- Loaded via `Skill(debate-hall)` when a decision needs multi-perspective deliberation
 
 ## Decision Criteria
 
