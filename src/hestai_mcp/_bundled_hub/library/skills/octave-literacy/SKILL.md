@@ -93,7 +93,7 @@ META:
   LINE_COMMENT::"// — line start or after value"
   ASCII_RULE::"All operators accept both unicode and ASCII. Always emit unicode in files; ASCII is acceptable on the wire (octave-chatter)."
   VS_RULE::"vs requires word boundaries: 'A vs B' valid, 'AvsB' invalid"
-  TELEGRAPHIC_PHRASE::"see octave-compression §4::R3a — operators carry the English connectives inside quoted values"
+  TELEGRAPHIC_PHRASE::"see octave-compression §4::COMPRESSION_RULES R3a — operators carry the English connectives inside quoted values"
 §3::CRITICAL_RULES
   R1::"No spaces around :: (KEY::value not KEY :: value)"
   R2::"Indent exactly 2 spaces per level — NO TABS"
@@ -263,10 +263,10 @@ METRICS:
     PROJECT_LOCAL::"if file lives only in project tree → CANONICAL == SOURCE"
     BUNDLED_HUB::"source ≠ canonical → CANONICAL points to .hestai-sys/, SOURCE points to _bundled_hub/"
   §7f::VALUE_FORM_DELEGATION
-    // Reasoning-field values (PRINCIPLE, WHY, RATIONALE, EVIDENCE, …) → R3a §4 of octave-compression.
+    // Reasoning-field values (PRINCIPLE, WHY, RATIONALE, EVIDENCE, …) → octave-compression §4::COMPRESSION_RULES R3a.
     // Do NOT use snake_case_blobs in reasoning fields → triggers W_SNAKE_CASE_BLOB advisory
     // (see octave-tool-reference §6::SNAKE_CASE_BLOB, octave-mcp 1.13.0).
-    SEE_COMPRESSION::"octave-compression §4::R3a"
+    SEE_COMPRESSION::"octave-compression §4::COMPRESSION_RULES R3a"
     SEE_TOOL_REFERENCE::"octave-tool-reference §6::SNAKE_CASE_BLOB"
     RULE::"quoted prose ∨ telegraphic operator form. NEVER bare snake_case_blob in reasoning fields."
   §7g::MIGRATION_CHECKLIST

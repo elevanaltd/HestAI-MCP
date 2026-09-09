@@ -1,7 +1,7 @@
 """UPOG compliance regression guard for North Star governance documents.
 
 Locks the gain from the UPOG (Universal Parse-Only Governance) migration
-(PR #409, octave-literacy §7 GOVERNANCE_AUTHORING). The legacy immutable form
+(PR #409, octave-literacy §7::GOVERNANCE_AUTHORING). The legacy immutable form
 ``I1::NAME::[PRINCIPLE::v, WHY::v, STATUS::v]`` silently lost data under the
 octave-mcp 1.13 strict lexer: the chained ``::NAME::[...]`` read as an
 assignment, hoisting inner keys to file-top-level so PRINCIPLE/WHY/STATUS

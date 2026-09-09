@@ -1,7 +1,7 @@
 ===OCTAVE_TOOL_REFERENCE===
 META:
   TYPE::PATTERN_DEFINITION
-  VERSION::"1.1.8"
+  VERSION::"1.1.9"
   STATUS::ACTIVE
   PURPOSE::"Procedural contract for octave_write and octave_validate — modes, receipts, changes-mode semantics, warning remediation. Sole agent-facing home for tool behaviour."
   VERIFIED_AGAINST::"octave-mcp 1.15.0"
@@ -136,7 +136,7 @@ SNAKE_CASE_BLOB:
     ASSUMPTION
   ]
   ACTION::[
-    "Rewrite the offending snake-case value as a TELEGRAPHIC_PHRASE per octave-compression §4::R3a",
+    "Rewrite the offending snake-case value as a TELEGRAPHIC_PHRASE per octave-compression §4::COMPRESSION_RULES R3a",
     "Quoted value, stopwords dropped, operators ⊕ ⇌ ∧ ∨ → carry English connectives",
     "ATOMS belong in structural positions (keys, enum values), not reasoning-field values"
   ]

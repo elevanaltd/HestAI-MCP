@@ -215,5 +215,5 @@ CONDUCT:
       BEFORE::"\"natural language at odds with OCTAVE because stopwords\" (~13 tokens)"
       AFTER::"\"natural language ⇌ OCTAVE → stopword overhead\" (~5 tokens)"
     WHY::"operators are parse-efficient for LLM attention — same fidelity, lower token cost"
-    SEE_ALSO::"octave-compression §4::R3a for full rule set"
+    SEE_ALSO::"octave-compression §4::COMPRESSION_RULES R3a for full rule set"
 ===END===

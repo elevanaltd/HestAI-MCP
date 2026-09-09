@@ -16,7 +16,7 @@ mechanical guard that keeps the surface clean going forward.
 
 If this test fails after an upstream octave-mcp release, the validator likely got
 stricter — investigate whether the new triggers are correct, then either fix the
-surfaced artifacts (telegraphic-phrase per octave-compression §4 R3a) or escalate
+surfaced artifacts (telegraphic-phrase per octave-compression §4::COMPRESSION_RULES R3a) or escalate
 to the octave-mcp maintainers. Do not silence the guard.
 """
 
@@ -77,6 +77,6 @@ class TestBundledHubSelfApplication:
         assert not offenders, (
             "Snake-case prose blob detected in reasoning-field positions. Convert each "
             "offender to a TELEGRAPHIC_PHRASE (quoted value, stopwords dropped, operators "
-            "⊕ ⇌ ∧ ∨ → carry English connectives — see octave-compression §4 R3a). "
+            "⊕ ⇌ ∧ ∨ → carry English connectives — see octave-compression §4::COMPRESSION_RULES R3a). "
             f"Offenders: {offenders}"
         )
