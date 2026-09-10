@@ -8,6 +8,8 @@ META:
   DEBATE_THREAD::"2026-03-22-anchor-ceremony-redesign"
   CONSENSUS::"STALEMATE<Wind::GO,Wall::CONDITIONAL>"
   DECISION_HASH::"442eabe162eb854452a1022b977163e7921cd8a7ac166facdd0990e6b1a47d6a"
+  CANONICAL::"docs/decisions/2026-03-22-anchor-ceremony-redesign.oct.md"
+  SOURCE::"docs/decisions/2026-03-22-anchor-ceremony-redesign.oct.md"
 §0::TOPIC
 QUESTION::"How should we map the 6-step empirically-optimal LLM loading sequence to the Odyssean Anchor ceremony stages?"
 CONTEXT::"The anchor ceremony uses REQUEST→SEA→SHANK→ARM→FLUKES but the 6-step cognitive loading sequence (Cognition→Constitution→Identity→Context→Patterns→Skills) does not cleanly map. Cognition has no dedicated home, SEA loads before SHANK violating Cognition-First physics, and Patterns+Skills are conflated in FLUKES."
