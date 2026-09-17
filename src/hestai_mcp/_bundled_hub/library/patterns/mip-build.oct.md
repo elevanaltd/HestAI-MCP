@@ -3,7 +3,7 @@ META:
   TYPE::PATTERN
   VERSION::"1.0"
   PURPOSE::"Minimal Intervention for preventing accumulative code complexity"
-  CANONICAL::"src/hestai_mcp/_bundled_hub/library/patterns/mip-build.oct.md"
+  CANONICAL::".hestai-sys/library/patterns/mip-build.oct.md"
   SOURCE::"src/hestai_mcp/_bundled_hub/library/patterns/mip-build.oct.md"
   EXTRACTED_FROM::build-philosophy.oct.md
 §1::CORE_PRINCIPLE
