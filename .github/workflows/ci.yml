@@ -58,8 +58,13 @@ jobs:
           echo "BASE_SHA=$BASE_SHA" >> "$GITHUB_OUTPUT"
           git diff --name-only "$BASE_SHA"...${{ github.sha }} > changed_files.txt
 
-          grep -E '(^docs/|^src/hestai_mcp/_bundled_hub/|^\.hestai/|^\.claude/).*(\\.oct\\.md)$' changed_files.txt > changed_octave.txt || true
-          grep -E '(^docs/|^src/hestai_mcp/_bundled_hub/|^\.hestai/|^\.claude/).*(\\.md|\\.oct\\.md)$' changed_files.txt > changed_docs.txt || true
+          # grep exits 1 when a pattern legitimately finds no matches (e.g. a PR
+          # touching no docs) and 2+ on a malformed pattern/regex error. Treat exit
+          # 1 as the expected "nothing changed" case but let anything else fail the
+          # step loudly, so a broken pattern can never again masquerade as a clean
+          # "no docs changed" result.
+          grep -E '(^docs/|^src/hestai_mcp/_bundled_hub/|^\.hestai/|^\.claude/).*\.oct\.md$' changed_files.txt > changed_octave.txt || { rc=$?; [ "$rc" -eq 1 ] || exit "$rc"; }
+          grep -E '(^docs/|^src/hestai_mcp/_bundled_hub/|^\.hestai/|^\.claude/).*\.md$' changed_files.txt > changed_docs.txt || { rc=$?; [ "$rc" -eq 1 ] || exit "$rc"; }
 
           echo "changed_octave_count=$(wc -l < changed_octave.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
           echo "changed_docs_count=$(wc -l < changed_docs.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
