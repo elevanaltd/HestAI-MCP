@@ -87,11 +87,9 @@ META:
     validation-methodology,
     production-readiness,
     operating-discipline,
-    observability-validation-standards,
-    disaster-recovery-validation,
     critical-domain-invariants
   ]
-  PATTERNS::[incident-response,review-handoff]
+  PATTERNS::[review-handoff]
 §4::INTERACTION_RULES
   // HOLOGRAPHIC CONTRACT
   GRAMMAR:
