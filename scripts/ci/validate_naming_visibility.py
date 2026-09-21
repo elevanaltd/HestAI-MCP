@@ -16,6 +16,12 @@ RE_WHITELIST = re.compile(
 )
 RE_GOVERNANCE_SYSTEM = re.compile(r"^[A-Z][A-Z0-9-]*(\.oct)?\.md$")
 
+# Canonical path (not a bare-filename whitelist entry) for the cross-repo governance
+# linker's generated artifact. Scoped to this exact path -- unlike README/CLAUDE/etc.,
+# MANIFEST.md has exactly one valid location and must not pass at repo root or under
+# any other allowed root.
+MANIFEST_PATH = ".hestai/MANIFEST.md"
+
 
 ALLOWED_ROOTS = (
     "docs/",
@@ -60,6 +66,9 @@ def _validate_one(path: str) -> None:
     name = p.name
 
     if name == "current_state.oct.md":
+        return
+
+    if path == MANIFEST_PATH:
         return
 
     if "_" in name:
