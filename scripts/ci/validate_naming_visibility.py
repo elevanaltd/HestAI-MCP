@@ -12,9 +12,15 @@ RE_ADR = re.compile(r"^adr-\d{4}-[a-z0-9-]+(\.oct)?\.md$")
 RE_REPORT = re.compile(r"^report-\d{3}-[a-z0-9-]+(\.oct)?\.md$")
 RE_NORTH_STAR = re.compile(r"^000-[A-Z0-9-]+-NORTH-STAR(-SUMMARY)?(\.oct)?\.md$")
 RE_WHITELIST = re.compile(
-    r"^(README|LICENSE|CONTRIBUTING|CHANGELOG|SECURITY|CODE_OF_CONDUCT|CLAUDE|CODEOWNERS|ARCHITECTURE|PROJECT-CONTEXT|PROJECT-CHECKLIST|PROJECT-HISTORY|PROJECT-ROADMAP|APP-CONTEXT|APP-CHECKLIST|DECISIONS|VISIBILITY-RULES|NAMING-STANDARD|TEST-STRUCTURE-STANDARD|SKILL|SYSTEM-STANDARD|current_state|MANIFEST)(\.(oct\.)?md)?$"
+    r"^(README|LICENSE|CONTRIBUTING|CHANGELOG|SECURITY|CODE_OF_CONDUCT|CLAUDE|CODEOWNERS|ARCHITECTURE|PROJECT-CONTEXT|PROJECT-CHECKLIST|PROJECT-HISTORY|PROJECT-ROADMAP|APP-CONTEXT|APP-CHECKLIST|DECISIONS|VISIBILITY-RULES|NAMING-STANDARD|TEST-STRUCTURE-STANDARD|SKILL|SYSTEM-STANDARD|current_state)(\.(oct\.)?md)?$"
 )
 RE_GOVERNANCE_SYSTEM = re.compile(r"^[A-Z][A-Z0-9-]*(\.oct)?\.md$")
+
+# Canonical path (not a bare-filename whitelist entry) for the cross-repo governance
+# linker's generated artifact. Scoped to this exact path -- unlike README/CLAUDE/etc.,
+# MANIFEST.md has exactly one valid location and must not pass at repo root or under
+# any other allowed root.
+MANIFEST_PATH = ".hestai/MANIFEST.md"
 
 
 ALLOWED_ROOTS = (
@@ -60,6 +66,9 @@ def _validate_one(path: str) -> None:
     name = p.name
 
     if name == "current_state.oct.md":
+        return
+
+    if path == MANIFEST_PATH:
         return
 
     if "_" in name:

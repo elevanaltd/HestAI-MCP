@@ -95,3 +95,17 @@ class TestRootLevelDocValidation:
 
         result = main([".hestai/MANIFEST.md"])
         assert result == 0
+
+    def test_root_manifest_fails(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """MANIFEST.md at repo root is NOT the governance linker artifact and must still fail."""
+        from scripts.ci.validate_naming_visibility import main
+
+        with pytest.raises(SystemExit):
+            main(["MANIFEST.md"])
+
+    def test_docs_manifest_fails(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """MANIFEST.md under docs/ is not the canonical linker path and must still fail."""
+        from scripts.ci.validate_naming_visibility import main
+
+        with pytest.raises(SystemExit):
+            main(["docs/MANIFEST.md"])
