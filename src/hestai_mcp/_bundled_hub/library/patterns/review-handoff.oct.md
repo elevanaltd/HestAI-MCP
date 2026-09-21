@@ -3,6 +3,8 @@ META:
   TYPE::PATTERN_DEFINITION
   VERSION::"1.0.0"
   PURPOSE::"Define the exact handoff contract between CRS and CE in the review gate chain"
+  CANONICAL::".hestai-sys/library/patterns/review-handoff.oct.md"
+  SOURCE::"src/hestai_mcp/_bundled_hub/library/patterns/review-handoff.oct.md"
 §1::CORE_PRINCIPLE
 ESSENTIAL::"CRS and CE must exchange structured, machine-readable metadata — implicit contracts cause integration failures"
 ANTI_PATTERN::"implicit_handoff<CRS_produces_prose⊕CE_parses_by_convention→brittle_chain⊕missed_findings>"
@@ -10,46 +12,40 @@ ENFORCEMENT::"CRS output must contain REQUIRED metadata fields; ENRICHED fields 
 CHAIN::"CRS[gemini,code-review-specialist] → CE[codex,critical-engineer] → merge"
 TRIGGER_CONDITION::"T2+ PRs — CE reviews T2, T3, and T4 per gate chain"
 §2::DECISION_FRAMEWORK
-CRS_PRODUCES::[
-  PR_COMMENT::[
-    STRUCTURE::"EXECUTIVE_SUMMARY → CRITICAL_ISSUES → QUALITY_RECOMMENDATIONS → CODE_EXAMPLES",
-    METADATA_COMMENT::"<!-- review: {role,provider,verdict,sha,tier,findings,blocking,priority_distribution,triaged,findings_omitted} -->",
-    VERDICT_DECLARATION::"'CRS APPROVED: [assessment]' or 'CRS BLOCKED: [issues]'",
-    LINE_REFERENCES::"Every finding cites file path, line number, and confidence level",
+CRS_PRODUCES:
+  PR_COMMENT:
+    STRUCTURE::"EXECUTIVE_SUMMARY → CRITICAL_ISSUES → QUALITY_RECOMMENDATIONS → CODE_EXAMPLES"
+    METADATA_COMMENT::"<!-- review: {role,provider,verdict,sha,tier,findings,blocking,priority_distribution,triaged,findings_omitted} -->"
+    VERDICT_DECLARATION::"'CRS APPROVED: [assessment]' or 'CRS BLOCKED: [issues]'"
+    LINE_REFERENCES::"Every finding cites file path, line number, and confidence level"
     CONFIDENCE_LABELS::"CONFIDENCE::(CERTAIN|HIGH|MODERATE) on each finding"
-  ],
-  STRUCTURED_FIELDS::[
-    tier::"T0|T1|T2|T3|T4 classification of PR scope",
-    verdict::"APPROVED|BLOCKED",
-    provider::"AI provider used for review (lowercase)",
-    role::"Short-form role identifier (CRS, CE, TMG, etc.)",
-    findings::"total finding count (integer)",
-    blocking::"blocking finding count (integer)",
-    sha::"First 7 characters of PR head commit SHA for audit trail",
+  STRUCTURED_FIELDS:
+    tier::"T0|T1|T2|T3|T4 classification of PR scope"
+    verdict::"APPROVED|BLOCKED"
+    provider::"AI provider used for review (lowercase)"
+    role::"Short-form role identifier (CRS, CE, TMG, etc.)"
+    findings::"total finding count (integer)"
+    blocking::"blocking finding count (integer)"
+    sha::"First 7 characters of PR head commit SHA for audit trail"
     priority_distribution::"P0:N P1:N P2:N P3:N P4:N P5:N (when review-prioritization skill loaded)"
-  ]
-]
-CE_EXPECTS::[
-  REQUIRED::[
-    metadata_comment_present::"<!-- review: {...} --> must exist in PR comment",
-    verdict_field::"APPROVED or BLOCKED must be extractable",
+CE_EXPECTS:
+  REQUIRED:
+    metadata_comment_present::"<!-- review: {...} --> must exist in PR comment"
+    verdict_field::"APPROVED or BLOCKED must be extractable"
     role_field::"short-form role identifier (CRS, CE, etc.)"
-  ],
-  ENRICHED::[
-    tier_field::"T0-T4 classification (populated in manual CRS review, planned for submit_review in #345)",
-    findings_count::"integer count of total findings (planned for submit_review in #345)",
-    blocking_count::"integer count of blocking findings (planned for submit_review in #345)",
-    priority_distribution::"P0-P5 counts for severity awareness (requires review-prioritization skill)",
-    triaged::"boolean indicating triage was applied",
+  ENRICHED:
+    tier_field::"T0-T4 classification (populated in manual CRS review, planned for submit_review in #345)"
+    findings_count::"integer count of total findings (planned for submit_review in #345)"
+    blocking_count::"integer count of blocking findings (planned for submit_review in #345)"
+    priority_distribution::"P0-P5 counts for severity awareness (requires review-prioritization skill)"
+    triaged::"boolean indicating triage was applied"
     findings_omitted::"count of triaged-out findings"
-  ],
   VALIDATION::[
     "IF[metadata_comment_missing]→CE_BLOCKS_with_INSUFFICIENT_DATA",
     "IF[tier_below_T2]→CE_skips_review",
     "IF[verdict_is_BLOCKED]→CE_validates_blocking_issues_first",
     "IF[verdict_is_APPROVED]→CE_performs_independent_deep_review"
   ]
-]
 HANDOFF_SEQUENCE::[
   STEP_1::"CRS completes review and posts PR comment with metadata",
   STEP_2::"review-gate.yml CI extracts metadata via scripts/validate_review.py",
