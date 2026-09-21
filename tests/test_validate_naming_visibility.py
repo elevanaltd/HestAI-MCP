@@ -88,3 +88,10 @@ class TestRootLevelDocValidation:
 
         result = main(["src/hestai_mcp/_bundled_hub/standards/rules/naming-standard.oct.md"])
         assert result == 0
+
+    def test_hestai_manifest_passes(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """.hestai/MANIFEST.md (cross-repo governance linker artifact) should pass."""
+        from scripts.ci.validate_naming_visibility import main
+
+        result = main([".hestai/MANIFEST.md"])
+        assert result == 0
