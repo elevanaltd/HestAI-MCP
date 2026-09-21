@@ -100,12 +100,18 @@ class TestRootLevelDocValidation:
         """MANIFEST.md at repo root is NOT the governance linker artifact and must still fail."""
         from scripts.ci.validate_naming_visibility import main
 
-        with pytest.raises(SystemExit):
+        with pytest.raises(SystemExit) as exc_info:
             main(["MANIFEST.md"])
+
+        error_message = str(exc_info.value)
+        assert "visibility-rules" in error_message.lower() or "root-level" in error_message.lower()
 
     def test_docs_manifest_fails(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """MANIFEST.md under docs/ is not the canonical linker path and must still fail."""
         from scripts.ci.validate_naming_visibility import main
 
-        with pytest.raises(SystemExit):
+        with pytest.raises(SystemExit) as exc_info:
             main(["docs/MANIFEST.md"])
+
+        error_message = str(exc_info.value)
+        assert "naming-standard" in error_message.lower()
