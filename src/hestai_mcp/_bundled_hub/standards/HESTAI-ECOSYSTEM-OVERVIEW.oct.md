@@ -14,7 +14,7 @@ DESCRIPTION::"This document describes the APPROVED TARGET architecture per ADR-0
 PREVIOUS_MODEL::"v3.0 described Thick Client absorption where workbench absorbs hestai-mcp and odyssean-anchor-mcp. CORRECTED by ADR-0353: Workbench absorbs UX/dispatch only. Governance engine is harvested into hestai-context-mcp. Agent identity moves to Vault."
 DECISION_SOURCE::"ADR-0353 (2026-04-06). Wind/Wall/Door debates (standard + premium tier). Human-approved direction."
 CROSS_REPO_VISIBILITY::"Workbench PR #252 (2026-06-10) gitignored its .hestai/ coordination docs — now local-only and unverifiable from git; re-measured 2026-09-25: hestai-mcp and hestai-context-mcp also keep working state at .hestai/state/ (backed by a gitignored .hestai-state/ store) and commit only governance artefacts (.hestai/{decisions,north-star,rules,schemas,README.md} for hestai-mcp; .hestai/{context,decisions,north-star,MANIFEST.md} for hestai-context-mcp) — git ls-files .hestai/state → 0 tracked files; git check-ignore .hestai/state → ignored (hestai-mcp .gitignore:29; hestai-context-mcp .gitignore:49). Peer-repo claims in this document are sourced from each repo's own local-only, untracked context files where available, not from live cross-repo git access."
-SUPERSESSION_NOTE::"Historical (superseded): Alley-Oop references in this document describe the earlier target-state design for identity injection. Production identity injection is workbench ADR-0003 (escrow-gated agent loading; ceremony default since workbench PR #283); its mechanics are not described here. Whether Alley-Oop still applies as the T2+ reliability pipeline has not been re-verified since ADR-0003."
+SUPERSESSION_NOTE::"Historical (superseded): where Alley-Oop references in this document describe identity injection, they record the earlier target-state design; production identity injection is workbench ADR-0003 (escrow-gated agent loading; ceremony default since workbench PR #283), whose mechanics are not described here. Alley-Oop references describing the T2+ reliability pipeline have not been re-verified since ADR-0003."
 CLEAN_BREAK_RATIONALE::[
   "Conflating identity injection (stateless) with state management (stateful) was the root error",
   "Governance logic (1500+ lines proven Python, 92% coverage) must survive Workbench rebuild",
@@ -113,7 +113,7 @@ DIRECTORIES::[
 WORKBENCH_STATUS::[
   STATUS::"v1.0.0 TAGGED 2026-07-27 (commit 032823e6716f2f9dcea5d6efad4b382bc0b9623c, PR #433) — first real git tag since v0.6.0 (2026-04-20; v0.7.0-v0.9.0 were documented but never tagged/released). ADR-0003 Escrow-Gated Agent Loading Phases 1-3 production-wired; ceremony default flip (PR #283, token CEREMONY-DEFAULT-FLIP-20260617).",
   WHAT_EXISTS::"Matrix resolver (v_resolved_matrix), 5 V9 agents (IL, CRS, HO, ideator, ho-control-room — added 2026-04-20 via PR #147), 16 V9 skills, System Standard in vault, multi-session management, git worktree isolation, agent registry with Glass UI",
-  NEXT::"remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0); per workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0."
+  NEXT::"remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0); per workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0 except where marked 'per v3.0'."
 ]
 VAULT_STATUS::[
   STATUS::"starter library populated",

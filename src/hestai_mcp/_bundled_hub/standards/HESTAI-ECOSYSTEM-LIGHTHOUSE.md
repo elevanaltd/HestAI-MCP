@@ -32,7 +32,7 @@ It is **not** a system standard (that's the System North Star), **not** a build 
 - **ADR-0353:** Canonical architectural decision. Established the Three-Service Model (Workbench + hestai-context-mcp + Vault). This Lighthouse reflects that decision.
 - **System North Star:** Immutable methodology (I1-I6). The Lighthouse operates within those laws.
 - **Ecosystem Overview v4.0:** System map reflecting the current architecture. Companion to this vision.
-- **Ecosystem Dependency Graph v4.0:** Build sequence aligned to workbench PROJECT-CONTEXT v1.7, since replaced by v3.0 (2026-09-24); not re-verified against v3.0.
+- **Ecosystem Dependency Graph v4.0:** Build sequence aligned to workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0 except where marked 'per v3.0'.
 - **Product North Stars:** Per-repo vision. Each should move toward this ecosystem vision.
 
 ---
@@ -47,7 +47,7 @@ The system is not a single application. It is an ecosystem of cooperating system
 
 ### The End State in One Paragraph
 
-> **Historical (superseded):** Alley-Oop references in this section describe the earlier target-state design for identity injection. Production identity injection is workbench ADR-0003 (escrow-gated agent loading; ceremony default since workbench PR #283); its mechanics are not described here. Whether Alley-Oop still applies as the T2+ reliability pipeline has not been re-verified since ADR-0003.
+> **Historical (superseded):** where Alley-Oop references in this section describe identity injection, they record the earlier target-state design; production identity injection is workbench ADR-0003 (escrow-gated agent loading; ceremony default since workbench PR #283), whose mechanics are not described here. Alley-Oop references describing the T2+ reliability pipeline have not been re-verified since ADR-0003.
 
 An operator opens the Workbench, picks a role from the agent registry, selects a provider and model, and starts working. The Payload Compiler reads the agent's identity from the Vault, assembles the KVAEPH payload, calls hestai-context-mcp for project context (Position 3), and dispatches via the appropriate CLI or API. The agent operates within its authority boundaries, enforced by the Alley-Oop pattern (synthetic acknowledgment + prefilled proof + dynamic anchor lock). When it needs a decision, it opens a structured debate. When it needs another perspective, the Workbench dispatches a different agent on a different model. All communication uses OCTAVE format. All sessions are persistent via hestai-context-mcp. All decisions are auditable. The operator sees the whole system through one GUI and never needs to configure MCP servers, manage worktrees, or remember which agent does what.
 
@@ -59,7 +59,7 @@ The ecosystem comprises three services with clear ownership boundaries (ADR-0353
 
 ### System 1: HestAI Workbench — The Eyes and Hands
 
-> **Historical (superseded):** Alley-Oop references in this section describe the earlier target-state design for identity injection. Production identity injection is workbench ADR-0003 (escrow-gated agent loading; ceremony default since workbench PR #283); its mechanics are not described here. Whether Alley-Oop still applies as the T2+ reliability pipeline has not been re-verified since ADR-0003.
+> **Historical (superseded):** where Alley-Oop references in this section describe identity injection, they record the earlier target-state design; production identity injection is workbench ADR-0003 (escrow-gated agent loading; ceremony default since workbench PR #283), whose mechanics are not described here. Alley-Oop references describing the T2+ reliability pipeline have not been re-verified since ADR-0003.
 
 **Repo:** `elevanaltd/hestai-workbench`
 
@@ -206,7 +206,7 @@ The ecosystem comprises three services with clear ownership boundaries (ADR-0353
 
 ## SECTION 3: THE DAILY WORKFLOW (TARGET STATE)
 
-> **Historical (superseded):** Alley-Oop references in this section describe the earlier target-state design for identity injection. Production identity injection is workbench ADR-0003 (escrow-gated agent loading; ceremony default since workbench PR #283); its mechanics are not described here. Whether Alley-Oop still applies as the T2+ reliability pipeline has not been re-verified since ADR-0003.
+> **Historical (superseded):** where Alley-Oop references in this section describe identity injection, they record the earlier target-state design; production identity injection is workbench ADR-0003 (escrow-gated agent loading; ceremony default since workbench PR #283), whose mechanics are not described here. Alley-Oop references describing the T2+ reliability pipeline have not been re-verified since ADR-0003.
 
 This is what the operator's daily experience looks like when the ecosystem is complete:
 
@@ -260,7 +260,7 @@ Debate Hall works without HestAI. A team that doesn't use HestAI governance can 
 
 ### Ceremony proportional to risk (Stratified Conditioning)
 
-> **Historical (superseded):** Alley-Oop references in this section describe the earlier target-state design for identity injection. Production identity injection is workbench ADR-0003 (escrow-gated agent loading; ceremony default since workbench PR #283); its mechanics are not described here. Whether Alley-Oop still applies as the T2+ reliability pipeline has not been re-verified since ADR-0003.
+> **Historical (superseded):** where Alley-Oop references in this section describe identity injection, they record the earlier target-state design; production identity injection is workbench ADR-0003 (escrow-gated agent loading; ceremony default since workbench PR #283), whose mechanics are not described here. Alley-Oop references describing the T2+ reliability pipeline have not been re-verified since ADR-0003.
 
 Not every task needs heavy governance injection. The Workbench uses two conditioning pipelines:
 
@@ -283,7 +283,7 @@ For **API-dispatched agents** (advisory roles via OpenRouter), identity injectio
 
 ### Dual-path delegation
 
-> **Historical (superseded):** Alley-Oop references in this section describe the earlier target-state design for identity injection. Production identity injection is workbench ADR-0003 (escrow-gated agent loading; ceremony default since workbench PR #283); its mechanics are not described here. Whether Alley-Oop still applies as the T2+ reliability pipeline has not been re-verified since ADR-0003.
+> **Historical (superseded):** where Alley-Oop references in this section describe identity injection, they record the earlier target-state design; production identity injection is workbench ADR-0003 (escrow-gated agent loading; ceremony default since workbench PR #283), whose mechanics are not described here. Alley-Oop references describing the T2+ reliability pipeline have not been re-verified since ADR-0003.
 
 Agent delegation operates through two coexisting patterns:
 
@@ -319,7 +319,7 @@ When the Workbench is rebuilt, the MCP tool contract (`dispatch_colleague` signa
 
 ### Anti-patterns
 
-> **Historical (superseded):** Alley-Oop references in this section describe the earlier target-state design for identity injection. Production identity injection is workbench ADR-0003 (escrow-gated agent loading; ceremony default since workbench PR #283); its mechanics are not described here. Whether Alley-Oop still applies as the T2+ reliability pipeline has not been re-verified since ADR-0003.
+> **Historical (superseded):** where Alley-Oop references in this section describe identity injection, they record the earlier target-state design; production identity injection is workbench ADR-0003 (escrow-gated agent loading; ceremony default since workbench PR #283), whose mechanics are not described here. Alley-Oop references describing the T2+ reliability pipeline have not been re-verified since ADR-0003.
 
 Claude Code 2.1.77+ Agent Teams primitives (`SendMessage`, `TeamCreate`, `team_name`, `agentId` resume, `isolation: "worktree"`) are **continuation mechanics** gated behind `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`. They solve the same-provider same-process resume problem natively for Claude. They are **not** a replacement for the ecosystem's agent-definition and context-injection architecture. The following anti-patterns preserve that distinction:
 
@@ -343,7 +343,7 @@ The ecosystem is "done" when:
 
 ### Functional
 
-> **Historical (superseded):** Alley-Oop references in this section describe the earlier target-state design for identity injection. Production identity injection is workbench ADR-0003 (escrow-gated agent loading; ceremony default since workbench PR #283); its mechanics are not described here. Whether Alley-Oop still applies as the T2+ reliability pipeline has not been re-verified since ADR-0003.
+> **Historical (superseded):** where Alley-Oop references in this section describe identity injection, they record the earlier target-state design; production identity injection is workbench ADR-0003 (escrow-gated agent loading; ceremony default since workbench PR #283), whose mechanics are not described here. Alley-Oop references describing the T2+ reliability pipeline have not been re-verified since ADR-0003.
 
 1. **Single-command agent dispatch.** Operator picks role + provider/model -> Payload Compiler assembles KVAEPH + Alley-Oop -> agent is running with full identity injection in under 30 seconds.
 
@@ -399,7 +399,7 @@ As of 2026-04-20, with rows individually refreshed where a newer cited source ex
 |--------|--------------|----------|-----------|
 | **OCTAVE MCP** | v1.13.0, production, PyPI published | Close | Standalone community adoption |
 | **Debate Hall** | v0.5.0, 17 tools, consult/convene/RACI shipped | Medium | Governance Hall (#163) |
-| **Workbench** | v1.0.0 — TAGGED 2026-07-27 at commit `032823e6716f2f9dcea5d6efad4b382bc0b9623c` (PR #433), the first git tag since v0.6.0 (2026-04-20). Step 3B Phase 2 COMPLETE 2026-04-20 (CA-BCE + unlock_work gate via #134, ApiDispatcher + ContinuationStore via #137, subagent-discipline via #147, ADR-0002 I1 Session/Dispatch ontology via 077ea0a); ADR-0003 Escrow-Gated Agent Loading Phases 1-3 production (#269/#271/#280/#282), ceremony default flipped legacy→ceremony (#283, token CEREMONY-DEFAULT-FLIP-20260617). Per workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0, remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0). | Medium | Complete remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0); operator dogfooding of v1.0.0 build in progress |
+| **Workbench** | v1.0.0 — TAGGED 2026-07-27 at commit `032823e6716f2f9dcea5d6efad4b382bc0b9623c` (PR #433), the first git tag since v0.6.0 (2026-04-20). Step 3B Phase 2 COMPLETE 2026-04-20 (CA-BCE + unlock_work gate via #134, ApiDispatcher + ContinuationStore via #137, subagent-discipline via #147, ADR-0002 I1 Session/Dispatch ontology via 077ea0a); ADR-0003 Escrow-Gated Agent Loading Phases 1-3 production (#269/#271/#280/#282), ceremony default flipped legacy→ceremony (#283, token CEREMONY-DEFAULT-FLIP-20260617). Per workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0 except where marked 'per v3.0', remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0). | Medium | Complete remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0); operator dogfooding of v1.0.0 build in progress |
 | **Vault** | Populated library: 5 V9 agents, 16 V9 skills, 3 cognitions, System Standard | Medium | Populate as Payload Compiler demands content |
 | **hestai-context-mcp** | Phase 1 COMPLETE (2026-04-17); Phase 1.5 CLOSED 2026-04-22. 8 tools shipped (clock_in, clock_out, get_context, submit_review, submit_governance, lookup_decision, list_decisions, trace_supersedure). 1251 tests, 92% coverage (per PROJECT-CONTEXT.oct.md, updated 2026-06-13). TranscriptParser ABC + ClaudeTranscriptParser adapter. | Medium | Phase 2 core integration (get_context @ KVAEPH Position 3) SHIPPED 2026-05-01 (workbench PRs #169/#176); submit_review consumer wiring (issue #30) deferred. Current focus: RFC #53 Gate C T6 migration/calibration (operator-involved, DUAL_KEY GO/NO-GO). |
 | **hestai-mcp (legacy)** | Operational, v1.2.0, 1228 tests (measured at HEAD 29f891a via `pytest --collect-only`), maintenance mode | Maintenance | Stays for A/B comparison. NOT being absorbed. **Deprecation criterion (DECIDED):** A/B cutover via Workbench — same agent role + same real task, run once with legacy backend and once with hestai-context-mcp backend; measure judged agent output quality + total session token cost; whichever wins consistently across N tasks triggers a swift cutover. |
@@ -408,7 +408,7 @@ As of 2026-04-20, with rows individually refreshed where a newer cited source ex
 
 ### The Critical Path
 
-Per workbench PROJECT-CONTEXT v1.7, since replaced by v3.0 (2026-09-24); not re-verified against v3.0, build sequence:
+Per workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0 except where marked 'per v3.0', build sequence:
 
 **Step 3A** (Payload Compiler — NEXT, all prerequisites met) -> **Step 3B** (dispatch_colleague uses Payload Compiler) -> **Step 4** (Testing Lab measures baseline collapse threshold)
 
@@ -442,7 +442,7 @@ Before the outcome-quality A/B test against legacy hestai-mcp could be meaningfu
 
 ## SECTION 8: ASSUMPTIONS
 
-> **Historical (superseded):** Alley-Oop references in this section describe the earlier target-state design for identity injection. Production identity injection is workbench ADR-0003 (escrow-gated agent loading; ceremony default since workbench PR #283); its mechanics are not described here. Whether Alley-Oop still applies as the T2+ reliability pipeline has not been re-verified since ADR-0003.
+> **Historical (superseded):** where Alley-Oop references in this section describe identity injection, they record the earlier target-state design; production identity injection is workbench ADR-0003 (escrow-gated agent loading; ceremony default since workbench PR #283), whose mechanics are not described here. Alley-Oop references describing the T2+ reliability pipeline have not been re-verified since ADR-0003.
 
 | ID | Assumption | Confidence | Impact | Validates By |
 |----|-----------|-----------|--------|-------------|
@@ -478,7 +478,7 @@ The `_bundled_hub/` content (agent definitions, skills, standards, cognitions) m
 
 ### odyssean-anchor-mcp
 
-**Status:** Superseded, not by Alley-Oop. ADR-0003 "Escrow-Gated Agent Loading" — first-party absorption of the anchor ceremony into hestai-workbench as a vendor-agnostic MCP-served staged-escrow protocol — is in production (Phases 1-3, PRs #269/#271/#280/#282), with the ceremony default flipped from legacy to ceremony (PR #283, token CEREMONY-DEFAULT-FLIP-20260617), per workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0.
+**Status:** Superseded, not by Alley-Oop. ADR-0003 "Escrow-Gated Agent Loading" — first-party absorption of the anchor ceremony into hestai-workbench as a vendor-agnostic MCP-served staged-escrow protocol — is in production (Phases 1-3, PRs #269/#271/#280/#282), with the ceremony default flipped from legacy to ceremony (PR #283, token CEREMONY-DEFAULT-FLIP-20260617), per workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0 except where marked 'per v3.0'.
 
 The Alley-Oop pattern described in Section 4 (synthetic acknowledgment + prefilled proof + dynamic anchor lock) was the earlier target-state answer for headless identity injection; ADR-0003's escrow-gated ceremony is the one that shipped. The 5-stage KEAPH ceremony and Steward state machine remain operational for sessions where agents have direct MCP access — this Lighthouse correction was itself produced under that ceremony.
 
