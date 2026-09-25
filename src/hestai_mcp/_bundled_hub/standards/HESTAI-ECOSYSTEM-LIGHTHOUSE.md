@@ -1,11 +1,11 @@
 ---
 type: LIGHTHOUSE
 id: ecosystem-lighthouse
-version: 4.4
+version: 4.5
 status: ACTIVE
 purpose: Target state vision for the fully integrated HestAI ecosystem
 created: 2026-02-25
-revised: 2026-04-21
+revised: 2026-09-10
 origin: Project 15 ecosystem build order coordination
 tracking: https://github.com/orgs/elevanaltd/projects/15
 architecture: ADR-0353 Three-Service Model
@@ -14,9 +14,9 @@ architecture: ADR-0353 Three-Service Model
 
 # HESTAI ECOSYSTEM LIGHTHOUSE
 
-**Version:** 4.4
+**Version:** 4.5
 **Status:** ACTIVE
-**Revised:** 2026-04-21
+**Revised:** 2026-09-10
 
 ---
 
@@ -134,17 +134,21 @@ The ecosystem comprises three services with clear ownership boundaries (ADR-0353
 - `.hestai/state/` management (sessions, context, reports, research)
 - Product North Star injection at KVAEPH Position 3 (planned — Phase 3)
 
+**Added since Phase 1 (per hestai-context-mcp PROJECT-CONTEXT.oct.md v1.2.0, updated 2026-06-13):**
+- submit_governance (RFC #53 write-side governance authoring: Gate A regex rails + Gate B octave-mcp validator + Gate C prose→OCTAVE Semantic Compiler, T1-T5 MERGED)
+- lookup_decision, list_decisions, trace_supersedure (RFC #40 read-side AGR layer: `AgentReadableGovernanceParser` over `.hestai/decisions/` AGRs)
+
 **TranscriptParser adapter pattern:** `clock_out` was redesigned (not harvested as-is) around a provider-agnostic `TranscriptParser` ABC. `ClaudeTranscriptParser` is implemented; Codex/Gemini/Goose adapters are pending Phase 2+.
 
-**What it does NOT own:** Agent identity (Vault), dispatch/UI (Workbench), deliberation (debate-hall), document format (octave-mcp), `bind` tool (legacy-only, replaced by Alley-Oop).
+**What it does NOT own:** Agent identity (Vault), dispatch/UI (Workbench), deliberation (debate-hall), document format (octave-mcp), `bind` tool (superseded by ADR-0003 Escrow-Gated Agent Loading, not by Alley-Oop — see Section 9).
 
 **Key properties:**
-- LOW volatility — Python codebase, 361 tests, 89% coverage at Phase 1 close. Survives Workbench rebuilds untouched.
+- LOW volatility — Python codebase. 361 tests / 89% coverage at Phase 1 close (2026-04-17); grown to 8 MCP tools / 1251 tests / 92% coverage by the RFC #53 + RFC #40 layers (per PROJECT-CONTEXT.oct.md, updated 2026-06-13). Survives Workbench rebuilds untouched.
 - Stdio transport (subprocess, not daemon) — the "Git/VS Code" pattern. Zero network ports, zero monitoring overhead.
-- Harvest not rewrite: clock_in harvested from hestai-mcp; clock_out redesigned; legacy hestai-mcp stays intact (1033 tests) for A/B comparison.
+- Harvest not rewrite: clock_in harvested from hestai-mcp; clock_out redesigned; legacy hestai-mcp stays intact (1228 tests, measured at HEAD 29f891a via `pytest --collect-only`) for A/B comparison.
 - Terminal parity is automatic — any CLI tool gets identical governance by adding one MCP config entry.
 
-**Known gap — AI synthesis feature parity:** Legacy hestai-mcp has a working AI synthesis path in `clock_in` when API keys are configured; the new repo currently lacks the path entirely. Without API keys, both produce structured non-AI output. Closing this is tracked as Pre-A/B Work item P0b (issue #5) — see "Pre-A/B Work" below — and must land before the outcome-quality A/B test is meaningful.
+**Known gap — AI synthesis feature parity:** RESOLVED. Phase 1.5 (Pre-A/B Work items #4/#5/#6/#7) CLOSED 2026-04-22 — `ai_synthesis` field, `AIClient` port, North Star constraint extraction, and the `conflicts` field all shipped (PRs #8-#12). See "Pre-A/B Work" in Section 7.
 
 **Target state:** `pip install hestai-context-mcp` gives you session lifecycle + context synthesis + learnings + review. Works with or without the Workbench.
 
@@ -373,17 +377,19 @@ The ecosystem is "done" when:
 
 ## SECTION 7: CURRENT DISTANCE FROM TARGET
 
-As of 2026-04-20:
+As of 2026-04-20, with rows individually refreshed where a newer cited source exists (see per-row citations):
+
+**Cross-repo freshness caveat (added 2026-09-10):** Since hestai-workbench PR #252 (2026-06-10), that repo's `.hestai/coordination/` docs are gitignored and local-only — they no longer appear in its git history. hestai-mcp still tracks its own `.hestai/` coordination docs. Verifying claims across repos in this table therefore now requires filesystem access to each peer checkout, not git alone; neither this document nor the Ecosystem Overview currently records that constraint elsewhere.
 
 | System | Current State | Distance | Next Step |
 |--------|--------------|----------|-----------|
 | **OCTAVE MCP** | v1.13.0, production, PyPI published | Close | Standalone community adoption |
 | **Debate Hall** | v0.5.0, 17 tools, consult/convene/RACI shipped | Medium | Governance Hall (#163) |
-| **Workbench** | v0.6.0, Step 3B Phase 2 COMPLETE 2026-04-20 (CA-BCE + unlock_work gate via #134, ApiDispatcher + ContinuationStore via #137, subagent-discipline via #147, ADR-0002 I1 Session/Dispatch ontology via 077ea0a). Phase 3 in progress: egress DAL validation, recursive dispatch_colleague, dispatch-chain UI (#82). | Medium | Complete Step 3B Phase 3 (unblocks hestai-context-mcp Phase 2 integration) |
+| **Workbench** | v1.0.0 — TAGGED 2026-07-27 at commit `032823e6716f2f9dcea5d6efad4b382bc0b9623c` (PR #433), the first git tag since v0.6.0 (2026-04-20). Step 3B Phase 2 COMPLETE 2026-04-20 (CA-BCE + unlock_work gate via #134, ApiDispatcher + ContinuationStore via #137, subagent-discipline via #147, ADR-0002 I1 Session/Dispatch ontology via 077ea0a); ADR-0003 Escrow-Gated Agent Loading Phases 1-3 production (#269/#271/#280/#282), ceremony default flipped legacy→ceremony (#283, token CEREMONY-DEFAULT-FLIP-20260617). Per workbench PROJECT-CONTEXT.oct.md v2.2 (2026-07-27), Phase 3 sub-steps 3D/3E (ContinuationStore TTL cleanup, dispatch-chain visibility UI #82) remain open. | Medium | Complete remaining Phase 3 sub-steps (3D/3E); operator dogfooding of v1.0.0 build in progress |
 | **Vault** | Populated library: 5 V9 agents, 16 V9 skills, 3 cognitions, System Standard | Medium | Populate as Payload Compiler demands content |
-| **hestai-context-mcp** | Phase 1 COMPLETE (2026-04-17). 4 tools shipped (clock_in, clock_out, get_context, submit_review). 361 tests, 89% coverage. TranscriptParser ABC + ClaudeTranscriptParser adapter. | Medium | Phase 2: workbench Payload Compiler integration via stdio at KVAEPH Position 3 (blocked on workbench Step 3B Phase 3) |
-| **hestai-mcp (legacy)** | Operational, v1.2.0, 1033 tests, maintenance mode | Maintenance | Stays for A/B comparison. NOT being absorbed. **Deprecation criterion (DECIDED):** A/B cutover via Workbench — same agent role + same real task, run once with legacy backend and once with hestai-context-mcp backend; measure judged agent output quality + total session token cost; whichever wins consistently across N tasks triggers a swift cutover. |
-| **OA (legacy)** | Operational for Claude-with-MCP sessions | Maintenance | Replaced by Alley-Oop for headless dispatch |
+| **hestai-context-mcp** | Phase 1 COMPLETE (2026-04-17); Phase 1.5 CLOSED 2026-04-22. 8 tools shipped (clock_in, clock_out, get_context, submit_review, submit_governance, lookup_decision, list_decisions, trace_supersedure). 1251 tests, 92% coverage (per PROJECT-CONTEXT.oct.md, updated 2026-06-13). TranscriptParser ABC + ClaudeTranscriptParser adapter. | Medium | Phase 2 core integration (get_context @ KVAEPH Position 3) SHIPPED 2026-05-01 (workbench PRs #169/#176); submit_review consumer wiring (issue #30) deferred. Current focus: RFC #53 Gate C T6 migration/calibration (operator-involved, DUAL_KEY GO/NO-GO). |
+| **hestai-mcp (legacy)** | Operational, v1.2.0, 1228 tests (measured at HEAD 29f891a via `pytest --collect-only`), maintenance mode | Maintenance | Stays for A/B comparison. NOT being absorbed. **Deprecation criterion (DECIDED):** A/B cutover via Workbench — same agent role + same real task, run once with legacy backend and once with hestai-context-mcp backend; measure judged agent output quality + total session token cost; whichever wins consistently across N tasks triggers a swift cutover. |
+| **OA (legacy)** | Operational for Claude-with-MCP sessions | Maintenance | Superseded by ADR-0003 Escrow-Gated Agent Loading (production, PR #283 CEREMONY-DEFAULT-FLIP-20260617) — see Section 9. Not replaced by Alley-Oop. |
 | **PAL (legacy)** | Being eliminated | Elimination | Workbench natively replaces all dispatch |
 
 ### The Critical Path
@@ -403,16 +409,18 @@ In parallel: **hestai-context-mcp Phase 1** (harvest clock_in, redesign clock_ou
 - 16 V9 skills with ANCHOR_KERNEL sections created and assigned in archetype matrix.
 - System Standard in vault (AP4 resolved).
 
-### Pre-A/B Work for hestai-context-mcp (Phase 1.5)
+### Pre-A/B Work for hestai-context-mcp (Phase 1.5) — CLOSED 2026-04-22
 
-Before the outcome-quality A/B test against legacy hestai-mcp can be meaningful, four integration-viability gaps must close. **Framing:** this is integration viability work — the Payload Compiler must be able to read both backends' responses. The systems are explicitly *allowed* to differ in their actual content; the differences are the variable being tested. This is **outcome-quality A/B**, not structural-parity A/B.
+Before the outcome-quality A/B test against legacy hestai-mcp could be meaningful, four integration-viability gaps had to close. **Framing:** this was integration viability work — the Payload Compiler must be able to read both backends' responses. The systems are explicitly *allowed* to differ in their actual content; the differences are the variable being tested. This is **outcome-quality A/B**, not structural-parity A/B.
 
-| Issue | Priority | Scope |
-|-------|----------|-------|
-| [#4](https://github.com/elevanaltd/hestai-context-mcp/issues/4) | P0a | Integration viability shape: add `ai_synthesis` field with fallback OCTAVE; normalise phase string to legacy's full format |
-| [#5](https://github.com/elevanaltd/hestai-context-mcp/issues/5) | P0b | Port `AIClient` + `synthesize_fast_layer_with_ai` from legacy `src/hestai_mcp/modules/services/ai/` |
-| [#6](https://github.com/elevanaltd/hestai-context-mcp/issues/6) | P1 | Harvest `_extract_north_star_constraints` (legacy `clock_in.py:525-583`); tests must exercise real Vault North Star format |
-| [#7](https://github.com/elevanaltd/hestai-context-mcp/issues/7) | P-side | Surface distinct `conflicts` field rather than only `active_sessions` (small standalone) |
+**Status (per hestai-context-mcp PROJECT-CONTEXT.oct.md, updated 2026-06-13): all four items shipped, PRs #8-#12, 604 tests at close.** Table retained as historical record.
+
+| Issue | Priority | Scope | Resolution |
+|-------|----------|-------|-----------|
+| [#4](https://github.com/elevanaltd/hestai-context-mcp/issues/4) | P0a | Integration viability shape: add `ai_synthesis` field with fallback OCTAVE; normalise phase string to legacy's full format | CLOSED |
+| [#5](https://github.com/elevanaltd/hestai-context-mcp/issues/5) | P0b | Port `AIClient` + `synthesize_fast_layer_with_ai` from legacy `src/hestai_mcp/modules/services/ai/` | CLOSED |
+| [#6](https://github.com/elevanaltd/hestai-context-mcp/issues/6) | P1 | Harvest `_extract_north_star_constraints` (legacy `clock_in.py:525-583`); tests must exercise real Vault North Star format | CLOSED |
+| [#7](https://github.com/elevanaltd/hestai-context-mcp/issues/7) | P-side | Surface distinct `conflicts` field rather than only `active_sessions` (small standalone) | CLOSED |
 
 **Already implemented (NOT gaps):** ContextSteward and dynamic phase constraints (`core/context_steward.py:36-184` + tests); focus conflict detection (`core/session.py:91-128` + 4 behavioural tests).
 
@@ -439,13 +447,13 @@ Before the outcome-quality A/B test against legacy hestai-mcp can be meaningful,
 
 ### hestai-mcp (this repo)
 
-**Status:** Legacy. v1.2.0, 1033 tests, maintenance mode. Stays operational for A/B comparison.
+**Status:** Legacy. v1.2.0, 1228 tests (measured at HEAD 29f891a via `pytest --collect-only`), maintenance mode. Stays operational for A/B comparison.
 
 hestai-mcp is NOT being absorbed into the Workbench. ADR-0353 resolved this: the governance engine logic (clock_in, clock_out, ContextSteward, RedactionEngine, submit_review) was harvested into a NEW repo (`hestai-context-mcp`, Phase 1 complete 2026-04-17), not subtracted from here. The legacy system remains intact so the same agent + same task can be tested under both the old ceremony and the new engine.
 
-The `_bundled_hub/` content (agent definitions, skills, standards, cognitions) moves to the Vault. The `.hestai-sys/` injection mechanism moves to the Vault/Workbench. The `bind` tool is replaced by Alley-Oop for headless dispatch; the Odyssean Anchor ceremony remains for Claude-with-MCP sessions.
+The `_bundled_hub/` content (agent definitions, skills, standards, cognitions) moves to the Vault. The `.hestai-sys/` injection mechanism moves to the Vault/Workbench. The `bind` tool is superseded by ADR-0003 Escrow-Gated Agent Loading (see "odyssean-anchor-mcp" below), not by Alley-Oop; the Odyssean Anchor ceremony — now escrow-gated per ADR-0003 — remains the identity-injection mechanism, including for MCP-served sessions.
 
-**Pre-A/B blocker:** Before the outcome-quality A/B test against legacy can be meaningful, the four Pre-A/B Work items (#4, #5, #6, #7 — see Section 7) must close so the Payload Compiler can read both backends' responses. The systems are *allowed* to differ in their actual content; that difference is the variable being tested.
+**Pre-A/B blocker:** RESOLVED. The four Pre-A/B Work items (#4, #5, #6, #7 — see Section 7) CLOSED 2026-04-22, so the Payload Compiler can read both backends' responses. The systems remain *allowed* to differ in their actual content; that difference is the variable being tested.
 
 **Decisions (locked):**
 - **Deprecation criterion:** A/B cutover via Workbench measuring outcome quality (judged) + total session token cost. Cut when the new system wins consistently across N tasks.
@@ -454,9 +462,9 @@ The `_bundled_hub/` content (agent definitions, skills, standards, cognitions) m
 
 ### odyssean-anchor-mcp
 
-**Status:** Legacy for Claude-with-MCP sessions. Replaced by Alley-Oop for headless dispatch.
+**Status:** Superseded, not by Alley-Oop. ADR-0003 "Escrow-Gated Agent Loading" — first-party absorption of the anchor ceremony into hestai-workbench as a vendor-agnostic MCP-served staged-escrow protocol — is in production (Phases 1-3, PRs #269/#271/#280/#282), with the ceremony default flipped from legacy to ceremony (PR #283, token CEREMONY-DEFAULT-FLIP-20260617), per workbench PROJECT-CONTEXT.oct.md v2.2 (2026-07-27).
 
-The 5-stage KEAPH ceremony and Steward state machine remain operational for sessions where agents have direct MCP access. For Workbench-dispatched agents (headless), the Alley-Oop pattern in the Payload Compiler provides equivalent cognitive alignment with zero round-trip overhead.
+The Alley-Oop pattern described in Section 4 (synthetic acknowledgment + prefilled proof + dynamic anchor lock) was the earlier target-state answer for headless identity injection; ADR-0003's escrow-gated ceremony is the one that shipped. The 5-stage KEAPH ceremony and Steward state machine remain operational for sessions where agents have direct MCP access — this Lighthouse correction was itself produced under that ceremony.
 
 ### PAL
 
