@@ -18,6 +18,7 @@ PREVIOUS_MODEL::"v3.0 described 9-step absorption build sequence where workbench
 ONTOLOGY_AMENDMENT::"ADR-0002 I1 amendment (accepted 2026-04-20 via workbench commit 077ea0a): Session/Dispatch ontology separation. API_DISPATCH is I1-by-exemption — API-dispatched agents inherit I1 (Persistent Cognitive Continuity) semantics through their parent session context rather than owning an independent session, because they are stateless advisory calls routed via OpenRouter. See §3 LAYER_4 and §6 DECISION_5 for application."
 CLAUDE_CODE_PRIMITIVES::"Claude Code v2.1.77+ introduced Agent Teams primitives (SendMessage, TeamCreate, team_name, agentId resume, Agent tool isolation:worktree|inherit). Gated behind CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1. These are continuation mechanics that affect Pattern A (intra-session Claude→Claude delegation) IMPLEMENTATION, not the architecture. Vault remains authoritative for identity; KVAEPH Position 3 remains authoritative for context; Alley-Oop remains authoritative for T2+ reliability. See HESTAI-ECOSYSTEM-LIGHTHOUSE.md §4 Anti-patterns (AP1/AP2/AP3) and upstream bugs anthropics/claude-code#50889 (auto-reap breaks resume) and #42999 (agentId-vs-name addressing)."
 CROSS_REPO_VISIBILITY::"Workbench PR #252 (2026-06-10) gitignored its .hestai/ coordination docs — now local-only and unverifiable from git; re-measured 2026-09-25: hestai-mcp and hestai-context-mcp also keep working state at .hestai/state/ (backed by a gitignored .hestai-state/ store) and commit only governance artefacts (.hestai/{decisions,north-star,rules,schemas,README.md} for hestai-mcp; .hestai/{context,decisions,north-star,MANIFEST.md} for hestai-context-mcp) — git ls-files .hestai/state → 0 tracked files; git check-ignore .hestai/state → ignored (hestai-mcp .gitignore:29; hestai-context-mcp .gitignore:49). Peer-repo freshness claims below are sourced from each repo's own local-only, untracked context files where available, not from live cross-repo git access."
+SUPERSESSION_NOTE::"Historical (superseded): Alley-Oop references in this document describe the earlier target-state design for identity injection. Production identity injection is workbench ADR-0003 (escrow-gated agent loading; ceremony default since workbench PR #283); its mechanics are not described here. Whether Alley-Oop still applies as the T2+ reliability pipeline has not been re-verified since ADR-0003."
 §1::CURRENT_STATE
 OCTAVE_MCP::[
   VERSION::"1.13.0",
@@ -38,7 +39,7 @@ DEBATE_HALL_MCP::[
 ]
 HESTAI_WORKBENCH::[
   VERSION::v1.0.0,
-  PHASE::"v1.0.0 TAGGED 2026-07-27 (commit 032823e6716f2f9dcea5d6efad4b382bc0b9623c, PR #433) — first real git tag since v0.6.0 (2026-04-20); v0.7.0-v0.9.0 were documented in CHANGELOG.md but never actually tagged or released. ADR-0003 Escrow-Gated Agent Loading Phases 1-3 production-wired (#269/#271/#280/#282); ceremony default flipped legacy→ceremony (PR #283, token CEREMONY-DEFAULT-FLIP-20260617). 3B Phase 3D (ContinuationStore TTL cleanup) and 3E (dispatch-chain UI #82) still NEXT per workbench's own tracking — not yet shipped.",
+  PHASE::"v1.0.0 TAGGED 2026-07-27 (commit 032823e6716f2f9dcea5d6efad4b382bc0b9623c, PR #433) — first real git tag since v0.6.0 (2026-04-20); v0.7.0-v0.9.0 were documented in CHANGELOG.md but never actually tagged or released. ADR-0003 Escrow-Gated Agent Loading Phases 1-3 production-wired (#269/#271/#280/#282); ceremony default flipped legacy→ceremony (PR #283, token CEREMONY-DEFAULT-FLIP-20260617). remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0), per workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0.",
   HEALTH::COMPILES,
   CODEBASE::"65,792 LOC TypeScript/TSX (Electron + React)",
   WHAT_EXISTS::[
@@ -54,11 +55,11 @@ HESTAI_WORKBENCH::[
     "DispatchService Phase 1 merged: CA-BCE + unlock_work gate (#134)",
     "DispatchService Phase 2 merged 2026-04-20: ApiDispatcher + ContinuationStore (#137), subagent-discipline (#147)",
     "ADR-0002 I1 amendment integrated (Session/Dispatch ontology, commit 077ea0a)",
-    "ADR-0003 Escrow-Gated Agent Loading Phases 1-3 production-wired (#269/#271/#280/#282, per workbench PROJECT-CONTEXT.oct.md v2.2)",
+    "ADR-0003 Escrow-Gated Agent Loading Phases 1-3 production-wired (#269/#271/#280/#282, per workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0)",
     "Ceremony default flip legacy→ceremony (PR #283, token CEREMONY-DEFAULT-FLIP-20260617)"
   ],
   BLOCKERS::none_technical,
-  KEY_FACT::"Target platform for dispatch and UI. v1.0.0 tagged 2026-07-27 (first real tag since v0.6.0). Dispatch-chain UI (#82) and ContinuationStore TTL cleanup remain NEXT, not yet shipped, per workbench's own PROJECT-CONTEXT.oct.md (v2.2, 2026-07-27)."
+  KEY_FACT::"Target platform for dispatch and UI. v1.0.0 tagged 2026-07-27 (first real tag since v0.6.0). remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0), per workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0."
 ]
 VAULT::[
   LOCATION::"~/.hestai-workbench/library/",
@@ -115,7 +116,7 @@ ODYSSEAN_ANCHOR_MCP::[
   HEALTH::OPERATIONAL,
   TESTS::"714 passing, 88 percent coverage",
   STATUS::legacy_for_claude_with_mcp_sessions,
-  KEY_FACT::"5-stage KEAPH ceremony remains for Claude-with-MCP sessions. Replaced by Alley-Oop for headless dispatch. NOT being rebuilt in TypeScript."
+  KEY_FACT::"5-stage KEAPH ceremony remains for Claude-with-MCP sessions. Replaced by Alley-Oop for headless dispatch (headless identity injection since superseded by workbench ADR-0003 — see DECISION_5 SUPERSEDED_BY). NOT being rebuilt in TypeScript."
 ]
 PAL_MCP_SERVER::[
   VERSION::"1.0.3",
@@ -139,7 +140,7 @@ LAYER_0::"FOUNDATION — octave-mcp: SOLID, v1.13.0, production. ACTION: Update 
 LAYER_1::"DELIBERATION — debate-hall-mcp: SOLID, v0.5.0, production, 17 tools. ACTION: Continue independently. Issue 163 (Governance Hall)."
 LAYER_2::"IDENTITY — Vault: POPULATED, git-backed, 5 V9 agents (ho-control-room added 2026-04-20 via PR #147). ACTION: Populate as Payload Compiler demands content."
 LAYER_3::"CONTEXT — hestai-context-mcp: Phase 1 COMPLETE (2026-04-17); Phase 1.5 CLOSED 2026-04-22. 8 tools operational, 1251 tests, 92 percent coverage (as of 2026-06-13). Since: RFC #53 write-side governance (Gates A/B/C merged, T6 open) and RFC #40 AGR read layer (shipped). ACTION: Phase 2 — workbench Payload Compiler integration via stdio at KVAEPH Position 3 (status not independently re-verified from this repo)."
-LAYER_4::"DISPATCH — hestai-workbench: Step 3A COMPLETE (Payload Compiler). Step 3B Phase 1 MERGED (#134 CA-BCE + unlock_work gate). Step 3B Phase 2 MERGED 2026-04-20 (#137 ApiDispatcher + ContinuationStore, #147 subagent-discipline, 077ea0a ADR-0002 I1 amendment). I1-BY-EXEMPTION: API_DISPATCH inherits I1 semantics through the parent session's continuity rather than owning an independent Session — accepted in ADR-0002 Session/Dispatch ontology amendment. v1.0.0 tagged 2026-07-27; ADR-0003 Escrow-Gated Agent Loading Phases 1-3 production-wired since. Step 3B Phase 3D/3E (ContinuationStore TTL cleanup, dispatch-chain UI #82) still NEXT per workbench's own tracking."
+LAYER_4::"DISPATCH — hestai-workbench: Step 3A COMPLETE (Payload Compiler). Step 3B Phase 1 MERGED (#134 CA-BCE + unlock_work gate). Step 3B Phase 2 MERGED 2026-04-20 (#137 ApiDispatcher + ContinuationStore, #147 subagent-discipline, 077ea0a ADR-0002 I1 amendment). I1-BY-EXEMPTION: API_DISPATCH inherits I1 semantics through the parent session's continuity rather than owning an independent Session — accepted in ADR-0002 Session/Dispatch ontology amendment. v1.0.0 tagged 2026-07-27; ADR-0003 Escrow-Gated Agent Loading Phases 1-3 production-wired since. remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0), per workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0."
 §3b::PRE_AB_WORK_FOR_HESTAI_CONTEXT_MCP
 PURPOSE::"Phase 1.5 integration-viability gaps that block meaningful outcome-quality A/B testing"
 FRAMING::"Outcome-quality A/B (judged agent output + token cost), NOT structural-parity A/B. Systems are explicitly allowed to differ in actual content; that difference is the variable being tested. Parity work is limited to what the Payload Compiler needs to read both backends' responses."
@@ -171,12 +172,12 @@ STEP_3A::[
 ]
 STEP_3B::[
   WHAT::"dispatch_colleague uses Payload Compiler",
-  STATUS::"Phase 1 MERGED (#134); Phase 2 MERGED 2026-04-20 (#137, #147, 077ea0a); Phase 3D/3E NEXT (not yet shipped, per workbench's own tracking)",
+  STATUS::"Phase 1 MERGED (#134); Phase 2 MERGED 2026-04-20 (#137, #147, 077ea0a); remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0), per workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0",
   RATIONALE::"dispatch_colleague MCP tool uses Payload Compiler to spawn agents with identity via any CLI tool. Dispatch service validates dynamic anchor output (regex on cognitive grammar headers). Continuation model with dispatch_id. Phase 2 shipped CA-BCE, ApiDispatcher, ContinuationStore, subagent-discipline skill, and ADR-0002 I1-by-exemption ontology.",
   EFFORT::"medium — dispatch service, CLI spawning, API dispatch, continuation store",
   PHASE_1::"MERGED — #134 CA-BCE + unlock_work gate",
   PHASE_2::"MERGED 2026-04-20 — #137 ApiDispatcher + ContinuationStore; #147 subagent-discipline; 077ea0a ADR-0002 I1 Session/Dispatch ontology (API_DISPATCH I1-by-exemption)",
-  PHASE_3::"v1.0.0 tagged 2026-07-27 with ADR-0003 Escrow-Gated Agent Loading Phases 1-3 production-wired and ceremony default flip (PR #283). Phase 3D (ContinuationStore TTL cleanup) and 3E (dispatch-chain UI, workbench #82) still NEXT per workbench's own tracking.",
+  PHASE_3::"v1.0.0 tagged 2026-07-27 with ADR-0003 Escrow-Gated Agent Loading Phases 1-3 production-wired and ceremony default flip (PR #283). remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0), per workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0.",
   PREREQ::STEP_3A,
   BLOCKS::[STEP_4,HARVEST_PHASE_2]
 ]
@@ -206,7 +207,7 @@ HARVEST_PHASE_1_5::[
 HARVEST_PHASE_2::[
   WHAT::"Workbench Payload Compiler calls hestai-context-mcp for Position 3 — NEXT",
   STATUS::"PARTIAL — Workbench Payload Compiler integration via get_context at KVAEPH Position 3 SHIPPED 2026-05-01 (workbench PRs #169 #176). submit_review consumer wiring (issue #30) deferred.",
-  RATIONALE::"Thin stdio MCP client in Payload Compiler. Spawn python -m hestai_context_mcp via stdio. Inject clock_in output at KVAEPH Position 3. Prerequisites HARVEST_PHASE_1_5 (CLOSED 2026-04-22) and STEP_3B Phase 1+2 (MERGED) are satisfied; STEP_3B Phase 3D/3E completion status is unverified from this repo.",
+  RATIONALE::"Thin stdio MCP client in Payload Compiler. Spawn python -m hestai_context_mcp via stdio. Inject clock_in output at KVAEPH Position 3. Prerequisites HARVEST_PHASE_1_5 (CLOSED 2026-04-22) and STEP_3B Phase 1+2 (MERGED) are satisfied; remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0).",
   EFFORT::"small — stdio MCP client (~30 lines), integration",
   PREREQ::[
     STEP_3A,
@@ -244,8 +245,8 @@ PAL_DECOMMISSION::[
   ]
 ]
 §5::CRITICAL_PATH
-CRITICAL_PATH::"STEP_3A (Payload Compiler, COMPLETE) then STEP_3B (dispatch_colleague: Phase 1+2 MERGED 2026-04-20, Phase 3D/3E NEXT) then STEP_4 (Testing Lab). In parallel: HARVEST_PHASE_1 (hestai-context-mcp, COMPLETE) then HARVEST_PHASE_1_5 (Pre-A/B integration viability, COMPLETE 2026-04-22) feeds into HARVEST_PHASE_2 which integrates with STEP_3A."
-EXPLANATION::"Step 3A complete. Step 3B Phase 1 and Phase 2 both merged 2026-04-20, landing CA-BCE + unlock_work gate (#134), ApiDispatcher + ContinuationStore (#137), subagent-discipline (#147), and ADR-0002 I1 Session/Dispatch ontology amendment (commit 077ea0a). Workbench tagged v1.0.0 2026-07-27 with ADR-0003 Escrow-Gated Agent Loading Phases 1-3 production-wired; Phase 3D/3E (ContinuationStore TTL cleanup, dispatch-chain UI #82) still NEXT. HARVEST_PHASE_1_5 closed 2026-04-22 (issues #4/#5/#6/#7), HARVEST_PHASE_2 wires hestai-context-mcp into the Payload Compiler at Position 3 — status not independently re-verified from this repo."
+CRITICAL_PATH::"STEP_3A (Payload Compiler, COMPLETE) then STEP_3B (dispatch_colleague: Phase 1+2 MERGED 2026-04-20, remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0)) then STEP_4 (Testing Lab). In parallel: HARVEST_PHASE_1 (hestai-context-mcp, COMPLETE) then HARVEST_PHASE_1_5 (Pre-A/B integration viability, COMPLETE 2026-04-22) feeds into HARVEST_PHASE_2 which integrates with STEP_3A."
+EXPLANATION::"Step 3A complete. Step 3B Phase 1 and Phase 2 both merged 2026-04-20, landing CA-BCE + unlock_work gate (#134), ApiDispatcher + ContinuationStore (#137), subagent-discipline (#147), and ADR-0002 I1 Session/Dispatch ontology amendment (commit 077ea0a). Workbench tagged v1.0.0 2026-07-27 with ADR-0003 Escrow-Gated Agent Loading Phases 1-3 production-wired; remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0). HARVEST_PHASE_1_5 closed 2026-04-22 (issues #4/#5/#6/#7), HARVEST_PHASE_2 wires hestai-context-mcp into the Payload Compiler at Position 3 — status not independently re-verified from this repo."
 VISUAL::[
   "  octave-mcp (solid)          debate-hall (solid, own pace)",
   "       |                            |",
@@ -257,7 +258,7 @@ VISUAL::[
   "  dispatch     (hestai-context-mcp) |",
   "  _colleague        |               |",
   "  P1+P2 MERGED HARVEST Phase 1.5    |",
-  "  P3D/3E NEXT  CLOSED 2026-04-22    |",
+  "  P3 OPEN #82  CLOSED 2026-04-22    |",
   "       |            |               |",
   "       |       HARVEST Phase 2      |",
   "       |       (wire into 3A)       |",
@@ -308,7 +309,7 @@ DECISION_5::[
 DECISION_6::[
   QUESTION::"What happens to odyssean-anchor-mcp?",
   STATUS::"RESOLVED by ADR-0353",
-  ANSWER::"Legacy for Claude-with-MCP sessions. NOT being rebuilt in TypeScript inside Workbench (previous plan per ADR-0275 superseded). Replaced by Alley-Oop for headless dispatch."
+  ANSWER::"Legacy for Claude-with-MCP sessions. NOT being rebuilt in TypeScript inside Workbench (previous plan per ADR-0275 superseded). Replaced by Alley-Oop for headless dispatch (headless identity injection since superseded by workbench ADR-0003 — see DECISION_5 SUPERSEDED_BY)."
 ]
 §7::ISSUE_MAPPING
 ISSUES::[
@@ -319,7 +320,7 @@ ISSUES::[
   "workbench#1 (evolve crystal)::STEPS_3A_through_4",
   "workbench#99 (Payload Compiler)::STEP_3A_COMPLETE",
   "workbench#33 (native dispatch)::STEP_3B",
-  "workbench#82 (dispatch-chain UI + recursive dispatch_colleague)::STEP_3B_PHASE_3E_NEXT",
+  "workbench#82 (dispatch-chain UI + recursive dispatch_colleague)::STEP_3B_REMAINING_WORK_OPEN_PER_V3_0",
   "workbench#98 (Testing Lab)::STEP_4",
   "workbench#36 (PAL decommission)::PAL_DECOMMISSION",
   "workbench#104 (matrix resolver)::DONE_PR_107",
@@ -342,6 +343,6 @@ ISSUES::[
   "Project 15 (Ecosystem Build Order)::this_graph full_coordination"
 ]
 §8::OPERATOR_INSIGHT
-DIRECTION::"Three-Service Model (ADR-0353) reflects the resolved architecture: Workbench compiles and dispatches (Eyes and Hands), Vault stores identity (DNA), hestai-context-mcp manages session lifecycle and context (Memory and Environment). Step 3A is COMPLETE; Step 3B Phase 1 and Phase 2 both merged 2026-04-20; workbench tagged v1.0.0 2026-07-27 with ADR-0003 Escrow-Gated Agent Loading Phases 1-3 production-wired; Phase 3D/3E (ContinuationStore TTL cleanup, dispatch-chain UI #82) still NEXT. In parallel, hestai-context-mcp Phase 1.5 closed 2026-04-22 (issues #4/#5/#6/#7); RFC #53 (write-side governance) and RFC #40 (AGR read layer) have since landed."
+DIRECTION::"Three-Service Model (ADR-0353) reflects the resolved architecture: Workbench compiles and dispatches (Eyes and Hands), Vault stores identity (DNA), hestai-context-mcp manages session lifecycle and context (Memory and Environment). Step 3A is COMPLETE; Step 3B Phase 1 and Phase 2 both merged 2026-04-20; workbench tagged v1.0.0 2026-07-27 with ADR-0003 Escrow-Gated Agent Loading Phases 1-3 production-wired; remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0). In parallel, hestai-context-mcp Phase 1.5 closed 2026-04-22 (issues #4/#5/#6/#7); RFC #53 (write-side governance) and RFC #40 (AGR read layer) have since landed."
 ANTI_PATTERN::"Building governance logic into the Workbench. Governance belongs in hestai-context-mcp (proven Python, stdio transport, survives rebuilds). The Workbench is volatile — it will be rebuilt. Keep it thin: compile, dispatch, display."
 ===END===
