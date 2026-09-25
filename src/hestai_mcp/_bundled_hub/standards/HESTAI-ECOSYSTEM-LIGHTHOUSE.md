@@ -126,7 +126,7 @@ The ecosystem comprises three services with clear ownership boundaries (ADR-0353
 **What it is:** A standalone governance engine providing session lifecycle, context synthesis, learnings extraction, and review infrastructure via stdio MCP transport.
 
 **What it owns (Phase 1 delivered):**
-- clock_in (session creation, focus resolution, focus conflict detection; AI-synthesized context summaries currently deferred — see known gaps below)
+- clock_in (session creation, focus resolution, focus conflict detection; AI-synthesized context summaries shipped via Phase 1.5 — see known gaps below)
 - clock_out (transcript parsing via `TranscriptParser` ABC + `ClaudeTranscriptParser` adapter, credential redaction via RedactionEngine, OCTAVE compression, structured learnings indexing)
 - get_context (read-only context synthesis tool)
 - submit_review (structured code review verdicts with CI gate clearing, 8 reviewer roles, dry-run, commit SHA pinning)
@@ -379,7 +379,7 @@ The ecosystem is "done" when:
 
 As of 2026-04-20, with rows individually refreshed where a newer cited source exists (see per-row citations):
 
-**Cross-repo freshness caveat (added 2026-09-10):** Since hestai-workbench PR #252 (2026-06-10), that repo's `.hestai/coordination/` docs are gitignored and local-only — they no longer appear in its git history. hestai-mcp still tracks its own `.hestai/` coordination docs. Verifying claims across repos in this table therefore now requires filesystem access to each peer checkout, not git alone; neither this document nor the Ecosystem Overview currently records that constraint elsewhere.
+**Cross-repo freshness caveat (added 2026-09-10):** Since hestai-workbench PR #252 (2026-06-10), that repo's `.hestai/coordination/` docs are gitignored and local-only — they no longer appear in its git history. None of the three repos commits its working/coordination state: hestai-mcp and hestai-context-mcp likewise keep it in a gitignored `.hestai-state/` and commit only governance artefacts (hestai-mcp: `.hestai/{decisions,north-star,rules,schemas,README.md}`; hestai-context-mcp: `.hestai/{context,decisions,north-star,MANIFEST.md}`). Peer-repo claims in this document are therefore sourced from each repo's local-only, untracked context files, and cannot be verified from git in any of the three repos — only via filesystem access to each checkout.
 
 | System | Current State | Distance | Next Step |
 |--------|--------------|----------|-----------|

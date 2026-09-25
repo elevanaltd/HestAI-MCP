@@ -17,7 +17,7 @@ ARCHITECTURE_DECISION::"Thick Client model (v3.0) replaced by Three-Service Mode
 PREVIOUS_MODEL::"v3.0 described 9-step absorption build sequence where workbench absorbs hestai-mcp and OA. CORRECTED: Workbench owns dispatch only. Governance engine harvested into hestai-context-mcp. Agent identity moves to Vault."
 ONTOLOGY_AMENDMENT::"ADR-0002 I1 amendment (accepted 2026-04-20 via workbench commit 077ea0a): Session/Dispatch ontology separation. API_DISPATCH is I1-by-exemption — API-dispatched agents inherit I1 (Persistent Cognitive Continuity) semantics through their parent session context rather than owning an independent session, because they are stateless advisory calls routed via OpenRouter. See §3 LAYER_4 and §6 DECISION_5 for application."
 CLAUDE_CODE_PRIMITIVES::"Claude Code v2.1.77+ introduced Agent Teams primitives (SendMessage, TeamCreate, team_name, agentId resume, Agent tool isolation:worktree|inherit). Gated behind CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1. These are continuation mechanics that affect Pattern A (intra-session Claude→Claude delegation) IMPLEMENTATION, not the architecture. Vault remains authoritative for identity; KVAEPH Position 3 remains authoritative for context; Alley-Oop remains authoritative for T2+ reliability. See HESTAI-ECOSYSTEM-LIGHTHOUSE.md §4 Anti-patterns (AP1/AP2/AP3) and upstream bugs anthropics/claude-code#50889 (auto-reap breaks resume) and #42999 (agentId-vs-name addressing)."
-CROSS_REPO_VISIBILITY::"Workbench PR #252 (2026-06-10) gitignored its .hestai/ coordination docs — now local-only and unverifiable from git; this repo (hestai-mcp) and hestai-context-mcp still commit theirs as of 2026-09-10. Peer-repo freshness claims below are sourced from each repo's own committed PROJECT-CONTEXT.oct.md where available, not from live cross-repo git access."
+CROSS_REPO_VISIBILITY::"Workbench PR #252 (2026-06-10) gitignored its .hestai/ coordination docs — now local-only and unverifiable from git; re-measured 2026-09-25: hestai-mcp and hestai-context-mcp also keep working/coordination state in a gitignored .hestai-state directory (git ls-files .hestai/state → 0 tracked files; git check-ignore .hestai-state → ignored in both repos) and commit only governance artefacts (.hestai/{decisions,north-star,rules,schemas,README.md} for hestai-mcp; .hestai/{context,decisions,north-star,MANIFEST.md} for hestai-context-mcp). Peer-repo freshness claims below are sourced from each repo's own local-only, untracked context files where available, not from live cross-repo git access."
 §1::CURRENT_STATE
 OCTAVE_MCP::[
   VERSION::"1.13.0",
@@ -89,7 +89,7 @@ HESTAI_CONTEXT_MCP::[
     trace_supersedure
   ],
   PRE_AB_WORK::"Phase 1.5 integration-viability gaps CLOSED 2026-04-22 (issues #4 P0a, #5 P0b, #6 P1, #7 P-side all resolved). Since then: RFC #53 write-side governance authoring (submit_governance, prose-to-OCTAVE Semantic Compiler, Gates A/B/C merged; T6 migration/calibration still open) and RFC #40 AGR read layer (lookup_decision, list_decisions, trace_supersedure — shipped, issue #83/PR #86).",
-  AI_SYNTHESIS_FRAMING::"Legacy has working AI synthesis when configured; new repo currently lacks the path entirely (covered by P0b/issue #5). Without API keys, both produce structured non-AI output.",
+  AI_SYNTHESIS_FRAMING::"Legacy has working AI synthesis when configured; new repo's AI synthesis path was ported via P0b/issue #5 (COMPLETE 2026-04-22, per HARVEST_PHASE_1_5). Without API keys, both produce structured non-AI output.",
   PHANTOMS_NOT_GAPS::["ContextSteward and dynamic phase constraints (core/context_steward.py:36-184 + tests) — implemented","Focus conflict detection (core/session.py:91-128 + 4 behavioural tests) — implemented"],
   KEY_FACT::"Harvested from hestai-mcp (clock_in harvested, clock_out redesigned with provider adapter pattern). Owns clock_in, clock_out, get_context, submit_review, submit_governance, lookup_decision, list_decisions, trace_supersedure, ContextSteward, RedactionEngine, governance rails, intake engine. Stdio MCP transport. Legacy hestai-mcp stays intact for outcome-quality A/B comparison."
 ]
@@ -205,7 +205,7 @@ HARVEST_PHASE_1_5::[
 ]
 HARVEST_PHASE_2::[
   WHAT::"Workbench Payload Compiler calls hestai-context-mcp for Position 3 — NEXT",
-  STATUS::"PENDING — not independently re-verified from this repo as of 2026-09-10",
+  STATUS::"PARTIAL — Workbench Payload Compiler integration via get_context at KVAEPH Position 3 SHIPPED 2026-05-01 (workbench PRs #169 #176). submit_review consumer wiring (issue #30) deferred.",
   RATIONALE::"Thin stdio MCP client in Payload Compiler. Spawn python -m hestai_context_mcp via stdio. Inject clock_in output at KVAEPH Position 3. Prerequisites HARVEST_PHASE_1_5 (CLOSED 2026-04-22) and STEP_3B Phase 1+2 (MERGED) are satisfied; STEP_3B Phase 3D/3E completion status is unverified from this repo.",
   EFFORT::"small — stdio MCP client (~30 lines), integration",
   PREREQ::[
@@ -257,7 +257,7 @@ VISUAL::[
   "  dispatch     (hestai-context-mcp) |",
   "  _colleague        |               |",
   "  P1+P2 MERGED HARVEST Phase 1.5    |",
-  "  P3D/3E NEXT  (CLOSED 2026-04-22)  |",
+  "  P3D/3E NEXT  CLOSED 2026-04-22    |",
   "       |            |               |",
   "       |       HARVEST Phase 2      |",
   "       |       (wire into 3A)       |",
