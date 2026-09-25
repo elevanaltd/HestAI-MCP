@@ -207,13 +207,12 @@ HARVEST_PHASE_1_5::[
 HARVEST_PHASE_2::[
   WHAT::"Workbench Payload Compiler calls hestai-context-mcp for Position 3 via get_context — core SHIPPED 2026-05-01 (workbench PRs #169 #176)",
   STATUS::"PARTIAL — Workbench Payload Compiler integration via get_context at KVAEPH Position 3 SHIPPED 2026-05-01 (workbench PRs #169 #176). submit_review consumer wiring (issue #30) deferred.",
-  RATIONALE::"Thin stdio MCP client in Payload Compiler. Spawn python -m hestai_context_mcp via stdio. Inject get_context output at KVAEPH Position 3. Prerequisites HARVEST_PHASE_1_5 (CLOSED 2026-04-22) and STEP_3B Phase 1+2 (MERGED) are satisfied; remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0).",
+  RATIONALE::"Thin stdio MCP client in Payload Compiler. Spawn python -m hestai_context_mcp via stdio. Inject get_context output at KVAEPH Position 3. Prerequisites HARVEST_PHASE_1_5 (CLOSED 2026-04-22) and STEP_3B Phase 1+2 (MERGED) were satisfied; core integration shipped 2026-05-01 without waiting on remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0).",
   EFFORT::"small — stdio MCP client (~30 lines), integration",
   PREREQ::[
     STEP_3A,
     HARVEST_PHASE_1,
-    HARVEST_PHASE_1_5,
-    STEP_3B
+    HARVEST_PHASE_1_5
   ]
 ]
 HARVEST_PHASE_3::[
