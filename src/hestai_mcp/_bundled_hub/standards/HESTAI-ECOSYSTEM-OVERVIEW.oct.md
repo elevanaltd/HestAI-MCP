@@ -10,11 +10,11 @@ META:
   FORMAT::octave
   ARCHITECTURE::"THREE_SERVICE_MODEL<ADR-0353>"
 §0::ARCHITECTURE_NOTE
-DESCRIPTION::"This document describes the APPROVED TARGET architecture per ADR-0353 (Three-Service Model). The ecosystem comprises three services: Workbench (Eyes and Hands), Vault (DNA), hestai-context-mcp (Memory and Environment), plus two standalone MCP servers (debate-hall, octave-mcp). Identity injection uses the Alley-Oop pattern via the Payload Compiler as originally recorded here; production identity injection has since moved to ADR-0003 Escrow-Gated Agent Loading in hestai-workbench (Phases 1-3 production, ceremony default flip PR #283 token CEREMONY-DEFAULT-FLIP-20260617) — full ADR-0003 mechanics not independently re-verified from this repo. Context management uses hestai-context-mcp via stdio MCP transport."
+DESCRIPTION::"This document describes the APPROVED TARGET architecture per ADR-0353 (Three-Service Model). The ecosystem comprises three services: Workbench (Eyes and Hands), Vault (DNA), hestai-context-mcp (Memory and Environment), plus two standalone MCP servers (debate-hall, octave-mcp). Identity injection uses the Alley-Oop pattern via the Payload Compiler as originally recorded here; Workbench Claude CLI session identity binding has since moved to ADR-0003 Escrow-Gated Agent Loading in hestai-workbench (Claude launch adapter only, production default since workbench PR #283; Codex/Goose adapters deferred to ADR-0004) — headless/API dispatch still uses Alley-Oop; full ADR-0003 mechanics not independently re-verified from this repo. Context management uses hestai-context-mcp via stdio MCP transport."
 PREVIOUS_MODEL::"v3.0 described Thick Client absorption where workbench absorbs hestai-mcp and odyssean-anchor-mcp. CORRECTED by ADR-0353: Workbench absorbs UX/dispatch only. Governance engine is harvested into hestai-context-mcp. Agent identity moves to Vault."
 DECISION_SOURCE::"ADR-0353 (2026-04-06). Wind/Wall/Door debates (standard + premium tier). Human-approved direction."
 CROSS_REPO_VISIBILITY::"Workbench PR #252 (2026-06-10) gitignored its .hestai/ coordination docs — now local-only and unverifiable from git; re-measured 2026-09-25: hestai-mcp and hestai-context-mcp also keep working state at .hestai/state/ (backed by a gitignored .hestai-state/ store) and commit only governance artefacts (.hestai/{decisions,north-star,rules,schemas,README.md} for hestai-mcp; .hestai/{context,decisions,north-star,MANIFEST.md} for hestai-context-mcp) — git ls-files .hestai/state → 0 tracked files; git check-ignore .hestai/state → ignored (hestai-mcp .gitignore:29; hestai-context-mcp .gitignore:49). Peer-repo claims in this document are sourced from each repo's own local-only, untracked context files where available, not from live cross-repo git access."
-SUPERSESSION_NOTE::"Historical (superseded): where Alley-Oop references in this document describe identity injection, they record the earlier target-state design; production identity injection is workbench ADR-0003 (escrow-gated agent loading; ceremony default since workbench PR #283), whose mechanics are not described here. Alley-Oop references describing the T2+ reliability pipeline have not been re-verified since ADR-0003."
+SCOPE_NOTE::"Scope note (ADR-0003): workbench ADR-0003 (escrow-gated agent loading) changed how Claude CLI sessions bind an agent identity — v1 ships the vendor-agnostic ceremony core plus the Claude launch adapter only, production default since workbench PR #283; Codex/Goose adapters are deferred to ADR-0004. It did not replace Alley-Oop: the workbench Payload Compiler still builds Alley-Oop reliability messages, used on the API (OpenRouter) dispatch path (workbench main/src/services/payloadCompiler.ts buildReliabilityMessages at e88764c). Other Alley-Oop text in this document is target-state description not re-verified since ADR-0003."
 CLEAN_BREAK_RATIONALE::[
   "Conflating identity injection (stateless) with state management (stateful) was the root error",
   "Governance logic (1500+ lines proven Python, 92% coverage) must survive Workbench rebuild",
@@ -40,7 +40,7 @@ HESTAI_MCP::[
     "Library content (_bundled_hub: agents, skills, standards, cognitions) moves to Vault",
     ".hestai-sys/ injection mechanism moves to Vault/Workbench",
     "clock_in, clock_out, ContextSteward, RedactionEngine, submit_review harvested into hestai-context-mcp (Phase 1 complete 2026-04-17)",
-    "bind tool replaced by Alley-Oop for headless dispatch as originally recorded here; production identity injection has since moved to ADR-0003 Escrow-Gated Agent Loading in hestai-workbench — full mechanics not independently re-verified from this repo",
+    "bind tool replaced by Alley-Oop for headless dispatch as originally recorded here; Workbench Claude CLI session identity binding has since moved to ADR-0003 Escrow-Gated Agent Loading in hestai-workbench (Claude launch adapter only; Codex/Goose deferred to ADR-0004) — headless/API dispatch still uses Alley-Oop; full mechanics not independently re-verified from this repo",
     "Legacy system stays intact for outcome-quality A/B comparison until new system proven"
   ],
   NOT_BEING_ABSORBED::"ADR-0353 resolved: hestai-mcp is NOT being absorbed into the Workbench. Governance engine logic has been harvested into the NEW repo (hestai-context-mcp, Phase 1 complete 2026-04-17). Legacy stays for comparison.",
@@ -56,7 +56,7 @@ ODYSSEAN_ANCHOR_MCP::[
   REPO::"elevanaltd/odyssean-anchor-mcp",
   DISPOSITION::[
     "5-stage KEAPH ceremony remains operational for Claude-with-MCP sessions",
-    "Replaced by Alley-Oop pattern for Workbench headless dispatch as originally recorded here; production identity injection has since moved to ADR-0003 Escrow-Gated Agent Loading in hestai-workbench — full mechanics not independently re-verified from this repo",
+    "Replaced by Alley-Oop pattern for Workbench headless dispatch as originally recorded here; Workbench Claude CLI session identity binding has since moved to ADR-0003 Escrow-Gated Agent Loading in hestai-workbench (Claude launch adapter only; Codex/Goose deferred to ADR-0004) — headless/API dispatch still uses Alley-Oop; full mechanics not independently re-verified from this repo",
     "NOT being rebuilt in TypeScript inside Workbench (previous plan per ADR-0275 was superseded)"
   ]
 ]
@@ -93,7 +93,7 @@ TWO_CONDITIONING_PIPELINES::[
   BASELINE::"For simple low-complexity dispatch. U-Curve prompt topology plus single-step enforced grammar. KVAEPH core plus task with MUST_USE grammar requirement.",
   RELIABILITY::"For T2+ tasks. Alley-Oop pattern: (1) system: dense OCTAVE KVAEPH core, (2) user[synthetic]: acknowledge constraints, (3) assistant[synthetic]: Workbench-constructed static proof from Vault, (4) user[real]: task + Dynamic Anchor Lock demand. Agent MUST emit cognitive grammar headers before proceeding."
 ]
-LEGACY_PATH::"OA ceremony (5-stage KEAPH) remains for Claude-with-MCP sessions. Alley-Oop is for headless/non-MCP dispatch, as originally recorded here; production identity injection has since moved to ADR-0003 Escrow-Gated Agent Loading in hestai-workbench — full mechanics not independently re-verified from this repo."
+LEGACY_PATH::"OA ceremony (5-stage KEAPH) remains for Claude-with-MCP sessions. Alley-Oop is for headless/non-MCP dispatch, as originally recorded here; Workbench Claude CLI session identity binding has since moved to ADR-0003 Escrow-Gated Agent Loading in hestai-workbench (Claude launch adapter only; Codex/Goose deferred to ADR-0004) — headless/API dispatch still uses Alley-Oop; full mechanics not independently re-verified from this repo."
 §5::OWNERSHIP_BOUNDARIES
 CLEAR_SEPARATIONS::[
   "WHO agents are (identity, skills, cognitions) — Vault (git-backed, read-only at runtime)",

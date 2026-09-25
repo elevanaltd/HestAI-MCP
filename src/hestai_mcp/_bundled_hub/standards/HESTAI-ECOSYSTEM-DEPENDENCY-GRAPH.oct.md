@@ -18,7 +18,7 @@ PREVIOUS_MODEL::"v3.0 described 9-step absorption build sequence where workbench
 ONTOLOGY_AMENDMENT::"ADR-0002 I1 amendment (accepted 2026-04-20 via workbench commit 077ea0a): Session/Dispatch ontology separation. API_DISPATCH is I1-by-exemption — API-dispatched agents inherit I1 (Persistent Cognitive Continuity) semantics through their parent session context rather than owning an independent session, because they are stateless advisory calls routed via OpenRouter. See §3 LAYER_4 and §6 DECISION_5 for application."
 CLAUDE_CODE_PRIMITIVES::"Claude Code v2.1.77+ introduced Agent Teams primitives (SendMessage, TeamCreate, team_name, agentId resume, Agent tool isolation:worktree|inherit). Gated behind CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1. These are continuation mechanics that affect Pattern A (intra-session Claude→Claude delegation) IMPLEMENTATION, not the architecture. Vault remains authoritative for identity; KVAEPH Position 3 remains authoritative for context; Alley-Oop remains authoritative for T2+ reliability. See HESTAI-ECOSYSTEM-LIGHTHOUSE.md §4 Anti-patterns (AP1/AP2/AP3) and upstream bugs anthropics/claude-code#50889 (auto-reap breaks resume) and #42999 (agentId-vs-name addressing)."
 CROSS_REPO_VISIBILITY::"Workbench PR #252 (2026-06-10) gitignored its .hestai/ coordination docs — now local-only and unverifiable from git; re-measured 2026-09-25: hestai-mcp and hestai-context-mcp also keep working state at .hestai/state/ (backed by a gitignored .hestai-state/ store) and commit only governance artefacts (.hestai/{decisions,north-star,rules,schemas,README.md} for hestai-mcp; .hestai/{context,decisions,north-star,MANIFEST.md} for hestai-context-mcp) — git ls-files .hestai/state → 0 tracked files; git check-ignore .hestai/state → ignored (hestai-mcp .gitignore:29; hestai-context-mcp .gitignore:49). Peer-repo freshness claims below are sourced from each repo's own local-only, untracked context files where available, not from live cross-repo git access."
-SUPERSESSION_NOTE::"Historical (superseded): where Alley-Oop references in this document describe identity injection, they record the earlier target-state design; production identity injection is workbench ADR-0003 (escrow-gated agent loading; ceremony default since workbench PR #283), whose mechanics are not described here. Alley-Oop references describing the T2+ reliability pipeline have not been re-verified since ADR-0003."
+SCOPE_NOTE::"Scope note (ADR-0003): workbench ADR-0003 (escrow-gated agent loading) changed how Claude CLI sessions bind an agent identity — v1 ships the vendor-agnostic ceremony core plus the Claude launch adapter only, production default since workbench PR #283; Codex/Goose adapters are deferred to ADR-0004. It did not replace Alley-Oop: the workbench Payload Compiler still builds Alley-Oop reliability messages, used on the API (OpenRouter) dispatch path (workbench main/src/services/payloadCompiler.ts buildReliabilityMessages at e88764c). Other Alley-Oop text in this document is target-state description not re-verified since ADR-0003."
 §1::CURRENT_STATE
 OCTAVE_MCP::[
   VERSION::"1.13.0",
@@ -116,7 +116,7 @@ ODYSSEAN_ANCHOR_MCP::[
   HEALTH::OPERATIONAL,
   TESTS::"714 passing, 88 percent coverage",
   STATUS::legacy_for_claude_with_mcp_sessions,
-  KEY_FACT::"5-stage KEAPH ceremony remains for Claude-with-MCP sessions. Replaced by Alley-Oop for headless dispatch (headless identity injection since superseded by workbench ADR-0003 — see DECISION_5 SUPERSEDED_BY). NOT being rebuilt in TypeScript."
+  KEY_FACT::"5-stage KEAPH ceremony remains for Claude-with-MCP sessions. Replaced by Alley-Oop for headless dispatch (Workbench Claude CLI sessions now bind via ADR-0003 instead; headless/API dispatch still uses Alley-Oop). NOT being rebuilt in TypeScript."
 ]
 PAL_MCP_SERVER::[
   VERSION::"1.0.3",
@@ -302,14 +302,14 @@ DECISION_4::[
 ]
 DECISION_5::[
   QUESTION::"How does identity injection work without the anchor ceremony?",
-  STATUS::"Alley-Oop pattern (AP3) and ADR-0002 I1 amendment ACCEPTED 2026-04-20 as originally answered below; production identity injection SUPERSEDED since — see SUPERSEDED_BY",
+  STATUS::"Alley-Oop pattern (AP3) and ADR-0002 I1 amendment ACCEPTED 2026-04-20 as originally answered below; Claude CLI session identity binding SUPERSEDED since — see SUPERSEDED_BY",
   ANSWER::"Payload Compiler reads Vault, assembles KVAEPH, constructs synthetic threading with prefilled proof, demands Dynamic Anchor Lock. Agent must emit cognitive grammar headers. MCP_NOT_REQUIRED — validation is regex on output, not server round-trip. OA MCP remains for Claude-with-MCP sessions. ADR-0002 I1 Session/Dispatch ontology amendment (commit 077ea0a): API_DISPATCH is I1-by-exemption — stateless advisory API calls inherit I1 continuity semantics through their parent session rather than owning a separate Session; CLI_DISPATCH remains I1-owning. This resolves the ontological ambiguity raised when ApiDispatcher landed via #137.",
-  SUPERSEDED_BY::"ADR-0003 Escrow-Gated Agent Loading (hestai-workbench) — anchor ceremony absorbed first-party as a vendor-agnostic MCP-served staged-escrow protocol, Phases 1-3 in production; ceremony default flipped legacy→ceremony (PR #283, token CEREMONY-DEFAULT-FLIP-20260617). Full mechanics not independently re-verified from this repo — see workbench's own ADR-0003 for detail; this entry records supersession only, not new mechanics."
+  SUPERSEDED_BY::"ADR-0003 Escrow-Gated Agent Loading (hestai-workbench) — changed how Claude CLI sessions bind an agent identity: v1 ships a vendor-agnostic Layer-1 ceremony core plus the Claude Layer-2 launch adapter only (Codex/Goose adapters deferred to ADR-0004); production default since workbench PR #283 (token CEREMONY-DEFAULT-FLIP-20260617). It did not replace Alley-Oop, which the Payload Compiler still uses for the API (OpenRouter) dispatch path. Full mechanics not independently re-verified from this repo — see workbench's own ADR-0003 for detail; this entry records scope only, not new mechanics."
 ]
 DECISION_6::[
   QUESTION::"What happens to odyssean-anchor-mcp?",
   STATUS::"RESOLVED by ADR-0353",
-  ANSWER::"Legacy for Claude-with-MCP sessions. NOT being rebuilt in TypeScript inside Workbench (previous plan per ADR-0275 superseded). Replaced by Alley-Oop for headless dispatch (headless identity injection since superseded by workbench ADR-0003 — see DECISION_5 SUPERSEDED_BY)."
+  ANSWER::"Legacy for Claude-with-MCP sessions. NOT being rebuilt in TypeScript inside Workbench (previous plan per ADR-0275 superseded). Replaced by Alley-Oop for headless dispatch (Workbench Claude CLI sessions now bind via ADR-0003 instead; headless/API dispatch still uses Alley-Oop)."
 ]
 §7::ISSUE_MAPPING
 ISSUES::[
