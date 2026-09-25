@@ -128,7 +128,7 @@ PAL_MCP_SERVER::[
 §2::DEPENDENCY_ARROWS
 ARROWS::[
   "workbench --[reads]--> vault (agent definitions, skills, cognitions, standards for KVAEPH Positions 0-2)",
-  "workbench --[stdio_mcp]--> hestai-context-mcp (clock_in for KVAEPH Position 3, clock_out for session archival)",
+  "workbench --[stdio_mcp]--> hestai-context-mcp (get_context for KVAEPH Position 3, clock_out for session archival)",
   "workbench --[mcp_client]--> debate-hall-mcp (deliberation calls)",
   "workbench --[mcp_client_or_cli]--> octave-mcp (format validation)",
   "debate-hall-mcp --[python_import]--> octave-mcp (pyproject.toml: octave-mcp>=1.2.1)",
@@ -139,7 +139,7 @@ ARROWS::[
 LAYER_0::"FOUNDATION — octave-mcp: SOLID, v1.13.0, production. ACTION: Update deps when releases happen. No structural changes needed."
 LAYER_1::"DELIBERATION — debate-hall-mcp: SOLID, v0.5.0, production, 17 tools. ACTION: Continue independently. Issue 163 (Governance Hall)."
 LAYER_2::"IDENTITY — Vault: POPULATED, git-backed, 5 V9 agents (ho-control-room added 2026-04-20 via PR #147). ACTION: Populate as Payload Compiler demands content."
-LAYER_3::"CONTEXT — hestai-context-mcp: Phase 1 COMPLETE (2026-04-17); Phase 1.5 CLOSED 2026-04-22. 8 tools operational, 1251 tests, 92 percent coverage (as of 2026-06-13). Since: RFC #53 write-side governance (Gates A/B/C merged, T6 open) and RFC #40 AGR read layer (shipped). ACTION: Phase 2 — workbench Payload Compiler integration via stdio at KVAEPH Position 3 (status not independently re-verified from this repo)."
+LAYER_3::"CONTEXT — hestai-context-mcp: Phase 1 COMPLETE (2026-04-17); Phase 1.5 CLOSED 2026-04-22. 8 tools operational, 1251 tests, 92 percent coverage (as of 2026-06-13). Since: RFC #53 write-side governance (Gates A/B/C merged, T6 open) and RFC #40 AGR read layer (shipped). ACTION: Phase 2 PARTIAL — get_context integration at KVAEPH Position 3 SHIPPED 2026-05-01 (workbench PRs #169 #176); remaining: submit_review consumer wiring (hestai-context-mcp issue #30, deferred). Then Phase 3 — North Star injection unification (PENDING)."
 LAYER_4::"DISPATCH — hestai-workbench: Step 3A COMPLETE (Payload Compiler). Step 3B Phase 1 MERGED (#134 CA-BCE + unlock_work gate). Step 3B Phase 2 MERGED 2026-04-20 (#137 ApiDispatcher + ContinuationStore, #147 subagent-discipline, 077ea0a ADR-0002 I1 amendment). I1-BY-EXEMPTION: API_DISPATCH inherits I1 semantics through the parent session's continuity rather than owning an independent Session — accepted in ADR-0002 Session/Dispatch ontology amendment. v1.0.0 tagged 2026-07-27; ADR-0003 Escrow-Gated Agent Loading Phases 1-3 production-wired since. remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0), per workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0 except where marked 'per v3.0'."
 §3b::PRE_AB_WORK_FOR_HESTAI_CONTEXT_MCP
 PURPOSE::"Phase 1.5 integration-viability gaps that block meaningful outcome-quality A/B testing"
@@ -179,7 +179,7 @@ STEP_3B::[
   PHASE_2::"MERGED 2026-04-20 — #137 ApiDispatcher + ContinuationStore; #147 subagent-discipline; 077ea0a ADR-0002 I1 Session/Dispatch ontology (API_DISPATCH I1-by-exemption)",
   PHASE_3::"v1.0.0 tagged 2026-07-27 with ADR-0003 Escrow-Gated Agent Loading Phases 1-3 production-wired and ceremony default flip (PR #283). remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0), per workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0 except where marked 'per v3.0'.",
   PREREQ::STEP_3A,
-  BLOCKS::[STEP_4,HARVEST_PHASE_2]
+  BLOCKS::[STEP_4]
 ]
 STEP_4::[
   WHAT::"Testing Lab — empirical validation",
@@ -205,9 +205,9 @@ HARVEST_PHASE_1_5::[
   BLOCKS::[HARVEST_PHASE_2]
 ]
 HARVEST_PHASE_2::[
-  WHAT::"Workbench Payload Compiler calls hestai-context-mcp for Position 3 — NEXT",
+  WHAT::"Workbench Payload Compiler calls hestai-context-mcp for Position 3 via get_context — core SHIPPED 2026-05-01 (workbench PRs #169 #176)",
   STATUS::"PARTIAL — Workbench Payload Compiler integration via get_context at KVAEPH Position 3 SHIPPED 2026-05-01 (workbench PRs #169 #176). submit_review consumer wiring (issue #30) deferred.",
-  RATIONALE::"Thin stdio MCP client in Payload Compiler. Spawn python -m hestai_context_mcp via stdio. Inject clock_in output at KVAEPH Position 3. Prerequisites HARVEST_PHASE_1_5 (CLOSED 2026-04-22) and STEP_3B Phase 1+2 (MERGED) are satisfied; remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0).",
+  RATIONALE::"Thin stdio MCP client in Payload Compiler. Spawn python -m hestai_context_mcp via stdio. Inject get_context output at KVAEPH Position 3. Prerequisites HARVEST_PHASE_1_5 (CLOSED 2026-04-22) and STEP_3B Phase 1+2 (MERGED) are satisfied; remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0).",
   EFFORT::"small — stdio MCP client (~30 lines), integration",
   PREREQ::[
     STEP_3A,
@@ -258,7 +258,7 @@ VISUAL::[
   "  dispatch     (hestai-context-mcp) |",
   "  _colleague        |               |",
   "  P1+P2 MERGED HARVEST Phase 1.5    |",
-  "  P3 OPEN #82  CLOSED 2026-04-22    |",
+  "  P3 OPEN #82  (1.5: CLOSED 04-22)  |",
   "       |            |               |",
   "       |       HARVEST Phase 2      |",
   "       |       (wire into 3A)       |",

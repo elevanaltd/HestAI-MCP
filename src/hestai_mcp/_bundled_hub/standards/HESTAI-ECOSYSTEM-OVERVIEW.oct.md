@@ -73,7 +73,7 @@ PAL_MCP_SERVER::[
 DISPATCH_FLOW::[
   STEP_1::"User selects agent + task in Glass UI",
   STEP_2::"Payload Compiler reads Vault for Positions 0-2 (BIOS/AXIOMS, IDENTITY, CAPABILITIES)",
-  STEP_3::"Payload Compiler calls hestai-context-mcp via stdio for Position 3 (CONTEXT: clock_in returns context synthesis, Product North Star, project state)",
+  STEP_3::"Payload Compiler calls hestai-context-mcp via stdio for Position 3 (CONTEXT: get_context returns context synthesis, project state — Phase 2 PARTIAL; Product North Star injection is HARVEST Phase 3, PENDING, per hestai-context-mcp PROJECT-CONTEXT.oct.md updated 2026-06-13)",
   STEP_4::"Compiler assembles full KVAEPH payload",
   STEP_5::"Workbench dispatches to CLI tool with compiled prompt (Alley-Oop for reliability pipeline, single-step grammar for baseline)",
   STEP_6::"Agent works. Reads .hestai/ for project context. Uses octave-mcp for documents.",

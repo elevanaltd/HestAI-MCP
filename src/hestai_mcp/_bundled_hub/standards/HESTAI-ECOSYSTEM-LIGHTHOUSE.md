@@ -31,8 +31,8 @@ It is **not** a system standard (that's the System North Star), **not** a build 
 **Relationship to other documents:**
 - **ADR-0353:** Canonical architectural decision. Established the Three-Service Model (Workbench + hestai-context-mcp + Vault). This Lighthouse reflects that decision.
 - **System North Star:** Immutable methodology (I1-I6). The Lighthouse operates within those laws.
-- **Ecosystem Overview v4.0:** System map reflecting the current architecture. Companion to this vision.
-- **Ecosystem Dependency Graph v4.0:** Build sequence aligned to workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0 except where marked 'per v3.0'.
+- **Ecosystem Overview v4.4:** System map reflecting the current architecture. Companion to this vision.
+- **Ecosystem Dependency Graph v4.5:** Build sequence aligned to workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0 except where marked 'per v3.0'.
 - **Product North Stars:** Per-repo vision. Each should move toward this ecosystem vision.
 
 ---
@@ -216,7 +216,7 @@ This is what the operator's daily experience looks like when the ecosystem is co
 
 3. **Pick a role.** Agent registry shows available roles (Holistic Orchestrator, Implementation Lead, Technical Architect, etc.) with their provider/model/dispatch assignments and tier. Select one.
 
-4. **Workbench compiles and dispatches.** The Payload Compiler reads the Vault for Positions 0-2 (BIOS/AXIOMS, IDENTITY, CAPABILITIES), calls hestai-context-mcp via stdio for Position 3 (CONTEXT — clock_in returns context synthesis, Product North Star, project state), assembles the full KVAEPH payload, creates a git worktree, and launches the appropriate CLI or API based on the registry entry.
+4. **Workbench compiles and dispatches.** The Payload Compiler reads the Vault for Positions 0-2 (BIOS/AXIOMS, IDENTITY, CAPABILITIES), calls hestai-context-mcp via stdio for Position 3 (CONTEXT — `get_context` returns context synthesis and project state; Product North Star injection is Phase 3, PENDING), assembles the full KVAEPH payload, creates a git worktree, and launches the appropriate CLI or API based on the registry entry.
 
 5. **Agent identity is injected via Alley-Oop.** For the reliability pipeline (T2+ tasks): the Workbench constructs a synthetic acknowledgment turn, prefills a static proof from Vault data, and delivers the task with a Dynamic Anchor Lock demand. The agent must emit cognitive grammar headers (TENSION/INSIGHT/SYNTHESIS) before proceeding. For the baseline pipeline (simple tasks): KVAEPH core plus single-step enforced grammar.
 
@@ -277,7 +277,7 @@ The Workbench validates cognitive grammar compliance (regex) before releasing th
 
 For **API-dispatched agents** (advisory roles via OpenRouter), identity injection uses **assistant prefilling**: the Workbench constructs the full system prompt, then injects a prefilled assistant turn that demonstrates cognitive alignment before the actual task is delivered. Provider-aware message construction is required, as not all OpenRouter backends handle prefilling identically.
 
-**Consult routing (API-only-by-contract):** Advisory consultation (`consult`) is API-only-by-contract — a depth-terminal compute leaf with zero filesystem footprint, routing through the OpenRouter API adapter; `dispatchType` and CLI Tool fields are inert on the consult path (RATIFIED: workbench decision CONSULT-ROUTING-API-ONLY-20260621). Consult targets must be valid OpenRouter model slugs (e.g., `claude-sonnet-4.6`); a CLI dispatch alias (e.g., `opus`) is invalid for consult. This is distinct from `dispatch_colleague`'s multi-CLI dispatch (Claude, Codex, Gemini, Goose), which remains available for delegated implementation work — see Section 4 Dual-path delegation.
+**Consult routing (API-only-by-contract):** Advisory consultation (`consult`) is API-only-by-contract — a depth-terminal compute leaf with zero filesystem footprint, routing through the OpenRouter API adapter; `dispatchType` and CLI Tool fields are inert on the consult path (RATIFIED: workbench decision CONSULT-ROUTING-API-ONLY-20260621). Consult targets must be valid OpenRouter model slugs (e.g., `anthropic/claude-3.5-sonnet` — the workbench validator's canonical example); a CLI dispatch alias (e.g., `opus`) is invalid for consult. This is distinct from `dispatch_colleague`'s multi-CLI dispatch (Claude, Codex, Gemini, Goose), which remains available for delegated implementation work — see Section 4 Dual-path delegation.
 
 **Legacy path**: The Odyssean Anchor MCP ceremony (5-stage KEAPH) remains operational for Claude-with-MCP sessions where agents have direct MCP access. The Alley-Oop pattern is for headless/non-MCP dispatch via the Workbench.
 
@@ -310,7 +310,7 @@ Key mechanics:
 The Workbench is a Crystal fork that will eventually be rebuilt in TypeScript. The critical insight from ADR-0353: governance logic lives in hestai-context-mcp (proven Python, 92% coverage) and survives the Workbench rebuild untouched. Only a ~30-line stdio MCP client adapter needs rewriting. The dispatch logic is implemented as a clean `DispatchService` module:
 
 - `AgentRegistryLookup` — resolves role to provider/model/dispatch mode via v_resolved_matrix
-- `PayloadCompiler` — assembles KVAEPH from Vault reads + hestai-context-mcp clock_in
+- `PayloadCompiler` — assembles KVAEPH from Vault reads + hestai-context-mcp `get_context`
 - `CliDispatcher` — spawns CLI panels via existing `AbstractCliManager` abstraction
 - `ApiDispatcher` — makes OpenRouter API calls with assistant-prefilled mini-ceremony
 - `ContinuationStore` — maps `dispatch_id` to provider-specific conversation identifiers
@@ -410,11 +410,11 @@ As of 2026-04-20, with rows individually refreshed where a newer cited source ex
 
 Per workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0 except where marked 'per v3.0', build sequence:
 
-**Step 3A** (Payload Compiler — NEXT, all prerequisites met) -> **Step 3B** (dispatch_colleague uses Payload Compiler) -> **Step 4** (Testing Lab measures baseline collapse threshold)
+**Step 3A** (Payload Compiler — COMPLETE) -> **Step 3B** (remaining work: dispatch-chain UI, workbench #82 — still OPEN per v3.0) -> **Step 4** (Testing Lab measures baseline collapse threshold)
 
 The convergence point is **Step 3B: dispatch_colleague** — where identity (from Vault), context (from hestai-context-mcp), and execution (Workbench dispatch) work together for the first time.
 
-In parallel: **hestai-context-mcp Phase 1** (harvest clock_in, redesign clock_out) provides the context engine that the Payload Compiler calls at KVAEPH Position 3.
+In parallel: **hestai-context-mcp Phase 1** (harvest clock_in, redesign clock_out) provides the context engine that the Payload Compiler calls via `get_context` at KVAEPH Position 3 — core integration SHIPPED 2026-05-01 (workbench PRs #169/#176); `submit_review` consumer wiring (issue #30) deferred.
 
 ### Validated Early
 
