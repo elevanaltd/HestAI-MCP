@@ -5,7 +5,7 @@ META:
   STATUS::TARGET
   PURPOSE::"Cross-system build sequence, blocking relationships, and phase alignment"
   CREATED::"2026-02-22"
-  REVISED::"2026-09-10"
+  REVISED::"2026-09-25"
   FORMAT::octave
   RESOLVES::"#265 (Cross-repo ecosystem dependency graph)"
   SUPPLEMENTS::HESTAI-ECOSYSTEM-OVERVIEW.oct.md
@@ -17,7 +17,7 @@ ARCHITECTURE_DECISION::"Thick Client model (v3.0) replaced by Three-Service Mode
 PREVIOUS_MODEL::"v3.0 described 9-step absorption build sequence where workbench absorbs hestai-mcp and OA. CORRECTED: Workbench owns dispatch only. Governance engine harvested into hestai-context-mcp. Agent identity moves to Vault."
 ONTOLOGY_AMENDMENT::"ADR-0002 I1 amendment (accepted 2026-04-20 via workbench commit 077ea0a): Session/Dispatch ontology separation. API_DISPATCH is I1-by-exemption — API-dispatched agents inherit I1 (Persistent Cognitive Continuity) semantics through their parent session context rather than owning an independent session, because they are stateless advisory calls routed via OpenRouter. See §3 LAYER_4 and §6 DECISION_5 for application."
 CLAUDE_CODE_PRIMITIVES::"Claude Code v2.1.77+ introduced Agent Teams primitives (SendMessage, TeamCreate, team_name, agentId resume, Agent tool isolation:worktree|inherit). Gated behind CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1. These are continuation mechanics that affect Pattern A (intra-session Claude→Claude delegation) IMPLEMENTATION, not the architecture. Vault remains authoritative for identity; KVAEPH Position 3 remains authoritative for context; Alley-Oop remains authoritative for T2+ reliability. See HESTAI-ECOSYSTEM-LIGHTHOUSE.md §4 Anti-patterns (AP1/AP2/AP3) and upstream bugs anthropics/claude-code#50889 (auto-reap breaks resume) and #42999 (agentId-vs-name addressing)."
-CROSS_REPO_VISIBILITY::"Workbench PR #252 (2026-06-10) gitignored its .hestai/ coordination docs — now local-only and unverifiable from git; re-measured 2026-09-25: hestai-mcp and hestai-context-mcp also keep working/coordination state in a gitignored .hestai-state directory (git ls-files .hestai/state → 0 tracked files; git check-ignore .hestai-state → ignored in both repos) and commit only governance artefacts (.hestai/{decisions,north-star,rules,schemas,README.md} for hestai-mcp; .hestai/{context,decisions,north-star,MANIFEST.md} for hestai-context-mcp). Peer-repo freshness claims below are sourced from each repo's own local-only, untracked context files where available, not from live cross-repo git access."
+CROSS_REPO_VISIBILITY::"Workbench PR #252 (2026-06-10) gitignored its .hestai/ coordination docs — now local-only and unverifiable from git; re-measured 2026-09-25: hestai-mcp and hestai-context-mcp also keep working state at .hestai/state/ (backed by a gitignored .hestai-state/ store) and commit only governance artefacts (.hestai/{decisions,north-star,rules,schemas,README.md} for hestai-mcp; .hestai/{context,decisions,north-star,MANIFEST.md} for hestai-context-mcp) — git ls-files .hestai/state → 0 tracked files; git check-ignore .hestai/state → ignored (hestai-mcp .gitignore:29; hestai-context-mcp .gitignore:49). Peer-repo freshness claims below are sourced from each repo's own local-only, untracked context files where available, not from live cross-repo git access."
 §1::CURRENT_STATE
 OCTAVE_MCP::[
   VERSION::"1.13.0",

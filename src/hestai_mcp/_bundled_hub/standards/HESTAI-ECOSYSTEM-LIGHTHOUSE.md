@@ -5,7 +5,7 @@ version: 4.5
 status: ACTIVE
 purpose: Target state vision for the fully integrated HestAI ecosystem
 created: 2026-02-25
-revised: 2026-09-10
+revised: 2026-09-25
 origin: Project 15 ecosystem build order coordination
 tracking: https://github.com/orgs/elevanaltd/projects/15
 architecture: ADR-0353 Three-Service Model
@@ -16,7 +16,7 @@ architecture: ADR-0353 Three-Service Model
 
 **Version:** 4.5
 **Status:** ACTIVE
-**Revised:** 2026-09-10
+**Revised:** 2026-09-25
 
 ---
 
@@ -379,7 +379,7 @@ The ecosystem is "done" when:
 
 As of 2026-04-20, with rows individually refreshed where a newer cited source exists (see per-row citations):
 
-**Cross-repo freshness caveat (added 2026-09-10):** Since hestai-workbench PR #252 (2026-06-10), that repo's `.hestai/coordination/` docs are gitignored and local-only — they no longer appear in its git history. None of the three repos commits its working/coordination state: hestai-mcp and hestai-context-mcp likewise keep it in a gitignored `.hestai-state/` and commit only governance artefacts (hestai-mcp: `.hestai/{decisions,north-star,rules,schemas,README.md}`; hestai-context-mcp: `.hestai/{context,decisions,north-star,MANIFEST.md}`). Peer-repo claims in this document are therefore sourced from each repo's local-only, untracked context files, and cannot be verified from git in any of the three repos — only via filesystem access to each checkout.
+**Cross-repo freshness caveat (added 2026-09-10):** Since hestai-workbench PR #252 (2026-06-10), that repo's `.hestai/coordination/` docs are gitignored and local-only — they no longer appear in its git history. None of the three repos commits its working/coordination state: hestai-mcp and hestai-context-mcp likewise keep it in a gitignored `.hestai/state/` (backed by `.hestai-state/`) and commit only governance artefacts (hestai-mcp: `.hestai/{decisions,north-star,rules,schemas,README.md}`; hestai-context-mcp: `.hestai/{context,decisions,north-star,MANIFEST.md}`). Peer-repo claims in this document are therefore sourced from each repo's local-only, untracked context files, and cannot be verified from git in any of the three repos — only via filesystem access to each checkout.
 
 | System | Current State | Distance | Next Step |
 |--------|--------------|----------|-----------|

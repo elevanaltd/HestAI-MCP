@@ -6,14 +6,14 @@ META:
   PURPOSE::"How every system in the HestAI ecosystem connects and what each owns"
   CANONICAL::"src/hestai_mcp/_bundled_hub/standards/HESTAI-ECOSYSTEM-OVERVIEW.oct.md"
   CREATED::"2026-02-18"
-  REVISED::"2026-09-10"
+  REVISED::"2026-09-25"
   FORMAT::octave
   ARCHITECTURE::"THREE_SERVICE_MODEL<ADR-0353>"
 §0::ARCHITECTURE_NOTE
 DESCRIPTION::"This document describes the APPROVED TARGET architecture per ADR-0353 (Three-Service Model). The ecosystem comprises three services: Workbench (Eyes and Hands), Vault (DNA), hestai-context-mcp (Memory and Environment), plus two standalone MCP servers (debate-hall, octave-mcp). Identity injection uses the Alley-Oop pattern via the Payload Compiler as originally recorded here; production identity injection has since moved to ADR-0003 Escrow-Gated Agent Loading in hestai-workbench (Phases 1-3 production, ceremony default flip PR #283 token CEREMONY-DEFAULT-FLIP-20260617) — full ADR-0003 mechanics not independently re-verified from this repo. Context management uses hestai-context-mcp via stdio MCP transport."
 PREVIOUS_MODEL::"v3.0 described Thick Client absorption where workbench absorbs hestai-mcp and odyssean-anchor-mcp. CORRECTED by ADR-0353: Workbench absorbs UX/dispatch only. Governance engine is harvested into hestai-context-mcp. Agent identity moves to Vault."
 DECISION_SOURCE::"ADR-0353 (2026-04-06). Wind/Wall/Door debates (standard + premium tier). Human-approved direction."
-CROSS_REPO_VISIBILITY::"Workbench PR #252 (2026-06-10) gitignored its .hestai/ coordination docs — now local-only and unverifiable from git; re-measured 2026-09-25: hestai-mcp and hestai-context-mcp also keep working/coordination state in a gitignored .hestai-state directory (git ls-files .hestai/state → 0 tracked files; git check-ignore .hestai-state → ignored in both repos) and commit only governance artefacts (.hestai/{decisions,north-star,rules,schemas,README.md} for hestai-mcp; .hestai/{context,decisions,north-star,MANIFEST.md} for hestai-context-mcp). Peer-repo claims in this document are sourced from each repo's own local-only, untracked context files where available, not from live cross-repo git access."
+CROSS_REPO_VISIBILITY::"Workbench PR #252 (2026-06-10) gitignored its .hestai/ coordination docs — now local-only and unverifiable from git; re-measured 2026-09-25: hestai-mcp and hestai-context-mcp also keep working state at .hestai/state/ (backed by a gitignored .hestai-state/ store) and commit only governance artefacts (.hestai/{decisions,north-star,rules,schemas,README.md} for hestai-mcp; .hestai/{context,decisions,north-star,MANIFEST.md} for hestai-context-mcp) — git ls-files .hestai/state → 0 tracked files; git check-ignore .hestai/state → ignored (hestai-mcp .gitignore:29; hestai-context-mcp .gitignore:49). Peer-repo claims in this document are sourced from each repo's own local-only, untracked context files where available, not from live cross-repo git access."
 CLEAN_BREAK_RATIONALE::[
   "Conflating identity injection (stateless) with state management (stateful) was the root error",
   "Governance logic (1500+ lines proven Python, 92% coverage) must survive Workbench rebuild",
