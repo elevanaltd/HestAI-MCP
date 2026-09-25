@@ -1,18 +1,20 @@
 ===HESTAI_ECOSYSTEM_OVERVIEW===
 META:
   TYPE::ECOSYSTEM_MAP
-  VERSION::"4.3"
+  VERSION::"4.4"
   STATUS::TARGET
   PURPOSE::"How every system in the HestAI ecosystem connects and what each owns"
   CANONICAL::"src/hestai_mcp/_bundled_hub/standards/HESTAI-ECOSYSTEM-OVERVIEW.oct.md"
   CREATED::"2026-02-18"
-  REVISED::"2026-05-28"
+  REVISED::"2026-09-25"
   FORMAT::octave
   ARCHITECTURE::"THREE_SERVICE_MODEL<ADR-0353>"
 §0::ARCHITECTURE_NOTE
-DESCRIPTION::"This document describes the APPROVED TARGET architecture per ADR-0353 (Three-Service Model). The ecosystem comprises three services: Workbench (Eyes and Hands), Vault (DNA), hestai-context-mcp (Memory and Environment), plus two standalone MCP servers (debate-hall, octave-mcp). Identity injection uses the Alley-Oop pattern via the Payload Compiler. Context management uses hestai-context-mcp via stdio MCP transport."
+DESCRIPTION::"This document describes the APPROVED TARGET architecture per ADR-0353 (Three-Service Model). The ecosystem comprises three services: Workbench (Eyes and Hands), Vault (DNA), hestai-context-mcp (Memory and Environment), plus two standalone MCP servers (debate-hall, octave-mcp). Identity injection uses the Alley-Oop pattern via the Payload Compiler as originally recorded here; Workbench Claude CLI session identity binding has since moved to ADR-0003 Escrow-Gated Agent Loading in hestai-workbench (Claude launch adapter only, production default since workbench PR #283; Codex/Goose adapters deferred to ADR-0004) — headless/API dispatch still uses Alley-Oop; full ADR-0003 mechanics not independently re-verified from this repo. Context management uses hestai-context-mcp via stdio MCP transport."
 PREVIOUS_MODEL::"v3.0 described Thick Client absorption where workbench absorbs hestai-mcp and odyssean-anchor-mcp. CORRECTED by ADR-0353: Workbench absorbs UX/dispatch only. Governance engine is harvested into hestai-context-mcp. Agent identity moves to Vault."
 DECISION_SOURCE::"ADR-0353 (2026-04-06). Wind/Wall/Door debates (standard + premium tier). Human-approved direction."
+CROSS_REPO_VISIBILITY::"Workbench PR #252 (2026-06-10) gitignored its .hestai/ coordination docs — now local-only and unverifiable from git; re-measured 2026-09-25: hestai-mcp and hestai-context-mcp also keep working state at .hestai/state/ (backed by a gitignored .hestai-state/ store) and commit only governance artefacts (.hestai/{decisions,north-star,rules,schemas,README.md} for hestai-mcp; .hestai/{context,decisions,north-star,MANIFEST.md} for hestai-context-mcp) — git ls-files .hestai/state → 0 tracked files; git check-ignore .hestai/state → ignored (hestai-mcp .gitignore:29; hestai-context-mcp .gitignore:49). Peer-repo claims in this document are sourced from each repo's own local-only, untracked context files where available, not from live cross-repo git access."
+SCOPE_NOTE::"Scope note (ADR-0003): workbench ADR-0003 (escrow-gated agent loading) changed how Claude CLI sessions bind an agent identity — v1 ships the vendor-agnostic ceremony core plus the Claude launch adapter only, production default since workbench PR #283; Codex/Goose adapters are deferred to ADR-0004. It did not replace Alley-Oop: the workbench Payload Compiler still builds Alley-Oop reliability messages, used on the API (OpenRouter) dispatch path (workbench main/src/services/payloadCompiler.ts buildReliabilityMessages at e88764c). Other Alley-Oop text in this document is target-state description not re-verified since ADR-0003."
 CLEAN_BREAK_RATIONALE::[
   "Conflating identity injection (stateless) with state management (stateful) was the root error",
   "Governance logic (1500+ lines proven Python, 92% coverage) must survive Workbench rebuild",
@@ -25,24 +27,24 @@ HESTAI::"Design-and-build system for AI-assisted software development with insta
 OPERATOR::"Single developer + laptop + multiple terminals + multi-model AI orchestration"
 ECOSYSTEM::"Three services plus two standalone MCP servers that together provide agent identity, governance, session lifecycle, context synthesis, deliberation, semantic compression, and a unified control panel"
 §2::THE_THREE_SERVICES
-SYSTEM_1::"HESTAI_WORKBENCH[REPO::elevanaltd/hestai-workbench, ROLE::The Eyes and Hands, OWNS::[payload_compiler(KVAEPH), alley_oop_pattern, agent_registry, stratified_conditioning(baseline+reliability), multi_cli_dispatch, api_dispatch(reduced_scope:uncontextualised_lookups_only_Goose_CLI_is_default_advisory), session_management(worktrees+terminals), governance_chat_ui, system_dashboard, dispatch_chain_visibility, precedence_locked_materialized_resolver(matrix_defaults+matrix_overrides+v_resolved_matrix)], ARCHITECTURE::Payload Compiler (reads Vault + calls hestai-context-mcp) + Glass (React frontend) + Dispatch Service (CLI + API), KEY_PROPERTY::HIGH volatility. Planned Crystal-to-TypeScript rebuild. Governance logic survives in hestai-context-mcp untouched. Only ~30-line stdio MCP client adapter needs rewriting., API_DISPATCH_SCOPE::\"Reduced 2026-04-21. Goose CLI is the default advisory route (multi-provider via OpenRouter with full micro-tier anchor ceremony). api:openrouter dispatch retained only for uncontextualised lookups where a micro-tier anchor is disproportionate (e.g., short stateless API-shape queries). Rule of thumb: any advisory needing .hestai/ context routes via Goose CLI, not API-direct.\", DEPENDS_ON::[vault(identity reads), hestai-context-mcp(Position 3 context via stdio), debate-hall-mcp(deliberation calls), octave-mcp(format validation)]]"
+SYSTEM_1::"HESTAI_WORKBENCH[REPO::elevanaltd/hestai-workbench, ROLE::The Eyes and Hands, OWNS::[payload_compiler(KVAEPH), alley_oop_pattern, agent_registry, stratified_conditioning(baseline+reliability), multi_cli_dispatch, api_dispatch(consult_routing:API_ONLY_BY_CONTRACT_per_CONSULT-ROUTING-API-ONLY-20260621), session_management(worktrees+terminals), governance_chat_ui, system_dashboard, dispatch_chain_visibility, precedence_locked_materialized_resolver(matrix_defaults+matrix_overrides+v_resolved_matrix)], ARCHITECTURE::Payload Compiler (reads Vault + calls hestai-context-mcp) + Glass (React frontend) + Dispatch Service (CLI + API), KEY_PROPERTY::HIGH volatility. v1.0.0 TAGGED 2026-07-27 (commit 032823e6716f2f9dcea5d6efad4b382bc0b9623c, PR #433) — first real git tag since v0.6.0 (2026-04-20). ADR-0003 Escrow-Gated Agent Loading Phases 1-3 production-wired; ceremony default flip (PR #283, token CEREMONY-DEFAULT-FLIP-20260617). Governance logic survives in hestai-context-mcp untouched. Only ~30-line stdio MCP client adapter needs rewriting., API_DISPATCH_SCOPE::\"Reduced 2026-04-21; consult/advisory routing superseded by ratified decision CONSULT-ROUTING-API-ONLY-20260621 (2026-06-21): consult is API-ONLY-BY-CONTRACT, routing through the OpenRouter API adapter — dispatchType and CLI Tool fields are inert on the consult path; consult targets must be valid OpenRouter model slugs. Goose CLI remains available for CLI dispatch, which is a separate path from consult.\", DEPENDS_ON::[vault(identity reads), hestai-context-mcp(Position 3 context via stdio), debate-hall-mcp(deliberation calls), octave-mcp(format validation)]]"
 SYSTEM_2::"VAULT[LOCATION::~/.hestai-workbench/library/(git-backed+configurable_via_LIBRARY_ROOT), ROLE::The DNA, OWNS::[v9_agent_definitions, v9_skills_with_anchor_kernels, cognitions(ETHOS+PATHOS+LOGOS), standards(System_Standard+naming+visibility), patterns], KEY_PROPERTY::ZERO volatility. Git-backed, immutable at runtime. Workbench reads directly and compiles system prompts with no filesystem intermediate. Glass Agent Editor provides CRUD with auto-commit on save., DATA::[starter-library in Workbench resources/ for first-run bootstrap, agent definitions (~50 lines each blank-slate V9), 16 V9 skills with S5 ANCHOR_KERNEL sections]]"
-SYSTEM_3::"HESTAI_CONTEXT_MCP[REPO::\"elevanaltd/hestai-context-mcp (IMPLEMENTED — Phase 1 complete 2026-04-17; Phase 1.5 Pre-A/B Work planned)\", ROLE::The Memory and Environment, OWNS::[clock_in(session_creation+focus_resolution+focus_conflict_detection+ai_synthesis_path_pending_P0b), clock_out(TranscriptParser_ABC+ClaudeTranscriptParser_adapter+credential_redaction+OCTAVE_compression+learnings_indexing), get_context(read_only_context_synthesis), ContextSteward(dynamic_PhaseConstraints+implemented), submit_review(structured_review_verdicts+CI_gate+8_roles+dry_run+SHA_pinning), dotHestai_state_management, product_north_star_injection_planned_phase_3], TRANSPORT::stdio_JSON_RPC, DEPENDS_ON::[nothing_at_runtime], TESTS::\"361 passing, 89 percent coverage\", KEY_PROPERTY::\"LOW volatility. Python codebase, 361 tests, 89 percent coverage at Phase 1 close. Stdio MCP transport (subprocess not daemon). Survives Workbench rebuilds untouched. Terminal parity automatic.\", ADAPTER_PATTERN::\"clock_out redesigned with TranscriptParser ABC. ClaudeTranscriptParser implemented. Codex/Gemini/Goose adapters pending Phase 2+.\", PRE_AB_WORK::\"Phase 1.5 integration-viability gaps tracked in elevanaltd/hestai-context-mcp issues #4 (P0a ai_synthesis field + phase normalisation), #5 (P0b AIClient port), #6 (P1 North Star structured constraint extraction), #7 (P-side conflicts field). Required so the Payload Compiler can read both backends' responses. Outcome-quality A/B is the goal — backends are explicitly allowed to differ in actual content.\", AI_SYNTHESIS_FRAMING::\"Legacy has working AI synthesis when configured; new repo currently lacks the path entirely (covered by P0b/issue #5). Without API keys, both produce structured non-AI output.\", PHANTOMS_NOT_GAPS::[\"ContextSteward + dynamic phase constraints (core/context_steward.py:36-184 + tests) — implemented\",\"Focus conflict detection (core/session.py:91-128 + 4 behavioural tests) — implemented\"]]"
+SYSTEM_3::"HESTAI_CONTEXT_MCP[REPO::\"elevanaltd/hestai-context-mcp (IMPLEMENTED — Phase 1 complete 2026-04-17; Phase 1.5 pre-A/B work CLOSED 2026-04-22)\", ROLE::The Memory and Environment, OWNS::[clock_in(session_creation+focus_resolution+focus_conflict_detection+ai_synthesis_shipped), clock_out(TranscriptParser_ABC+ClaudeTranscriptParser_adapter+credential_redaction+OCTAVE_compression+learnings_indexing), get_context(read_only_context_synthesis), ContextSteward(dynamic_PhaseConstraints+implemented), submit_review(structured_review_verdicts+CI_gate+8_roles+dry_run+SHA_pinning), submit_governance(RFC_53_write_side_governance_authoring+Gates_ABC_merged+T6_migration_open), lookup_decision(RFC_40_AGR_read_layer), list_decisions(RFC_40_AGR_read_layer), trace_supersedure(RFC_40_AGR_read_layer), dotHestai_state_management, product_north_star_injection_planned_phase_3], TRANSPORT::stdio_JSON_RPC, DEPENDS_ON::[nothing_at_runtime], TESTS::\"1251 passing, 92 percent coverage (per hestai-context-mcp PROJECT-CONTEXT.oct.md, updated 2026-06-13)\", KEY_PROPERTY::\"LOW volatility. Python codebase. 361 tests, 89 percent coverage at Phase 1 close (2026-04-17); grown to 8 MCP tools, 1251 tests, 92 percent coverage by the RFC #53 + RFC #40 layers. Stdio MCP transport (subprocess not daemon). Survives Workbench rebuilds untouched. Terminal parity automatic.\", ADAPTER_PATTERN::\"clock_out redesigned with TranscriptParser ABC. ClaudeTranscriptParser implemented. Codex/Gemini/Goose adapters pending Phase 2+.\", PRE_AB_WORK::\"Phase 1.5 integration-viability gaps CLOSED 2026-04-22 (elevanaltd/hestai-context-mcp issues #4 P0a, #5 P0b, #6 P1, #7 P-side all resolved). Since then: RFC #53 write-side governance authoring (Gates A/B/C merged, T6 migration/calibration open) and RFC #40 AGR read layer (shipped, issue #83/PR #86).\", AI_SYNTHESIS_FRAMING::\"Legacy has working AI synthesis when configured; new repo's AI synthesis path was ported via P0b/issue #5 (COMPLETE 2026-04-22, per HARVEST_PHASE_1_5). Without API keys, both produce structured non-AI output.\", PHANTOMS_NOT_GAPS::[\"ContextSteward + dynamic phase constraints (core/context_steward.py:36-184 + tests) — implemented\",\"Focus conflict detection (core/session.py:91-128 + 4 behavioural tests) — implemented\"]]"
 STANDALONE_1::"DEBATE_HALL_MCP[REPO::elevanaltd/debate-hall-mcp, ROLE::The Deliberation Chamber, VERSION::0.5.0, OWNS::[wind_wall_door_debates, governance_operations, decision_records, hash_chain_integrity, RACI_mode, consult_convene], TOOLS::17, KEY_PROPERTY::Standalone deliberation (P6). Works without HestAI for non-governance users. Persistent transcripts with hash-chain integrity., DEPENDS_ON::[octave-mcp]]"
 STANDALONE_2::"OCTAVE_MCP[REPO::elevanaltd/octave-mcp, ROLE::The Language, VERSION::1.13.0, OWNS::[octave_format_spec, validation, generation, compression, grammar_compilation], KEY_PROPERTY::Pure protocol. Zero dependencies on governance. Maximum community adoption potential. 54-68 percent token reduction., DEPENDS_ON::[nothing]]"
 §3::LEGACY_SYSTEMS
 HESTAI_MCP::[
-  STATUS::legacy_maintenance_mode_v1.2.0_1033_tests,
+  STATUS::legacy_maintenance_mode_v1.2.0_1228_tests,
   REPO::"elevanaltd/HestAI-MCP",
   DISPOSITION::[
     "Library content (_bundled_hub: agents, skills, standards, cognitions) moves to Vault",
     ".hestai-sys/ injection mechanism moves to Vault/Workbench",
     "clock_in, clock_out, ContextSteward, RedactionEngine, submit_review harvested into hestai-context-mcp (Phase 1 complete 2026-04-17)",
-    "bind tool replaced by Alley-Oop for headless dispatch",
+    "bind tool replaced by Alley-Oop for headless dispatch as originally recorded here; Workbench Claude CLI session identity binding has since moved to ADR-0003 Escrow-Gated Agent Loading in hestai-workbench (Claude launch adapter only; Codex/Goose deferred to ADR-0004) — headless/API dispatch still uses Alley-Oop; full mechanics not independently re-verified from this repo",
     "Legacy system stays intact for outcome-quality A/B comparison until new system proven"
   ],
   NOT_BEING_ABSORBED::"ADR-0353 resolved: hestai-mcp is NOT being absorbed into the Workbench. Governance engine logic has been harvested into the NEW repo (hestai-context-mcp, Phase 1 complete 2026-04-17). Legacy stays for comparison.",
-  EVIDENCE::"1033 tests, v1.2.0, maintenance mode. Proven patterns inform the harvest.",
+  EVIDENCE::"1228 tests (re-measured 2026-09-10 at HEAD 29f891a via venv pytest --collect-only), v1.2.0, maintenance mode. Proven patterns inform the harvest.",
   DECISIONS_LOCKED::[
     "DEPRECATION_CRITERION::A/B cutover via Workbench. Same agent role + same real task; run once with legacy backend, run once with hestai-context-mcp backend; measure judged agent output quality + total session token cost. Repeat across N tasks. Whichever wins consistently triggers swift cutover. DECIDED 2026-04-20.",
     "PYPI_PLAN::Internal-first. Build, prove via A/B internally, then publish externally only after the new system wins consistently. Not publishing early. DECIDED 2026-04-20.",
@@ -54,7 +56,7 @@ ODYSSEAN_ANCHOR_MCP::[
   REPO::"elevanaltd/odyssean-anchor-mcp",
   DISPOSITION::[
     "5-stage KEAPH ceremony remains operational for Claude-with-MCP sessions",
-    "Replaced by Alley-Oop pattern for Workbench headless dispatch",
+    "Replaced by Alley-Oop pattern for Workbench headless dispatch as originally recorded here; Workbench Claude CLI session identity binding has since moved to ADR-0003 Escrow-Gated Agent Loading in hestai-workbench (Claude launch adapter only; Codex/Goose deferred to ADR-0004) — headless/API dispatch still uses Alley-Oop; full mechanics not independently re-verified from this repo",
     "NOT being rebuilt in TypeScript inside Workbench (previous plan per ADR-0275 was superseded)"
   ]
 ]
@@ -71,7 +73,7 @@ PAL_MCP_SERVER::[
 DISPATCH_FLOW::[
   STEP_1::"User selects agent + task in Glass UI",
   STEP_2::"Payload Compiler reads Vault for Positions 0-2 (BIOS/AXIOMS, IDENTITY, CAPABILITIES)",
-  STEP_3::"Payload Compiler calls hestai-context-mcp via stdio for Position 3 (CONTEXT: clock_in returns context synthesis, Product North Star, project state)",
+  STEP_3::"Payload Compiler calls hestai-context-mcp via stdio for Position 3 (CONTEXT: get_context returns context synthesis, project state — Phase 2 PARTIAL; Product North Star injection is HARVEST Phase 3, PENDING, per hestai-context-mcp PROJECT-CONTEXT.oct.md updated 2026-06-13)",
   STEP_4::"Compiler assembles full KVAEPH payload",
   STEP_5::"Workbench dispatches to CLI tool with compiled prompt (Alley-Oop for reliability pipeline, single-step grammar for baseline)",
   STEP_6::"Agent works. Reads .hestai/ for project context. Uses octave-mcp for documents.",
@@ -91,7 +93,7 @@ TWO_CONDITIONING_PIPELINES::[
   BASELINE::"For simple low-complexity dispatch. U-Curve prompt topology plus single-step enforced grammar. KVAEPH core plus task with MUST_USE grammar requirement.",
   RELIABILITY::"For T2+ tasks. Alley-Oop pattern: (1) system: dense OCTAVE KVAEPH core, (2) user[synthetic]: acknowledge constraints, (3) assistant[synthetic]: Workbench-constructed static proof from Vault, (4) user[real]: task + Dynamic Anchor Lock demand. Agent MUST emit cognitive grammar headers before proceeding."
 ]
-LEGACY_PATH::"OA ceremony (5-stage KEAPH) remains for Claude-with-MCP sessions. Alley-Oop is for headless/non-MCP dispatch."
+LEGACY_PATH::"OA ceremony (5-stage KEAPH) remains for Claude-with-MCP sessions. Alley-Oop is for headless/non-MCP dispatch, as originally recorded here; Workbench Claude CLI session identity binding has since moved to ADR-0003 Escrow-Gated Agent Loading in hestai-workbench (Claude launch adapter only; Codex/Goose deferred to ADR-0004) — headless/API dispatch still uses Alley-Oop; full mechanics not independently re-verified from this repo."
 §5::OWNERSHIP_BOUNDARIES
 CLEAR_SEPARATIONS::[
   "WHO agents are (identity, skills, cognitions) — Vault (git-backed, read-only at runtime)",
@@ -109,22 +111,22 @@ DIRECTORIES::[
 ]
 §7::CURRENT_STATE_AND_ROADMAP
 WORKBENCH_STATUS::[
-  STATUS::"v0.6.0, 3A-prep substantially complete",
-  WHAT_EXISTS::"Matrix resolver (v_resolved_matrix), 4 V9 agents (IL, CRS, HO, ideator), 16 V9 skills, System Standard in vault, multi-session management, git worktree isolation, agent registry with Glass UI",
-  NEXT::"Build Payload Compiler (Step 3A, issue #99). All prerequisites met: matrix resolver, V9 skills, System Standard, archetype assignments."
+  STATUS::"v1.0.0 TAGGED 2026-07-27 (commit 032823e6716f2f9dcea5d6efad4b382bc0b9623c, PR #433) — first real git tag since v0.6.0 (2026-04-20; v0.7.0-v0.9.0 were documented but never tagged/released). ADR-0003 Escrow-Gated Agent Loading Phases 1-3 production-wired; ceremony default flip (PR #283, token CEREMONY-DEFAULT-FLIP-20260617).",
+  WHAT_EXISTS::"Matrix resolver (v_resolved_matrix), 5 V9 agents (IL, CRS, HO, ideator, ho-control-room — added 2026-04-20 via PR #147), 16 V9 skills, System Standard in vault, multi-session management, git worktree isolation, agent registry with Glass UI",
+  NEXT::"remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0); per workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0 except where marked 'per v3.0'."
 ]
 VAULT_STATUS::[
   STATUS::"starter library populated",
-  WHAT_EXISTS::"4 V9 agents, 16 V9 skills with ANCHOR_KERNEL sections, 3 cognitions, System Standard",
+  WHAT_EXISTS::"5 V9 agents, 16 V9 skills with ANCHOR_KERNEL sections, 3 cognitions, System Standard",
   NEXT::"Populate as Payload Compiler demands content. Glass Agent Editor provides CRUD."
 ]
 HESTAI_CONTEXT_MCP_STATUS::[
-  STATUS::"Phase 1 COMPLETE (2026-04-17). elevanaltd/hestai-context-mcp repo shipped: 4 tools (clock_in, clock_out, get_context, submit_review), 361 tests, 89 percent coverage, all quality gates green.",
+  STATUS::"Phase 1 COMPLETE (2026-04-17); Phase 1.5 pre-A/B work CLOSED 2026-04-22. elevanaltd/hestai-context-mcp repo shipped: 8 tools (clock_in, clock_out, get_context, submit_review, submit_governance, lookup_decision, list_decisions, trace_supersedure), 1251 tests, 92 percent coverage (per hestai-context-mcp PROJECT-CONTEXT.oct.md, updated 2026-06-13), all quality gates green as of that repo's own report.",
   ADAPTER_PATTERN::"clock_out redesigned with TranscriptParser ABC + ClaudeTranscriptParser (Claude adapter implemented; Codex/Gemini/Goose adapters pending).",
-  AI_SYNTHESIS_FRAMING::"Legacy has working AI synthesis when configured; new repo currently lacks the path entirely (covered by Pre-A/B Work P0b — issue #5). Without API keys, both produce structured non-AI output.",
-  PRE_AB_WORK::"Phase 1.5 integration-viability gaps tracked in elevanaltd/hestai-context-mcp issues #4 (P0a ai_synthesis field + phase normalisation), #5 (P0b AIClient port), #6 (P1 North Star structured constraint extraction), #7 (P-side conflicts field). Required before outcome-quality A/B test against legacy is meaningful — the Payload Compiler must be able to read both backends' responses. Backends are explicitly allowed to differ in actual content.",
+  AI_SYNTHESIS_FRAMING::"Legacy has working AI synthesis when configured; new repo's AI synthesis path was ported via Pre-A/B Work P0b — issue #5 (COMPLETE 2026-04-22, per HARVEST_PHASE_1_5). Without API keys, both produce structured non-AI output.",
+  PRE_AB_WORK::"Phase 1.5 integration-viability gaps CLOSED 2026-04-22 (elevanaltd/hestai-context-mcp issues #4 P0a, #5 P0b, #6 P1, #7 P-side all resolved). Since then: RFC #53 write-side governance authoring (Gates A/B/C merged, T6 migration/calibration open) and RFC #40 AGR read layer (shipped, issue #83/PR #86).",
   PHANTOMS_NOT_GAPS::["ContextSteward + dynamic phase constraints (core/context_steward.py:36-184 + tests) — implemented","Focus conflict detection (core/session.py:91-128 + 4 behavioural tests) — implemented"],
-  NEXT::"Phase 1.5 Pre-A/B Work (issues #4/#5/#6/#7), then Phase 2 — workbench Payload Compiler integration via stdio at KVAEPH Position 3. BLOCKED on workbench Step 3B Phase 2 completion."
+  NEXT::"PARTIAL — Workbench Payload Compiler integration via get_context at KVAEPH Position 3 SHIPPED 2026-05-01 (workbench PRs #169/#176); submit_review consumer wiring (issue #30) deferred. Current focus: RFC #53 Gate C T6 migration/calibration (operator-involved, DUAL_KEY GO/NO-GO) — status not independently re-verified from this repo."
 ]
 DEBATE_HALL_STATUS::[
   STATUS::"operational, v0.5.0, 17 tools",
@@ -135,7 +137,7 @@ OCTAVE_STATUS::[
   NEXT::"Standalone community adoption. No governance dependencies."
 ]
 HESTAI_MCP_LEGACY_STATUS::[
-  STATUS::"operational, v1.2.0, 1033 tests, maintenance mode",
+  STATUS::"operational, v1.2.0, 1228 tests (re-measured 2026-09-10 at HEAD 29f891a via venv pytest --collect-only), maintenance mode",
   DISPOSITION::"Stays for outcome-quality A/B comparison via Workbench (DECIDED 2026-04-20). Cutover when new system wins consistently across N tasks on judged output quality + total session token cost. Worktree pattern confirmed (Workbench + worktrees, same as legacy workflow). PyPI publication for hestai-context-mcp is internal-first — publish externally only after A/B proves the system."
 ]
 §8::KEY_PRINCIPLES

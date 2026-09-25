@@ -1,11 +1,11 @@
 ---
 type: LIGHTHOUSE
 id: ecosystem-lighthouse
-version: 4.4
+version: 4.5
 status: ACTIVE
 purpose: Target state vision for the fully integrated HestAI ecosystem
 created: 2026-02-25
-revised: 2026-04-21
+revised: 2026-09-25
 origin: Project 15 ecosystem build order coordination
 tracking: https://github.com/orgs/elevanaltd/projects/15
 architecture: ADR-0353 Three-Service Model
@@ -14,9 +14,9 @@ architecture: ADR-0353 Three-Service Model
 
 # HESTAI ECOSYSTEM LIGHTHOUSE
 
-**Version:** 4.4
+**Version:** 4.5
 **Status:** ACTIVE
-**Revised:** 2026-04-21
+**Revised:** 2026-09-25
 
 ---
 
@@ -31,8 +31,8 @@ It is **not** a system standard (that's the System North Star), **not** a build 
 **Relationship to other documents:**
 - **ADR-0353:** Canonical architectural decision. Established the Three-Service Model (Workbench + hestai-context-mcp + Vault). This Lighthouse reflects that decision.
 - **System North Star:** Immutable methodology (I1-I6). The Lighthouse operates within those laws.
-- **Ecosystem Overview v4.0:** System map reflecting the current architecture. Companion to this vision.
-- **Ecosystem Dependency Graph v4.0:** Build sequence aligned to workbench PROJECT-CONTEXT v1.7.
+- **Ecosystem Overview v4.4:** System map reflecting the current architecture. Companion to this vision.
+- **Ecosystem Dependency Graph v4.5:** Build sequence aligned to workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0 except where marked 'per v3.0'.
 - **Product North Stars:** Per-repo vision. Each should move toward this ecosystem vision.
 
 ---
@@ -47,6 +47,8 @@ The system is not a single application. It is an ecosystem of cooperating system
 
 ### The End State in One Paragraph
 
+> **Scope note (ADR-0003):** workbench ADR-0003 (escrow-gated agent loading) changed how Claude CLI sessions bind an agent identity — v1 ships the vendor-agnostic ceremony core plus the Claude launch adapter only, production default since workbench PR #283; Codex/Goose adapters are deferred to ADR-0004. It did not replace Alley-Oop: the workbench Payload Compiler still builds Alley-Oop reliability messages, used on the API (OpenRouter) dispatch path (workbench `main/src/services/payloadCompiler.ts` `buildReliabilityMessages` at e88764c). Other Alley-Oop text in this section is target-state description not re-verified since ADR-0003.
+
 An operator opens the Workbench, picks a role from the agent registry, selects a provider and model, and starts working. The Payload Compiler reads the agent's identity from the Vault, assembles the KVAEPH payload, calls hestai-context-mcp for project context (Position 3), and dispatches via the appropriate CLI or API. The agent operates within its authority boundaries, enforced by the Alley-Oop pattern (synthetic acknowledgment + prefilled proof + dynamic anchor lock). When it needs a decision, it opens a structured debate. When it needs another perspective, the Workbench dispatches a different agent on a different model. All communication uses OCTAVE format. All sessions are persistent via hestai-context-mcp. All decisions are auditable. The operator sees the whole system through one GUI and never needs to configure MCP servers, manage worktrees, or remember which agent does what.
 
 ---
@@ -56,6 +58,8 @@ An operator opens the Workbench, picks a role from the agent registry, selects a
 The ecosystem comprises three services with clear ownership boundaries (ADR-0353 "Three-Service Model"), plus two standalone MCP servers:
 
 ### System 1: HestAI Workbench — The Eyes and Hands
+
+> **Scope note (ADR-0003):** workbench ADR-0003 (escrow-gated agent loading) changed how Claude CLI sessions bind an agent identity — v1 ships the vendor-agnostic ceremony core plus the Claude launch adapter only, production default since workbench PR #283; Codex/Goose adapters are deferred to ADR-0004. It did not replace Alley-Oop: the workbench Payload Compiler still builds Alley-Oop reliability messages, used on the API (OpenRouter) dispatch path (workbench `main/src/services/payloadCompiler.ts` `buildReliabilityMessages` at e88764c). Other Alley-Oop text in this section is target-state description not re-verified since ADR-0003.
 
 **Repo:** `elevanaltd/hestai-workbench`
 
@@ -126,7 +130,7 @@ The ecosystem comprises three services with clear ownership boundaries (ADR-0353
 **What it is:** A standalone governance engine providing session lifecycle, context synthesis, learnings extraction, and review infrastructure via stdio MCP transport.
 
 **What it owns (Phase 1 delivered):**
-- clock_in (session creation, focus resolution, focus conflict detection; AI-synthesized context summaries currently deferred — see known gaps below)
+- clock_in (session creation, focus resolution, focus conflict detection; AI-synthesized context summaries shipped via Phase 1.5 — see known gaps below)
 - clock_out (transcript parsing via `TranscriptParser` ABC + `ClaudeTranscriptParser` adapter, credential redaction via RedactionEngine, OCTAVE compression, structured learnings indexing)
 - get_context (read-only context synthesis tool)
 - submit_review (structured code review verdicts with CI gate clearing, 8 reviewer roles, dry-run, commit SHA pinning)
@@ -134,17 +138,21 @@ The ecosystem comprises three services with clear ownership boundaries (ADR-0353
 - `.hestai/state/` management (sessions, context, reports, research)
 - Product North Star injection at KVAEPH Position 3 (planned — Phase 3)
 
+**Added since Phase 1 (per hestai-context-mcp PROJECT-CONTEXT.oct.md v1.2.0, updated 2026-06-13):**
+- submit_governance (RFC #53 write-side governance authoring: Gate A regex rails + Gate B octave-mcp validator + Gate C prose→OCTAVE Semantic Compiler, T1-T5 MERGED)
+- lookup_decision, list_decisions, trace_supersedure (RFC #40 read-side AGR layer: `AgentReadableGovernanceParser` over `.hestai/decisions/` AGRs)
+
 **TranscriptParser adapter pattern:** `clock_out` was redesigned (not harvested as-is) around a provider-agnostic `TranscriptParser` ABC. `ClaudeTranscriptParser` is implemented; Codex/Gemini/Goose adapters are pending Phase 2+.
 
-**What it does NOT own:** Agent identity (Vault), dispatch/UI (Workbench), deliberation (debate-hall), document format (octave-mcp), `bind` tool (legacy-only, replaced by Alley-Oop).
+**What it does NOT own:** Agent identity (Vault), dispatch/UI (Workbench), deliberation (debate-hall), document format (octave-mcp), `bind` tool (superseded, for Claude CLI sessions inside Workbench, by ADR-0003 Escrow-Gated Agent Loading v1 — Claude launch adapter only, Codex/Goose deferred to ADR-0004 — not by Alley-Oop; see Section 9).
 
 **Key properties:**
-- LOW volatility — Python codebase, 361 tests, 89% coverage at Phase 1 close. Survives Workbench rebuilds untouched.
+- LOW volatility — Python codebase. 361 tests / 89% coverage at Phase 1 close (2026-04-17); grown to 8 MCP tools / 1251 tests / 92% coverage by the RFC #53 + RFC #40 layers (per PROJECT-CONTEXT.oct.md, updated 2026-06-13). Survives Workbench rebuilds untouched.
 - Stdio transport (subprocess, not daemon) — the "Git/VS Code" pattern. Zero network ports, zero monitoring overhead.
-- Harvest not rewrite: clock_in harvested from hestai-mcp; clock_out redesigned; legacy hestai-mcp stays intact (1033 tests) for A/B comparison.
+- Harvest not rewrite: clock_in harvested from hestai-mcp; clock_out redesigned; legacy hestai-mcp stays intact (1228 tests, measured at HEAD 29f891a via `pytest --collect-only`) for A/B comparison.
 - Terminal parity is automatic — any CLI tool gets identical governance by adding one MCP config entry.
 
-**Known gap — AI synthesis feature parity:** Legacy hestai-mcp has a working AI synthesis path in `clock_in` when API keys are configured; the new repo currently lacks the path entirely. Without API keys, both produce structured non-AI output. Closing this is tracked as Pre-A/B Work item P0b (issue #5) — see "Pre-A/B Work" below — and must land before the outcome-quality A/B test is meaningful.
+**Known gap — AI synthesis feature parity:** RESOLVED. Phase 1.5 (Pre-A/B Work items #4/#5/#6/#7) CLOSED 2026-04-22 — `ai_synthesis` field, `AIClient` port, North Star constraint extraction, and the `conflicts` field all shipped (PRs #8-#12). See "Pre-A/B Work" in Section 7.
 
 **Target state:** `pip install hestai-context-mcp` gives you session lifecycle + context synthesis + learnings + review. Works with or without the Workbench.
 
@@ -198,6 +206,8 @@ The ecosystem comprises three services with clear ownership boundaries (ADR-0353
 
 ## SECTION 3: THE DAILY WORKFLOW (TARGET STATE)
 
+> **Scope note (ADR-0003):** workbench ADR-0003 (escrow-gated agent loading) changed how Claude CLI sessions bind an agent identity — v1 ships the vendor-agnostic ceremony core plus the Claude launch adapter only, production default since workbench PR #283; Codex/Goose adapters are deferred to ADR-0004. It did not replace Alley-Oop: the workbench Payload Compiler still builds Alley-Oop reliability messages, used on the API (OpenRouter) dispatch path (workbench `main/src/services/payloadCompiler.ts` `buildReliabilityMessages` at e88764c). Other Alley-Oop text in this section is target-state description not re-verified since ADR-0003.
+
 This is what the operator's daily experience looks like when the ecosystem is complete:
 
 1. **Open the Workbench.** Dashboard shows active sessions, recent decisions, system health.
@@ -206,7 +216,7 @@ This is what the operator's daily experience looks like when the ecosystem is co
 
 3. **Pick a role.** Agent registry shows available roles (Holistic Orchestrator, Implementation Lead, Technical Architect, etc.) with their provider/model/dispatch assignments and tier. Select one.
 
-4. **Workbench compiles and dispatches.** The Payload Compiler reads the Vault for Positions 0-2 (BIOS/AXIOMS, IDENTITY, CAPABILITIES), calls hestai-context-mcp via stdio for Position 3 (CONTEXT — clock_in returns context synthesis, Product North Star, project state), assembles the full KVAEPH payload, creates a git worktree, and launches the appropriate CLI or API based on the registry entry.
+4. **Workbench compiles and dispatches.** The Payload Compiler reads the Vault for Positions 0-2 (BIOS/AXIOMS, IDENTITY, CAPABILITIES), calls hestai-context-mcp via stdio for Position 3 (CONTEXT — `get_context` returns context synthesis and project state; Product North Star injection is Phase 3, PENDING), assembles the full KVAEPH payload, creates a git worktree, and launches the appropriate CLI or API based on the registry entry.
 
 5. **Agent identity is injected via Alley-Oop.** For the reliability pipeline (T2+ tasks): the Workbench constructs a synthetic acknowledgment turn, prefills a static proof from Vault data, and delivers the task with a Dynamic Anchor Lock demand. The agent must emit cognitive grammar headers (TENSION/INSIGHT/SYNTHESIS) before proceeding. For the baseline pipeline (simple tasks): KVAEPH core plus single-step enforced grammar.
 
@@ -250,6 +260,8 @@ Debate Hall works without HestAI. A team that doesn't use HestAI governance can 
 
 ### Ceremony proportional to risk (Stratified Conditioning)
 
+> **Scope note (ADR-0003):** workbench ADR-0003 (escrow-gated agent loading) changed how Claude CLI sessions bind an agent identity — v1 ships the vendor-agnostic ceremony core plus the Claude launch adapter only, production default since workbench PR #283; Codex/Goose adapters are deferred to ADR-0004. It did not replace Alley-Oop: the workbench Payload Compiler still builds Alley-Oop reliability messages, used on the API (OpenRouter) dispatch path (workbench `main/src/services/payloadCompiler.ts` `buildReliabilityMessages` at e88764c). Other Alley-Oop text in this section is target-state description not re-verified since ADR-0003.
+
 Not every task needs heavy governance injection. The Workbench uses two conditioning pipelines:
 
 **Baseline pipeline** (simple, low-complexity dispatch — advisory, single-file tasks): U-Curve prompt topology plus single-step enforced grammar. System prompt contains KVAEPH core, user message contains task with MUST_USE grammar requirement. Partial benefit with initial formatting focus, no durability guarantee.
@@ -265,11 +277,13 @@ The Workbench validates cognitive grammar compliance (regex) before releasing th
 
 For **API-dispatched agents** (advisory roles via OpenRouter), identity injection uses **assistant prefilling**: the Workbench constructs the full system prompt, then injects a prefilled assistant turn that demonstrates cognitive alignment before the actual task is delivered. Provider-aware message construction is required, as not all OpenRouter backends handle prefilling identically.
 
-**API dispatch scope (reduced — advisory default is now Goose CLI):** The API-direct dispatch path is no longer the default for advisory roles. Most advisory consultations now route through Goose CLI (multi-provider via OpenRouter with a full micro-tier anchor ceremony), because the CLI path gives the same model access plus proper context injection at modest additional cost. `api:openrouter` dispatch is retained only for **uncontextualised lookups** — short, stateless queries (e.g., "what's the canonical spelling of X", API shape clarifications) where a full micro-tier anchor ceremony is disproportionate to the task. Rule of thumb: if the advisory needs any `.hestai/` context, route it via Goose CLI, not API-direct.
+**Consult routing (API-only-by-contract):** Advisory consultation (`consult`) is API-only-by-contract — a depth-terminal compute leaf with zero filesystem footprint, routing through the OpenRouter API adapter; `dispatchType` and CLI Tool fields are inert on the consult path (RATIFIED: workbench decision CONSULT-ROUTING-API-ONLY-20260621). Consult targets must be valid OpenRouter model slugs (e.g., `anthropic/claude-3.5-sonnet` — the workbench validator's canonical example); a CLI dispatch alias (e.g., `opus`) is invalid for consult. This is distinct from `dispatch_colleague`'s multi-CLI dispatch (Claude, Codex, Gemini, Goose), which remains available for delegated implementation work — see Section 4 Dual-path delegation.
 
 **Legacy path**: The Odyssean Anchor MCP ceremony (5-stage KEAPH) remains operational for Claude-with-MCP sessions where agents have direct MCP access. The Alley-Oop pattern is for headless/non-MCP dispatch via the Workbench.
 
 ### Dual-path delegation
+
+> **Scope note (ADR-0003):** workbench ADR-0003 (escrow-gated agent loading) changed how Claude CLI sessions bind an agent identity — v1 ships the vendor-agnostic ceremony core plus the Claude launch adapter only, production default since workbench PR #283; Codex/Goose adapters are deferred to ADR-0004. It did not replace Alley-Oop: the workbench Payload Compiler still builds Alley-Oop reliability messages, used on the API (OpenRouter) dispatch path (workbench `main/src/services/payloadCompiler.ts` `buildReliabilityMessages` at e88764c). Other Alley-Oop text in this section is target-state description not re-verified since ADR-0003.
 
 Agent delegation operates through two coexisting patterns:
 
@@ -296,7 +310,7 @@ Key mechanics:
 The Workbench is a Crystal fork that will eventually be rebuilt in TypeScript. The critical insight from ADR-0353: governance logic lives in hestai-context-mcp (proven Python, 92% coverage) and survives the Workbench rebuild untouched. Only a ~30-line stdio MCP client adapter needs rewriting. The dispatch logic is implemented as a clean `DispatchService` module:
 
 - `AgentRegistryLookup` — resolves role to provider/model/dispatch mode via v_resolved_matrix
-- `PayloadCompiler` — assembles KVAEPH from Vault reads + hestai-context-mcp clock_in
+- `PayloadCompiler` — assembles KVAEPH from Vault reads + hestai-context-mcp `get_context`
 - `CliDispatcher` — spawns CLI panels via existing `AbstractCliManager` abstraction
 - `ApiDispatcher` — makes OpenRouter API calls with assistant-prefilled mini-ceremony
 - `ContinuationStore` — maps `dispatch_id` to provider-specific conversation identifiers
@@ -304,6 +318,8 @@ The Workbench is a Crystal fork that will eventually be rebuilt in TypeScript. T
 When the Workbench is rebuilt, the MCP tool contract (`dispatch_colleague` signature) and the `DispatchService` interface port directly. Only the Electron/UI layer changes. The 1500+ lines of governance Python in hestai-context-mcp remain untouched.
 
 ### Anti-patterns
+
+> **Scope note (ADR-0003):** workbench ADR-0003 (escrow-gated agent loading) changed how Claude CLI sessions bind an agent identity — v1 ships the vendor-agnostic ceremony core plus the Claude launch adapter only, production default since workbench PR #283; Codex/Goose adapters are deferred to ADR-0004. It did not replace Alley-Oop: the workbench Payload Compiler still builds Alley-Oop reliability messages, used on the API (OpenRouter) dispatch path (workbench `main/src/services/payloadCompiler.ts` `buildReliabilityMessages` at e88764c). Other Alley-Oop text in this section is target-state description not re-verified since ADR-0003.
 
 Claude Code 2.1.77+ Agent Teams primitives (`SendMessage`, `TeamCreate`, `team_name`, `agentId` resume, `isolation: "worktree"`) are **continuation mechanics** gated behind `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`. They solve the same-provider same-process resume problem natively for Claude. They are **not** a replacement for the ecosystem's agent-definition and context-injection architecture. The following anti-patterns preserve that distinction:
 
@@ -326,6 +342,8 @@ Claude Code's `agentId` is a **continuation primitive**, not an agent-definition
 The ecosystem is "done" when:
 
 ### Functional
+
+> **Scope note (ADR-0003):** workbench ADR-0003 (escrow-gated agent loading) changed how Claude CLI sessions bind an agent identity — v1 ships the vendor-agnostic ceremony core plus the Claude launch adapter only, production default since workbench PR #283; Codex/Goose adapters are deferred to ADR-0004. It did not replace Alley-Oop: the workbench Payload Compiler still builds Alley-Oop reliability messages, used on the API (OpenRouter) dispatch path (workbench `main/src/services/payloadCompiler.ts` `buildReliabilityMessages` at e88764c). Other Alley-Oop text in this section is target-state description not re-verified since ADR-0003.
 
 1. **Single-command agent dispatch.** Operator picks role + provider/model -> Payload Compiler assembles KVAEPH + Alley-Oop -> agent is running with full identity injection in under 30 seconds.
 
@@ -373,28 +391,30 @@ The ecosystem is "done" when:
 
 ## SECTION 7: CURRENT DISTANCE FROM TARGET
 
-As of 2026-04-20:
+As of 2026-04-20, with rows individually refreshed where a newer cited source exists (see per-row citations):
+
+**Cross-repo freshness caveat (added 2026-09-10):** Since hestai-workbench PR #252 (2026-06-10), that repo's `.hestai/coordination/` docs are gitignored and local-only — they no longer appear in its git history. None of the three repos commits its working/coordination state: hestai-mcp and hestai-context-mcp likewise keep it in a gitignored `.hestai/state/` (backed by `.hestai-state/`) and commit only governance artefacts (hestai-mcp: `.hestai/{decisions,north-star,rules,schemas,README.md}`; hestai-context-mcp: `.hestai/{context,decisions,north-star,MANIFEST.md}`). Peer-repo claims in this document are therefore sourced from each repo's local-only, untracked context files, and cannot be verified from git in any of the three repos — only via filesystem access to each checkout.
 
 | System | Current State | Distance | Next Step |
 |--------|--------------|----------|-----------|
 | **OCTAVE MCP** | v1.13.0, production, PyPI published | Close | Standalone community adoption |
 | **Debate Hall** | v0.5.0, 17 tools, consult/convene/RACI shipped | Medium | Governance Hall (#163) |
-| **Workbench** | v0.6.0, Step 3B Phase 2 COMPLETE 2026-04-20 (CA-BCE + unlock_work gate via #134, ApiDispatcher + ContinuationStore via #137, subagent-discipline via #147, ADR-0002 I1 Session/Dispatch ontology via 077ea0a). Phase 3 in progress: egress DAL validation, recursive dispatch_colleague, dispatch-chain UI (#82). | Medium | Complete Step 3B Phase 3 (unblocks hestai-context-mcp Phase 2 integration) |
+| **Workbench** | v1.0.0 — TAGGED 2026-07-27 at commit `032823e6716f2f9dcea5d6efad4b382bc0b9623c` (PR #433), the first git tag since v0.6.0 (2026-04-20). Step 3B Phase 2 COMPLETE 2026-04-20 (CA-BCE + unlock_work gate via #134, ApiDispatcher + ContinuationStore via #137, subagent-discipline via #147, ADR-0002 I1 Session/Dispatch ontology via 077ea0a); ADR-0003 Escrow-Gated Agent Loading v1 — vendor-agnostic ceremony core plus Claude launch adapter only, Codex/Goose adapters deferred to ADR-0004 — production for Claude CLI sessions (#269/#271/#280/#282), ceremony default flipped legacy→ceremony for Claude CLI sessions (#283, token CEREMONY-DEFAULT-FLIP-20260617). Per workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0 except where marked 'per v3.0', remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0). | Medium | Complete remaining Step 3B work (dispatch-chain UI, workbench #82 — still OPEN per v3.0); operator dogfooding of v1.0.0 build in progress |
 | **Vault** | Populated library: 5 V9 agents, 16 V9 skills, 3 cognitions, System Standard | Medium | Populate as Payload Compiler demands content |
-| **hestai-context-mcp** | Phase 1 COMPLETE (2026-04-17). 4 tools shipped (clock_in, clock_out, get_context, submit_review). 361 tests, 89% coverage. TranscriptParser ABC + ClaudeTranscriptParser adapter. | Medium | Phase 2: workbench Payload Compiler integration via stdio at KVAEPH Position 3 (blocked on workbench Step 3B Phase 3) |
-| **hestai-mcp (legacy)** | Operational, v1.2.0, 1033 tests, maintenance mode | Maintenance | Stays for A/B comparison. NOT being absorbed. **Deprecation criterion (DECIDED):** A/B cutover via Workbench — same agent role + same real task, run once with legacy backend and once with hestai-context-mcp backend; measure judged agent output quality + total session token cost; whichever wins consistently across N tasks triggers a swift cutover. |
-| **OA (legacy)** | Operational for Claude-with-MCP sessions | Maintenance | Replaced by Alley-Oop for headless dispatch |
+| **hestai-context-mcp** | Phase 1 COMPLETE (2026-04-17); Phase 1.5 CLOSED 2026-04-22. 8 tools shipped (clock_in, clock_out, get_context, submit_review, submit_governance, lookup_decision, list_decisions, trace_supersedure). 1251 tests, 92% coverage (per PROJECT-CONTEXT.oct.md, updated 2026-06-13). TranscriptParser ABC + ClaudeTranscriptParser adapter. | Medium | Phase 2 core integration (get_context @ KVAEPH Position 3) SHIPPED 2026-05-01 (workbench PRs #169/#176); submit_review consumer wiring (issue #30) deferred. Current focus: RFC #53 Gate C T6 migration/calibration (operator-involved, DUAL_KEY GO/NO-GO). |
+| **hestai-mcp (legacy)** | Operational, v1.2.0, 1228 tests (measured at HEAD 29f891a via `pytest --collect-only`), maintenance mode | Maintenance | Stays for A/B comparison. NOT being absorbed. **Deprecation criterion (DECIDED):** A/B cutover via Workbench — same agent role + same real task, run once with legacy backend and once with hestai-context-mcp backend; measure judged agent output quality + total session token cost; whichever wins consistently across N tasks triggers a swift cutover. |
+| **OA (legacy)** | Operational for Claude-with-MCP sessions | Maintenance | Remains for Claude-with-MCP sessions outside Workbench; inside Workbench, Claude CLI sessions bind via ADR-0003 Escrow-Gated Agent Loading v1 (Claude launch adapter only, Codex/Goose deferred to ADR-0004), production PR #283 CEREMONY-DEFAULT-FLIP-20260617 — see Section 9. Not replaced by Alley-Oop. |
 | **PAL (legacy)** | Being eliminated | Elimination | Workbench natively replaces all dispatch |
 
 ### The Critical Path
 
-Per workbench PROJECT-CONTEXT v1.7 build sequence:
+Per workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0 except where marked 'per v3.0', build sequence:
 
-**Step 3A** (Payload Compiler — NEXT, all prerequisites met) -> **Step 3B** (dispatch_colleague uses Payload Compiler) -> **Step 4** (Testing Lab measures baseline collapse threshold)
+**Step 3A** (Payload Compiler — COMPLETE) -> **Step 3B** (remaining work: dispatch-chain UI, workbench #82 — still OPEN per v3.0) -> **Step 4** (Testing Lab measures baseline collapse threshold)
 
 The convergence point is **Step 3B: dispatch_colleague** — where identity (from Vault), context (from hestai-context-mcp), and execution (Workbench dispatch) work together for the first time.
 
-In parallel: **hestai-context-mcp Phase 1** (harvest clock_in, redesign clock_out) provides the context engine that the Payload Compiler calls at KVAEPH Position 3.
+In parallel: **hestai-context-mcp Phase 1** (harvest clock_in, redesign clock_out) provides the context engine that the Payload Compiler calls via `get_context` at KVAEPH Position 3 — core integration SHIPPED 2026-05-01 (workbench PRs #169/#176); `submit_review` consumer wiring (issue #30) deferred.
 
 ### Validated Early
 
@@ -403,22 +423,26 @@ In parallel: **hestai-context-mcp Phase 1** (harvest clock_in, redesign clock_ou
 - 16 V9 skills with ANCHOR_KERNEL sections created and assigned in archetype matrix.
 - System Standard in vault (AP4 resolved).
 
-### Pre-A/B Work for hestai-context-mcp (Phase 1.5)
+### Pre-A/B Work for hestai-context-mcp (Phase 1.5) — CLOSED 2026-04-22
 
-Before the outcome-quality A/B test against legacy hestai-mcp can be meaningful, four integration-viability gaps must close. **Framing:** this is integration viability work — the Payload Compiler must be able to read both backends' responses. The systems are explicitly *allowed* to differ in their actual content; the differences are the variable being tested. This is **outcome-quality A/B**, not structural-parity A/B.
+Before the outcome-quality A/B test against legacy hestai-mcp could be meaningful, four integration-viability gaps had to close. **Framing:** this was integration viability work — the Payload Compiler must be able to read both backends' responses. The systems are explicitly *allowed* to differ in their actual content; the differences are the variable being tested. This is **outcome-quality A/B**, not structural-parity A/B.
 
-| Issue | Priority | Scope |
-|-------|----------|-------|
-| [#4](https://github.com/elevanaltd/hestai-context-mcp/issues/4) | P0a | Integration viability shape: add `ai_synthesis` field with fallback OCTAVE; normalise phase string to legacy's full format |
-| [#5](https://github.com/elevanaltd/hestai-context-mcp/issues/5) | P0b | Port `AIClient` + `synthesize_fast_layer_with_ai` from legacy `src/hestai_mcp/modules/services/ai/` |
-| [#6](https://github.com/elevanaltd/hestai-context-mcp/issues/6) | P1 | Harvest `_extract_north_star_constraints` (legacy `clock_in.py:525-583`); tests must exercise real Vault North Star format |
-| [#7](https://github.com/elevanaltd/hestai-context-mcp/issues/7) | P-side | Surface distinct `conflicts` field rather than only `active_sessions` (small standalone) |
+**Status (per hestai-context-mcp PROJECT-CONTEXT.oct.md, updated 2026-06-13): all four items shipped, PRs #8-#12, 604 tests at close.** Table retained as historical record.
+
+| Issue | Priority | Scope | Resolution |
+|-------|----------|-------|-----------|
+| [#4](https://github.com/elevanaltd/hestai-context-mcp/issues/4) | P0a | Integration viability shape: add `ai_synthesis` field with fallback OCTAVE; normalise phase string to legacy's full format | CLOSED |
+| [#5](https://github.com/elevanaltd/hestai-context-mcp/issues/5) | P0b | Port `AIClient` + `synthesize_fast_layer_with_ai` from legacy `src/hestai_mcp/modules/services/ai/` | CLOSED |
+| [#6](https://github.com/elevanaltd/hestai-context-mcp/issues/6) | P1 | Harvest `_extract_north_star_constraints` (legacy `clock_in.py:525-583`); tests must exercise real Vault North Star format | CLOSED |
+| [#7](https://github.com/elevanaltd/hestai-context-mcp/issues/7) | P-side | Surface distinct `conflicts` field rather than only `active_sessions` (small standalone) | CLOSED |
 
 **Already implemented (NOT gaps):** ContextSteward and dynamic phase constraints (`core/context_steward.py:36-184` + tests); focus conflict detection (`core/session.py:91-128` + 4 behavioural tests).
 
 ---
 
 ## SECTION 8: ASSUMPTIONS
+
+> **Scope note (ADR-0003):** workbench ADR-0003 (escrow-gated agent loading) changed how Claude CLI sessions bind an agent identity — v1 ships the vendor-agnostic ceremony core plus the Claude launch adapter only, production default since workbench PR #283; Codex/Goose adapters are deferred to ADR-0004. It did not replace Alley-Oop: the workbench Payload Compiler still builds Alley-Oop reliability messages, used on the API (OpenRouter) dispatch path (workbench `main/src/services/payloadCompiler.ts` `buildReliabilityMessages` at e88764c). Other Alley-Oop text in this section is target-state description not re-verified since ADR-0003.
 
 | ID | Assumption | Confidence | Impact | Validates By |
 |----|-----------|-----------|--------|-------------|
@@ -439,13 +463,13 @@ Before the outcome-quality A/B test against legacy hestai-mcp can be meaningful,
 
 ### hestai-mcp (this repo)
 
-**Status:** Legacy. v1.2.0, 1033 tests, maintenance mode. Stays operational for A/B comparison.
+**Status:** Legacy. v1.2.0, 1228 tests (measured at HEAD 29f891a via `pytest --collect-only`), maintenance mode. Stays operational for A/B comparison.
 
 hestai-mcp is NOT being absorbed into the Workbench. ADR-0353 resolved this: the governance engine logic (clock_in, clock_out, ContextSteward, RedactionEngine, submit_review) was harvested into a NEW repo (`hestai-context-mcp`, Phase 1 complete 2026-04-17), not subtracted from here. The legacy system remains intact so the same agent + same task can be tested under both the old ceremony and the new engine.
 
-The `_bundled_hub/` content (agent definitions, skills, standards, cognitions) moves to the Vault. The `.hestai-sys/` injection mechanism moves to the Vault/Workbench. The `bind` tool is replaced by Alley-Oop for headless dispatch; the Odyssean Anchor ceremony remains for Claude-with-MCP sessions.
+The `_bundled_hub/` content (agent definitions, skills, standards, cognitions) moves to the Vault. The `.hestai-sys/` injection mechanism moves to the Vault/Workbench. The `bind` tool is superseded, for Claude CLI sessions inside Workbench, by ADR-0003 Escrow-Gated Agent Loading v1 (Claude launch adapter only, Codex/Goose deferred to ADR-0004 — see "odyssean-anchor-mcp" below), not by Alley-Oop; the Odyssean Anchor ceremony remains operational for Claude-with-MCP sessions outside Workbench.
 
-**Pre-A/B blocker:** Before the outcome-quality A/B test against legacy can be meaningful, the four Pre-A/B Work items (#4, #5, #6, #7 — see Section 7) must close so the Payload Compiler can read both backends' responses. The systems are *allowed* to differ in their actual content; that difference is the variable being tested.
+**Pre-A/B blocker:** RESOLVED. The four Pre-A/B Work items (#4, #5, #6, #7 — see Section 7) CLOSED 2026-04-22, so the Payload Compiler can read both backends' responses. The systems remain *allowed* to differ in their actual content; that difference is the variable being tested.
 
 **Decisions (locked):**
 - **Deprecation criterion:** A/B cutover via Workbench measuring outcome quality (judged) + total session token cost. Cut when the new system wins consistently across N tasks.
@@ -454,9 +478,9 @@ The `_bundled_hub/` content (agent definitions, skills, standards, cognitions) m
 
 ### odyssean-anchor-mcp
 
-**Status:** Legacy for Claude-with-MCP sessions. Replaced by Alley-Oop for headless dispatch.
+**Status:** Superseded for Claude CLI sessions inside Workbench, not by Alley-Oop. ADR-0003 "Escrow-Gated Agent Loading" v1 — vendor-agnostic Layer-1 ceremony core plus the Claude Layer-2 launch adapter only, Codex/Goose Layer-2 adapters deferred to ADR-0004 — is in production for Claude CLI sessions (Phases 1-3, PRs #269/#271/#280/#282), with the ceremony default flipped from legacy to ceremony for Claude CLI sessions (PR #283, token CEREMONY-DEFAULT-FLIP-20260617), per workbench PROJECT-CONTEXT v2.2 (2026-07-27), since replaced by v3.0 (2026-09-24); not re-verified against v3.0 except where marked 'per v3.0'. The legacy 5-stage KEAPH ceremony remains operational for Claude-with-MCP sessions outside Workbench.
 
-The 5-stage KEAPH ceremony and Steward state machine remain operational for sessions where agents have direct MCP access. For Workbench-dispatched agents (headless), the Alley-Oop pattern in the Payload Compiler provides equivalent cognitive alignment with zero round-trip overhead.
+The Alley-Oop pattern described in Section 4 (synthetic acknowledgment + prefilled proof + dynamic anchor lock) and ADR-0003's escrow-gated ceremony both shipped, for different paths: Alley-Oop drives the Workbench's API (OpenRouter) dispatch path (`buildReliabilityMessages` in `payloadCompiler.ts`), while ADR-0003 v1 governs Claude CLI session identity binding inside Workbench (Claude launch adapter only; Codex/Goose deferred to ADR-0004). The 5-stage KEAPH ceremony and Steward state machine remain operational for sessions where agents have direct MCP access outside Workbench — this Lighthouse correction was itself produced under that ceremony.
 
 ### PAL
 
