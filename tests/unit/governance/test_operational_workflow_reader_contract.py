@@ -108,6 +108,13 @@ def field_violations(path: Path) -> list[str]:
             continue
         if current is None or key not in SINGLE_LINE_FIELDS:
             continue
+        if key in {"DELIVERABLE", "DELIVERABLES"}:
+            other = "DELIVERABLES" if key == "DELIVERABLE" else "DELIVERABLE"
+            if other in counts:
+                violations.append(
+                    f"line {number}: {current} block has both DELIVERABLE and DELIVERABLES "
+                    "(ambiguous: reader prefers DELIVERABLE)"
+                )
         counts[key] = counts.get(key, 0) + 1
         if counts[key] > 1:
             violations.append(
@@ -213,23 +220,24 @@ def legacy_reader_violations(path: Path) -> list[str]:
             )
         if constraints.purpose == f"Phase {phase}":
             violations.append(f"{phase}: purpose resolved to the generic fallback")
-        own_deliverables = [
-            value for _, key, value in block if key in {"DELIVERABLE", "DELIVERABLES"}
-        ]
-        if phase == "B1" and not own_deliverables:
-            violations.append("B1: block has no DELIVERABLE(S) line of its own")
-        if own_deliverables:
+        # Reader precedence (_extract_list_field): DELIVERABLE wins over DELIVERABLES.
+        raw_by_key = {
+            key: value for _, key, value in block if key in {"DELIVERABLE", "DELIVERABLES"}
+        }
+        own_raw = raw_by_key.get("DELIVERABLE", raw_by_key.get("DELIVERABLES"))
+        if own_raw is None:
+            violations.append(f"{phase}: block has no DELIVERABLE(S) line of its own")
+        else:
             deliverables = constraints.deliverables
+            expected = _parse_items(own_raw)
             if not deliverables:
-                violations.append(
-                    f"{phase}: reader served empty deliverables for {own_deliverables[-1][:60]!r}"
-                )
+                violations.append(f"{phase}: reader served empty deliverables for {own_raw[:60]!r}")
             elif phase.startswith("B") and not deliverables[0].startswith(f"{phase}-"):
                 violations.append(f"{phase}: deliverables not from own block: {deliverables}")
-            elif deliverables != _parse_items(own_deliverables[-1]):
+            elif deliverables != expected:
                 violations.append(
                     f"{phase}: served deliverables {deliverables} != items parsed from own block "
-                    f"{_parse_items(own_deliverables[-1])}"
+                    f"{expected}"
                 )
         if phase == "B1" and not (constraints.quality_gates or "").strip():
             violations.append("B1: reader served empty quality_gates")
