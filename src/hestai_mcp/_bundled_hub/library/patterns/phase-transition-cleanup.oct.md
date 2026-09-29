@@ -17,4 +17,14 @@ CLEANUP_SEQUENCE::"INVOKE directory-curator → RECEIVE violations report → DE
 ENFORCEMENT::"BLOCK phase progression if violations exist after workspace-architect remediation"
 §3::REFERENCE
 PROTOCOL_REFERENCE::".hestai-sys/standards/rules/visibility-rules.oct.md"
+§5::ANCHOR_KERNEL
+TARGET::phase_boundary_system_hygiene
+NEVER::[progress_phase_while_violations_exist_after_remediation,skip_cleanup_at_trigger_points]
+MUST::[
+  run_cleanup_at_B1_02_B2_04_B3_04_B4_05_completion,
+  invoke_directory_curator_then_receive_violations_report,
+  delegate_workspace_architect_to_remediate,
+  validate_clean_state_before_phase_progression
+]
+GATE::"After workspace-architect remediation, is the state clean of violations so the phase may progress?"
 ===END===

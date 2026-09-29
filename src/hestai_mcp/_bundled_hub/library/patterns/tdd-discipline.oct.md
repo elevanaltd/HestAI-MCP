@@ -36,4 +36,22 @@ AVOID::[
   MOCKING_EVERYTHING::"Tests pass but integration fails - balance unit/integration",
   TESTING_INTERNALS::"Tests break on safe refactoring - test public API only"
 ]
+§5::ANCHOR_KERNEL
+TARGET::red_green_refactor_discipline_with_TMG_gate
+NEVER::[
+  write_tests_after_code,
+  squash_red_and_green_into_single_commit,
+  mock_everything,
+  test_internals_instead_of_public_API,
+  proceed_to_GREEN_without_TMG_verdict_at_T2_plus,
+  bounce_to_user_or_HO_without_TMG_verdict
+]
+MUST::[
+  verify_RED_fails_for_the_right_reason,
+  obtain_TMG_APPROVED_verdict_before_GREEN_at_T2_plus,
+  write_minimal_code_to_pass_and_resist_feature_creep,
+  refactor_in_small_steps_and_revert_if_tests_fail,
+  commit_test_before_implementation
+]
+GATE::"Did the test fail for the right reason before implementation, and does commit order show test preceding implementation?"
 ===END===
