@@ -51,7 +51,7 @@ SCOPE_BOUNDARIES:
   IS::[persistent_memory,structural_governance,multi_model_orchestration]
   IS_NOT::[commercial_product,tool_library,monorepo_exclusive]
 KEY_DOCUMENTS:
-  OPERATIONAL_WORKFLOW::OPERATIONAL_WORKFLOW.oct.md
+  OPERATIONAL_WORKFLOW::"workflow/OPERATIONAL-WORKFLOW.oct.md"
   NAMING_STANDARD::NAMING_STANDARD.oct.md
   VISIBILITY_RULES::VISIBILITY_RULES.oct.md
   FULL_REFERENCE::HESTAI_SYSTEM_REFERENCE.oct.md
