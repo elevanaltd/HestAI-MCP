@@ -161,6 +161,30 @@ def b1_purpose_violations(path: Path) -> list[str]:
     return [f"line {number}: B1 PURPOSE {value!r} mentions neither architecture nor implementation"]
 
 
+def _parse_items(raw: str) -> list[str]:
+    """Items the reader should serve for a one-line value: split a top-level [..] list on
+    commas outside brackets/quotes and strip quotes; a bare or quoted scalar is one item."""
+    raw = raw.strip()
+    if not (raw.startswith("[") and raw.endswith("]")):
+        return [raw.strip('"')] if raw else []
+    items, depth, quoted, current = [], 0, False, ""
+    for char in raw[1:-1]:
+        if char == '"':
+            quoted = not quoted
+        elif not quoted and char == "[":
+            depth += 1
+        elif not quoted and char == "]":
+            depth -= 1
+        if char == "," and depth == 0 and not quoted:
+            items.append(current.strip().strip('"'))
+            current = ""
+        else:
+            current += char
+    if current.strip():
+        items.append(current.strip().strip('"'))
+    return items
+
+
 def legacy_reader_violations(path: Path) -> list[str]:
     """The in-repo legacy reader resolves all ten phases from their own blocks."""
     violations = []
@@ -200,10 +224,13 @@ def legacy_reader_violations(path: Path) -> list[str]:
                 violations.append(
                     f"{phase}: reader served empty deliverables for {own_deliverables[-1][:60]!r}"
                 )
-            elif (phase.startswith("B") and not deliverables[0].startswith(f"{phase}-")) or (
-                deliverables[0].strip('"')[:20] not in own_deliverables[-1]
-            ):
+            elif phase.startswith("B") and not deliverables[0].startswith(f"{phase}-"):
                 violations.append(f"{phase}: deliverables not from own block: {deliverables}")
+            elif deliverables != _parse_items(own_deliverables[-1]):
+                violations.append(
+                    f"{phase}: served deliverables {deliverables} != items parsed from own block "
+                    f"{_parse_items(own_deliverables[-1])}"
+                )
         if phase == "B1" and not (constraints.quality_gates or "").strip():
             violations.append("B1: reader served empty quality_gates")
         if phase == "B5":
