@@ -12,6 +12,10 @@ line-regex readers, not by an OCTAVE parser, so its *line shape* is a contract:
    DELIVERABLES, ENTRY, EXIT, QUALITY_GATE_MANDATORY, QUALITY_GATES, SUBPHASES)
    are complete single-line values. A value that is just ``[`` or ends with an
    unclosed ``[`` (what a multi-line list rewrite produces) is read as ``['[']``.
+4. No list item (DELIVERABLE(S)/ENTRY/EXIT) contains a comma inside quotes: the context-mcp
+   reader splits ``[...]`` naively on commas, so such an item would be served as two.
+5. B1, the served phase, is pinned to an explicit expected snapshot (purpose, the four
+   deliverables, quality gates); see ``B1_EXPECTED_*``.
 
 The hestai-context-mcp reader lives in another repository and cannot be imported
 in CI. The line-shape assertions below ARE its contract; see
@@ -192,6 +196,88 @@ def _parse_items(raw: str) -> list[str]:
     return items
 
 
+LIST_FIELDS = {"DELIVERABLE", "DELIVERABLES", "ENTRY", "EXIT"}
+
+# B1 is the phase served to agents. This is a deliberate snapshot of what the contract says
+# B1 must serve. Changing B1 content in OPERATIONAL-WORKFLOW.oct.md requires updating this
+# snapshot deliberately, in the same PR.
+B1_EXPECTED_PURPOSE = "Validated architecture→actionable implementation plan"
+B1_EXPECTED_DELIVERABLES = [
+    "B1-BUILD-PLAN.md⊕task_breakdown",
+    "B1-WORKSPACE.md⊕environment⊕CI/CD_setup⊕QUALITY_GATE_EVIDENCE",
+    "B1-DEPENDENCIES.md⊕critical_path",
+    "TRACED_artifacts",
+]
+B1_EXPECTED_QUALITY_GATES = "⚠️ Load workspace-setup skill for stack-specific gates. NO src/ FILES WITHOUT PASSING quality gates per project stack: python[ruff_check,black_check,mypy,pytest] | node[lint,typecheck,test_via_repo_declared_runner:package.json_packageManager+declared_scripts+lockfile,NEVER_assume_npm] | generic[lint,typecheck,test]"
+
+
+def _context_mcp_items(raw: str) -> list[str]:
+    r"""Reproduce hestai-context-mcp's list splitting, which is NOT quote-aware.
+
+    Mirrors ``ContextSteward._extract_list_field`` in hestai-context-mcp
+    ``src/hestai_context_mcp/core/context_steward.py`` lines 167-181 at commit 06aac8c:
+    ``re.match(r"^\[(.+)\]$", value)`` then ``group(1).split(",")``, strip, drop empties;
+    any other non-empty value is a single item. That reader keeps quotes; callers strip
+    them where they compare content.
+    """
+    if not raw:
+        return []
+    match = re.match(r"^\[(.+)\]$", raw)
+    if match:
+        return [item for item in (part.strip() for part in match.group(1).split(",")) if item]
+    return [raw]
+
+
+def list_split_violations(path: Path) -> list[str]:
+    """No comma inside a quoted list item: the naive and quote-aware splits must agree."""
+    violations = []
+    current: str | None = None
+    marker_lines = {number: key for number, key, _ in _phase_markers(path)}
+    for number, key, value in _keyed_lines(path):
+        if number in marker_lines:
+            current = key
+            continue
+        if current is None or key not in LIST_FIELDS:
+            continue
+        naive, aware = _context_mcp_items(value), _parse_items(value)
+        if len(naive) != len(aware):
+            violations.append(
+                f"line {number}: {current} {key} splits into {len(naive)} items in the "
+                f"context-mcp reader but {len(aware)} quote-aware (comma inside a quoted item?)"
+            )
+    return violations
+
+
+def b1_snapshot_violations(path: Path) -> list[str]:
+    """B1 serves exactly the pinned purpose, deliverables and quality gates."""
+    block = _phase_blocks(path).get("B1")
+    if block is None:
+        return ["B1 marker missing"]
+    violations = []
+    fields = {key: value for _, key, value in block}
+    purpose = fields.get("PURPOSE", "").strip('"')
+    if purpose != B1_EXPECTED_PURPOSE:
+        violations.append(f"B1 PURPOSE {purpose!r} != snapshot {B1_EXPECTED_PURPOSE!r}")
+    raw = fields.get("DELIVERABLE", fields.get("DELIVERABLES", ""))
+    split = [item.strip('"') for item in _context_mcp_items(raw)]
+    if split != B1_EXPECTED_DELIVERABLES:
+        violations.append(f"B1 deliverables (context-mcp split) {split} != snapshot")
+    gates = fields.get("QUALITY_GATE_MANDATORY", fields.get("QUALITY_GATES", "")).strip('"')
+    if gates != B1_EXPECTED_QUALITY_GATES:
+        violations.append(f"B1 quality gates {gates!r} != snapshot")
+    try:
+        served = ContextSteward(workflow_path=path).synthesize_active_state("B1")
+    except Exception as error:  # noqa: BLE001 - any reader failure is a contract failure
+        return [*violations, f"B1: legacy reader failed: {error!r}"]
+    if served.purpose != B1_EXPECTED_PURPOSE:
+        violations.append(f"B1 legacy-served purpose {served.purpose!r} != snapshot")
+    if served.deliverables != B1_EXPECTED_DELIVERABLES:
+        violations.append(f"B1 legacy-served deliverables {served.deliverables} != snapshot")
+    if served.quality_gates != B1_EXPECTED_QUALITY_GATES:
+        violations.append(f"B1 legacy-served quality_gates {served.quality_gates!r} != snapshot")
+    return violations
+
+
 def legacy_reader_violations(path: Path) -> list[str]:
     """The in-repo legacy reader resolves all ten phases from their own blocks."""
     violations = []
@@ -279,6 +365,16 @@ def test_b1_purpose_mentions_architecture_or_implementation():
 @pytest.mark.unit
 def test_legacy_reader_resolves_all_ten_phases_from_their_own_blocks():
     assert not legacy_reader_violations(_target())
+
+
+@pytest.mark.unit
+def test_no_comma_inside_quoted_list_items():
+    assert not list_split_violations(_target())
+
+
+@pytest.mark.unit
+def test_b1_serves_pinned_purpose_deliverables_and_quality_gates():
+    assert not b1_snapshot_violations(_target())
 
 
 @pytest.mark.unit
