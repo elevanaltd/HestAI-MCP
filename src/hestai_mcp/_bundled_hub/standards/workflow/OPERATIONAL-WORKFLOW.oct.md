@@ -113,7 +113,7 @@ ERROR_HANDLING_TAXONOMY:
   COMPONENT_ERRORS::"implementation-lead[build_failure_recovery_profile:error-triage+diagnostic-protocols]→2_attempts→submit_rccafp_record→IF[escalation_required]→specialist_via_dispatch_colleague[.hestai-sys/standards/RCCAFP-ERROR-RECOVERY-SPEC.md§2.3+§4:no_dedicated_error_agent_for_local_errors]"
   QUICK_FIX_ERRORS::"≤30_minutes[syntax/config, obvious_root_cause, single_file_fix, zero_architectural_implications]"
   COMPLEX_ERRORS::"30_min-4_hours[multi-component, performance_degradation, investigation_required]"
-  SYSTEM_ERRORS::ERROR_ARCHITECT_ZEUS
+  SYSTEM_ERRORS::"system-wide→dispatch_colleague[specialist]→IF[systemic]→full_RCCAFP_incident_protocol[library/skills/rccafp]:no_dedicated_error_agent[.hestai-sys/standards/RCCAFP-ERROR-RECOVERY-SPEC.md§4+Relationship_to_other_documents]"
   ESCALATION_ERRORS::">4_hours_or_high_risk[architectural_changes_required, multi-team_coordination, high_business_impact]"
   DESIGN_ERRORS::REQUIREMENTS_STEWARD_ATHENA
   RESOLUTION_PROCESS::"DETECTION+CLASSIFICATION[decision_tree]→COORDINATOR_ASSIGNMENT→RESOLUTION+EVIDENCE→SYSTEM_VALIDATION"

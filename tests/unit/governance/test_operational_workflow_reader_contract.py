@@ -122,35 +122,73 @@ def field_violations(path: Path) -> list[str]:
     return violations
 
 
+def _phase_blocks(path: Path) -> dict[str, list[tuple[int, str, str]]]:
+    """Map phase id to the keyed lines of its own block (marker excluded).
+
+    A block runs from its marker to the next phase marker, or to EOF for the last
+    phase, exactly as the line-regex readers collect it.
+    """
+    marker_lines = {number: key[:2] for number, key, _ in _phase_markers(path)}
+    blocks: dict[str, list[tuple[int, str, str]]] = {}
+    current: str | None = None
+    for row in _keyed_lines(path):
+        if row[0] in marker_lines:
+            current = marker_lines[row[0]]
+            blocks[current] = []
+        elif current is not None:
+            blocks[current].append(row)
+    return blocks
+
+
+def _own_purpose(block: list[tuple[int, str, str]]) -> str | None:
+    """The block's own PURPOSE value (last wins, as in the readers), unquoted."""
+    values = [value for _, key, value in block if key == "PURPOSE"]
+    return values[-1].strip('"') if values else None
+
+
 def b1_purpose_violations(path: Path) -> list[str]:
-    """B1 PURPOSE describes the architecture-to-implementation plan."""
-    markers = _phase_markers(path)
-    start = next((number for number, key, _ in markers if key.startswith("B1_")), None)
-    if start is None:
+    """B1 PURPOSE, taken from the B1 block only, describes the architecture-to-implementation plan."""
+    block = _phase_blocks(path).get("B1")
+    if block is None:
         return ["B1 marker missing"]
-    for number, key, value in _keyed_lines(path):
-        if number > start and key == "PURPOSE":
-            lowered = value.lower()
-            if "architecture" in lowered or "implementation" in lowered:
-                return []
-            return [
-                f"line {number}: B1 PURPOSE {value!r} mentions neither architecture nor implementation"
-            ]
-    return ["B1 PURPOSE missing"]
+    purposes = [(number, value) for number, key, value in block if key == "PURPOSE"]
+    if not purposes:
+        return ["B1 block has no PURPOSE of its own"]
+    number, value = purposes[-1]
+    lowered = value.lower()
+    if "architecture" in lowered or "implementation" in lowered:
+        return []
+    return [f"line {number}: B1 PURPOSE {value!r} mentions neither architecture nor implementation"]
 
 
 def legacy_reader_violations(path: Path) -> list[str]:
     """The in-repo legacy reader resolves all ten phases from their own blocks."""
     violations = []
     steward = ContextSteward(workflow_path=path)
+    blocks = _phase_blocks(path)
+    markers = {key[:2]: value for _, key, value in _phase_markers(path)}
     for phase in PHASES:
         try:
             constraints = steward.synthesize_active_state(phase)
         except Exception as error:  # noqa: BLE001 - any reader failure is a contract failure
             violations.append(f"{phase}: legacy reader failed: {error!r}")
             continue
-        if not constraints.purpose.strip():
-            violations.append(f"{phase}: empty purpose")
+        block = blocks.get(phase, [])
+        own_purpose = _own_purpose(block)
+        if own_purpose is None and phase.startswith("B"):
+            violations.append(f"{phase}: block has no PURPOSE of its own (reader would fall back)")
+        elif own_purpose is None:
+            # D0-D3 legitimately have no PURPOSE line: the reader uses the marker value.
+            if constraints.purpose != markers[phase]:
+                violations.append(
+                    f"{phase}: purpose {constraints.purpose!r} != marker value {markers[phase]!r}"
+                )
+        elif constraints.purpose != own_purpose:
+            violations.append(
+                f"{phase}: purpose {constraints.purpose!r} != own PURPOSE {own_purpose!r}"
+            )
+        if constraints.purpose == f"Phase {phase}":
+            violations.append(f"{phase}: purpose resolved to the generic fallback")
         if phase in {"B2", "B5"}:
             deliverables = constraints.deliverables
             if not deliverables or not deliverables[0].startswith(f"{phase}-"):
