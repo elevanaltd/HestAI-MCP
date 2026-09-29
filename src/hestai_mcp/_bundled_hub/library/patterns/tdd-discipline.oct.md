@@ -44,11 +44,12 @@ NEVER::[
   mock_everything,
   test_internals_instead_of_public_API,
   proceed_to_GREEN_without_TMG_verdict_at_T2_plus,
-  bounce_to_user_or_HO_without_TMG_verdict
+  bounce_to_user_or_HO_without_TMG_verdict_except_on_pal_clink_fault_or_3_unresolved_iterations
 ]
 MUST::[
   verify_RED_fails_for_the_right_reason,
   obtain_TMG_APPROVED_verdict_before_GREEN_at_T2_plus,
+  escalate_to_holistic_orchestrator_with_verdict_trace_and_continuation_id_on_pal_clink_fault_or_verdict_structurally_unresolvable_after_3_iterations,
   write_minimal_code_to_pass_and_resist_feature_creep,
   refactor_in_small_steps_and_revert_if_tests_fail,
   commit_test_before_implementation
