@@ -77,7 +77,7 @@ CRITERIA::[all_components_have_tasks,"dependencies_mapped⊕sequenced",test_requ
 CONTEXT7_LIBRARY_RESEARCH::[[[PATTERN::"mcp__Context7__resolve-library-id→mcp__Context7__get-library-docs"]],[[D1_USAGE::"Research for problem understanding and existing solutions"]],[[B0_USAGE::"Architecture validation against current library capabilities"]],[[B1_USAGE::"Dependency versions and integration patterns"]],[[B2_USAGE::"API references and implementation examples during TDD"]],[[B3_USAGE::"Integration best practices and compatibility validation"]]]
 B2_HEPHAESTUS_FORGE::CODE_CONSTRUCTION
 PURPOSE::"Execute build plan through disciplined development+quality validation"
-SUBPHASES::"B2_00[universal-test-engineer:test_strategy+methodology]→B2_01[implementation-lead:coordinate_development]→B2_02[universal-test-engineer:test_suites]→B2_03[PR_review_gate:required_reviewers_computed_per_content_facet_per_review-requirements.oct.md]→B2_04[error-architect:integration_issues+error-triage_skill]"
+SUBPHASES::"B2_00[universal-test-engineer:test_strategy+methodology]→B2_01[implementation-lead:coordinate_development]→B2_02[universal-test-engineer:test_suites]→B2_03[PR_review_gate:required_reviewers_computed_per_content_facet_per_.hestai-sys/standards/rules/review-requirements.oct.md]→B2_04[implementation-lead:integration_issues+build_failure_recovery_profile[error-triage+diagnostic-protocols]→2_attempts→submit_rccafp_record→IF[escalation_required]→specialist_via_dispatch_colleague:.hestai-sys/standards/RCCAFP-ERROR-RECOVERY-SPEC.md§2.3]"
 RACI::"R[development_specialists]→A[critical-engineer:production_standards]→C[technical-architect:compliance, Context7:libraries, universal-test-engineer:methodology, principal-engineer:pattern_monitoring_OPTIONAL]→I[solution-steward, completion-architect, security-specialist]"
 TEST_STRATEGY_REQUIREMENTS::[test_strategy_aligned,coverage_requirements_defined,compliance_validation_setup,frameworks_approved,integrity_monitoring]
 IMPLEMENTATION_STANDARDS::["TEST_STRATEGY_FIRST→TEST_FIRST[RED]→TMG_GATE[T2+:test-methodology-guardian_APPROVED_before_GREEN]→GREEN→TRACED_METHODOLOGY",Context7_consultation_libraries,PR_review_gate_per_content_facet_reviewers,CI_immediate_failure_resolution,architecture_compliance,security_scanning]
@@ -110,7 +110,7 @@ RACI::"R[enhancement_specialists]→A[critical-engineer:enhancement_approval]→
 STANDARDS::[maintain_architectural_principles,"preserve_stability⊕performance","follow_testing⊕quality_protocols","document_changes⊕impact",maintain_backward_compatibility]
 DELIVERABLES::["B5-ENHANCEMENT-PLAN.md","B5-IMPLEMENTATION.md",updated_system_docs,integration_testing_results]
 ERROR_HANDLING_TAXONOMY:
-  COMPONENT_ERRORS::"error-architect[error-triage_skill]"
+  COMPONENT_ERRORS::"implementation-lead[build_failure_recovery_profile:error-triage+diagnostic-protocols]→2_attempts→submit_rccafp_record→IF[escalation_required]→specialist_via_dispatch_colleague[.hestai-sys/standards/RCCAFP-ERROR-RECOVERY-SPEC.md§2.3+§4:no_dedicated_error_agent_for_local_errors]"
   QUICK_FIX_ERRORS::"≤30_minutes[syntax/config, obvious_root_cause, single_file_fix, zero_architectural_implications]"
   COMPLEX_ERRORS::"30_min-4_hours[multi-component, performance_degradation, investigation_required]"
   SYSTEM_ERRORS::ERROR_ARCHITECT_ZEUS
@@ -127,7 +127,7 @@ POST_MORTEM_ANALYSIS:
   INVOCATION::"MANDATORY for CRITICAL incidents, HIGH-priority recurring failures, architectural erosion signals"
 ARTIFACT_PLACEMENT:
   LIFECYCLE_MODEL::"Spec[.hestai/rules/specs/]→Report[.hestai/state/reports/]→Doc[docs/]"
-  DECISION_RECORDS::".hestai/decisions/[compiled_governance_decisions_oct.md,committed_PR_controlled,NOT_ADRs[docs/adr/]]"
+  DECISION_RECORDS::".hestai/decisions/[per-decision_records[YYYY-MM-DD-slug.oct.md],committed_PR_controlled,NOT_ADRs[docs/adr/]]"
   DOCUMENT_PLACEMENT_PROTOCOL::"Load documentation-placement skill for placement rules and visibility protocols"
   CANONICAL_REFERENCE::".hestai-sys/standards/rules/visibility-rules.oct.md"
   PHASE_TRANSITION_CLEANUP::["B1_02, B2_04, B3_04, B4_05 require cleanup validation","holistic-orchestrator→directory-curator→workspace-architect pattern"]
