@@ -14,8 +14,12 @@ line-regex readers, not by an OCTAVE parser, so its *line shape* is a contract:
    unclosed ``[`` (what a multi-line list rewrite produces) is read as ``['[']``.
 4. No list item (DELIVERABLE(S)/ENTRY/EXIT) contains a comma inside quotes: the context-mcp
    reader splits ``[...]`` naively on commas, so such an item would be served as two.
-5. B1, the served phase, is pinned to an explicit expected snapshot (purpose, the four
-   deliverables, quality gates); see ``B1_EXPECTED_*``.
+5. B1 is the only phase served to agents (hestai-context-mcp get_context.py:161 hardcodes
+   "B1"), so it is pinned in full: every field of ``PhaseConstraints.to_dict()``
+   (purpose, raci, deliverables, entry/exit criteria, quality_gates, subphases) must equal
+   ``B1_SERVED_SNAPSHOT`` exactly as the context-mcp reader serves it (modelled by
+   ``context_mcp_served``), and none may resolve to a fallback such as ``"Not specified"``.
+   The other phases get structural and self-consistency checks only.
 
 The hestai-context-mcp reader lives in another repository and cannot be imported
 in CI. The line-shape assertions below ARE its contract; see
@@ -198,17 +202,27 @@ def _parse_items(raw: str) -> list[str]:
 
 LIST_FIELDS = {"DELIVERABLE", "DELIVERABLES", "ENTRY", "EXIT"}
 
-# B1 is the phase served to agents. This is a deliberate snapshot of what the contract says
-# B1 must serve. Changing B1 content in OPERATIONAL-WORKFLOW.oct.md requires updating this
-# snapshot deliberately, in the same PR.
-B1_EXPECTED_PURPOSE = "Validated architecture→actionable implementation plan"
-B1_EXPECTED_DELIVERABLES = [
-    "B1-BUILD-PLAN.md⊕task_breakdown",
-    "B1-WORKSPACE.md⊕environment⊕CI/CD_setup⊕QUALITY_GATE_EVIDENCE",
-    "B1-DEPENDENCIES.md⊕critical_path",
-    "TRACED_artifacts",
-]
-B1_EXPECTED_QUALITY_GATES = "⚠️ Load workspace-setup skill for stack-specific gates. NO src/ FILES WITHOUT PASSING quality gates per project stack: python[ruff_check,black_check,mypy,pytest] | node[lint,typecheck,test_via_repo_declared_runner:package.json_packageManager+declared_scripts+lockfile,NEVER_assume_npm] | generic[lint,typecheck,test]"
+# hestai-context-mcp get_context.py:161 hardcodes ``synthesize_active_state("B1")``, so B1 is the
+# ONLY phase served to agents and is pinned in full: every field of ``PhaseConstraints.to_dict()``
+# (hestai-context-mcp core/context_steward.py:18-34 at 06aac8c) exactly as that reader serves it,
+# including the surrounding quotes it keeps. The other phases get structural and
+# self-consistency checks only. Changing B1 content in OPERATIONAL-WORKFLOW.oct.md requires
+# updating this snapshot deliberately, in the same PR.
+B1_SERVED_SNAPSHOT: dict[str, object] = {
+    "phase": "B1",
+    "purpose": '"Validated architecture→actionable implementation plan"',
+    "raci": '"R[planning_specialists]→A[critical-engineer:final_build_plan_approval]→C[technical-architect:guidance, requirements-steward:scope, principal-engineer:tech_debt_strategy_at_B1_01]→I[solution-steward, code-review-specialist, universal-test-engineer]"',
+    "deliverables": [
+        '"B1-BUILD-PLAN.md⊕task_breakdown"',
+        '"B1-WORKSPACE.md⊕environment⊕CI/CD_setup⊕QUALITY_GATE_EVIDENCE"',
+        '"B1-DEPENDENCIES.md⊕critical_path"',
+        "TRACED_artifacts",
+    ],
+    "entry_criteria": [],
+    "exit_criteria": [],
+    "quality_gates": '"⚠️ Load workspace-setup skill for stack-specific gates. NO src/ FILES WITHOUT PASSING quality gates per project stack: python[ruff_check,black_check,mypy,pytest] | node[lint,typecheck,test_via_repo_declared_runner:package.json_packageManager+declared_scripts+lockfile,NEVER_assume_npm] | generic[lint,typecheck,test]"',
+    "subphases": '"B1_01[task-decomposer:atomic_tasks+dependencies]→B1_02[workspace-architect:project_migration_execution+structure+environments+CI/CD_pipeline+QUALITY_GATES_MANDATORY]→MIGRATION_GATE→B1_03[workspace-architect:build_directory_validation]→B1_04[implementation-lead:task_sequencing]→B1_05[build-plan-checker:completeness+feasibility]"',
+}
 
 
 def _context_mcp_items(raw: str) -> list[str]:
@@ -248,33 +262,105 @@ def list_split_violations(path: Path) -> list[str]:
     return violations
 
 
+def _context_mcp_field(data: dict[str, str], keys: list[str]) -> str | None:
+    """hestai-context-mcp ``_extract_field`` (core/context_steward.py:152-165 at 06aac8c)."""
+    for key in keys:
+        if key in data:
+            return data[key] if data[key] else None
+    return None
+
+
+def _context_mcp_list_field(data: dict[str, str], keys: list[str]) -> list[str]:
+    """hestai-context-mcp ``_extract_list_field`` (167-181): first present key wins."""
+    for key in keys:
+        if key in data:
+            return _context_mcp_items(data[key])
+    return []
+
+
+def context_mcp_served(path: Path, phase: str) -> dict[str, object] | None:
+    """Model what hestai-context-mcp serves for ``phase``, fallbacks included.
+
+    Reproduces ``_extract_phase_section`` (core/context_steward.py:75-118: collect ``key::value``
+    lines from the phase marker until the next phase-prefixed key; later duplicate keys
+    overwrite) and ``_build_constraints`` (120-150: PURPOSE falling back to the marker value,
+    then ``"Phase X"``; RACI falling back to ``"Not specified"``; None for absent quality_gates
+    and subphases). Returns ``PhaseConstraints.to_dict()`` shape, or None if the phase is absent.
+    """
+    data: dict[str, str] = {}
+    collecting = False
+    for line in path.read_text().split("\n"):
+        stripped = line.strip()
+        if "::" not in stripped:
+            continue
+        key = stripped.split("::")[0].strip()
+        value = stripped.split("::", 1)[1].strip()
+        if any(key.startswith(f"{p}_") for p in PHASES):
+            if key.startswith(f"{phase}_"):
+                collecting = True
+                data[key] = value
+            elif collecting:
+                break
+        elif collecting:
+            data[key] = value
+    if not data:
+        return None
+    marker_value = next((v for k, v in data.items() if k.startswith(f"{phase}_")), None)
+    purpose = _context_mcp_field(data, ["PURPOSE"])
+    if not purpose and marker_value:
+        purpose = marker_value
+    return {
+        "phase": phase,
+        "purpose": purpose or f"Phase {phase}",
+        "raci": _context_mcp_field(data, ["RACI"]) or "Not specified",
+        "deliverables": _context_mcp_list_field(data, ["DELIVERABLE", "DELIVERABLES"]),
+        "entry_criteria": _context_mcp_list_field(data, ["ENTRY"]),
+        "exit_criteria": _context_mcp_list_field(data, ["EXIT"]),
+        "quality_gates": _context_mcp_field(data, ["QUALITY_GATE_MANDATORY", "QUALITY_GATES"]),
+        "subphases": _context_mcp_field(data, ["SUBPHASES"]),
+    }
+
+
+def _unquote(value: object) -> object:
+    """Legacy-reader shape: it returns parsed (unquoted) strings and list items."""
+    if isinstance(value, str):
+        return value.strip('"')
+    if isinstance(value, list):
+        return [item.strip('"') for item in value]
+    return value
+
+
 def b1_snapshot_violations(path: Path) -> list[str]:
-    """B1 serves exactly the pinned purpose, deliverables and quality gates."""
-    block = _phase_blocks(path).get("B1")
-    if block is None:
-        return ["B1 marker missing"]
+    """Every B1 field served by the readers equals the pinned snapshot and is not a fallback."""
     violations = []
-    fields = {key: value for _, key, value in block}
-    purpose = fields.get("PURPOSE", "").strip('"')
-    if purpose != B1_EXPECTED_PURPOSE:
-        violations.append(f"B1 PURPOSE {purpose!r} != snapshot {B1_EXPECTED_PURPOSE!r}")
-    raw = fields.get("DELIVERABLE", fields.get("DELIVERABLES", ""))
-    split = [item.strip('"') for item in _context_mcp_items(raw)]
-    if split != B1_EXPECTED_DELIVERABLES:
-        violations.append(f"B1 deliverables (context-mcp split) {split} != snapshot")
-    gates = fields.get("QUALITY_GATE_MANDATORY", fields.get("QUALITY_GATES", "")).strip('"')
-    if gates != B1_EXPECTED_QUALITY_GATES:
-        violations.append(f"B1 quality gates {gates!r} != snapshot")
+    served = context_mcp_served(path, "B1")
+    if served is None:
+        return ["B1 not found by the context-mcp reader model"]
+    for field, expected in B1_SERVED_SNAPSHOT.items():
+        if served[field] != expected:
+            violations.append(
+                f"B1 {field} (context-mcp) {served[field]!r} != snapshot {expected!r}"
+            )
+    marker = next(v for _, k, v in _phase_markers(path) if k.startswith("B1_"))
+    if served["raci"] == "Not specified":
+        violations.append("B1 raci resolved to the 'Not specified' fallback")
+    if served["purpose"] in {"Phase B1", marker}:
+        violations.append(f"B1 purpose resolved to a fallback: {served['purpose']!r}")
+    if served["quality_gates"] is None or served["subphases"] is None or not served["deliverables"]:
+        violations.append(
+            "B1 quality_gates, subphases or deliverables resolved to an empty fallback"
+        )
     try:
-        served = ContextSteward(workflow_path=path).synthesize_active_state("B1")
+        legacy = ContextSteward(workflow_path=path).synthesize_active_state("B1").to_dict()
     except Exception as error:  # noqa: BLE001 - any reader failure is a contract failure
         return [*violations, f"B1: legacy reader failed: {error!r}"]
-    if served.purpose != B1_EXPECTED_PURPOSE:
-        violations.append(f"B1 legacy-served purpose {served.purpose!r} != snapshot")
-    if served.deliverables != B1_EXPECTED_DELIVERABLES:
-        violations.append(f"B1 legacy-served deliverables {served.deliverables} != snapshot")
-    if served.quality_gates != B1_EXPECTED_QUALITY_GATES:
-        violations.append(f"B1 legacy-served quality_gates {served.quality_gates!r} != snapshot")
+    # Shape difference: the legacy reader parses values, so strings and list items come back
+    # without the surrounding quotes that the context-mcp reader keeps. Everything else matches.
+    for field, expected in B1_SERVED_SNAPSHOT.items():
+        if legacy[field] != _unquote(expected):
+            violations.append(
+                f"B1 {field} (legacy) {legacy[field]!r} != snapshot {_unquote(expected)!r}"
+            )
     return violations
 
 
@@ -373,7 +459,7 @@ def test_no_comma_inside_quoted_list_items():
 
 
 @pytest.mark.unit
-def test_b1_serves_pinned_purpose_deliverables_and_quality_gates():
+def test_b1_serves_pinned_full_state_with_no_fallbacks():
     assert not b1_snapshot_violations(_target())
 
 
