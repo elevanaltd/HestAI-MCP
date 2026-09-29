@@ -1,13 +1,13 @@
 ===OPERATIONAL_WORKFLOW===
 META:
   TYPE::STANDARD
-  VERSION::"1.0"
+  VERSION::"1.1"
   STATUS::ACTIVE
   PURPOSE::"Consolidated D0→B5 workflow methodology with RACI+coordination+error handling"
   DOMAIN::workflow
   OWNERS::["system-steward"]
-  CREATED::"2026 -01 -08"
-  UPDATED::"2026-03-04"
+  CREATED::"2026-01-08"
+  UPDATED::"2026-09-29"
   CANONICAL::".hestai-sys/standards/workflow/OPERATIONAL-WORKFLOW.oct.md"
   SOURCE::"src/hestai_mcp/_bundled_hub/standards/workflow/OPERATIONAL-WORKFLOW.oct.md"
   FORMAT::octave
@@ -34,11 +34,11 @@ WORKFLOW_PHASES:
   ENTRY::[new_project_concept,systematic_investigation_needed]
   EXIT::[graduation_criteria_met,graduation_readiness_assessed,ready_for_D1]
 D1_APOLLO_ORACLE::UNDERSTANDING_ESTABLISHMENT
-SUBPHASES::"D1_01[idea-clarifier:exploration]:OPTIONAL→D1_02[research-analyst:investigation]:OPTIONAL→D1_03[requirements-architect:North_Star_formalization]:MANDATORY→D1_04[requirements-steward:validate]"
-ENTRY_PATTERNS::[[[FULL_DISCOVERY::"idea-clarifier→research-analyst→requirements-architect (user needs exploration)"]],[[DIRECT_ENTRY::"requirements-architect only (user knows requirements, skip exploration)"]]]
+SUBPHASES::"D1_01[idea-clarifier:exploration]:OPTIONAL→D1_02[research-analyst:investigation]:OPTIONAL→D1_03[north-star-architect:North_Star_formalization]:MANDATORY→D1_04[requirements-steward:validate]"
+ENTRY_PATTERNS::[[[FULL_DISCOVERY::"idea-clarifier→research-analyst→north-star-architect (user needs exploration)"]],[[DIRECT_ENTRY::"north-star-architect only (user knows requirements, skip exploration)"]]]
 NATURAL_FLOW::"D1 maintains natural conversational flow rather than artificial subdivisions"
 RACI::"R[phase_specialists]→A[critical-engineer:North_Star_complete+correct]→C[none:not_building_yet]→I[none:no_implementation_teams]"
-DELIVERABLE::"0xx-PROJECT[-NAME]-NORTH-STAR.md+immutable_requirements[7±2]+assumption_audit+commitment_ceremony_approval"
+DELIVERABLE::"000-PROJECT[-NAME]-NORTH-STAR.md+000-PROJECT[-NAME]-NORTH-STAR-SUMMARY.oct.md+immutable_requirements[7±2]+assumption_audit+commitment_ceremony_approval"
 NORTH_STAR_ARCHITECTURE::"4-layer structure: immutable_core[5-9] + constrained_variables + assumption_register + explicit_non-requirements"
 LOCATION::".hestai/north-star/"
 D2_ATHENA_INNOVATION::SOLUTION_APPROACHES
@@ -70,18 +70,18 @@ SUBPHASES::"B1_01[task-decomposer:atomic_tasks+dependencies]→B1_02[workspace-a
 RACI::"R[planning_specialists]→A[critical-engineer:final_build_plan_approval]→C[technical-architect:guidance, requirements-steward:scope, principal-engineer:tech_debt_strategy_at_B1_01]→I[solution-steward, code-review-specialist, universal-test-engineer]"
 MIGRATION_GATE::"B1_02_completion→STOP→HUMAN_MIGRATION_POINT"
 RESTART_IN_NEW_LOCATION::"cd ${PROJECT_ROOT}/build/VERIFY_pwd→RESUME_B1_03"
-QUALITY_GATE_MANDATORY::"⚠️ Load workspace-setup skill for stack-specific gates. NO src/ FILES WITHOUT PASSING quality gates per project stack: python[ruff_check,black_check,mypy,pytest] | node[npm_run_lint,npm_run_typecheck,npm_test] | generic[lint,typecheck,test]"
+QUALITY_GATE_MANDATORY::"⚠️ Load workspace-setup skill for stack-specific gates. NO src/ FILES WITHOUT PASSING quality gates per project stack: python[ruff_check,black_check,mypy,pytest] | node[lint,typecheck,test_via_repo_declared_runner:package.json_packageManager+declared_scripts+lockfile,NEVER_assume_npm] | generic[lint,typecheck,test]"
 DELIVERABLES::["B1-BUILD-PLAN.md⊕task_breakdown","B1-WORKSPACE.md⊕environment⊕CI/CD_setup⊕QUALITY_GATE_EVIDENCE","B1-DEPENDENCIES.md⊕critical_path",TRACED_artifacts]
 LOCATION::".hestai/rules/specs/[build_plan]+.hestai/state/reports/[gate_evidence]"
 CRITERIA::[all_components_have_tasks,"dependencies_mapped⊕sequenced",test_requirements_identified,QUALITY_GATES_OPERATIONAL,resources_defined,risks_mitigated,"timeline_realistic⊕buffered"]
 CONTEXT7_LIBRARY_RESEARCH::[[[PATTERN::"mcp__Context7__resolve-library-id→mcp__Context7__get-library-docs"]],[[D1_USAGE::"Research for problem understanding and existing solutions"]],[[B0_USAGE::"Architecture validation against current library capabilities"]],[[B1_USAGE::"Dependency versions and integration patterns"]],[[B2_USAGE::"API references and implementation examples during TDD"]],[[B3_USAGE::"Integration best practices and compatibility validation"]]]
 B2_HEPHAESTUS_FORGE::CODE_CONSTRUCTION
 PURPOSE::"Execute build plan through disciplined development+quality validation"
-SUBPHASES::"B2_00[universal-test-engineer:test_strategy+methodology]→B2_01[implementation-lead:coordinate_development]→B2_02[universal-test-engineer:test_suites]→B2_03[code-review-specialist:quality_review]→B2_04[error-resolver:integration_issues]"
+SUBPHASES::"B2_00[universal-test-engineer:test_strategy+methodology]→B2_01[implementation-lead:coordinate_development]→B2_02[universal-test-engineer:test_suites]→B2_03[PR_review_gate:required_reviewers_computed_per_content_facet_per_review-requirements.oct.md]→B2_04[error-architect:integration_issues+error-triage_skill]"
 RACI::"R[development_specialists]→A[critical-engineer:production_standards]→C[technical-architect:compliance, Context7:libraries, universal-test-engineer:methodology, principal-engineer:pattern_monitoring_OPTIONAL]→I[solution-steward, completion-architect, security-specialist]"
-B2_00_REQUIREMENTS::[test_strategy_aligned,coverage_requirements_defined,compliance_validation_setup,frameworks_approved,integrity_monitoring]
-IMPLEMENTATION_STANDARDS::["TEST_STRATEGY_FIRST→TEST_FIRST→TRACED_METHODOLOGY",Context7_consultation_libraries,code_review_every_change,CI_immediate_failure_resolution,architecture_compliance,security_scanning]
-QUALITY_GATES::["coverage_80%+",tests_passing_CI,code_review_approval,no_critical_vulnerabilities,performance_benchmarks_met,docs_updated]
+TEST_STRATEGY_REQUIREMENTS::[test_strategy_aligned,coverage_requirements_defined,compliance_validation_setup,frameworks_approved,integrity_monitoring]
+IMPLEMENTATION_STANDARDS::["TEST_STRATEGY_FIRST→TEST_FIRST[RED]→TMG_GATE[T2+:test-methodology-guardian_APPROVED_before_GREEN]→GREEN→TRACED_METHODOLOGY",Context7_consultation_libraries,PR_review_gate_per_content_facet_reviewers,CI_immediate_failure_resolution,architecture_compliance,security_scanning]
+QUALITY_GATES::["coverage_80%+",tests_passing_CI,PR_review_gate_approvals,no_critical_vulnerabilities,performance_benchmarks_met,docs_updated]
 DELIVERABLES::["B2-IMPLEMENTATION-LOG.md","B2-TEST-STRATEGY.md","source_code⊕tests","CI_pipeline⊕quality_gates",TRACED_compliance_artifacts]
 LOCATION::".hestai/state/reports/"
 B3_HARMONIA_UNIFICATION::SYSTEM_UNIFICATION
@@ -110,7 +110,7 @@ RACI::"R[enhancement_specialists]→A[critical-engineer:enhancement_approval]→
 STANDARDS::[maintain_architectural_principles,"preserve_stability⊕performance","follow_testing⊕quality_protocols","document_changes⊕impact",maintain_backward_compatibility]
 DELIVERABLES::["B5-ENHANCEMENT-PLAN.md","B5-IMPLEMENTATION.md",updated_system_docs,integration_testing_results]
 ERROR_HANDLING_TAXONOMY:
-  COMPONENT_ERRORS::ERROR_RESOLVER_HERMES
+  COMPONENT_ERRORS::"error-architect[error-triage_skill]"
   QUICK_FIX_ERRORS::"≤30_minutes[syntax/config, obvious_root_cause, single_file_fix, zero_architectural_implications]"
   COMPLEX_ERRORS::"30_min-4_hours[multi-component, performance_degradation, investigation_required]"
   SYSTEM_ERRORS::ERROR_ARCHITECT_ZEUS
@@ -120,21 +120,23 @@ ERROR_HANDLING_TAXONOMY:
   EMERGENCY_PROTOCOL::"CRITICAL_ERRORS→STOP_work→CRITICAL-ENGINEER_incident_commander→SPECIALIST_TEAM→STABILIZATION_before_root_cause→MITIGATION+POST_MORTEM"
   USER_UNAVAILABILITY_PROTOCOL::">24_hours_no_response→[document_current_state+assumptions+questions, preserve_work+detailed_commits, status_WAITING_USER_INPUT, resume_instructions_for_continuity]"
 POST_MORTEM_ANALYSIS:
-  PURPOSE::"Extract systemic patterns from incidents for preventive architecture"
+  ANALYSIS_PURPOSE::"Extract systemic patterns from incidents for preventive architecture"
   DUAL_ANALYSIS::[[[TACTICAL::"critical-engineer analyzes immediate cause, root technical failure, remediation plan (What broke RIGHT NOW?)"]],[[STRATEGIC::"principal-engineer identifies systemic patterns, architectural decay signals, preventive measures (Why will this pattern repeat?)"]]]
   COLLABORATION_PATTERN::"critical-engineer produces incident analysis→principal-engineer consumes for pattern extraction→joint recommendations (tactical fixes + strategic prevention)"
-  DELIVERABLE::"Post-mortem report with tactical remediation AND strategic architectural recommendations"
+  POST_MORTEM_OUTPUT::"Post-mortem report with tactical remediation AND strategic architectural recommendations"
   INVOCATION::"MANDATORY for CRITICAL incidents, HIGH-priority recurring failures, architectural erosion signals"
 ARTIFACT_PLACEMENT:
   LIFECYCLE_MODEL::"Spec[.hestai/rules/specs/]→Report[.hestai/state/reports/]→Doc[docs/]"
+  DECISION_RECORDS::".hestai/decisions/[compiled_governance_decisions_oct.md,committed_PR_controlled,NOT_ADRs[docs/adr/]]"
   DOCUMENT_PLACEMENT_PROTOCOL::"Load documentation-placement skill for placement rules and visibility protocols"
   CANONICAL_REFERENCE::".hestai-sys/standards/rules/visibility-rules.oct.md"
   PHASE_TRANSITION_CLEANUP::["B1_02, B2_04, B3_04, B4_05 require cleanup validation","holistic-orchestrator→directory-curator→workspace-architect pattern"]
 SESSION_COORDINATION:
+  SESSION_LIFECYCLE::"clock_in+clock_out session_lifecycle→hestai-context-mcp[ADR-0353:docs/adr/adr-0353-three-service-model.md], sessions-manager→D0_ideation_structure_only"
   IDEATION_GRADUATION_EXECUTION::[[[D0_IDEATION::".hestai/state/sessions/[structured_exploration+thread_messaging+manifest_tracking]"]],[[PROJECT_MIGRATION_EXECUTION::"workspace-architect[B1_02]→migration[ideation→project/sessions/]→MIGRATION_GATE[directory_change_required]→state_symlink[.hestai/state/]→using_graduation_assessment_from_D0"]],[[ARTIFACT_DISTRIBUTION::"D1→.hestai/north-star/, D2-D3→.hestai/rules/specs/, B0-B3→.hestai/state/reports/, B4→docs/"]]]
   LINK_STANDARDS::[[[LOCALITY_PRINCIPLE::"internal_links[relative_paths], external_links[full_paths_boundary_crossing_only]"]],[[MIGRATION_RESILIENCE::"links_survive_reorganization+repository_moves"]],[[VALIDATION_ENFORCEMENT::"automation_testable+broken_links_block_commits"]]]
 ENHANCEMENT_CLASSIFICATION:
-  B5_CRITERIA::[improves_existing_beyond_original,works_within_architectural_framework,completable_within_scope_limits,low_destabilization_risk]
+  ENHANCEMENT_CRITERIA::[improves_existing_beyond_original,works_within_architectural_framework,completable_within_scope_limits,low_destabilization_risk]
   NEW_PROJECT_TRIGGERS::[architectural_changes_or_new_components,new_external_integrations_or_major_dependencies,core_business_logic_or_data_model_changes,timeline_exceeds_enhancement_capacity]
   ENHANCEMENT_PROCESS::"Requirements→Architectural_Assessment→Implementation→Integration_Validation"
 CROSS_REFERENCE_INTEGRATION:
