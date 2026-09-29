@@ -51,10 +51,10 @@ SCOPE_BOUNDARIES:
   IS::[persistent_memory,structural_governance,multi_model_orchestration]
   IS_NOT::[commercial_product,tool_library,monorepo_exclusive]
 KEY_DOCUMENTS:
-  OPERATIONAL_WORKFLOW::OPERATIONAL_WORKFLOW.oct.md
-  NAMING_STANDARD::NAMING_STANDARD.oct.md
-  VISIBILITY_RULES::VISIBILITY_RULES.oct.md
-  FULL_REFERENCE::HESTAI_SYSTEM_REFERENCE.oct.md
+  OPERATIONAL_WORKFLOW::"workflow/OPERATIONAL-WORKFLOW.oct.md"
+  NAMING_STANDARD::"rules/naming-standard.oct.md"
+  VISIBILITY_RULES::"rules/visibility-rules.oct.md"
+  FULL_REFERENCE::HESTAI-SYSTEM-REFERENCE.oct.md
 COMPETITIVE_MOAT:
   INTEGRATED_COHERENCE::"TDD⊕phase_gates⊕RACI⊕standards_binding⊕OCTAVE_semantics create coherence no subset achieves"
   EVIDENCE::[persistent_decisions,audit_trails,role_fidelity,conflict_resolution]
