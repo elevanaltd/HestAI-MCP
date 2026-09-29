@@ -113,7 +113,7 @@ def field_violations(path: Path) -> list[str]:
             violations.append(
                 f"line {number}: {current} block repeats {key} (last value wins in readers)"
             )
-        if not value:
+        if not value or value in {"[]", '""'}:
             violations.append(f"line {number}: {current} {key} has an empty value")
         elif value.endswith("[") or value.count("[") != value.count("]") or value.count('"') % 2:
             violations.append(
@@ -189,10 +189,23 @@ def legacy_reader_violations(path: Path) -> list[str]:
             )
         if constraints.purpose == f"Phase {phase}":
             violations.append(f"{phase}: purpose resolved to the generic fallback")
-        if phase in {"B2", "B5"}:
+        own_deliverables = [
+            value for _, key, value in block if key in {"DELIVERABLE", "DELIVERABLES"}
+        ]
+        if phase == "B1" and not own_deliverables:
+            violations.append("B1: block has no DELIVERABLE(S) line of its own")
+        if own_deliverables:
             deliverables = constraints.deliverables
-            if not deliverables or not deliverables[0].startswith(f"{phase}-"):
+            if not deliverables:
+                violations.append(
+                    f"{phase}: reader served empty deliverables for {own_deliverables[-1][:60]!r}"
+                )
+            elif (phase.startswith("B") and not deliverables[0].startswith(f"{phase}-")) or (
+                deliverables[0].strip('"')[:20] not in own_deliverables[-1]
+            ):
                 violations.append(f"{phase}: deliverables not from own block: {deliverables}")
+        if phase == "B1" and not (constraints.quality_gates or "").strip():
+            violations.append("B1: reader served empty quality_gates")
         if phase == "B5":
             text = str(constraints.to_dict()).lower()
             if "post-mortem" in text or "post_mortem" in text:
