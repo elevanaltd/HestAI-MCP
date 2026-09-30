@@ -9,10 +9,11 @@ place of the pattern - the bound agent proceeds believing it received the patter
 rules when it received nothing. This is the same "the ceremony silently loads
 nothing" class of defect guarded by ``test_bundled_hub_selector_resolution.py``.
 
-Measured: ``tdd-discipline``, ``verification-protocols`` and
-``phase-transition-cleanup`` all return that WARN today, so binds of
-implementation-lead, test-methodology-guardian, task-decomposer, visual-architect
-and system-steward receive no kernel for them.
+Measured at odyssean-anchor 2c065610 before PR #451: ``tdd-discipline``,
+``verification-protocols`` and ``phase-transition-cleanup`` all returned that WARN,
+so binds of implementation-lead, test-methodology-guardian, task-decomposer,
+visual-architect and system-steward received no kernel for them. This guard pins the
+fix: each pattern now carries an extractable ANCHOR_KERNEL.
 
 MIRRORED EXTRACTOR RULE (hestai-mcp does NOT depend on ``odyssean_anchor``)
 ---------------------------------------------------------------------------
