@@ -125,7 +125,7 @@ The forced structural output creates an **autoregressive state-lock** — subseq
      RCCAFP JSON acts as attention firewall — no contaminated bytes transfer
 ```
 
-An agent that does not yet declare these profiles, or a host without the Reanchoring Upload generator (§3A), loads `error-triage` and `diagnostic-protocols` directly and follows the same steps.
+An agent that does not yet declare these profiles, or a host without the Reanchoring Upload generator (§3A), loads `error-triage` and `diagnostic-protocols` directly in place of the uploads, performs the same two diagnostic attempts and RCCAFP gate, resumes implementation directly when `escalation_required=false`, and dispatches the specialist as in step 7 otherwise.
 
 **Step 5 is the structural gate.** The RCCAFP tool forces summarization (switching from "generate next code diff" to "compress semantic state"). The `escalation_required` boolean is a commitment the model must make — it cannot sleepwalk through it.
 
