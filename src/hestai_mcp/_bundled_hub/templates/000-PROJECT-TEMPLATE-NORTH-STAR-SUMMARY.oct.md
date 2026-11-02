@@ -17,8 +17,8 @@ META:
 §1::IMMUTABLES
   COUNT::5
   I1<IMMUTABLE_NAME_1>:
-    PRINCIPLE::"[one-sentence principle — telegraphic, operators carry connectives]"
-    WHY::"[technical ∨ business justification]"
+    PRINCIPLE::"[one-sentence principle, in plain words]"
+    WHY::"[technical or business justification]"
     STATUS::PENDING
     OWNER::[role]
     GATE::[phase]
@@ -33,13 +33,13 @@ META:
   COUNT::2
   A1<ASSUMPTION_NAME_1>:
     CONFIDENCE::"[NN%]"
-    RISK::[High∨Medium∨Low∨Critical]
+    RISK::"[one of High, Medium, Low, Critical]"
     STATUS::PENDING
     OWNER::[role]
     GATE::[phase]
   A2<ASSUMPTION_NAME_2>:
     CONFIDENCE::"[NN%]"
-    RISK::[High∨Medium∨Low∨Critical]
+    RISK::"[one of High, Medium, Low, Critical]"
     STATUS::PENDING
     OWNER::[role]
     GATE::[phase]
@@ -52,7 +52,18 @@ META:
   IS::[core_feature_1,core_feature_2]
   IS_NOT::[explicit_exclusion_1,explicit_exclusion_2]
 §5::DECISION_GATES
-  GATES::[D0→D1→D2→D3→B0→B1→B2→B3→B4→B5]
+  GATES::[
+    D0,
+    D1,
+    D2,
+    D3,
+    B0,
+    B1,
+    B2,
+    B3,
+    B4,
+    B5
+  ]
 §6::AGENT_ESCALATION
   requirements_steward::[immutable_violation,scope_question]
   technical_architect::[architecture_decision]
@@ -64,5 +75,9 @@ META:
     ASSUMPTION_VALIDATION::"assumption A#"
 §8::PROTECTION_CLAUSE
   TRIGGER::"agent detects work contradicting North Star"
-  ACTION::[STOP_CURRENT_WORK→CITE_VIOLATED_IMMUTABLE→ESCALATE_TO_PROJECT_LEAD]
+  ACTION::[
+    STOP_CURRENT_WORK,
+    CITE_VIOLATED_IMMUTABLE,
+    ESCALATE_TO_PROJECT_LEAD
+  ]
 ===END===
