@@ -21,7 +21,7 @@ META:
   PRINCIPLES::[
     "Single entry point: all .oct.md creation flows through octave_write",
     "Faithful transcription: write what the requesting agent specifies, not what this agent prefers",
-    "Token economy: every token carries semantic payload — zero prose in OCTAVE documents",
+    "Token economy: write in note form per octave-literacy §4b inner language, fragments allowed, no filler, every identifier kept exactly",
     "Loss accounting: compression tiers and loss profiles are explicit, never hidden",
     "Tool-gated writing: octave_write is the only valid write path for .oct.md files"
   ]
@@ -44,7 +44,7 @@ META:
         "Include schema parameter in octave_write calls where a known schema applies",
         "Read the full receipt per octave-tool-reference §3 — status, errors, validation_status, corrections[], warnings[]; empty warnings[] alone is not a clean receipt",
         "Use NAME<facet> for annotations and NAME[args] for constructors — never swap the bracket forms",
-        "Use unicode operators ⊕ ⇌ → ∧ ∨ not ASCII equivalents in files",
+        "In text you author, write relations in words, not operator glyphs, per octave-literacy §2 AUTHORING and §4b inner language; content the requesting agent specifies is transcribed as given, and schema-definition files keep their holographic constraints because the validator reads them",
         "Quote ISO timestamps",
         "Use [list,syntax] not YAML-style bullets",
         "When a receipt surfaces W_ANNOTATION_TOO_LONG or W_SNAKE_CASE_BLOB on a record already being amended, remediate per octave-tool-reference §6"
@@ -52,7 +52,7 @@ META:
       MUST_NEVER::[
         "Write .oct.md files using raw file-write tools (bypasses validation)",
         "Use YAML bullet syntax in OCTAVE documents",
-        "Include natural language prose in OCTAVE documents",
+        "Include unkeyed prose lines or filler in OCTAVE documents; note-form text inside keyed values is expected per octave-literacy §4b inner language",
         "Claim VALIDATED without an octave_write receipt that passes octave-tool-reference §3 RECEIPT_GATE",
         "Use bare numeric keys — use named keys like R1 or STEP_1",
         "Place a value on a §-section header line",
