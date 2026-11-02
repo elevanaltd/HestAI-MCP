@@ -1,7 +1,7 @@
 ---
 type: SPECIFICATION
 id: rccafp-error-recovery
-version: "1.0"
+version: "1.1"
 status: APPROVED
 purpose: Canonical error recovery architecture for the HestAI agent ecosystem
 created: 2026-04-06
@@ -14,8 +14,9 @@ delivery: "Bundled hub → .hestai-sys/standards/ (cross-repo, all agents)"
 
 # RCCAFP Error Recovery Architecture
 
-**Version:** 1.0
+**Version:** 1.1
 **Status:** APPROVED
+**v1.1 note:** profile names follow V9 (`error_diagnosis`, `code_writing`) per the companion ruling record of OPERATIONAL-WORKFLOW (token RCCAFP-SPEC-ADOPTS-V9-PROFILE-NAMES-20260930).
 
 ---
 
@@ -52,7 +53,7 @@ Two naive solutions both fail:
 
 Identity (Role) and Axioms (System Standards) are **Primacy** — they stay static in the system prompt. Archetypes and Skills are **Praxis** — they operate through **Recency Bias** and can be swapped mid-session.
 
-When an agent needs to switch profiles (e.g., `feature_implementation` → `build_failure_recovery`), the Payload Compiler generates a Reanchoring Upload injected into the latest chat turn:
+When an agent needs to switch profiles (e.g., `code_writing` → `error_diagnosis`), the Payload Compiler generates a Reanchoring Upload injected into the latest chat turn:
 
 ```
 ===REANCHORING_UPLOAD===
@@ -110,13 +111,13 @@ The forced structural output creates an **autoregressive state-lock** — subseq
 ### 2.3 Canonical 7-Step Error Recovery Workflow
 
 ```
-1. IL hits build failure during feature_implementation
-2. Engine triggers Reanchoring Upload → build_failure_recovery profile
+1. IL hits build failure during code_writing
+2. Engine triggers Reanchoring Upload → error_diagnosis profile
 3. IL diagnoses (attempt 1)
 4. If unresolved → attempt 2
 5. After attempt 2 → submit_rccafp_record is MANDATORY
 6. escalation_required=false →
-     Reanchoring Upload back to feature_implementation
+     Reanchoring Upload back to code_writing
      IL implements fix with full context preserved
 7. escalation_required=true →
      dispatch_colleague(specialist) with RCCAFP JSON
@@ -140,7 +141,7 @@ The Payload Compiler must support a `ReanchoringUploadGenerator` that:
 - Generates the Reanchoring Upload block with MANDATE output requirement
 - Injects into the current chat turn without destroying KV cache
 
-**Trigger:** Agent calls `swap_profile("build_failure_recovery")` or equivalent dispatch signal.
+**Trigger:** Agent calls `swap_profile("error_diagnosis")` or equivalent dispatch signal.
 
 ### 3B. Governance Engine (hestai-context-mcp)
 
@@ -174,7 +175,7 @@ Session teardown destroys tacit context that is not fully reconstructable from a
 
 ### Why not a post_error_build profile?
 
-After diagnosis (step 6, `escalation_required=false`), the agent Reanchoring Uploads back to `feature_implementation`. Implementing a fix is structurally identical to implementing any feature — the only difference is input context, which the RCCAFP record provides. A separate profile adds complexity without adding different capabilities. MIP wins.
+After diagnosis (step 6, `escalation_required=false`), the agent Reanchoring Uploads back to `code_writing`. Implementing a fix is structurally identical to implementing any feature — the only difference is input context, which the RCCAFP record provides. A separate profile adds complexity without adding different capabilities. MIP wins.
 
 ### Why 2 attempts, not 3?
 
@@ -186,7 +187,7 @@ LLM attention contamination is measurable after 2 failed diagnostic iterations. 
 
 | System | Relationship |
 |--------|-------------|
-| **Archetype Matrix** (dream-team-architecture §2.4) | `build_failure_recovery` is a profile defined per-agent in the matrix |
+| **Archetype Matrix** (dream-team-architecture §2.4; V9: `config/archetype-matrix.json`, hestai-workbench ADR-001) | `error_diagnosis` is a V9 TASK_PROFILES entry declared per-agent (e.g. `implementation-lead`); its archetypes, skills, kernel_only and patterns live in the matrix |
 | **dispatch_colleague** (Lighthouse §4) | Escalation uses existing dispatch mechanism — no new pattern |
 | **B2 BUILD** (dream-team-architecture §1.3) | Error recovery is part of the B2 rework loop |
 | **I1 Cognitive Continuity** (North Star) | Error metrics persist in `.hestai/state/error-metrics.jsonl` |
@@ -212,6 +213,6 @@ LLM attention contamination is measurable after 2 failed diagnostic iterations. 
 - The RCCAFP JSON IS the attention firewall — pass only the structured fields, never raw session context
 
 **If you are defining agent profiles in the Archetype Matrix:**
-- Every implementing agent (IL, etc.) should have a `build_failure_recovery` profile
+- Every implementing agent (IL, etc.) should declare an `error_diagnosis` profile as a V9 TASK_PROFILES entry (agent definition §3) with its matrix entry in `config/archetype-matrix.json`
 - This profile loads error-triage + diagnostic-protocols skills
 - The profile is activated via Reanchoring Upload, not initial binding
