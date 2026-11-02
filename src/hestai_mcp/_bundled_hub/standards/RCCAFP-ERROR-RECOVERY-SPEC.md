@@ -125,6 +125,8 @@ The forced structural output creates an **autoregressive state-lock** — subseq
      RCCAFP JSON acts as attention firewall — no contaminated bytes transfer
 ```
 
+An agent that does not yet declare these profiles, or a host without the Reanchoring Upload generator (§3A), loads `error-triage` and `diagnostic-protocols` directly and follows the same steps.
+
 **Step 5 is the structural gate.** The RCCAFP tool forces summarization (switching from "generate next code diff" to "compress semantic state"). The `escalation_required` boolean is a commitment the model must make — it cannot sleepwalk through it.
 
 **Step 7 is the attention firewall.** When escalated, the dispatched specialist receives ONLY `context_summary` + `root_cause_analysis` + `future_proofing_rule`. None of the IL's failed hypothesis tokens, stack trace explorations, or contaminated reasoning transfers. The specialist binds fresh via anchor ceremony with clean context.
