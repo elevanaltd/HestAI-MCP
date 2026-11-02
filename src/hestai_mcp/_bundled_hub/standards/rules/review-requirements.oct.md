@@ -1,7 +1,7 @@
 ===REVIEW_REQUIREMENTS===
 META:
   TYPE::RULE
-  VERSION::"3.1"
+  VERSION::"3.2"
   STATUS::ENFORCED
   PURPOSE::"Facet-based content-aware review requirements with automated enforcement"
   ENFORCEMENT::PRE_COMMIT⊕CI⊕PR_MERGE
@@ -22,7 +22,7 @@ EXECUTABLE_SPEC::[
   RATIONALE::"Executable governance specs need code quality, code review, and standards review"
 ]
 GOVERNANCE::[
-  TRIGGER::".oct.md files with TYPE::RULE, TYPE::STANDARD, TYPE::NORTH_STAR_SUMMARY, or unknown type",
+  TRIGGER::".oct.md files with TYPE::RULE, TYPE::STANDARD, TYPE::NORTH_STAR_SUMMARY, or unknown type, or Markdown under .hestai/decisions/** or docs/adr/**",
   REQUIRED_REVIEWERS::"{SR}",
   RATIONALE::"Governance documents need standards alignment review only"
 ]
@@ -47,14 +47,14 @@ ROUTINE_CODE::[
 TIER_0_EXEMPT::[
   CONDITION::"No non-exempt files changed",
   EXEMPT_PATTERNS::[
-    "**/*.md[except:*.oct.md]",
+    "**/*.md[except:*.oct.md,.hestai/decisions/**,docs/adr/**]",
     "tests/**/*[when:no_src_changes]",
     "**/*.json[when:generated_file]",
     "**/*.lock"
   ]
 ]
 TIER_1_SELF::[
-  CONDITION::"non_exempt_lines<10 AND single_non_exempt_file AND no_new_test_files AND facets exclude SECURITY, META_CONTROL_PLANE, EXECUTABLE_SPEC (GOVERNANCE and ROUTINE_CODE allow self-review at small scale)",
+  CONDITION::"non_exempt_lines<10 AND single_non_exempt_file AND no_new_test_files AND facets exclude SECURITY, META_CONTROL_PLANE, EXECUTABLE_SPEC, GOVERNANCE (ROUTINE_CODE allows self-review at small scale)",
   PROOF::"{role} SELF-REVIEWED: {rationale} OR HO REVIEWED: {rationale}"
 ]
 TIER_2_STANDARD::"When required reviewers do NOT include CIV or PE"
@@ -140,7 +140,9 @@ PATH_OVERRIDES::[
   "library/agents/**/*.oct.md→EXECUTABLE_SPEC[even_if_deleted]",
   "library/skills/**/*.oct.md→EXECUTABLE_SPEC[even_if_deleted]",
   "library/skills/**/SKILL.md→EXECUTABLE_SPEC[not_exempt_despite_.md]",
-  "library/patterns/**/*.md→EXECUTABLE_SPEC[not_exempt_despite_.md]"
+  "library/patterns/**/*.md→EXECUTABLE_SPEC[not_exempt_despite_.md]",
+  ".hestai/decisions/**/*.md→GOVERNANCE[not_exempt_despite_.md]",
+  "docs/adr/**/*.md→GOVERNANCE[not_exempt_despite_.md]"
 ]
 FALLBACK::"Unknown .oct.md TYPE→GOVERNANCE[safe_fallback_to_SR_review]"
 §6::TMG_PHASE
