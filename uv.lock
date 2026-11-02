@@ -718,7 +718,7 @@ wheels = [
 
 [[package]]
 name = "octave-mcp"
-version = "1.15.0"
+version = "1.16.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -731,9 +731,9 @@ dependencies = [
     { name = "python-multipart" },
     { name = "pyyaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9e/a6/3472a5bc8b3689b745817eeb9b3fa6792699e9dc8aacbbd2ed7cc293a5a7/octave_mcp-1.15.0.tar.gz", hash = "sha256:660c8969b61fb0df473de8934e26f1ed463b6ed92fec542aaab5ccf736509a9a", size = 387208, upload-time = "2026-06-01T08:22:44.371Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/72/66/961efd59cac9fad3981c47769a788aa934daa1f614f59c42bab41c783806/octave_mcp-1.16.0.tar.gz", hash = "sha256:9bcef08ca97ab6d7589c1d5a2ca9a6f21d5c848e9300b29aad8ce95ea2079c41", size = 400369, upload-time = "2026-09-18T14:37:15.521Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/81/3a/9b351a30bd1af1f27013b587a4bd244d2b2345c2e0bd9b0023cf315a304c/octave_mcp-1.15.0-py3-none-any.whl", hash = "sha256:e5212e673c3fcd609e488f61223a05e8fe4520f22609c9cde1de4d182210d551", size = 415089, upload-time = "2026-06-01T08:22:42.615Z" },
+    { url = "https://files.pythonhosted.org/packages/1d/33/47a8a17ade917582e822a2e6a3adfc4265b2623e00aa32cc303dfc9f49cc/octave_mcp-1.16.0-py3-none-any.whl", hash = "sha256:4ceabda0767dd01de2ff745fe5173fd31657da9d886e62fa2bf423b325f78878", size = 429316, upload-time = "2026-09-18T14:37:13.896Z" },
 ]
 
 [[package]]
