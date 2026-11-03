@@ -7,6 +7,7 @@ META:
   ENFORCEMENT::PRE_COMMIT⊕CI⊕PR_MERGE
   CANONICAL::"src/hestai_mcp/_bundled_hub/standards/rules/review-requirements.oct.md"
   SOURCE::"src/hestai_mcp/_bundled_hub/standards/rules/review-requirements.oct.md"
+  ACTIVATION::"Gate enforcement of the Markdown decision record and ADR paths begins once the re-pinned validator is live through ruleset 12626210; until then the interim hold in decision record REVIEW-REQUIREMENTS-MD-RECORDS-20261102 applies."
 §1::CONTENT_FACETS
   // Reviewer assignment is content-aware, not just line-count based.
   // Each file emits a facet based on its content. Required reviewers = union of all facets.
