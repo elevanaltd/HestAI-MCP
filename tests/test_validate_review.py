@@ -1459,63 +1459,6 @@ class TestImportlibFallbackDiagnostic:
 
 
 @pytest.mark.behavior
-class TestCallerTemplateAlignment:
-    """Validate that the caller template YAML has aligned bot-exclusion filters.
-
-    The caller template (.github/workflows/review-gate-caller.yml.template) must
-    include the same bot-exclusion and keyword filters as the main workflow
-    (review-gate.yml) to prevent bot noise from triggering unnecessary workflow_call
-    invocations in consuming repos.
-    """
-
-    @pytest.fixture
-    def template_content(self):
-        """Load the caller template YAML content."""
-        template_path = (
-            Path(__file__).parent.parent
-            / ".github"
-            / "workflows"
-            / "review-gate-caller.yml.template"
-        )
-        assert template_path.exists(), f"Caller template not found at {template_path}"
-        return template_path.read_text()
-
-    def test_template_is_valid_yaml(self, template_content):
-        """Caller template must be valid YAML."""
-        import yaml
-
-        # Should not raise an exception
-        parsed = yaml.safe_load(template_content)
-        assert parsed is not None
-        assert "jobs" in parsed
-
-    def test_template_has_bot_exclusion_filter(self, template_content):
-        """Caller template must exclude bot comments (user.type != 'Bot')."""
-        assert "github.event.comment.user.type != 'Bot'" in template_content, (
-            "Caller template must include bot-exclusion filter "
-            "(github.event.comment.user.type != 'Bot') to prevent bot noise "
-            "from triggering workflow_call invocations"
-        )
-
-    def test_template_has_keyword_filters(self, template_content):
-        """Caller template must filter issue_comment events by review keywords."""
-        # These keywords match what review-gate.yml uses
-        assert (
-            "APPROVED" in template_content
-        ), "Caller template must filter comments containing 'APPROVED'"
-        assert (
-            "REVIEWED" in template_content
-        ), "Caller template must filter comments containing 'REVIEWED'"
-        assert "GO" in template_content, "Caller template must filter comments containing 'GO'"
-
-    def test_template_preserves_pr_event_pass_through(self, template_content):
-        """Caller template must still pass through pull_request events unconditionally."""
-        assert (
-            "github.event_name == 'pull_request'" in template_content
-        ), "Caller template must pass through pull_request events"
-
-
-@pytest.mark.behavior
 class TestStructuredJsonOutput:
     """Validate that main() emits a structured JSON summary as an HTML comment.
 

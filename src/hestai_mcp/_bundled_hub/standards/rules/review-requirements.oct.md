@@ -1,7 +1,7 @@
 ===REVIEW_REQUIREMENTS===
 META:
   TYPE::RULE
-  VERSION::"3.2"
+  VERSION::"3.3"
   STATUS::ENFORCED
   PURPOSE::"Facet-based content-aware review requirements with automated enforcement"
   ENFORCEMENT::PRE_COMMIT⊕CI⊕PR_MERGE
@@ -28,7 +28,7 @@ GOVERNANCE::[
   RATIONALE::"Governance documents need standards alignment review only"
 ]
 SECURITY::[
-  TRIGGER::"Code in auth/, session/, config/env, path_utils, base.py, shared/, hooks/, tools/, mcp/tools/, clink/agents/, or .sql",
+  TRIGGER::"Code in auth/, session/, config/env, path_utils, base.py, shared/, hooks/, tools/, mcp/tools/, clink/agents/, or .sql, or any path not already exempt (plain Markdown and tests are classified first) that has a segment starting redaction, provenance or clock_out, matching the hestai-context-mcp classifier at 7634feb8 (hc #258 and #267)",
   REQUIRED_REVIEWERS::"{CIV, CE, CRS, TMG}",
   RATIONALE::"Security-touching and architectural code needs full review chain"
 ]
@@ -83,7 +83,7 @@ PR_COMMENT_MAGIC::[
   CONDITIONAL_PREFIX::"APPROVED WITH CONDITIONS:"
 ]
 VALIDATION_SCRIPT::"scripts/validate_review.py"
-CI_WORKFLOW::".github/workflows/review-gate.yml"
+CI_WORKFLOW::"elevanaltd/hestai-context-mcp .github/workflows/review-gate.yml, injected into this repo by org ruleset 12626210 (this repo's own copy was retired 2026-11-07)"
 PRE_COMMIT_HOOK::".pre-commit-config.yaml[review-validator]"
 §4::ROLE_MODEL_DISPATCH
 TMG::[
@@ -202,7 +202,7 @@ ORDERING::[
 ]
 PROVENANCE::[
   EMIT::"validate_review.py emits a per-role source map {ROLE:[DIFF|HEAD|BASE|PR_BODY]} in the REVIEW_GATE_JSON payload",
-  RENDER::"review-gate.yml renders the source map as a status-comment audit table",
+  RENDER::"the ruleset-injected hestai-context-mcp review-gate.yml renders the source map as a status-comment audit table",
   AUDIT_TRAIL::"a role contributed only by BASE displays BASE alone — a visible record of an attempted downgrade that set-union refused"
 ]
 ===END===
