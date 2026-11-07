@@ -1,7 +1,7 @@
 ===REVIEW_REQUIREMENTS===
 META:
   TYPE::RULE
-  VERSION::"3.2"
+  VERSION::"3.3"
   STATUS::ENFORCED
   PURPOSE::"Facet-based content-aware review requirements with automated enforcement"
   ENFORCEMENT::PRE_COMMIT⊕CI⊕PR_MERGE
@@ -28,7 +28,7 @@ GOVERNANCE::[
   RATIONALE::"Governance documents need standards alignment review only"
 ]
 SECURITY::[
-  TRIGGER::"Code in auth/, session/, config/env, path_utils, base.py, shared/, hooks/, tools/, mcp/tools/, clink/agents/, or .sql",
+  TRIGGER::"Code in auth/, session/, config/env, path_utils, base.py, shared/, hooks/, tools/, mcp/tools/, clink/agents/, or .sql, or any path with a segment starting redaction, provenance or clock_out (matching the hestai-context-mcp classifier, hc #258 and #267)",
   REQUIRED_REVIEWERS::"{CIV, CE, CRS, TMG}",
   RATIONALE::"Security-touching and architectural code needs full review chain"
 ]
